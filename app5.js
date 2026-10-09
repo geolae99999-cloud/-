@@ -203,6 +203,10 @@
    * ======================================================= */
   if ('speechSynthesis' in window) { try { window.speechSynthesis.getVoices(); } catch (e) {} }
   try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
+  let lastErrAt = 0;
+  const softErr = () => { if (Date.now() - lastErrAt > 4000) { lastErrAt = Date.now(); try { toast('일시적인 문제가 생겼어요. 계속 반복되면 새로고침해 주세요.'); } catch (e) {} } };
+  window.addEventListener('error', e => { if (e && e.message && !/ResizeObserver/.test(e.message)) softErr(); });
+  window.addEventListener('unhandledrejection', e => { e.preventDefault && e.preventDefault(); softErr(); });
   applyTheme();
   let sess = null;
   try { sess = LS.getItem(KEY_SESS) || sessionStorage.getItem(KEY_SESS); } catch (e) {}
