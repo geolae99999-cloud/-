@@ -62,6 +62,7 @@
     S = { active: true, finished: false, mode, src, count, queue: q, total: q.length, idx: 0, ok: 0, no: 0, wrong: new Map(), locked: false, answered: false, options: [], dpool: dpool.length >= 4 ? dpool : allWords().map(x => x.w), startN: (stats.days[dayKey()] || { n: 0 }).n };
     $('studyScreen').classList.add('open');
     document.body.classList.add('no-scroll');
+    kbdHint(mode);
     if (mode === 'listen') startListen(); else renderQuestion();
   }
 
@@ -195,6 +196,7 @@
       </div>`;
     if (!reverse) playAudio(w.word);
   }
+  const PRAISE = ['정답이에요', '좋아요', '잘했어요', '훌륭해요', '완벽해요'];
   ACTIONS.opt = el => {
     if (S.locked || !S.active) return;
     S.locked = true;
@@ -205,6 +207,14 @@
     btns.forEach(b => { b.disabled = true; });
     el.classList.add(ok ? 'correct' : 'wrong');
     if (!ok) { const ci = S.options.findIndex(o => o.id === item.w.id); if (btns[ci]) btns[ci].classList.add('correct'); }
+    S.combo = ok ? (S.combo || 0) + 1 : 0;
+    const qw = $('stBody').querySelector('.q-wrap');
+    if (qw) {
+      const bar = document.createElement('div');
+      bar.className = 'ans-bar ' + (ok ? 'ok' : 'bad');
+      bar.innerHTML = `<span class="ans-ic">${ok ? IC.tick : IC.x}</span><span class="ans-t"><b>${ok ? PRAISE[Math.floor(Math.random() * PRAISE.length)] : '정답은 이거예요'}</b><span>${esc(item.w.word)} · ${esc(item.w.meaning)}</span></span>${ok && S.combo >= 3 ? `<span class="ans-combo">${S.combo}연속 정답</span>` : ''}`;
+      qw.appendChild(bar);
+    }
     if (S.mode === 'rchoice') playAudio(item.w.word);
     recordResult(item, ok);
     const my = S.idx;
@@ -238,8 +248,8 @@
     S.answered = true;
     $('typeInput').disabled = true;
     $('typeFeedback').innerHTML = ok
-      ? `<div class="fb ok">정답이에요! <b>${esc(w.word)}</b><div class="fb-sub">${esc(w.meaning)}</div></div>`
-      : `<div class="fb bad">정답은 <b>${esc(w.word)}</b> ${esc(w.phonetic)}<div class="fb-sub">${esc(w.meaning)}${w.example ? '<br>' + esc(w.example) : ''}${w.exampleKo ? '<br>' + esc(w.exampleKo) : ''}</div></div>`;
+      ? `<div class="fb ok"><span class="ans-ic">${IC.tick}</span><div>정답이에요! <b>${esc(w.word)}</b><div class="fb-sub">${esc(w.meaning)}</div></div></div>`
+      : `<div class="fb bad"><span class="ans-ic">${IC.x}</span><div>정답은 <b>${esc(w.word)}</b> ${esc(w.phonetic)}<div class="fb-sub">${esc(w.meaning)}${w.example ? '<br>' + esc(w.example) : ''}${w.exampleKo ? '<br>' + esc(w.exampleKo) : ''}</div></div></div>`;
     $('typeBtn').textContent = '다음';
     $('typeSkip').style.display = 'none';
     playAudio(w.word);
@@ -262,12 +272,13 @@
   /* ----- 결과 ----- */
   function finishSession() {
     S.finished = true;
+    kbdHint('');
     try { window.speechSynthesis.cancel(); } catch (e) {}
     $('stProg').style.width = '100%';
     $('stCount').textContent = '';
     const first = S.ok + S.no;
     const pct = first ? Math.round(S.ok / first * 100) : 0;
-    const emoji = pct >= 90 ? IC.trophy : pct >= 70 ? IC.sparkles : pct >= 40 ? IC.trend : IC.sprout;
+    const mood = pct >= 90 ? 'cheer' : pct >= 70 ? 'happy' : 'think';
     const title = pct >= 90 ? '완벽해요!' : pct >= 70 ? '아주 잘했어요' : pct >= 40 ? '조금만 더 하면 돼요' : '괜찮아요, 다시 해봐요';
     const st = streak();
     const goal = config.goal || 20;
@@ -277,10 +288,10 @@
     const label = S.mode === 'card' ? '알아요' : '정답';
     $('stBody').innerHTML = `
       <div class="result">
-        <div class="emoji">${emoji}</div>
+        <div class="result-art">${MASCOT(mood)}</div>
         <h2>${title}</h2>
         <div class="score">${S.ok} / ${first}</div>
-        <div class="muted" style="font-weight:600;">${label} ${pct}% · ${st}일 연속 · 오늘 ${todayN}/${goal}${goalHit ? ' · 목표 달성!' : ''}</div>
+        <div class="result-stats"><div><b>${pct}%</b><span>${label}</span></div><div><b>${st}일</b><span>연속 학습</span></div><div class="${goalHit ? 'hit' : ''}"><b>${todayN}/${goal}</b><span>${goalHit ? '목표 달성!' : '오늘 목표'}</span></div></div>
         ${wrongs.length ? `<div class="card result-box"><b style="font-size:.95rem;">다시 볼 단어 ${wrongs.length}개</b>${wrongs.map(it => `<div class="wrong-item"><b>${esc(it.w.word)}</b><span>${esc(it.w.meaning)}</span><button class="w-speak" data-act="speak" data-text="${esc(it.w.word)}" aria-label="발음 듣기">${IC.speaker}</button></div>`).join('')}</div>` : '<div class="card result-box" style="text-align:center;">틀린 단어가 없어요. 대단해요!</div>'}
         <div class="row" style="margin-top:6px;">
           ${wrongs.length ? '<button class="btn btn-soft" data-act="retry-wrong">틀린 것만 다시</button>' : '<button class="btn btn-soft" data-act="again">한 번 더</button>'}
@@ -428,7 +439,7 @@
       </div>
       <div class="card">
         <b>자주 틀리는 단어</b>
-        ${top.length ? top.map(w => `<div class="miss-item"><b>${esc(w.word)}</b><span>${esc(w.meaning)}</span><span class="badge b-bad" style="flex:none;">${w.wrong}회</span></div>`).join('') : '<div class="empty" style="padding:20px 0 6px;">아직 틀린 단어가 없어요.</div>'}
+        ${top.length ? top.map(w => `<div class="miss-item"><b>${esc(w.word)}</b><span>${esc(w.meaning)}</span><span class="badge b-bad" style="flex:none;">${w.wrong}회</span></div>`).join('') : emptyHtml('아직 틀린 단어가 없어요', '', 'happy')}
       </div>`;
   }
 

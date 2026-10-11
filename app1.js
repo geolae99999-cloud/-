@@ -34,6 +34,26 @@
     bell: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4l2-2z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>',
     translate: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>'
   };
+  /* 마스코트: 새싹을 단 동글동글한 파란 캐릭터. mood = happy | cheer | think | sleep */
+  function MASCOT(mood) {
+    mood = mood || 'happy';
+    const K = '#191f28', B = '#3182f6';
+    const ey = mood === 'think' ? 56 : 58, hx = mood === 'think' ? 1.8 : 1.4, hy = mood === 'think' ? -3.6 : -2.6;
+    const eyes = mood === 'sleep' ? `<path d="M40 59q6 5 12 0M68 59q6 5 12 0" fill="none" stroke="${K}" stroke-width="3.4" stroke-linecap="round"/>`
+      : mood === 'cheer' ? `<path d="M40 61q6-9 12 0M68 61q6-9 12 0" fill="none" stroke="${K}" stroke-width="3.6" stroke-linecap="round"/>`
+      : `<ellipse cx="46" cy="${ey}" rx="5.2" ry="6.6" fill="${K}"/><ellipse cx="74" cy="${ey}" rx="5.2" ry="6.6" fill="${K}"/><circle cx="${46 + hx}" cy="${ey + hy}" r="2" fill="#fff"/><circle cx="${74 + hx}" cy="${ey + hy}" r="2" fill="#fff"/>`;
+    const mouth = mood === 'cheer' ? `<path d="M51 69h18a9 9 0 0 1-18 0z" fill="${K}"/><ellipse cx="60" cy="75.5" rx="4.6" ry="2.6" fill="#ff7b8e"/>`
+      : mood === 'think' ? `<path d="M55 73q5-3 10 0" fill="none" stroke="${K}" stroke-width="3.2" stroke-linecap="round"/>`
+      : mood === 'sleep' ? `<ellipse cx="60" cy="72" rx="3" ry="3.4" fill="${K}"/>`
+      : `<path d="M52 69q8 8 16 0" fill="none" stroke="${K}" stroke-width="3.4" stroke-linecap="round"/>`;
+    const arms = mood === 'cheer' ? `<path d="M21 62q-11-5-10-19M99 62q11-5 10-19" fill="none" stroke="${B}" stroke-width="9" stroke-linecap="round"/>`
+      : `<path d="M21 68q-9 3-10 12M99 68q9 3 10 12" fill="none" stroke="${B}" stroke-width="8" stroke-linecap="round"/>`;
+    const extra = mood === 'sleep' ? '<path d="M93 22h9l-9 10h9M105 8h6l-6 7h6" fill="none" stroke="#8b95a1" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>'
+      : mood === 'think' ? '<circle cx="99" cy="32" r="3" fill="#b0b8c1"/><circle cx="107" cy="21" r="4.6" fill="#b0b8c1"/>'
+      : mood === 'cheer' ? '<path d="M14 26l2 5 5 2-5 2-2 5-2-5-5-2 5-2zM104 50l1.5 3.5 3.5 1.5-3.5 1.5-1.5 3.5-1.5-3.5-3.5-1.5 3.5-1.5z" fill="#ffc342"/>' : '';
+    return `<svg class="mascot m-${mood}" viewBox="0 0 120 120" aria-hidden="true"><ellipse cx="60" cy="113" rx="30" ry="4.5" fill="currentColor" opacity=".08"/>${arms}<ellipse cx="46" cy="104" rx="10" ry="5.5" fill="#1b64da"/><ellipse cx="74" cy="104" rx="10" ry="5.5" fill="#1b64da"/><path d="M60 16c27 0 45 19 45 47 0 26-19 41-45 41S15 89 15 63c0-28 18-47 45-47z" fill="${B}"/><ellipse cx="60" cy="86" rx="25" ry="14" fill="#fff" opacity=".13"/><ellipse cx="37" cy="35" rx="8" ry="4.5" transform="rotate(-35 37 35)" fill="#fff" opacity=".38"/><path d="M60 18q-1-6 2-10" fill="none" stroke="#03b26c" stroke-width="3" stroke-linecap="round"/><path d="M62 9c3-6 9-8 15-7-2 6-8 9-15 7z" fill="#03b26c"/><ellipse cx="34" cy="70" rx="6.5" ry="4" fill="#ff8da1" opacity=".75"/><ellipse cx="86" cy="70" rx="6.5" ry="4" fill="#ff8da1" opacity=".75"/>${eyes}${mouth}${extra}</svg>`;
+  }
+  const emptyHtml = (t, d, mood) => `<div class="empty">${MASCOT(mood || 'sleep')}<b>${t}</b>${d || ''}</div>`;
   const uid = () => 'w' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
   const sleep = ms => new Promise(r => setTimeout(r, ms));
   const shuffled = arr => { const a = [...arr]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
@@ -93,7 +113,11 @@
    * 데이터 모델 / 저장소
    * ======================================================= */
   let KEY_DATA = '', KEY_CFG = '', currentUser = null, currentLabel = '', cloudTimer = null;
-  const cloudMode = !!(window.VOCA_CLOUD && window.VOCA_CLOUD.apiKey);
+  const cloudAvail = !!(window.VOCA_CLOUD && window.VOCA_CLOUD.apiKey);
+  // 만 14세 미만은 서버 계정 없이 이 기기에만 저장하는 계정(kidMode)으로 써요. 운영자가 아동 개인정보를 모으지 않도록.
+  const KEY_KID = 'vocapro_kid';
+  let kidMode = false, cloudMode = cloudAvail;
+  function setKidMode(on) { kidMode = !!on && cloudAvail; cloudMode = cloudAvail && !kidMode; }
   const KEY_USERS = 'vocapro_users', KEY_SESS = 'vocapro_session';
 
   const DEFAULT_CFG = {
@@ -267,9 +291,17 @@
     if (!stats.days[k]) stats.days[k] = { n: 0, ok: 0 };
     stats.days[k].n++;
     if (ok) stats.days[k].ok++;
+    renderNavCard();
+  }
+  function renderNavCard() {
+    const el = $('navCard'); if (!el) return;
+    try {
+      const goal = config.goal || 20, n = (stats.days[dayKey()] || { n: 0 }).n, st = streak();
+      el.innerHTML = `${MASCOT(n >= goal ? 'cheer' : 'happy')}<b>오늘 ${Math.min(n, 999)} / ${goal}</b><div class="bar"><i style="width:${Math.min(100, Math.round(n / goal * 100))}%"></i></div><small>${st > 0 ? `${st}일 연속 학습 중` : '오늘 첫 학습을 시작해요'}</small>`;
+    } catch (e) { el.innerHTML = ''; }
   }
 
-  const BOOK_COLORS = ['#2f54eb', '#13a07a', '#f08c1a', '#7a52e0', '#e0457b', '#1196c9'];
+  const BOOK_COLORS = ['#3182f6', '#03b26c', '#ff8a1f', '#7b61ff', '#f04f8a', '#00a5b8'];
   const bookColor = id => { let h = 0; for (const ch of String(id)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return BOOK_COLORS[h % BOOK_COLORS.length]; };
 
   /* =========================================================
@@ -280,13 +312,15 @@
     document.body.classList.toggle('dark', !!config.darkMode);
     $('btnTheme').innerHTML = config.darkMode ? IC.sun : IC.moon;
     const m = document.querySelector('meta[name="theme-color"]');
-    if (m) m.setAttribute('content', config.darkMode ? '#16181d' : '#ffffff');
+    if (m) m.setAttribute('content', config.darkMode ? '#17171c' : '#f2f4f6');
   }
 
   let curTab = 'tabHome';
   const TITLES = { tabBooks: '단어장', tabStudy: '학습', tabStats: '통계', tabSettings: '설정' };
   function go(id) {
     curTab = id;
+    document.body.dataset.tab = id;
+    renderNavCard();
     if (id !== 'tabHome') { const rv = $('recOv'); if (rv) rv.remove(); }
     document.querySelectorAll('.view-pane').forEach(el => el.classList.remove('active'));
     $(id).classList.add('active');
@@ -343,9 +377,10 @@
     const books = categories.slice(0, 3).map(bookCardHtml).join('');
 
     $('tabHome').innerHTML = `
-      <div class="hello"><div><div class="hello-sub">${hello}</div><div class="hello-name">${esc(currentLabel || currentUser || '')}님</div></div>
-        <button class="grade-chip" data-act="grade-pick">${gname ? esc(gname) : '학년 설정'}</button></div>
-      <section class="hero">
+      <div class="home-grid">
+      <div class="h-hello"><div class="hello"><div class="hello-who">${MASCOT(today.n >= goal ? 'cheer' : 'happy')}<div><div class="hello-sub">${hello}</div><div class="hello-name">${esc(currentLabel || currentUser || '')}님</div></div></div>
+        <button class="grade-chip" data-act="grade-pick">${gname ? esc(gname) : '학년 설정'}</button></div></div>
+      <div class="h-hero"><section class="hero">
         <div class="hero-top">
           <div>
             <div class="hero-label">${cta.label}</div>
@@ -356,27 +391,28 @@
         <div class="hero-sub">${cta.sub}</div>
         <div class="hero-mission"><span>복습 <b>${c.due}</b></span><span>새 단어 <b>${c.newW}</b></span><span>마스터 <b>${c.mastered}</b></span></div>
         <button class="btn hero-btn btn-block" ${cta.attrs}>${cta.btn}</button>
-      </section>
+      </section></div>
 
-      <div class="card streak-card">
-        <div class="streak-fire">${st > 0 ? IC.flame : IC.sprout}</div>
+      <div class="h-streak"><div class="card streak-card">
+        <div class="streak-fire ${st > 0 ? '' : 'off'}">${st > 0 ? IC.flame : IC.sprout}</div>
         <div class="streak-txt"><div class="streak-n">${st}일 연속</div><div class="muted">${st > 0 ? '학습 중이에요' : '오늘 시작해요'}</div></div>
         <div class="week">${week}</div>
-      </div>
+      </div></div>
 
-      <div class="section-title"><span>바로 학습</span></div>
+      <div class="h-quick"><div class="section-title"><span>바로 학습</span></div>
       <div class="tiles">
-        <button class="tile" data-act="start" data-mode="card" data-src="new"><div class="tile-ico">${IC.sprout}</div><div><div class="tile-name">새 단어</div><div class="tile-n">${c.newW}개</div></div></button>
+        <button class="tile" data-act="start" data-mode="card" data-src="new"><div class="tile-ico t-new">${IC.sprout}</div><div><div class="tile-name">새 단어</div><div class="tile-n">${c.newW}개</div></div></button>
         <button class="tile" data-act="start" data-mode="choice" data-src="wrong"><div class="tile-ico t-wrong">${IC.bookx}</div><div><div class="tile-name">오답노트</div><div class="tile-n">${c.miss}개</div></div></button>
         <button class="tile" data-act="start" data-mode="card" data-src="star"><div class="tile-ico t-star">${IC.star}</div><div><div class="tile-name">즐겨찾기</div><div class="tile-n">${c.star}개</div></div></button>
-        <button class="tile" data-act="start" data-mode="listen" data-src="due"><div class="tile-ico">${IC.headphones}</div><div><div class="tile-name">듣기 모드</div><div class="tile-n">복습 단어 듣기</div></div></button>
+        <button class="tile" data-act="start" data-mode="listen" data-src="due"><div class="tile-ico t-listen">${IC.headphones}</div><div><div class="tile-name">듣기 모드</div><div class="tile-n">복습 단어 듣기</div></div></button>
+      </div></div>
+
+      <div class="h-tools"><div class="section-title"><span>학습 도구</span></div>
+      <div class="tool-list">${flowEntryHtml()}<button class="mg-entry" data-act="match"><span class="mg-ico i-grape">${IC.cards}</span><span class="mg-txt"><b>짝 맞추기</b><small>영어와 뜻을 빠르게 연결해요</small></span><span class="mg-chev"></span></button>${recEntryHtml()}${packEntryHtml()}${ltEntryHtml()}</div></div>
+
+      <div class="h-books"><div class="section-title"><span>내 단어장</span><button data-act="tab" data-t="tabBooks">전체 보기</button></div>
+      <div class="book-list">${books || emptyHtml('아직 단어장이 없어요', '단어장 탭에서 새로 만들어 보세요.')}</div></div>
       </div>
-
-      <div class="section-title"><span>학습 도구</span></div>
-      <div class="tool-list">${flowEntryHtml()}<button class="mg-entry" data-act="match"><span class="mg-ico">${IC.cards}</span><span class="mg-txt"><b>짝 맞추기</b><small>영어와 뜻을 빠르게 연결해요</small></span><span class="mg-chev"></span></button>${recEntryHtml()}${packEntryHtml()}${ltEntryHtml()}</div>
-
-      <div class="section-title"><span>내 단어장</span><button data-act="tab" data-t="tabBooks">전체 보기</button></div>
-      <div class="book-list">${books || '<div class="empty"><b>아직 단어장이 없어요</b>단어장 탭에서 새로 만들어 보세요.</div>'}</div>
     `;
     recMaybeShow();
   }

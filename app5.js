@@ -79,7 +79,7 @@
     let i = 0; const ov = document.createElement('div'); ov.className = 'ob'; ov.id = 'obOv'; document.body.appendChild(ov);
     const draw = () => {
       const [ic, t, d] = OB[i];
-      ov.innerHTML = `<button class="ob-skip" data-ob="skip">건너뛰기</button><div class="ob-body"><div class="ob-ic">${ic}</div><h2>${t}</h2><p>${d}</p></div><div class="ob-foot"><div class="ob-dots">${OB.map((_, k) => `<i class="${k === i ? 'on' : ''}"></i>`).join('')}</div><button class="btn btn-primary btn-block" data-ob="next">${i === OB.length - 1 ? '시작하기' : '다음'}</button></div>`;
+      ov.innerHTML = `<button class="ob-skip" data-ob="skip">건너뛰기</button><div class="ob-body"><div class="ob-art">${MASCOT(['happy', 'think', 'cheer'][i])}<span class="ob-badge">${ic}</span></div><h2>${t}</h2><p>${d}</p></div><div class="ob-foot"><div class="ob-dots">${OB.map((_, k) => `<i class="${k === i ? 'on' : ''}"></i>`).join('')}</div><button class="btn btn-primary btn-block" data-ob="next">${i === OB.length - 1 ? '시작하기' : '다음'}</button></div>`;
     };
     const done = () => { try { LS.setItem('vocapro_onboarded', '1'); } catch (e) {} ov.remove(); setTimeout(() => { try { ltOpen(true); } catch (e) {} }, 150); };
     ov.addEventListener('click', e => { const b = e.target.closest('[data-ob]'); if (!b) return; if (b.dataset.ob === 'skip' || i === OB.length - 1) return done(); i++; draw(); });
@@ -144,7 +144,7 @@
     mgT = setInterval(() => { const e = $('mgTime'); if (e) e.textContent = ((Date.now() - t0) / 1000).toFixed(1) + '초'; }, 100);
     const finish = () => {
       over = true; const sec = ((Date.now() - t0) / 1000).toFixed(1);
-      ov.innerHTML = `<div class="mg-done"><div class="mg-medal">${IC.trophy}</div><h2>${wrong === 0 ? '완벽해요!' : '모두 맞췄어요'}</h2><p>${sec}초 · 오답 ${wrong}번</p><button class="btn btn-primary btn-block" data-mg="again">한 번 더</button><button class="btn btn-soft btn-block" data-mg="x" style="margin-top:8px;">닫기</button></div>`;
+      ov.innerHTML = `<div class="mg-done"><div class="result-art">${MASCOT(wrong === 0 ? 'cheer' : 'happy')}</div><h2>${wrong === 0 ? '완벽해요!' : '모두 맞췄어요'}</h2><p>${sec}초 · 오답 ${wrong}번</p><button class="btn btn-primary btn-block" data-mg="again">한 번 더</button><button class="btn btn-soft btn-block" data-mg="x" style="margin-top:8px;">닫기</button></div>`;
     };
     ov.addEventListener('click', e => {
       const k = e.target.closest('[data-mg]');
@@ -201,13 +201,16 @@
     for (let r = 0; r < 2000; r++) for (let i = 0; i < t.length; i++) h = ((h * 33) ^ t.charCodeAt(i)) >>> 0;
     return String(h);
   }
-  let authMode = 'login', pendingGrade = '';
+  let authMode = 'login', pendingGrade = '', ageOk = false;
   function renderAuth() {
     const su = authMode === 'signup';
     $('authScreen').innerHTML = `<div class="auth-box">
+      <div class="auth-hero">${MASCOT('happy')}</div>
       <div class="page-title" style="text-align:center;margin-bottom:6px;"><b>Voca</b>Pro</div>
       <p class="muted" style="text-align:center;margin:0 0 18px;">${su ? '새 계정을 만들어요' : '로그인하고 이어서 외워요'}</p>
+      ${kidMode ? '<div class="kid-note"><b>만 14세 미만 계정</b>보호자와 함께 만들어 주세요. 단어장과 기록은 이 기기에만 저장되고 서버로 보내지 않아요.</div>' : ''}
       <div class="seg" style="margin-bottom:14px;"><button class="${su ? '' : 'on'}" data-act="auth-mode" data-m="login">로그인</button><button class="${su ? 'on' : ''}" data-act="auth-mode" data-m="signup">회원가입</button></div>
+      ${su && cloudAvail && !kidMode ? `<div class="seg age-seg" style="margin-bottom:12px;"><button class="${ageOk ? 'on' : ''}" data-act="auth-age" data-k="0">만 14세 이상</button><button data-act="auth-age" data-k="1">만 14세 미만</button></div>` : ''}
       <div class="form-stack">
         <input type="text" id="auId" placeholder="아이디 (2~20자)" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="20">
         <input type="password" id="auPw" placeholder="비밀번호 (${cloudMode ? 6 : 4}자 이상)" autocomplete="${su ? 'new-password' : 'current-password'}">
@@ -216,6 +219,7 @@
         <label class="switch-row"><input type="checkbox" id="auKeep" checked> 로그인 유지</label>
         <div id="auMsg" style="display:none;color:var(--coral);font-weight:600;font-size:.85rem;"></div>
         <button class="btn btn-primary btn-block" id="auGo" data-act="auth-go">${su ? '가입하고 시작' : '로그인'}</button>
+        ${cloudAvail ? `<button class="link-btn kid-link" data-act="auth-age" data-k="${kidMode ? 0 : 1}">${kidMode ? '만 14세 이상 계정으로 돌아가기' : (su ? '' : '이 기기의 어린이 계정(만 14세 미만)으로 로그인')}</button>` : ''}
         <p class="muted" style="font-size:.74rem;line-height:1.6;margin:4px 0 0;">${cloudMode ? '같은 아이디로 로그인하면 어느 기기에서든 단어장과 학습 기록이 이어져요. 비밀번호를 잊으면 복구할 수 없어요. API 키는 보안을 위해 기기마다 따로 입력해요.' : '계정은 이 기기의 브라우저에만 저장돼요. 다른 기기와 동기화되지 않고, 비밀번호를 잊으면 복구할 수 없으니 백업 파일을 받아 두세요.'}</p>
       </div></div>`;
     setTimeout(drawCaptcha, 0);
@@ -227,6 +231,13 @@
     setTimeout(() => { const f = $('auId'); if (f) f.focus(); }, 100);
   }
   ACTIONS['auth-mode'] = el => { authMode = el.dataset.m; renderAuth(); };
+  ACTIONS['auth-age'] = el => {
+    const kid = el.dataset.k === '1';
+    if (kid) { setKidMode(true); if (!Object.keys(getUsers()).length) authMode = 'signup'; }
+    else if (kidMode) setKidMode(false);
+    else ageOk = true;
+    renderAuth();
+  };
   ACTIONS['auth-go'] = async () => {
     const btn = $('auGo'); if (!btn || btn.disabled) return;
     const fail = m => {
@@ -240,6 +251,7 @@
       if (!/^[\w가-힣-]{2,20}$/.test(email)) return fail('아이디는 2~20자의 한글, 영문, 숫자, _, - 만 쓸 수 있어요.');
       if (pw0.length < 6) return fail('비밀번호는 6자 이상이어야 해요.');
       if (su0 && pw0 !== $('auPw2').value) return fail('비밀번호 확인이 달라요.');
+      if (su0 && !ageOk) return fail('만 14세 이상인지 골라 주세요. 만 14세 미만은 이 기기에만 저장하는 계정으로 만들어요.');
       btn.disabled = true;
       try {
         if (!window.Cloud) throw { code: 'offline' };
@@ -287,6 +299,7 @@
         }
       } catch (e) {}
     }
+    try { if (kidMode) LS.setItem(KEY_KID, '1'); else LS.removeItem(KEY_KID); } catch (e) {}
     config = loadConfig(); const db = loadDb(); categories = db.categories; stats = db.stats;
     currentCategoryId = null; viewOrder = null; openDrawers.clear(); S = { active: false };
     ['studyScreen', 'sheetOv'].forEach(i => $(i).classList.remove('open'));
@@ -304,6 +317,7 @@
     try { LS.removeItem(KEY_SESS); sessionStorage.removeItem(KEY_SESS); } catch (e) {}
     currentUser = null; S = { active: false };
     ['studyScreen', 'sheetOv'].forEach(i => $(i).classList.remove('open'));
+    if (kidMode) { setKidMode(false); try { LS.removeItem(KEY_KID); } catch (e) {} }
     showAuth();
   };
   ACTIONS['acct-del'] = async () => {

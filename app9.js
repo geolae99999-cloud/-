@@ -116,13 +116,13 @@
   };
   function packEntryHtml() {
     const total = PACKS.reduce((n, [k]) => n + gradeWords(k).length, 0);
-    return `<button class="mg-entry" data-act="pack-open"><span class="mg-ico">${IC.book}</span><span class="mg-txt"><b>기초 · 중학교 · 고등학교 · 수능 단어</b><small>${total.toLocaleString()}개 단어를 골라 담아요</small></span><span class="mg-chev"></span></button>`;
+    return `<button class="mg-entry" data-act="pack-open"><span class="mg-ico i-mint">${IC.book}</span><span class="mg-txt"><b>기초 · 중학교 · 고등학교 · 수능 단어</b><small>${total.toLocaleString()}개 단어를 골라 담아요</small></span><span class="mg-chev"></span></button>`;
   }
   ACTIONS['pack-open'] = () => recSheet(config.grade === 'h3' ? 'csat' : /^h/.test(config.grade) ? 'high' : /^m/.test(config.grade) ? 'mid' : 'basic');
   function recEntryHtml() {
     const k = config.grade, g = GRADE_NAMES[k];
     const sub = g ? `100개 중 ${gradeWords(k).length - recLeft(k).length}개를 담았어요` : '학년을 고르면 맞춤 단어를 추천해요';
-    return `<button class="mg-entry" data-act="${g ? 'rec-all' : 'grade-pick'}"><span class="mg-ico">${IC.bell}</span><span class="mg-txt"><b>${g ? `${g} 추천 단어 100` : '학년별 추천 단어'}</b><small>${sub}</small></span><span class="mg-chev"></span></button>`;
+    return `<button class="mg-entry" data-act="${g ? 'rec-all' : 'grade-pick'}"><span class="mg-ico i-sun">${IC.bell}</span><span class="mg-txt"><b>${g ? `${g} 추천 단어 100` : '학년별 추천 단어'}</b><small>${sub}</small></span><span class="mg-chev"></span></button>`;
   }
 
   /* =========================================================
@@ -144,7 +144,7 @@
     for (let i = 0; i < 40; i++) { x.fillStyle = `rgba(60,60,60,${(capRnd(40) + 10) / 100})`; x.fillRect(capRnd(W), capRnd(H), 2, 2); }
   }
   function authExtraHtml(su) {
-    return `<div id="capBox" style="display:${su || authFails >= 3 ? 'block' : 'none'}"><div class="cap-row"><canvas id="capCv" width="160" height="52" aria-label="보안문자"></canvas><button type="button" class="btn btn-soft" data-act="cap-refresh">새로고침</button></div><input type="text" id="capIn" placeholder="위 문자를 입력하세요" maxlength="5" autocapitalize="characters" autocomplete="off" spellcheck="false"></div>${su ? '<label class="switch-row"><input type="checkbox" id="auTerms"><span>(필수) <a class="lg-a" data-act="legal" data-k="terms">이용약관</a> 및 <a class="lg-a" data-act="legal" data-k="privacy">개인정보 처리방침</a>에 동의해요</span></label>' : ''}`;
+    return `<div id="capBox" style="display:${su || authFails >= 3 ? 'block' : 'none'}"><div class="cap-row"><canvas id="capCv" width="160" height="52" aria-label="보안문자"></canvas><button type="button" class="btn btn-soft" data-act="cap-refresh">새로고침</button></div><input type="text" id="capIn" placeholder="위 문자를 입력하세요" maxlength="5" autocapitalize="characters" autocomplete="off" spellcheck="false"></div>${su ? `<label class="switch-row"><input type="checkbox" id="auTerms"><span>(필수) ${kidMode ? '보호자와 함께 ' : ''}<a class="lg-a" data-act="legal" data-k="terms">이용약관</a> 및 <a class="lg-a" data-act="legal" data-k="privacy">개인정보 처리방침</a>${kidMode ? '을 읽고 ' : '에 '}동의해요</span></label>` : ''}`;
   }
   function authGate() {
     const su = authMode === 'signup';
@@ -157,54 +157,3 @@
   }
   ACTIONS['cap-refresh'] = () => { drawCaptcha(); const i = $('capIn'); if (i) { i.value = ''; i.focus(); } };
 
-  const LEGAL = {
-    terms: ['이용약관', [
-      ['제1조 (목적)', 'VocaPro(이하 "서비스")는 영어 단어 학습을 돕는 앱입니다. 이 약관은 서비스 이용에 관한 운영자(김주원)와 이용자의 권리와 의무를 정합니다.'],
-      ['제2조 (계정)', '이용자는 아이디와 비밀번호로 가입합니다. 비밀번호는 이메일 등 복구 수단이 없어, 잊으면 되찾을 수 없습니다. 계정 관리 책임은 이용자에게 있습니다.'],
-      ['제3조 (서비스 내용)', '단어장 관리, 반복 학습, 퀴즈, 번역, 학습 통계, 기기 간 동기화 기능을 제공합니다. 일부 기능(AI 자동 채우기, 번역)은 외부 서비스에 의존하며, 이 서비스의 사정으로 제한되거나 중단될 수 있습니다.'],
-      ['제4조 (금지 행위)', '타인의 계정을 도용하거나, 서비스를 자동화된 수단으로 과도하게 호출하거나, 서비스의 정상 운영을 방해하는 행위를 금지합니다.'],
-      ['제5조 (이용자 데이터)', '이용자가 만든 단어장과 학습 기록은 이용자의 것입니다. 설정에서 언제든 내려받거나 계정과 함께 삭제할 수 있습니다.'],
-      ['제6조 (면책)', '학습 결과와 AI·번역 결과의 정확성은 보장되지 않습니다. 천재지변, 외부 서비스 장애 등 운영자가 통제할 수 없는 사유로 인한 손해에는 책임을 지지 않습니다.'],
-      ['제7조 (약관 변경)', '약관을 바꿀 때는 앱 안에서 알립니다. 변경 후에도 계속 이용하면 동의한 것으로 봅니다.'],
-      ['시행일', '2026년 10월 11일']]],
-    privacy: ['개인정보 처리방침', [
-      ['1. 수집하는 정보', '아이디, 비밀번호(복호화할 수 없는 해시 형태로 저장), 로그인 세션 정보, 이용자가 입력한 단어장·학습 기록·설정. 이메일, 전화번호, 위치 정보는 수집하지 않습니다.'],
-      ['2. 이용 목적', '계정 인증, 기기 간 데이터 동기화, 서비스 제공과 오류 대응.'],
-      ['3. 보관 기간', '계정을 삭제할 때까지 보관하며, 설정의 "계정과 데이터 삭제"를 누르면 서버 데이터가 즉시 삭제됩니다.'],
-      ['4. 처리 위탁·외부 전송', '데이터 저장: Supabase. 앱 배포: Netlify. 글꼴: jsDelivr. 번역 시 입력한 문장은 번역 서비스(MyMemory 또는 AI 제공자)로 전송됩니다. 이용자가 직접 입력한 AI 키(Google, OpenAI, xAI, Anthropic)는 이 기기에만 저장하며 서버로 보내지 않습니다. 광고와 행태 분석 도구는 사용하지 않습니다.'],
-      ['5. 이용자의 권리', '언제든 열람(백업 내려받기), 수정, 삭제할 수 있습니다.'],
-      ['6. 만 14세 미만', '만 14세 미만은 법정대리인의 동의를 받아 이용해야 합니다.'],
-      ['7. 문의', '개인정보 관련 문의: 개발자 김주원 ([문의 이메일 기재 필요])'],
-      ['시행일', '2026년 10월 11일']]]
-  };
-  ACTIONS.legal = el => {
-    const d = LEGAL[el.dataset.k]; if (!d || $('lgOv')) return;
-    const ov = document.createElement('div'); ov.className = 'ob lt lg'; ov.id = 'lgOv'; ov.style.zIndex = 700;
-    ov.innerHTML = `<button class="ob-skip" data-lg="x">닫기</button><div class="lg-body"><h2>${d[0]}</h2>${d[1].map(([h, t]) => `<h4>${esc(h)}</h4><p>${esc(t)}</p>`).join('')}</div>`;
-    ov.addEventListener('click', e => { if (e.target.closest('[data-lg]')) ov.remove(); });
-    document.body.appendChild(ov);
-  };
-  function legalLinksHtml() { return '<div class="legal-links"><a class="lg-a" data-act="legal" data-k="terms">이용약관</a> · <a class="lg-a" data-act="legal" data-k="privacy">개인정보 처리방침</a></div>'; }
-
-  function flowEntryHtml() { return `<button class="mg-entry" data-act="flow"><span class="mg-ico">${IC.repeat}</span><span class="mg-txt"><b>4단계 집중 학습</b><small>보기, 고르기, 쓰기, 시험으로 확실하게</small></span><span class="mg-chev"></span></button>`; }
-
-  /* =========================================================
-   * 시작
-   * ======================================================= */
-  if ('speechSynthesis' in window) { try { window.speechSynthesis.getVoices(); } catch (e) {} }
-  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
-  if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
-  let deferredInstall = null;
-  window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredInstall = e; });
-  ACTIONS.install = async () => {
-    if (!deferredInstall) return say('브라우저 메뉴에서 "홈 화면에 추가"를 눌러 설치할 수 있어요.\n아이폰은 공유 버튼, 홈 화면에 추가예요.');
-    deferredInstall.prompt(); try { await deferredInstall.userChoice; } catch (e) {} deferredInstall = null;
-  };
-  let lastErrAt = 0;
-  const softErr = () => { if (Date.now() - lastErrAt > 4000) { lastErrAt = Date.now(); try { toast('일시적인 문제가 생겼어요. 계속 반복되면 새로고침해 주세요.'); } catch (e) {} } };
-  window.addEventListener('error', e => { if (e && e.message && !/ResizeObserver/.test(e.message)) softErr(); });
-  window.addEventListener('unhandledrejection', e => { e.preventDefault && e.preventDefault(); softErr(); });
-  applyTheme();
-  let sess = null;
-  try { sess = LS.getItem(KEY_SESS) || sessionStorage.getItem(KEY_SESS); } catch (e) {}
-  if (cloudMode) bootCloud(); else if (sess && getUsers()[sess]) enterApp(sess); else showAuth();

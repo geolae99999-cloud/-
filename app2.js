@@ -19,7 +19,7 @@
   }
   function renderBooks() {
     $('folderContainer').innerHTML = categories.map(bookCardHtml).join('') ||
-      '<div class="empty"><b>단어장이 없어요</b>위에서 이름을 입력하고 만들기를 눌러 보세요.</div>';
+      emptyHtml('단어장이 없어요', '위에서 이름을 입력하고 만들기를 눌러 보세요.');
   }
   ACTIONS['add-book'] = () => {
     const input = $('inCatName');
@@ -128,8 +128,8 @@
     if (!list.length) {
       const cat = curCat();
       box.innerHTML = (cat && cat.words.length === 0)
-        ? '<div class="empty"><b>첫 단어를 추가해 볼까요?</b>오른쪽 아래 + 버튼을 눌러 단어를 넣으면 AI가 뜻과 예문을 채워줘요.</div>'
-        : '<div class="empty"><b>조건에 맞는 단어가 없어요</b>필터나 검색어를 바꿔 보세요.</div>';
+        ? emptyHtml('첫 단어를 추가해 볼까요?', '오른쪽 아래 + 버튼을 눌러 단어를 넣으면 뜻과 예문을 채워줘요.', 'happy')
+        : emptyHtml('조건에 맞는 단어가 없어요', '필터나 검색어를 바꿔 보세요.', 'think');
       return;
     }
     box.innerHTML = list.map((w, i) => {

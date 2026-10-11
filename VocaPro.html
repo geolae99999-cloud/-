@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#ffffff">
+  <meta name="theme-color" content="#f2f4f6">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
@@ -21,26 +21,26 @@
     :root {
       --font: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
       --serif: var(--font);
-      --bg: #f4f3ef; --surface: #ffffff; --surface-2: #efede6; --ink: #1a1d24; --ink-2: #3b404c; --muted: #80838d; --line: #e5e2d9;
-      --blue: #2c4fd6; --blue-ink: #1f3cae; --blue-soft: #e9edfc;
-      --navy: #17213f; --navy-2: #22305a;
-      --mark: #ffe15a; --mark-ink: #3d3300; --mark-soft: #fff5c2;
-      --mint: #12996f; --mint-soft: #ddf3ea;
-      --coral: #e5484d; --coral-soft: #fdeaea;
-      --sun: #f29d12; --sun-soft: #fff0d4;
-      --ring: 0 0 0 3px rgba(44, 79, 214, .22);
-      --shadow: 0 1px 2px rgba(26, 29, 36, .05), 0 2px 8px rgba(26, 29, 36, .04);
-      --shadow-up: 0 -10px 30px rgba(26, 29, 36, .12);
-      --pop: 0 14px 40px rgba(23, 33, 63, .22);
-      --r: 18px;
+      --bg: #f2f4f6; --surface: #ffffff; --surface-2: #f2f4f6; --ink: #191f28; --ink-2: #4e5968; --muted: #8b95a1; --line: #e5e8eb;
+      --blue: #3182f6; --blue-ink: #1b64da; --blue-soft: #e8f3ff;
+      --navy: #191f28; --navy-2: #333d4b;
+      --mark: #3182f6; --mark-ink: #ffffff; --mark-soft: #e8f3ff;
+      --mint: #03b26c; --mint-soft: #e5f8ef;
+      --coral: #f04452; --coral-soft: #ffeeee;
+      --sun: #ff9f00; --sun-soft: #fff3e0;
+      --ring: 0 0 0 3px rgba(49, 130, 246, .2);
+      --shadow: 0 2px 8px rgba(0, 27, 55, .06);
+      --shadow-up: 0 -8px 24px rgba(0, 27, 55, .08);
+      --pop: 0 12px 32px rgba(0, 27, 55, .14);
+      --r: 22px;
     }
     body.dark {
-      --bg: #111318; --surface: #1a1d24; --surface-2: #252934; --ink: #eceef2; --ink-2: #c5cad4; --muted: #9097a3; --line: #2c313c;
-      --blue: #7d96ff; --blue-ink: #aab9ff; --blue-soft: #232b48;
-      --navy: #1d2747; --navy-2: #2a3762;
-      --mark: #f5d44a; --mark-ink: #2b2400; --mark-soft: rgba(245, 212, 74, .16);
-      --mint: #3ccf9b; --mint-soft: #16372c; --coral: #ff6b70; --coral-soft: #3d2125; --sun: #ffb340; --sun-soft: #3a2e14;
-      --ring: 0 0 0 3px rgba(125, 150, 255, .3);
+      --bg: #17171c; --surface: #202027; --surface-2: #2c2c35; --ink: #f2f4f6; --ink-2: #c3c9d0; --muted: #8b95a1; --line: #2c2c35;
+      --blue: #4593fc; --blue-ink: #78b0ff; --blue-soft: #1c2a42;
+      --navy: #f2f4f6; --navy-2: #c3c9d0;
+      --mark: #4593fc; --mark-ink: #ffffff; --mark-soft: #1c2a42;
+      --mint: #20c47f; --mint-soft: #15302a; --coral: #fa616d; --coral-soft: #3a2027; --sun: #ffb331; --sun-soft: #3a2e14;
+      --ring: 0 0 0 3px rgba(69, 147, 252, .3);
       --shadow: 0 1px 2px rgba(0, 0, 0, .3);
       --shadow-up: 0 -10px 30px rgba(0, 0, 0, .45);
       --pop: 0 16px 44px rgba(0, 0, 0, .5);
@@ -89,7 +89,7 @@
     .btn .ic { width: 17px; height: 17px; }
     .btn-primary { background: var(--blue); color: #fff; }
     .btn-primary:hover { background: var(--blue-ink); }
-    body.dark .btn-primary { color: #0e1530; }
+    body.dark .btn-primary { color: #fff; }
     body.dark .btn-primary:hover { background: var(--blue-ink); }
     .btn-soft { background: var(--surface-2); color: var(--ink); }
     .btn-ok { background: var(--mint); color: #fff; }
@@ -553,9 +553,15 @@
     .fl > .ob-body:has(.fl-card) { justify-content: center; }
     .lg { align-items: stretch; }
     .lg .lg-body { max-width: 560px; margin: 0 auto; padding: 8px 4px 40px; }
+    .kid-note { background: var(--surface-2, #f1efe8); border-radius: 12px; padding: 10px 12px; margin: 0 0 12px; font-size: .8rem; line-height: 1.55; color: var(--ink-2); }
+    .kid-note b { display: block; color: var(--ink); margin-bottom: 2px; }
+    .kid-link { display: block; margin: 2px auto 0; font-size: .8rem; }
+    .kid-link:empty { display: none; }
+    .lg .lg-body ul { margin: 4px 0 10px; padding-left: 18px; }
+    .lg .lg-body li { margin: 3px 0; line-height: 1.65; color: var(--muted); word-break: keep-all; }
     .lg h2 { font-size: 1.6rem; margin: 6px 0 16px; letter-spacing: -.04em; }
     .lg h4 { margin: 18px 0 4px; }
-    .lg p { color: var(--muted); line-height: 1.75; margin: 0; word-break: keep-all; }
+    .lg p { color: var(--muted); line-height: 1.75; margin: 0 0 6px; word-break: keep-all; }
 
     /* ---------- 짝 맞추기 ---------- */
     .mg { position: fixed; inset: 0; z-index: 300; background: var(--bg); display: flex; flex-direction: column; padding: calc(14px + env(safe-area-inset-top, 0px)) 16px calc(18px + env(safe-area-inset-bottom, 0px)); animation: fade .2s; max-width: 480px; margin: 0 auto; }
@@ -576,6 +582,375 @@
     .mg-done p { color: var(--muted); font-weight: 600; margin: 0 0 24px; }
 
     @media (prefers-reduced-motion: reduce) { .confetti { display: none; } *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; } }
+    /* =====================================================
+     * 토스 스타일 테마: 회색 바탕 + 흰 카드, 테두리 없이 여백으로 구분, 파란 강조
+     * ===================================================== */
+    body { letter-spacing: -0.02em; }
+    .app-header { background: color-mix(in srgb, var(--bg) 94%, transparent); }
+    .brand b { color: var(--ink); }
+    .brand-mark { background: var(--blue); color: #fff; border-radius: 10px; }
+    .round-btn, .study-top .x { border: none; background: transparent; color: var(--ink-2); border-radius: 12px; }
+    .round-btn:hover, .study-top .x:hover { background: var(--surface-2); }
+    .page-title { font-size: 1.62rem; font-weight: 700; letter-spacing: -.035em; }
+    .section-title { font-size: 1.12rem; font-weight: 700; margin: 30px 4px 12px; }
+    .section-title span { background: none; padding: 0; }
+    .section-title button { color: var(--blue); font-weight: 600; }
+
+    .btn { border-radius: 16px; height: 56px; font-weight: 600; font-size: 1.02rem; }
+    .btn-sm { height: 38px; border-radius: 10px; font-size: .86rem; }
+    .btn-soft { background: var(--blue-soft); color: var(--blue-ink); }
+    .btn-soft.danger { background: var(--coral-soft); }
+    .sheet .btn-soft, .dlg .btn-soft, .q-foot .btn-soft { background: var(--surface-2); color: var(--ink-2); }
+    .link-btn { color: var(--blue); font-weight: 600; text-decoration: none; }
+    input[type=text], input[type=password], input[type=number], input[type=search], select, textarea { background: var(--surface-2); border: 1.5px solid transparent; border-radius: 14px; padding: 15px 16px; }
+    input:focus, select:focus, textarea:focus { background: var(--surface); border-color: var(--blue); box-shadow: none; }
+    .toolbar input { background: var(--surface); }
+    .card, .tile, .mg-entry, .book, .book-sum, .word-list, .icon-btn, .src, .mode, .q-card, .opt, .stat-tile, .settings-card, .menu-list, .auth-box,
+    .player button, .rec, .rec-w, .rec-list, .grade-btn, .tr-out, .fl .fl-card, .mg-tile, .fc-ex, .fc-face { border-color: transparent !important; }
+    .card, .settings-card, .word-list, .book-sum { border-radius: 24px; }
+    .chip { background: var(--surface-2); border-color: transparent; color: var(--ink-2); font-weight: 600; }
+    .chip.on { background: var(--ink); color: var(--bg); }
+    .seg { border-radius: 14px; }
+    .seg button { font-weight: 600; }
+    .badge { border-radius: 6px; font-weight: 700; }
+
+    /* 홈 */
+    .hello-name { font-weight: 700; letter-spacing: -.035em; }
+    .grade-chip { background: var(--blue-soft); color: var(--blue-ink); font-weight: 700; border-radius: 999px; padding: 7px 13px; }
+    .hero { background: var(--surface); background-image: none; color: var(--ink); border-radius: 24px; padding: 22px 20px 20px; }
+    .hero::before { display: none; }
+    .hero-top, .hero-sub, .hero-mission { padding-left: 0; margin-left: 0; }
+    .hero-label { opacity: 1; color: var(--ink-2); font-weight: 600; }
+    .hero-num { color: var(--ink); font-weight: 800; }
+    .hero-num small { color: var(--muted); opacity: 1; }
+    .hero-sub { opacity: 1; color: var(--muted); }
+    .hero-mission span { background: var(--surface-2); color: var(--ink-2); }
+    .hero-mission b { color: var(--blue); }
+    .hero-btn { background: var(--blue); color: #fff; font-weight: 600; }
+    .ring-bg { stroke: var(--surface-2); }
+    .ring-fg { stroke: var(--blue); }
+    .ring-txt { color: var(--ink); opacity: 1; }
+    .streak-card { border-radius: 24px; }
+    .day i { border-radius: 50%; color: #fff; }
+    .day.today i { box-shadow: 0 0 0 2px var(--blue); }
+    .tile, .mg-entry { border-radius: 20px; padding: 16px; }
+    .tile-ico, .mg-ico, .mode .ico { border-radius: 14px; }
+    .mg-ico { background: var(--blue-soft); color: var(--blue); }
+    .mg-txt b, .tile-name, .mode b { font-weight: 700; }
+    .mg-chev { border-color: #b0b8c1; width: 7px; height: 7px; }
+    .tool-list, .tiles { gap: 10px; }
+
+    /* 단어장 */
+    .book { align-items: center; gap: 14px; padding: 16px; border-radius: 22px; }
+    .book-spine { width: 48px; height: 48px; border-radius: 15px; }
+    .book-spine::after { display: none; }
+    .book-spine b { font-size: 1.05rem; font-weight: 800; }
+    .book-spine small { display: none; }
+    .book-body { padding: 0; }
+    .book-name { font-weight: 700; }
+    .bar { height: 5px; }
+    .sum-box + .sum-box { border-left-color: var(--line); }
+    .icon-btn { background: var(--surface); border-radius: 14px; }
+    .icon-btn.on { background: var(--ink); }
+    .wcard { border-bottom-color: var(--surface-2); padding: 15px 12px 15px 0; }
+    .w-word { font-weight: 700; }
+    .w-word.hl { background: linear-gradient(transparent 60%, var(--blue-soft) 60%); }
+    .w-kpron { color: var(--blue); font-weight: 600; }
+    .w-ex { border-left: none; background: var(--surface-2); border-radius: 14px; padding: 12px 14px; }
+    .syn { border-radius: 999px; font-weight: 600; }
+    .fab { background: var(--blue); color: #fff; border-radius: 50%; box-shadow: 0 8px 20px rgba(49, 130, 246, .35); }
+
+    /* 학습 */
+    .src { background: var(--surface); }
+    .src.on { background: var(--blue); color: #fff; }
+    .src.on span { color: rgba(255, 255, 255, .8); }
+    .mode { border-radius: 20px; padding: 16px; }
+    .q-card { border-radius: 28px; box-shadow: var(--shadow); }
+    .q-word { font-weight: 800; }
+    .q-meaning { font-weight: 700; }
+    .q-pron { border-radius: 999px; }
+    .opt { background: var(--surface); border-radius: 18px; font-weight: 600; }
+    .opt.correct { border-color: var(--mint) !important; }
+    .opt.wrong { border-color: var(--coral) !important; }
+    .opt-n { border-radius: 50%; }
+    .fc-face { background-image: none; border-radius: 28px; box-shadow: 0 10px 30px rgba(0, 27, 55, .08); }
+    .swipe-wrap[data-dir="ok"] .fc-face { border-color: var(--mint) !important; }
+    .swipe-wrap[data-dir="no"] .fc-face { border-color: var(--coral) !important; }
+    .fc-ex { background: var(--surface-2); }
+    .player .play { background: var(--blue); color: #fff; border-radius: 50%; }
+    .player button { border-radius: 50%; }
+    .result .score { color: var(--blue); font-weight: 800; }
+    .result div.emoji, .mg-medal { border-radius: 50%; }
+    .fb { border-radius: 16px; }
+
+    /* 통계 · 설정 */
+    .stat-tile { border-radius: 20px; }
+    .stat-tile b { font-weight: 800; }
+    .bar-col i { border-radius: 6px 6px 3px 3px; }
+    .cell.l1 { background: #c9e2ff; } .cell.l2 { background: #90c2ff; } .cell.l3 { background: #4593fc; } .cell.l4 { background: #1b64da; }
+    .settings-title { font-size: 1.04rem; font-weight: 700; }
+    .setting-label { font-weight: 600; }
+    .menu-list button { font-weight: 600; padding: 17px 18px; }
+    .menu-list button + button { border-top-color: var(--surface-2); }
+    .lg-a { text-decoration: none; font-weight: 600; }
+
+    /* 시트 · 대화상자 · 로그인 · 탭 */
+    .sheet-overlay, .dlg-ov { background: rgba(0, 12, 30, .45); }
+    .sheet { background: var(--surface); border-radius: 28px 28px 0 0; padding-left: 20px; padding-right: 20px; }
+    .sheet .menu-list, .sheet .rec-list { background: var(--surface-2); }
+    .sheet-head b { font-size: 1.24rem; font-weight: 700; }
+    .sheet-head button { background: transparent; color: var(--muted); }
+    .dlg { border-radius: 24px; padding: 26px 22px 20px; }
+    .dlg p { font-weight: 500; font-size: 1.02rem; }
+    .auth { background: var(--surface); background-image: none; }
+    .auth-box { box-shadow: none; padding: 20px 4px; background: transparent; }
+    .auth-box .page-title b { color: var(--blue); }
+    .auth-box .page-title::before { background: var(--blue); color: #fff; border-radius: 20px; }
+    .kid-note { background: var(--blue-soft); color: var(--blue-ink); border-radius: 16px; padding: 12px 14px; }
+    .kid-note b { color: var(--blue-ink); }
+    .bottom-nav { border-top: 1px solid var(--surface-2); }
+    .nav-item { font-weight: 600; color: #b0b8c1; }
+    .nav-item.active { color: var(--ink); }
+    .nav-item.active::before { display: none; }
+    .toast { background: rgba(25, 31, 40, .92); border-radius: 16px; padding: 13px 20px; font-weight: 600; }
+    .rec { border-radius: 24px; box-shadow: var(--pop); }
+    .rec-w { background: var(--surface-2); }
+    .grade-btn { background: var(--surface-2); border-radius: 16px; }
+    .grade-btn.on { background: var(--blue-soft); color: var(--blue-ink); }
+    .tr-out { border-left: none !important; background: var(--surface-2); }
+    .ob-ic { background: var(--blue-soft); color: var(--blue); border-radius: 50%; }
+    .fl .fl-ex { border-left: none; background: var(--surface-2); border-radius: 14px; }
+    .mg-tile { background: var(--surface); box-shadow: var(--shadow); }
+    body.dark .auth { background: var(--bg); }
+    body.dark .toast { background: #3a3a45; }
+    .rec-tabs .chip.pack, body.dark .rec-tabs .chip.pack { border-color: transparent; background: var(--blue-soft); color: var(--blue-ink); }
+    .rec-tabs .chip.pack.on, body.dark .rec-tabs .chip.pack.on { background: var(--blue); color: #fff; }
+    /* =====================================================
+     * 디자인 다듬기: 마스코트, 입체 버튼, 정답 피드백, 컬러 아이콘
+     * ===================================================== */
+    :root { --grape: #7b61ff; --grape-soft: #f0edff; --teal: #00a5b8; --teal-soft: #e2f6f8; --fire: #ff7a1a;
+      --sh-ok: #029359; --sh-bad: #d22c3b; --sh-blue: #1957c2; --sh-line: #dfe3e8; }
+    body.dark { --grape: #9d8bff; --grape-soft: #29243f; --teal: #2cc3d4; --teal-soft: #12303a; --fire: #ff9433;
+      --sh-ok: #12865a; --sh-bad: #b5323f; --sh-blue: #275fc0; --sh-line: #111116; }
+    body.dark .btn-primary:hover { background: #2f7ae8; }
+
+    .mascot { display: block; width: 120px; height: 120px; overflow: visible; color: var(--ink); }
+    .ob-art .mascot, .result-art .mascot, .auth-hero .mascot { animation: bob 2.8s ease-in-out infinite; }
+    @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+    .ob-art, .result-art { position: relative; width: 148px; height: 148px; border-radius: 50%; background: var(--blue-soft); display: flex; align-items: center; justify-content: center; flex: none; animation: pop .45s cubic-bezier(.2, .9, .3, 1.2); }
+    .ob-art { margin-bottom: 28px; }
+    .ob-art .mascot, .result-art .mascot { width: 112px; height: 112px; margin-top: 8px; }
+    .ob-badge { position: absolute; right: 0; bottom: 6px; width: 46px; height: 46px; border-radius: 50%; background: var(--surface); color: var(--blue); box-shadow: 0 6px 16px rgba(0, 27, 55, .14); display: flex; align-items: center; justify-content: center; }
+    .ob-badge .ic { width: 22px; height: 22px; }
+    .result-art { margin: 6px auto 14px; }
+    .auth-hero { display: flex; justify-content: center; margin-bottom: 4px; }
+    .auth-hero .mascot { width: 96px; height: 96px; }
+    .auth-box .page-title::before { display: none; }
+    .empty .mascot { width: 96px; height: 96px; margin: 0 auto 12px; }
+    .card .empty .mascot { width: 64px; height: 64px; margin-bottom: 6px; }
+    .ob-dots i.on { background: var(--blue); }
+
+    /* 홈 */
+    .hello { align-items: center; }
+    .hello-who { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .hello-who .mascot { width: 52px; height: 52px; flex: none; margin-top: -4px; }
+    .hero { background: linear-gradient(140deg, #4a95ff 0%, #2b6ef0 55%, #1f5fe0 100%); color: #fff; box-shadow: 0 16px 32px -16px rgba(33, 99, 230, .6); }
+    .hero::before { display: block; left: auto; right: -70px; top: -80px; bottom: auto; width: 230px; height: 230px; border-radius: 50%; background: rgba(255, 255, 255, .09); z-index: 0; }
+    .hero::after { content: ''; position: absolute; left: -50px; bottom: -110px; width: 220px; height: 220px; border-radius: 50%; background: rgba(255, 255, 255, .06); z-index: 0; }
+    .hero > * { z-index: 1; }
+    .hero-label, .hero-sub { color: rgba(255, 255, 255, .88); }
+    .hero-num { color: #fff; }
+    .hero-num small { color: rgba(255, 255, 255, .8); }
+    .hero-mission span { background: rgba(255, 255, 255, .16); color: rgba(255, 255, 255, .92); }
+    .hero-mission b { color: #fff; }
+    .hero-btn { background: #fff; color: #1b64da; font-weight: 700; box-shadow: 0 4px 0 rgba(8, 38, 110, .28); transition: transform .1s, box-shadow .1s; }
+    .hero-btn:hover { background: #fff; filter: none; }
+    .hero-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(8, 38, 110, .28); }
+    .ring-bg { stroke: rgba(255, 255, 255, .22); }
+    .ring-fg { stroke: #fff; }
+    .ring-txt { color: #fff; }
+    body.dark .hero { background: linear-gradient(140deg, #3b80ec 0%, #2560cf 60%, #1d4fae 100%); box-shadow: none; }
+    .streak-fire { border-radius: 50%; background: linear-gradient(160deg, #ffb547, var(--fire)); color: #fff; box-shadow: 0 6px 14px -6px rgba(255, 122, 26, .8); }
+    .streak-fire.off { background: var(--surface-2); color: var(--muted); box-shadow: none; }
+    .day.done i { background: linear-gradient(160deg, #ffb547, var(--fire)); }
+    .day.today i { box-shadow: 0 0 0 2px var(--fire); }
+    .tile-ico.t-new, .mg-ico.i-mint { background: var(--mint-soft); color: var(--mint); }
+    .tile-ico.t-listen, .mg-ico.i-grape { background: var(--grape-soft); color: var(--grape); }
+    .mg-ico.i-sun { background: var(--sun-soft); color: var(--sun); }
+    .mg-ico.i-coral { background: var(--coral-soft); color: var(--coral); }
+    .mode[data-mode="choice"] .ico { background: var(--mint-soft); color: var(--mint); }
+    .mode[data-mode="rchoice"] .ico { background: var(--grape-soft); color: var(--grape); }
+    .mode[data-mode="spell"] .ico { background: var(--sun-soft); color: var(--sun); }
+    .mode[data-mode="dict"] .ico { background: var(--coral-soft); color: var(--coral); }
+    .mode[data-mode="listen"] .ico { background: var(--teal-soft); color: var(--teal); }
+    .stat-tile:nth-child(1) b { color: var(--fire); }
+    .stat-tile:nth-child(2) b { color: var(--grape); }
+    .stat-tile:nth-child(3) b { color: var(--mint); }
+    .nav-item svg { width: 56px; height: 30px; padding: 3px 16px; border-radius: 99px; box-sizing: border-box; transition: background .2s, color .2s; }
+    .nav-item.active svg { background: var(--blue-soft); color: var(--blue); }
+    .nav-brand, .nav-card, .kbd-hint { display: none; }
+    .add-row input { background: var(--surface); }
+
+    /* 학습 화면 */
+    .prog { height: 12px; background: var(--line); }
+    .prog i { position: relative; min-width: 12px; background: linear-gradient(90deg, #6aaeff, var(--blue)); }
+    .prog i::after { content: ''; position: absolute; left: 6px; right: 6px; top: 3px; height: 3px; border-radius: 3px; background: rgba(255, 255, 255, .45); }
+    .q-foot { padding-bottom: 4px; }
+    .q-foot .btn, .ob-foot .btn, .result .btn, .mg-done .btn { transition: transform .08s, box-shadow .08s, background .15s; }
+    .q-foot .btn-ok { box-shadow: 0 4px 0 var(--sh-ok); }
+    .q-foot .btn-bad { box-shadow: 0 4px 0 var(--sh-bad); }
+    .q-foot .btn-primary, .ob-foot .btn-primary, .result .btn-primary, .mg-done .btn-primary { box-shadow: 0 4px 0 var(--sh-blue); }
+    .q-foot .btn-soft, .ob-foot .btn-soft, .result .btn-soft, .mg-done .btn-soft { background: var(--surface); color: var(--ink-2); box-shadow: 0 4px 0 var(--sh-line); }
+    .q-foot .btn:active, .ob-foot .btn:active, .result .btn:active, .mg-done .btn:active { transform: translateY(4px); box-shadow: 0 0 0 transparent; }
+    .opt { border: 2px solid var(--line) !important; box-shadow: 0 3px 0 var(--sh-line); padding: 14px 16px; transition: transform .08s, box-shadow .08s, background .15s, border-color .15s, opacity .2s; }
+    .opt:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 0 0 transparent; }
+    .opt-n { background: var(--surface); border: 2px solid var(--line); color: var(--ink-2); width: 28px; height: 28px; position: relative; }
+    .opt:disabled:not(.correct):not(.wrong) { opacity: .45; }
+    .opt.correct { background: var(--mint-soft); border-color: var(--mint) !important; box-shadow: 0 3px 0 var(--mint); animation: optPop .34s cubic-bezier(.2, .9, .3, 1.3); }
+    .opt.wrong { background: var(--coral-soft); border-color: var(--coral) !important; box-shadow: 0 3px 0 var(--coral); animation: mshake .35s; }
+    .opt.correct .opt-n, .opt.wrong .opt-n { font-size: 0; border-color: transparent; }
+    .opt.correct .opt-n::after { content: ''; width: 6px; height: 11px; border: solid #fff; border-width: 0 2.6px 2.6px 0; transform: translateY(-1px) rotate(45deg); }
+    .opt.wrong .opt-n::before, .opt.wrong .opt-n::after { content: ''; position: absolute; left: 50%; top: 50%; width: 12px; height: 2.6px; margin: -1.3px 0 0 -6px; border-radius: 2px; background: #fff; transform: rotate(45deg); }
+    .opt.wrong .opt-n::after { transform: rotate(-45deg); }
+    @keyframes optPop { 45% { transform: scale(1.03); } }
+    .ans-bar { margin-top: auto; display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 20px; animation: ansUp .28s cubic-bezier(.2, .9, .3, 1.15); }
+    .ans-bar.ok, .fb.ok { background: var(--mint-soft); color: var(--mint); }
+    .ans-bar.bad, .fb.bad { background: var(--coral-soft); color: var(--coral); }
+    .ans-ic { width: 40px; height: 40px; border-radius: 50%; background: currentColor; display: flex; align-items: center; justify-content: center; flex: none; }
+    .ans-ic .ic { color: #fff; width: 22px; height: 22px; }
+    .ans-t { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+    .ans-t b { font-size: 1.08rem; font-weight: 800; }
+    .ans-t span { font-size: .86rem; font-weight: 600; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ans-combo { flex: none; font-size: .76rem; font-weight: 800; color: var(--fire); background: var(--surface); padding: 6px 10px; border-radius: 99px; }
+    @keyframes ansUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+    .fb { display: flex; align-items: flex-start; gap: 12px; animation: ansUp .28s cubic-bezier(.2, .9, .3, 1.15); }
+    .fb .ans-ic { width: 34px; height: 34px; }
+    .fb .ans-ic .ic { width: 19px; height: 19px; }
+    .type-input { background: var(--surface) !important; border: 2px solid var(--line) !important; box-shadow: 0 3px 0 var(--sh-line); }
+    .type-input:focus { border-color: var(--blue) !important; }
+    .fc-face { border: 2px solid var(--line) !important; background: linear-gradient(180deg, var(--blue-soft) 0, var(--surface) 42%); box-shadow: 0 5px 0 var(--sh-line), 0 22px 40px -22px rgba(0, 27, 55, .3); }
+    .fc-back { background: linear-gradient(180deg, var(--mint-soft) 0, var(--surface) 42%); }
+    .fc-face::before { content: '단어'; position: absolute; top: 18px; left: 50%; transform: translateX(-50%); font-size: .74rem; font-weight: 800; letter-spacing: .08em; color: var(--blue); background: var(--surface); padding: 4px 12px; border-radius: 99px; }
+    .fc-back::before { content: '뜻'; color: var(--mint); }
+    .sw-hint span { padding: 6px 12px; border-radius: 99px; font-size: .78rem; }
+    .sw-hint .no { background: var(--coral-soft); }
+    .sw-hint .ok { background: var(--mint-soft); }
+    .sw-badge { border: none; color: #fff !important; padding: 8px 16px; border-radius: 14px; font-size: 1.05rem; box-shadow: var(--pop); }
+    .sw-badge.ok { background: var(--mint); }
+    .sw-badge.no { background: var(--coral); }
+    .q-speak { border-radius: 50%; box-shadow: 0 3px 0 color-mix(in srgb, var(--blue) 25%, transparent); }
+    .q-speak:active { transform: translateY(2px); box-shadow: none; }
+    .result h2 { font-size: 1.6rem; }
+    .result-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 14px 0 4px; }
+    .result-stats div { background: var(--surface); border-radius: 18px; padding: 12px 6px; display: flex; flex-direction: column; gap: 2px; }
+    .result-stats b { font-size: 1.15rem; font-weight: 800; letter-spacing: -.03em; }
+    .result-stats span { font-size: .74rem; color: var(--muted); font-weight: 600; }
+    .result-stats .hit { background: var(--sun-soft); }
+    .result-stats .hit b, .result-stats .hit span { color: var(--fire); }
+    .mg-tile { border: 2px solid var(--line) !important; box-shadow: 0 3px 0 var(--sh-line); }
+    .mg-tile.sel { border-color: var(--blue) !important; box-shadow: 0 3px 0 var(--blue); }
+    .mg-tile.no { border-color: var(--coral) !important; box-shadow: 0 3px 0 var(--coral); }
+    .mg-tile.ok { border-color: var(--mint) !important; background: var(--mint-soft); box-shadow: none; }
+    .mg-done .result-art { margin-bottom: 18px; }
+    @media (hover: hover) {
+      .tile, .mg-entry, .book, .mode { transition: transform .15s, box-shadow .15s; }
+      .tile:hover, .mg-entry:hover, .book:hover, .mode:hover { transform: translateY(-2px); box-shadow: 0 12px 26px -14px rgba(0, 27, 55, .28); }
+      .opt:hover:not(:disabled) { border-color: color-mix(in srgb, var(--blue) 45%, var(--line)) !important; }
+      .mg-tile:hover { border-color: color-mix(in srgb, var(--blue) 45%, var(--line)) !important; }
+      .nav-item:not(.active):hover { color: var(--ink-2); }
+    }
+
+    /* =====================================================
+     * PC 화면 (가로 900px 이상): 왼쪽 메뉴 + 넓은 화면
+     * ===================================================== */
+    @media (min-width: 900px) {
+      body { max-width: 1200px; padding: 0 40px 56px 292px; box-shadow: none !important; }
+      .app-header { padding: 24px 0 12px; }
+      body:not([data-tab="paneBook"]) #headTitle { visibility: hidden; }
+      .view-pane { padding: 4px 0 24px; }
+      .page-title { font-size: 1.95rem; margin: 2px 0 22px; }
+      .round-btn { background: var(--surface); }
+
+      .bottom-nav { top: 20px; bottom: 20px; left: max(20px, calc(50% - 580px)); right: auto; width: 232px; max-width: none; margin: 0; flex-direction: column; gap: 4px; padding: 24px 14px 14px; border: none; border-radius: 28px; background: var(--surface); box-shadow: var(--shadow); overflow-y: auto; scrollbar-width: none; }
+      .nav-brand { display: flex; align-items: center; gap: 10px; padding: 0 10px 22px; font-size: 1.28rem; font-weight: 800; letter-spacing: -.04em; color: var(--ink); }
+      .nav-brand .brand-mark { width: 34px; height: 34px; font-size: 1.05rem; }
+      .nav-item { flex: none; flex-direction: row; justify-content: flex-start; gap: 12px; padding: 12px 14px; font-size: 1rem; font-weight: 600; color: var(--ink-2); border-radius: 14px; transition: background .15s, color .15s; }
+      .nav-item svg { width: 24px; height: 24px; padding: 0; border-radius: 0; background: none !important; }
+      .nav-item:hover { background: var(--surface-2); }
+      .nav-item.active { background: var(--blue-soft); color: var(--blue-ink); font-weight: 700; }
+      .nav-item.active svg { color: var(--blue); }
+      .nav-card { display: flex; flex-direction: column; align-items: center; gap: 6px; margin-top: auto; padding: 16px 14px; border-radius: 22px; background: var(--surface-2); text-align: center; }
+      .nav-card:empty { display: none; }
+      .nav-card .mascot { width: 76px; height: 76px; }
+      .nav-card b { font-size: 1rem; font-weight: 800; color: var(--ink); }
+      .nav-card .bar { width: 100%; height: 8px; background: var(--line); }
+      .nav-card .bar i { background: var(--blue); }
+      .nav-card small { font-size: .78rem; color: var(--ink-2); font-weight: 600; }
+
+      .home-grid { display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr); column-gap: 22px; align-items: start;
+        grid-template-areas: "hello hello" "hero streak" "hero quick" "tools books"; }
+      .h-hello { grid-area: hello; } .h-hero { grid-area: hero; align-self: stretch; } .h-streak { grid-area: streak; }
+      .h-quick { grid-area: quick; } .h-tools { grid-area: tools; } .h-books { grid-area: books; }
+      .h-hero .hero { height: 100%; display: flex; flex-direction: column; padding: 28px 26px 24px; }
+      .h-hero .hero-num { font-size: 4rem; }
+      .h-hero .hero-btn { margin-top: auto; }
+      .h-streak .streak-card { margin-top: 0; }
+      .h-quick .section-title { margin-top: 22px; }
+      .hello { margin: 0 2px 18px; }
+      .hello-who .mascot { display: none; }
+      .hello-name { font-size: 1.9rem; }
+
+      #folderContainer { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+      #folderContainer .empty { grid-column: 1 / -1; }
+      #tabBooks .add-row { max-width: 600px; }
+      #paneBook { max-width: 880px; }
+      .fab { right: max(40px, calc(50% - 560px)); bottom: 40px; width: 60px; height: 60px; }
+
+      .src-row { flex-wrap: wrap; overflow: visible; }
+      #tabStudy .seg { max-width: 520px; }
+      .modes { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+      .mode { padding: 20px; }
+
+      #tabStats.active { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: start; }
+      #tabStats .page-title, #tabStats .stat-tiles { grid-column: 1 / -1; margin-bottom: 0; }
+      #tabStats .card { margin: 0 !important; }
+      #tabSettings.active { columns: 2; column-gap: 16px; }
+      #tabSettings .page-title { column-span: all; }
+      #tabSettings .settings-card { break-inside: avoid; display: block; }
+      #tabSettings .legal-links, #tabSettings .foot-credit { column-span: all; }
+
+      .study-screen { max-width: none; }
+      .study-top { width: 100%; max-width: 720px; margin: 0 auto; padding: 24px 20px 14px; }
+      #stBody { padding-left: max(20px, calc(50% - 340px)); padding-right: max(20px, calc(50% - 340px)); }
+      .swipe-wrap { height: 420px; }
+      .q-word { font-size: 3rem; }
+      .q-card { padding: 40px 24px; }
+
+      .sheet-overlay { align-items: center; justify-content: center; padding: 24px; }
+      .sheet { max-width: 580px; max-height: 86vh; border-radius: 28px; padding-bottom: 22px; animation: pop .22s cubic-bezier(.2, .9, .3, 1.2); }
+      .sheet-grab, .tr-grab { display: none; }
+      .sheet-head { margin-top: 10px; }
+      .tr-ov { align-items: center; padding: 24px; }
+      .tr-sheet { max-width: 580px; border-radius: 28px; }
+      .rec { left: auto; right: max(40px, calc(50% - 560px)); bottom: 32px; width: 440px; margin: 0; }
+      .toast { left: calc(50% + 126px); bottom: 40px; }
+      body:has(#recOv.show) .toast { top: 28px; }
+
+      .ob-body, .ob-foot { max-width: 480px; }
+      .ob-art { width: 168px; height: 168px; }
+      .ob-art .mascot { width: 128px; height: 128px; }
+      .mg { max-width: none; padding-left: max(24px, calc(50% - 380px)); padding-right: max(24px, calc(50% - 380px)); }
+      .mg-grid { grid-template-columns: repeat(4, 1fr); max-height: 460px; }
+
+      .auth { background: radial-gradient(900px 520px at 15% 0%, var(--blue-soft), transparent 70%), var(--bg); }
+      body.dark .auth { background: radial-gradient(900px 520px at 15% 0%, var(--blue-soft), transparent 70%), var(--bg); }
+      .auth-box { background: var(--surface); border-radius: 32px; padding: 34px 34px 26px; max-width: 440px; box-shadow: var(--pop); }
+    }
+    @media (min-width: 900px) and (hover: hover) {
+      .kbd-hint { display: flex; justify-content: center; flex-wrap: wrap; gap: 6px 18px; padding: 10px 20px calc(18px + env(safe-area-inset-bottom, 0px)); font-size: .8rem; font-weight: 600; color: var(--muted); }
+      .kbd-hint:empty { display: none; }
+      .kbd-hint kbd { font: inherit; font-weight: 700; font-size: .76rem; color: var(--ink-2); background: var(--surface); padding: 2px 8px; border-radius: 7px; box-shadow: 0 2px 0 var(--sh-line); margin-right: 6px; }
+    }
   </style>
 </head>
 <body>
@@ -705,6 +1080,7 @@
       <span class="st-count" id="stCount"></span>
     </div>
     <div id="stBody"></div>
+    <div class="kbd-hint" id="kbdHint"></div>
   </div>
 
   <!-- 시트 -->
@@ -721,6 +1097,7 @@
   <div class="toast" id="toast" role="status"></div>
 
   <nav class="bottom-nav" aria-label="메인 메뉴">
+    <div class="nav-brand"><i class="brand-mark">V</i><span>VocaPro</span></div>
     <button class="nav-item active" data-act="tab" data-t="tabHome">
       <svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>홈</span>
     </button>
@@ -736,6 +1113,7 @@
     <button class="nav-item" data-act="tab" data-t="tabSettings">
       <svg viewBox="0 0 24 24"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/></svg><span>설정</span>
     </button>
+    <div class="nav-card" id="navCard"></div>
   </nav>
 
   <script>
@@ -847,6 +1225,26 @@ window.VOCA_CLOUD = {
     bell: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4l2-2z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>',
     translate: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>'
   };
+  /* 마스코트: 새싹을 단 동글동글한 파란 캐릭터. mood = happy | cheer | think | sleep */
+  function MASCOT(mood) {
+    mood = mood || 'happy';
+    const K = '#191f28', B = '#3182f6';
+    const ey = mood === 'think' ? 56 : 58, hx = mood === 'think' ? 1.8 : 1.4, hy = mood === 'think' ? -3.6 : -2.6;
+    const eyes = mood === 'sleep' ? `<path d="M40 59q6 5 12 0M68 59q6 5 12 0" fill="none" stroke="${K}" stroke-width="3.4" stroke-linecap="round"/>`
+      : mood === 'cheer' ? `<path d="M40 61q6-9 12 0M68 61q6-9 12 0" fill="none" stroke="${K}" stroke-width="3.6" stroke-linecap="round"/>`
+      : `<ellipse cx="46" cy="${ey}" rx="5.2" ry="6.6" fill="${K}"/><ellipse cx="74" cy="${ey}" rx="5.2" ry="6.6" fill="${K}"/><circle cx="${46 + hx}" cy="${ey + hy}" r="2" fill="#fff"/><circle cx="${74 + hx}" cy="${ey + hy}" r="2" fill="#fff"/>`;
+    const mouth = mood === 'cheer' ? `<path d="M51 69h18a9 9 0 0 1-18 0z" fill="${K}"/><ellipse cx="60" cy="75.5" rx="4.6" ry="2.6" fill="#ff7b8e"/>`
+      : mood === 'think' ? `<path d="M55 73q5-3 10 0" fill="none" stroke="${K}" stroke-width="3.2" stroke-linecap="round"/>`
+      : mood === 'sleep' ? `<ellipse cx="60" cy="72" rx="3" ry="3.4" fill="${K}"/>`
+      : `<path d="M52 69q8 8 16 0" fill="none" stroke="${K}" stroke-width="3.4" stroke-linecap="round"/>`;
+    const arms = mood === 'cheer' ? `<path d="M21 62q-11-5-10-19M99 62q11-5 10-19" fill="none" stroke="${B}" stroke-width="9" stroke-linecap="round"/>`
+      : `<path d="M21 68q-9 3-10 12M99 68q9 3 10 12" fill="none" stroke="${B}" stroke-width="8" stroke-linecap="round"/>`;
+    const extra = mood === 'sleep' ? '<path d="M93 22h9l-9 10h9M105 8h6l-6 7h6" fill="none" stroke="#8b95a1" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>'
+      : mood === 'think' ? '<circle cx="99" cy="32" r="3" fill="#b0b8c1"/><circle cx="107" cy="21" r="4.6" fill="#b0b8c1"/>'
+      : mood === 'cheer' ? '<path d="M14 26l2 5 5 2-5 2-2 5-2-5-5-2 5-2zM104 50l1.5 3.5 3.5 1.5-3.5 1.5-1.5 3.5-1.5-3.5-3.5-1.5 3.5-1.5z" fill="#ffc342"/>' : '';
+    return `<svg class="mascot m-${mood}" viewBox="0 0 120 120" aria-hidden="true"><ellipse cx="60" cy="113" rx="30" ry="4.5" fill="currentColor" opacity=".08"/>${arms}<ellipse cx="46" cy="104" rx="10" ry="5.5" fill="#1b64da"/><ellipse cx="74" cy="104" rx="10" ry="5.5" fill="#1b64da"/><path d="M60 16c27 0 45 19 45 47 0 26-19 41-45 41S15 89 15 63c0-28 18-47 45-47z" fill="${B}"/><ellipse cx="60" cy="86" rx="25" ry="14" fill="#fff" opacity=".13"/><ellipse cx="37" cy="35" rx="8" ry="4.5" transform="rotate(-35 37 35)" fill="#fff" opacity=".38"/><path d="M60 18q-1-6 2-10" fill="none" stroke="#03b26c" stroke-width="3" stroke-linecap="round"/><path d="M62 9c3-6 9-8 15-7-2 6-8 9-15 7z" fill="#03b26c"/><ellipse cx="34" cy="70" rx="6.5" ry="4" fill="#ff8da1" opacity=".75"/><ellipse cx="86" cy="70" rx="6.5" ry="4" fill="#ff8da1" opacity=".75"/>${eyes}${mouth}${extra}</svg>`;
+  }
+  const emptyHtml = (t, d, mood) => `<div class="empty">${MASCOT(mood || 'sleep')}<b>${t}</b>${d || ''}</div>`;
   const uid = () => 'w' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
   const sleep = ms => new Promise(r => setTimeout(r, ms));
   const shuffled = arr => { const a = [...arr]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
@@ -906,7 +1304,11 @@ window.VOCA_CLOUD = {
    * 데이터 모델 / 저장소
    * ======================================================= */
   let KEY_DATA = '', KEY_CFG = '', currentUser = null, currentLabel = '', cloudTimer = null;
-  const cloudMode = !!(window.VOCA_CLOUD && window.VOCA_CLOUD.apiKey);
+  const cloudAvail = !!(window.VOCA_CLOUD && window.VOCA_CLOUD.apiKey);
+  // 만 14세 미만은 서버 계정 없이 이 기기에만 저장하는 계정(kidMode)으로 써요. 운영자가 아동 개인정보를 모으지 않도록.
+  const KEY_KID = 'vocapro_kid';
+  let kidMode = false, cloudMode = cloudAvail;
+  function setKidMode(on) { kidMode = !!on && cloudAvail; cloudMode = cloudAvail && !kidMode; }
   const KEY_USERS = 'vocapro_users', KEY_SESS = 'vocapro_session';
 
   const DEFAULT_CFG = {
@@ -1080,9 +1482,17 @@ window.VOCA_CLOUD = {
     if (!stats.days[k]) stats.days[k] = { n: 0, ok: 0 };
     stats.days[k].n++;
     if (ok) stats.days[k].ok++;
+    renderNavCard();
+  }
+  function renderNavCard() {
+    const el = $('navCard'); if (!el) return;
+    try {
+      const goal = config.goal || 20, n = (stats.days[dayKey()] || { n: 0 }).n, st = streak();
+      el.innerHTML = `${MASCOT(n >= goal ? 'cheer' : 'happy')}<b>오늘 ${Math.min(n, 999)} / ${goal}</b><div class="bar"><i style="width:${Math.min(100, Math.round(n / goal * 100))}%"></i></div><small>${st > 0 ? `${st}일 연속 학습 중` : '오늘 첫 학습을 시작해요'}</small>`;
+    } catch (e) { el.innerHTML = ''; }
   }
 
-  const BOOK_COLORS = ['#2f54eb', '#13a07a', '#f08c1a', '#7a52e0', '#e0457b', '#1196c9'];
+  const BOOK_COLORS = ['#3182f6', '#03b26c', '#ff8a1f', '#7b61ff', '#f04f8a', '#00a5b8'];
   const bookColor = id => { let h = 0; for (const ch of String(id)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return BOOK_COLORS[h % BOOK_COLORS.length]; };
 
   /* =========================================================
@@ -1093,13 +1503,15 @@ window.VOCA_CLOUD = {
     document.body.classList.toggle('dark', !!config.darkMode);
     $('btnTheme').innerHTML = config.darkMode ? IC.sun : IC.moon;
     const m = document.querySelector('meta[name="theme-color"]');
-    if (m) m.setAttribute('content', config.darkMode ? '#16181d' : '#ffffff');
+    if (m) m.setAttribute('content', config.darkMode ? '#17171c' : '#f2f4f6');
   }
 
   let curTab = 'tabHome';
   const TITLES = { tabBooks: '단어장', tabStudy: '학습', tabStats: '통계', tabSettings: '설정' };
   function go(id) {
     curTab = id;
+    document.body.dataset.tab = id;
+    renderNavCard();
     if (id !== 'tabHome') { const rv = $('recOv'); if (rv) rv.remove(); }
     document.querySelectorAll('.view-pane').forEach(el => el.classList.remove('active'));
     $(id).classList.add('active');
@@ -1156,9 +1568,10 @@ window.VOCA_CLOUD = {
     const books = categories.slice(0, 3).map(bookCardHtml).join('');
 
     $('tabHome').innerHTML = `
-      <div class="hello"><div><div class="hello-sub">${hello}</div><div class="hello-name">${esc(currentLabel || currentUser || '')}님</div></div>
-        <button class="grade-chip" data-act="grade-pick">${gname ? esc(gname) : '학년 설정'}</button></div>
-      <section class="hero">
+      <div class="home-grid">
+      <div class="h-hello"><div class="hello"><div class="hello-who">${MASCOT(today.n >= goal ? 'cheer' : 'happy')}<div><div class="hello-sub">${hello}</div><div class="hello-name">${esc(currentLabel || currentUser || '')}님</div></div></div>
+        <button class="grade-chip" data-act="grade-pick">${gname ? esc(gname) : '학년 설정'}</button></div></div>
+      <div class="h-hero"><section class="hero">
         <div class="hero-top">
           <div>
             <div class="hero-label">${cta.label}</div>
@@ -1169,27 +1582,28 @@ window.VOCA_CLOUD = {
         <div class="hero-sub">${cta.sub}</div>
         <div class="hero-mission"><span>복습 <b>${c.due}</b></span><span>새 단어 <b>${c.newW}</b></span><span>마스터 <b>${c.mastered}</b></span></div>
         <button class="btn hero-btn btn-block" ${cta.attrs}>${cta.btn}</button>
-      </section>
+      </section></div>
 
-      <div class="card streak-card">
-        <div class="streak-fire">${st > 0 ? IC.flame : IC.sprout}</div>
+      <div class="h-streak"><div class="card streak-card">
+        <div class="streak-fire ${st > 0 ? '' : 'off'}">${st > 0 ? IC.flame : IC.sprout}</div>
         <div class="streak-txt"><div class="streak-n">${st}일 연속</div><div class="muted">${st > 0 ? '학습 중이에요' : '오늘 시작해요'}</div></div>
         <div class="week">${week}</div>
-      </div>
+      </div></div>
 
-      <div class="section-title"><span>바로 학습</span></div>
+      <div class="h-quick"><div class="section-title"><span>바로 학습</span></div>
       <div class="tiles">
-        <button class="tile" data-act="start" data-mode="card" data-src="new"><div class="tile-ico">${IC.sprout}</div><div><div class="tile-name">새 단어</div><div class="tile-n">${c.newW}개</div></div></button>
+        <button class="tile" data-act="start" data-mode="card" data-src="new"><div class="tile-ico t-new">${IC.sprout}</div><div><div class="tile-name">새 단어</div><div class="tile-n">${c.newW}개</div></div></button>
         <button class="tile" data-act="start" data-mode="choice" data-src="wrong"><div class="tile-ico t-wrong">${IC.bookx}</div><div><div class="tile-name">오답노트</div><div class="tile-n">${c.miss}개</div></div></button>
         <button class="tile" data-act="start" data-mode="card" data-src="star"><div class="tile-ico t-star">${IC.star}</div><div><div class="tile-name">즐겨찾기</div><div class="tile-n">${c.star}개</div></div></button>
-        <button class="tile" data-act="start" data-mode="listen" data-src="due"><div class="tile-ico">${IC.headphones}</div><div><div class="tile-name">듣기 모드</div><div class="tile-n">복습 단어 듣기</div></div></button>
+        <button class="tile" data-act="start" data-mode="listen" data-src="due"><div class="tile-ico t-listen">${IC.headphones}</div><div><div class="tile-name">듣기 모드</div><div class="tile-n">복습 단어 듣기</div></div></button>
+      </div></div>
+
+      <div class="h-tools"><div class="section-title"><span>학습 도구</span></div>
+      <div class="tool-list">${flowEntryHtml()}<button class="mg-entry" data-act="match"><span class="mg-ico i-grape">${IC.cards}</span><span class="mg-txt"><b>짝 맞추기</b><small>영어와 뜻을 빠르게 연결해요</small></span><span class="mg-chev"></span></button>${recEntryHtml()}${packEntryHtml()}${ltEntryHtml()}</div></div>
+
+      <div class="h-books"><div class="section-title"><span>내 단어장</span><button data-act="tab" data-t="tabBooks">전체 보기</button></div>
+      <div class="book-list">${books || emptyHtml('아직 단어장이 없어요', '단어장 탭에서 새로 만들어 보세요.')}</div></div>
       </div>
-
-      <div class="section-title"><span>학습 도구</span></div>
-      <div class="tool-list">${flowEntryHtml()}<button class="mg-entry" data-act="match"><span class="mg-ico">${IC.cards}</span><span class="mg-txt"><b>짝 맞추기</b><small>영어와 뜻을 빠르게 연결해요</small></span><span class="mg-chev"></span></button>${recEntryHtml()}${packEntryHtml()}${ltEntryHtml()}</div>
-
-      <div class="section-title"><span>내 단어장</span><button data-act="tab" data-t="tabBooks">전체 보기</button></div>
-      <div class="book-list">${books || '<div class="empty"><b>아직 단어장이 없어요</b>단어장 탭에서 새로 만들어 보세요.</div>'}</div>
     `;
     recMaybeShow();
   }
@@ -1217,7 +1631,7 @@ window.VOCA_CLOUD = {
   }
   function renderBooks() {
     $('folderContainer').innerHTML = categories.map(bookCardHtml).join('') ||
-      '<div class="empty"><b>단어장이 없어요</b>위에서 이름을 입력하고 만들기를 눌러 보세요.</div>';
+      emptyHtml('단어장이 없어요', '위에서 이름을 입력하고 만들기를 눌러 보세요.');
   }
   ACTIONS['add-book'] = () => {
     const input = $('inCatName');
@@ -1326,8 +1740,8 @@ window.VOCA_CLOUD = {
     if (!list.length) {
       const cat = curCat();
       box.innerHTML = (cat && cat.words.length === 0)
-        ? '<div class="empty"><b>첫 단어를 추가해 볼까요?</b>오른쪽 아래 + 버튼을 눌러 단어를 넣으면 AI가 뜻과 예문을 채워줘요.</div>'
-        : '<div class="empty"><b>조건에 맞는 단어가 없어요</b>필터나 검색어를 바꿔 보세요.</div>';
+        ? emptyHtml('첫 단어를 추가해 볼까요?', '오른쪽 아래 + 버튼을 눌러 단어를 넣으면 뜻과 예문을 채워줘요.', 'happy')
+        : emptyHtml('조건에 맞는 단어가 없어요', '필터나 검색어를 바꿔 보세요.', 'think');
       return;
     }
     box.innerHTML = list.map((w, i) => {
@@ -1742,6 +2156,7 @@ window.VOCA_CLOUD = {
     S = { active: true, finished: false, mode, src, count, queue: q, total: q.length, idx: 0, ok: 0, no: 0, wrong: new Map(), locked: false, answered: false, options: [], dpool: dpool.length >= 4 ? dpool : allWords().map(x => x.w), startN: (stats.days[dayKey()] || { n: 0 }).n };
     $('studyScreen').classList.add('open');
     document.body.classList.add('no-scroll');
+    kbdHint(mode);
     if (mode === 'listen') startListen(); else renderQuestion();
   }
 
@@ -1875,6 +2290,7 @@ window.VOCA_CLOUD = {
       </div>`;
     if (!reverse) playAudio(w.word);
   }
+  const PRAISE = ['정답이에요', '좋아요', '잘했어요', '훌륭해요', '완벽해요'];
   ACTIONS.opt = el => {
     if (S.locked || !S.active) return;
     S.locked = true;
@@ -1885,6 +2301,14 @@ window.VOCA_CLOUD = {
     btns.forEach(b => { b.disabled = true; });
     el.classList.add(ok ? 'correct' : 'wrong');
     if (!ok) { const ci = S.options.findIndex(o => o.id === item.w.id); if (btns[ci]) btns[ci].classList.add('correct'); }
+    S.combo = ok ? (S.combo || 0) + 1 : 0;
+    const qw = $('stBody').querySelector('.q-wrap');
+    if (qw) {
+      const bar = document.createElement('div');
+      bar.className = 'ans-bar ' + (ok ? 'ok' : 'bad');
+      bar.innerHTML = `<span class="ans-ic">${ok ? IC.tick : IC.x}</span><span class="ans-t"><b>${ok ? PRAISE[Math.floor(Math.random() * PRAISE.length)] : '정답은 이거예요'}</b><span>${esc(item.w.word)} · ${esc(item.w.meaning)}</span></span>${ok && S.combo >= 3 ? `<span class="ans-combo">${S.combo}연속 정답</span>` : ''}`;
+      qw.appendChild(bar);
+    }
     if (S.mode === 'rchoice') playAudio(item.w.word);
     recordResult(item, ok);
     const my = S.idx;
@@ -1918,8 +2342,8 @@ window.VOCA_CLOUD = {
     S.answered = true;
     $('typeInput').disabled = true;
     $('typeFeedback').innerHTML = ok
-      ? `<div class="fb ok">정답이에요! <b>${esc(w.word)}</b><div class="fb-sub">${esc(w.meaning)}</div></div>`
-      : `<div class="fb bad">정답은 <b>${esc(w.word)}</b> ${esc(w.phonetic)}<div class="fb-sub">${esc(w.meaning)}${w.example ? '<br>' + esc(w.example) : ''}${w.exampleKo ? '<br>' + esc(w.exampleKo) : ''}</div></div>`;
+      ? `<div class="fb ok"><span class="ans-ic">${IC.tick}</span><div>정답이에요! <b>${esc(w.word)}</b><div class="fb-sub">${esc(w.meaning)}</div></div></div>`
+      : `<div class="fb bad"><span class="ans-ic">${IC.x}</span><div>정답은 <b>${esc(w.word)}</b> ${esc(w.phonetic)}<div class="fb-sub">${esc(w.meaning)}${w.example ? '<br>' + esc(w.example) : ''}${w.exampleKo ? '<br>' + esc(w.exampleKo) : ''}</div></div></div>`;
     $('typeBtn').textContent = '다음';
     $('typeSkip').style.display = 'none';
     playAudio(w.word);
@@ -1942,12 +2366,13 @@ window.VOCA_CLOUD = {
   /* ----- 결과 ----- */
   function finishSession() {
     S.finished = true;
+    kbdHint('');
     try { window.speechSynthesis.cancel(); } catch (e) {}
     $('stProg').style.width = '100%';
     $('stCount').textContent = '';
     const first = S.ok + S.no;
     const pct = first ? Math.round(S.ok / first * 100) : 0;
-    const emoji = pct >= 90 ? IC.trophy : pct >= 70 ? IC.sparkles : pct >= 40 ? IC.trend : IC.sprout;
+    const mood = pct >= 90 ? 'cheer' : pct >= 70 ? 'happy' : 'think';
     const title = pct >= 90 ? '완벽해요!' : pct >= 70 ? '아주 잘했어요' : pct >= 40 ? '조금만 더 하면 돼요' : '괜찮아요, 다시 해봐요';
     const st = streak();
     const goal = config.goal || 20;
@@ -1957,10 +2382,10 @@ window.VOCA_CLOUD = {
     const label = S.mode === 'card' ? '알아요' : '정답';
     $('stBody').innerHTML = `
       <div class="result">
-        <div class="emoji">${emoji}</div>
+        <div class="result-art">${MASCOT(mood)}</div>
         <h2>${title}</h2>
         <div class="score">${S.ok} / ${first}</div>
-        <div class="muted" style="font-weight:600;">${label} ${pct}% · ${st}일 연속 · 오늘 ${todayN}/${goal}${goalHit ? ' · 목표 달성!' : ''}</div>
+        <div class="result-stats"><div><b>${pct}%</b><span>${label}</span></div><div><b>${st}일</b><span>연속 학습</span></div><div class="${goalHit ? 'hit' : ''}"><b>${todayN}/${goal}</b><span>${goalHit ? '목표 달성!' : '오늘 목표'}</span></div></div>
         ${wrongs.length ? `<div class="card result-box"><b style="font-size:.95rem;">다시 볼 단어 ${wrongs.length}개</b>${wrongs.map(it => `<div class="wrong-item"><b>${esc(it.w.word)}</b><span>${esc(it.w.meaning)}</span><button class="w-speak" data-act="speak" data-text="${esc(it.w.word)}" aria-label="발음 듣기">${IC.speaker}</button></div>`).join('')}</div>` : '<div class="card result-box" style="text-align:center;">틀린 단어가 없어요. 대단해요!</div>'}
         <div class="row" style="margin-top:6px;">
           ${wrongs.length ? '<button class="btn btn-soft" data-act="retry-wrong">틀린 것만 다시</button>' : '<button class="btn btn-soft" data-act="again">한 번 더</button>'}
@@ -2108,7 +2533,7 @@ window.VOCA_CLOUD = {
       </div>
       <div class="card">
         <b>자주 틀리는 단어</b>
-        ${top.length ? top.map(w => `<div class="miss-item"><b>${esc(w.word)}</b><span>${esc(w.meaning)}</span><span class="badge b-bad" style="flex:none;">${w.wrong}회</span></div>`).join('') : '<div class="empty" style="padding:20px 0 6px;">아직 틀린 단어가 없어요.</div>'}
+        ${top.length ? top.map(w => `<div class="miss-item"><b>${esc(w.word)}</b><span>${esc(w.meaning)}</span><span class="badge b-bad" style="flex:none;">${w.wrong}회</span></div>`).join('') : emptyHtml('아직 틀린 단어가 없어요', '', 'happy')}
       </div>`;
   }
 
@@ -2625,7 +3050,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     let i = 0; const ov = document.createElement('div'); ov.className = 'ob'; ov.id = 'obOv'; document.body.appendChild(ov);
     const draw = () => {
       const [ic, t, d] = OB[i];
-      ov.innerHTML = `<button class="ob-skip" data-ob="skip">건너뛰기</button><div class="ob-body"><div class="ob-ic">${ic}</div><h2>${t}</h2><p>${d}</p></div><div class="ob-foot"><div class="ob-dots">${OB.map((_, k) => `<i class="${k === i ? 'on' : ''}"></i>`).join('')}</div><button class="btn btn-primary btn-block" data-ob="next">${i === OB.length - 1 ? '시작하기' : '다음'}</button></div>`;
+      ov.innerHTML = `<button class="ob-skip" data-ob="skip">건너뛰기</button><div class="ob-body"><div class="ob-art">${MASCOT(['happy', 'think', 'cheer'][i])}<span class="ob-badge">${ic}</span></div><h2>${t}</h2><p>${d}</p></div><div class="ob-foot"><div class="ob-dots">${OB.map((_, k) => `<i class="${k === i ? 'on' : ''}"></i>`).join('')}</div><button class="btn btn-primary btn-block" data-ob="next">${i === OB.length - 1 ? '시작하기' : '다음'}</button></div>`;
     };
     const done = () => { try { LS.setItem('vocapro_onboarded', '1'); } catch (e) {} ov.remove(); setTimeout(() => { try { ltOpen(true); } catch (e) {} }, 150); };
     ov.addEventListener('click', e => { const b = e.target.closest('[data-ob]'); if (!b) return; if (b.dataset.ob === 'skip' || i === OB.length - 1) return done(); i++; draw(); });
@@ -2690,7 +3115,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     mgT = setInterval(() => { const e = $('mgTime'); if (e) e.textContent = ((Date.now() - t0) / 1000).toFixed(1) + '초'; }, 100);
     const finish = () => {
       over = true; const sec = ((Date.now() - t0) / 1000).toFixed(1);
-      ov.innerHTML = `<div class="mg-done"><div class="mg-medal">${IC.trophy}</div><h2>${wrong === 0 ? '완벽해요!' : '모두 맞췄어요'}</h2><p>${sec}초 · 오답 ${wrong}번</p><button class="btn btn-primary btn-block" data-mg="again">한 번 더</button><button class="btn btn-soft btn-block" data-mg="x" style="margin-top:8px;">닫기</button></div>`;
+      ov.innerHTML = `<div class="mg-done"><div class="result-art">${MASCOT(wrong === 0 ? 'cheer' : 'happy')}</div><h2>${wrong === 0 ? '완벽해요!' : '모두 맞췄어요'}</h2><p>${sec}초 · 오답 ${wrong}번</p><button class="btn btn-primary btn-block" data-mg="again">한 번 더</button><button class="btn btn-soft btn-block" data-mg="x" style="margin-top:8px;">닫기</button></div>`;
     };
     ov.addEventListener('click', e => {
       const k = e.target.closest('[data-mg]');
@@ -2747,13 +3172,16 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     for (let r = 0; r < 2000; r++) for (let i = 0; i < t.length; i++) h = ((h * 33) ^ t.charCodeAt(i)) >>> 0;
     return String(h);
   }
-  let authMode = 'login', pendingGrade = '';
+  let authMode = 'login', pendingGrade = '', ageOk = false;
   function renderAuth() {
     const su = authMode === 'signup';
     $('authScreen').innerHTML = `<div class="auth-box">
+      <div class="auth-hero">${MASCOT('happy')}</div>
       <div class="page-title" style="text-align:center;margin-bottom:6px;"><b>Voca</b>Pro</div>
       <p class="muted" style="text-align:center;margin:0 0 18px;">${su ? '새 계정을 만들어요' : '로그인하고 이어서 외워요'}</p>
+      ${kidMode ? '<div class="kid-note"><b>만 14세 미만 계정</b>보호자와 함께 만들어 주세요. 단어장과 기록은 이 기기에만 저장되고 서버로 보내지 않아요.</div>' : ''}
       <div class="seg" style="margin-bottom:14px;"><button class="${su ? '' : 'on'}" data-act="auth-mode" data-m="login">로그인</button><button class="${su ? 'on' : ''}" data-act="auth-mode" data-m="signup">회원가입</button></div>
+      ${su && cloudAvail && !kidMode ? `<div class="seg age-seg" style="margin-bottom:12px;"><button class="${ageOk ? 'on' : ''}" data-act="auth-age" data-k="0">만 14세 이상</button><button data-act="auth-age" data-k="1">만 14세 미만</button></div>` : ''}
       <div class="form-stack">
         <input type="text" id="auId" placeholder="아이디 (2~20자)" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="20">
         <input type="password" id="auPw" placeholder="비밀번호 (${cloudMode ? 6 : 4}자 이상)" autocomplete="${su ? 'new-password' : 'current-password'}">
@@ -2762,6 +3190,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
         <label class="switch-row"><input type="checkbox" id="auKeep" checked> 로그인 유지</label>
         <div id="auMsg" style="display:none;color:var(--coral);font-weight:600;font-size:.85rem;"></div>
         <button class="btn btn-primary btn-block" id="auGo" data-act="auth-go">${su ? '가입하고 시작' : '로그인'}</button>
+        ${cloudAvail ? `<button class="link-btn kid-link" data-act="auth-age" data-k="${kidMode ? 0 : 1}">${kidMode ? '만 14세 이상 계정으로 돌아가기' : (su ? '' : '이 기기의 어린이 계정(만 14세 미만)으로 로그인')}</button>` : ''}
         <p class="muted" style="font-size:.74rem;line-height:1.6;margin:4px 0 0;">${cloudMode ? '같은 아이디로 로그인하면 어느 기기에서든 단어장과 학습 기록이 이어져요. 비밀번호를 잊으면 복구할 수 없어요. API 키는 보안을 위해 기기마다 따로 입력해요.' : '계정은 이 기기의 브라우저에만 저장돼요. 다른 기기와 동기화되지 않고, 비밀번호를 잊으면 복구할 수 없으니 백업 파일을 받아 두세요.'}</p>
       </div></div>`;
     setTimeout(drawCaptcha, 0);
@@ -2773,6 +3202,13 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     setTimeout(() => { const f = $('auId'); if (f) f.focus(); }, 100);
   }
   ACTIONS['auth-mode'] = el => { authMode = el.dataset.m; renderAuth(); };
+  ACTIONS['auth-age'] = el => {
+    const kid = el.dataset.k === '1';
+    if (kid) { setKidMode(true); if (!Object.keys(getUsers()).length) authMode = 'signup'; }
+    else if (kidMode) setKidMode(false);
+    else ageOk = true;
+    renderAuth();
+  };
   ACTIONS['auth-go'] = async () => {
     const btn = $('auGo'); if (!btn || btn.disabled) return;
     const fail = m => {
@@ -2786,6 +3222,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
       if (!/^[\w가-힣-]{2,20}$/.test(email)) return fail('아이디는 2~20자의 한글, 영문, 숫자, _, - 만 쓸 수 있어요.');
       if (pw0.length < 6) return fail('비밀번호는 6자 이상이어야 해요.');
       if (su0 && pw0 !== $('auPw2').value) return fail('비밀번호 확인이 달라요.');
+      if (su0 && !ageOk) return fail('만 14세 이상인지 골라 주세요. 만 14세 미만은 이 기기에만 저장하는 계정으로 만들어요.');
       btn.disabled = true;
       try {
         if (!window.Cloud) throw { code: 'offline' };
@@ -2833,6 +3270,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
         }
       } catch (e) {}
     }
+    try { if (kidMode) LS.setItem(KEY_KID, '1'); else LS.removeItem(KEY_KID); } catch (e) {}
     config = loadConfig(); const db = loadDb(); categories = db.categories; stats = db.stats;
     currentCategoryId = null; viewOrder = null; openDrawers.clear(); S = { active: false };
     ['studyScreen', 'sheetOv'].forEach(i => $(i).classList.remove('open'));
@@ -2850,6 +3288,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     try { LS.removeItem(KEY_SESS); sessionStorage.removeItem(KEY_SESS); } catch (e) {}
     currentUser = null; S = { active: false };
     ['studyScreen', 'sheetOv'].forEach(i => $(i).classList.remove('open'));
+    if (kidMode) { setKidMode(false); try { LS.removeItem(KEY_KID); } catch (e) {} }
     showAuth();
   };
   ACTIONS['acct-del'] = async () => {
@@ -2950,7 +3389,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
   }
   function ltIntro(ov, intro) {
     ov.innerHTML = `<button class="ob-skip" data-lt="close">${intro ? '나중에 할게요' : '닫기'}</button>
-      <div class="ob-body"><div class="ob-ic">${IC.sprout}</div><h2>내 영어 수준 알아보기</h2>
+      <div class="ob-body"><div class="ob-art">${MASCOT('think')}</div><h2>내 영어 수준 알아보기</h2>
       <p>12문제, 약 2분이면 끝나요.<br>결과에 맞춰 하루 목표와 시작 단어를 추천해 드려요.</p></div>
       <div class="ob-foot"><button class="btn btn-primary btn-block" data-lt="start">테스트 시작</button></div>`;
   }
@@ -2980,7 +3419,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     const r = ltLevel(), info = LT_LV[r], total = LT.ok.reduce((a, b) => a + b, 0);
     LT.r = r;
     try { LS.setItem(ltKey(), JSON.stringify({ lv: r, score: total, at: Date.now() })); } catch (e) {}
-    ov.innerHTML = `<div class="ob-body"><div class="ob-ic">${IC.star}</div>
+    ov.innerHTML = `<div class="ob-body"><div class="ob-art">${MASCOT('cheer')}</div>
       <div class="muted" style="font-weight:700;">내 수준은</div><h2 style="font-size:2.4rem;">${info.name}</h2>
       <p>${info.desc}<br>12문제 중 <b>${total}</b>문제를 맞혔어요.</p>
       <div class="card" style="width:100%;margin-top:22px;text-align:left;"><b>추천 하루 목표 ${info.goal}개</b><div class="muted" style="font-size:.85rem;margin-top:4px;">'${info.name} 시작 단어' 단어장 ${LT_BANK[Math.min(r, 3)].length}개도 만들어 드려요.</div></div></div>
@@ -3019,7 +3458,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     let s = null; try { s = JSON.parse(LS.getItem(ltKey()) || 'null'); } catch (e) {}
     const t = s && LT_LV[s.lv] ? '내 수준: ' + LT_LV[s.lv].name + ' · 다시 테스트' : '내 영어 수준 알아보기';
     const sub = s ? '실력이 늘었다면 다시 측정해 보세요' : '12문제로 하루 목표와 시작 단어를 추천받아요';
-    return `<button class="mg-entry" data-act="level-test"><span class="mg-ico">${IC.sprout}</span><span class="mg-txt"><b>${esc(t)}</b><small>${sub}</small></span><span class="mg-chev"></span></button>`;
+    return `<button class="mg-entry" data-act="level-test"><span class="mg-ico i-coral">${IC.sprout}</span><span class="mg-txt"><b>${esc(t)}</b><small>${sub}</small></span><span class="mg-chev"></span></button>`;
   }
 
   /* =========================================================
@@ -3091,7 +3530,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     FL.items.forEach(it => { const ok = !!FL.res[it.w.id]; grade(it.w, ok); recordStat(ok); if (ok) good++; else wrongs.push(it); });
     syncStorage(); FL.wrongs = wrongs;
     try { go(curTab); } catch (e) {}
-    ov.innerHTML = `<div class="ob-body"><div class="ob-ic">${IC.star}</div><div class="muted" style="font-weight:700;">마무리 시험 결과</div><h2 style="font-size:2.4rem;">${good} / ${FL.items.length}</h2><p>${wrongs.length ? '틀린 단어는 내일 다시 복습해요.' : '모두 맞혔어요. 대단해요!'}</p>${wrongs.length ? `<div class="card" style="width:100%;margin-top:18px;text-align:left;">${wrongs.map(it => `<div class="wrong-item"><b>${esc(it.w.word)}</b><span>${esc(it.w.meaning)}</span></div>`).join('')}</div>` : ''}</div><div class="ob-foot">${wrongs.length ? '<button class="btn btn-primary btn-block" data-fl="again">틀린 것만 다시</button><button class="btn btn-soft btn-block" data-fl="close" style="margin-top:8px;">마치기</button>' : '<button class="btn btn-primary btn-block" data-fl="close">마치기</button>'}</div>`;
+    ov.innerHTML = `<div class="ob-body"><div class="ob-art">${MASCOT(wrongs.length ? 'happy' : 'cheer')}</div><div class="muted" style="font-weight:700;">마무리 시험 결과</div><h2 style="font-size:2.4rem;">${good} / ${FL.items.length}</h2><p>${wrongs.length ? '틀린 단어는 내일 다시 복습해요.' : '모두 맞혔어요. 대단해요!'}</p>${wrongs.length ? `<div class="card" style="width:100%;margin-top:18px;text-align:left;">${wrongs.map(it => `<div class="wrong-item"><b>${esc(it.w.word)}</b><span>${esc(it.w.meaning)}</span></div>`).join('')}</div>` : ''}</div><div class="ob-foot">${wrongs.length ? '<button class="btn btn-primary btn-block" data-fl="again">틀린 것만 다시</button><button class="btn btn-soft btn-block" data-fl="close" style="margin-top:8px;">마치기</button>' : '<button class="btn btn-primary btn-block" data-fl="close">마치기</button>'}</div>`;
     if (good === FL.items.length) { try { confetti(); } catch (e) {} }
   }
   document.addEventListener('click', e => {
@@ -3269,13 +3708,13 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
   };
   function packEntryHtml() {
     const total = PACKS.reduce((n, [k]) => n + gradeWords(k).length, 0);
-    return `<button class="mg-entry" data-act="pack-open"><span class="mg-ico">${IC.book}</span><span class="mg-txt"><b>기초 · 중학교 · 고등학교 · 수능 단어</b><small>${total.toLocaleString()}개 단어를 골라 담아요</small></span><span class="mg-chev"></span></button>`;
+    return `<button class="mg-entry" data-act="pack-open"><span class="mg-ico i-mint">${IC.book}</span><span class="mg-txt"><b>기초 · 중학교 · 고등학교 · 수능 단어</b><small>${total.toLocaleString()}개 단어를 골라 담아요</small></span><span class="mg-chev"></span></button>`;
   }
   ACTIONS['pack-open'] = () => recSheet(config.grade === 'h3' ? 'csat' : /^h/.test(config.grade) ? 'high' : /^m/.test(config.grade) ? 'mid' : 'basic');
   function recEntryHtml() {
     const k = config.grade, g = GRADE_NAMES[k];
     const sub = g ? `100개 중 ${gradeWords(k).length - recLeft(k).length}개를 담았어요` : '학년을 고르면 맞춤 단어를 추천해요';
-    return `<button class="mg-entry" data-act="${g ? 'rec-all' : 'grade-pick'}"><span class="mg-ico">${IC.bell}</span><span class="mg-txt"><b>${g ? `${g} 추천 단어 100` : '학년별 추천 단어'}</b><small>${sub}</small></span><span class="mg-chev"></span></button>`;
+    return `<button class="mg-entry" data-act="${g ? 'rec-all' : 'grade-pick'}"><span class="mg-ico i-sun">${IC.bell}</span><span class="mg-txt"><b>${g ? `${g} 추천 단어 100` : '학년별 추천 단어'}</b><small>${sub}</small></span><span class="mg-chev"></span></button>`;
   }
 
   /* =========================================================
@@ -3297,7 +3736,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     for (let i = 0; i < 40; i++) { x.fillStyle = `rgba(60,60,60,${(capRnd(40) + 10) / 100})`; x.fillRect(capRnd(W), capRnd(H), 2, 2); }
   }
   function authExtraHtml(su) {
-    return `<div id="capBox" style="display:${su || authFails >= 3 ? 'block' : 'none'}"><div class="cap-row"><canvas id="capCv" width="160" height="52" aria-label="보안문자"></canvas><button type="button" class="btn btn-soft" data-act="cap-refresh">새로고침</button></div><input type="text" id="capIn" placeholder="위 문자를 입력하세요" maxlength="5" autocapitalize="characters" autocomplete="off" spellcheck="false"></div>${su ? '<label class="switch-row"><input type="checkbox" id="auTerms"><span>(필수) <a class="lg-a" data-act="legal" data-k="terms">이용약관</a> 및 <a class="lg-a" data-act="legal" data-k="privacy">개인정보 처리방침</a>에 동의해요</span></label>' : ''}`;
+    return `<div id="capBox" style="display:${su || authFails >= 3 ? 'block' : 'none'}"><div class="cap-row"><canvas id="capCv" width="160" height="52" aria-label="보안문자"></canvas><button type="button" class="btn btn-soft" data-act="cap-refresh">새로고침</button></div><input type="text" id="capIn" placeholder="위 문자를 입력하세요" maxlength="5" autocapitalize="characters" autocomplete="off" spellcheck="false"></div>${su ? `<label class="switch-row"><input type="checkbox" id="auTerms"><span>(필수) ${kidMode ? '보호자와 함께 ' : ''}<a class="lg-a" data-act="legal" data-k="terms">이용약관</a> 및 <a class="lg-a" data-act="legal" data-k="privacy">개인정보 처리방침</a>${kidMode ? '을 읽고 ' : '에 '}동의해요</span></label>` : ''}`;
   }
   function authGate() {
     const su = authMode === 'signup';
@@ -3310,36 +3749,200 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
   }
   ACTIONS['cap-refresh'] = () => { drawCaptcha(); const i = $('capIn'); if (i) { i.value = ''; i.focus(); } };
 
-  const LEGAL = {
-    terms: ['이용약관', [
-      ['제1조 (목적)', 'VocaPro(이하 "서비스")는 영어 단어 학습을 돕는 앱입니다. 이 약관은 서비스 이용에 관한 운영자(김주원)와 이용자의 권리와 의무를 정합니다.'],
-      ['제2조 (계정)', '이용자는 아이디와 비밀번호로 가입합니다. 비밀번호는 이메일 등 복구 수단이 없어, 잊으면 되찾을 수 없습니다. 계정 관리 책임은 이용자에게 있습니다.'],
-      ['제3조 (서비스 내용)', '단어장 관리, 반복 학습, 퀴즈, 번역, 학습 통계, 기기 간 동기화 기능을 제공합니다. 일부 기능(AI 자동 채우기, 번역)은 외부 서비스에 의존하며, 이 서비스의 사정으로 제한되거나 중단될 수 있습니다.'],
-      ['제4조 (금지 행위)', '타인의 계정을 도용하거나, 서비스를 자동화된 수단으로 과도하게 호출하거나, 서비스의 정상 운영을 방해하는 행위를 금지합니다.'],
-      ['제5조 (이용자 데이터)', '이용자가 만든 단어장과 학습 기록은 이용자의 것입니다. 설정에서 언제든 내려받거나 계정과 함께 삭제할 수 있습니다.'],
-      ['제6조 (면책)', '학습 결과와 AI·번역 결과의 정확성은 보장되지 않습니다. 천재지변, 외부 서비스 장애 등 운영자가 통제할 수 없는 사유로 인한 손해에는 책임을 지지 않습니다.'],
-      ['제7조 (약관 변경)', '약관을 바꿀 때는 앱 안에서 알립니다. 변경 후에도 계속 이용하면 동의한 것으로 봅니다.'],
-      ['시행일', '2026년 10월 11일']]],
-    privacy: ['개인정보 처리방침', [
-      ['1. 수집하는 정보', '아이디, 비밀번호(복호화할 수 없는 해시 형태로 저장), 로그인 세션 정보, 이용자가 입력한 단어장·학습 기록·설정. 이메일, 전화번호, 위치 정보는 수집하지 않습니다.'],
-      ['2. 이용 목적', '계정 인증, 기기 간 데이터 동기화, 서비스 제공과 오류 대응.'],
-      ['3. 보관 기간', '계정을 삭제할 때까지 보관하며, 설정의 "계정과 데이터 삭제"를 누르면 서버 데이터가 즉시 삭제됩니다.'],
-      ['4. 처리 위탁·외부 전송', '데이터 저장: Supabase. 앱 배포: Netlify. 글꼴: jsDelivr. 번역 시 입력한 문장은 번역 서비스(MyMemory 또는 AI 제공자)로 전송됩니다. 이용자가 직접 입력한 AI 키(Google, OpenAI, xAI, Anthropic)는 이 기기에만 저장하며 서버로 보내지 않습니다. 광고와 행태 분석 도구는 사용하지 않습니다.'],
-      ['5. 이용자의 권리', '언제든 열람(백업 내려받기), 수정, 삭제할 수 있습니다.'],
-      ['6. 만 14세 미만', '만 14세 미만은 법정대리인의 동의를 받아 이용해야 합니다.'],
-      ['7. 문의', '개인정보 관련 문의: 개발자 김주원 ([문의 이메일 기재 필요])'],
-      ['시행일', '2026년 10월 11일']]]
+  /* =========================================================
+   * 이용약관 · 개인정보 처리방침
+   * 기준: 개인정보 보호법 제30조, 개인정보 처리방침 작성지침(2025.4.21), 공정위 표준약관 구조
+   * ======================================================= */
+  // 공개되는 운영자 정보. 비어 있는 값은 문서에 '확인 중'으로 표시돼요.
+  const LEGAL_INFO = {
+    operator: '김주원',
+    email: 'vocaproe2@gmail.com',
+    dbRegion: '',
+    effective: '2026년 10월 11일'
   };
+  const lgv = v => v || '확인 중';
+  function legalDocs() {
+    const I = LEGAL_INFO, mail = lgv(I.email), region = lgv(I.dbRegion);
+    return {
+      privacy: ['개인정보 처리방침', `${I.operator}(이하 "운영자")은 VocaPro(이하 "서비스")를 운영하면서 「개인정보 보호법」 제30조에 따라 이용자의 개인정보를 보호하고 관련 고충을 빠르게 처리하기 위해 다음과 같이 개인정보 처리방침을 공개합니다.`, [
+        ['제1조 개인정보의 처리 목적', `운영자는 다음 목적으로만 개인정보를 처리하며, 목적이 바뀌면 「개인정보 보호법」 제18조에 따라 별도 동의를 받는 등 필요한 조치를 합니다.
+- 회원 가입과 관리: 회원 식별, 로그인 유지, 비밀번호 무차별 대입 같은 부정 이용 방지
+- 학습 서비스 제공: 단어장·학습 기록·설정의 저장과 기기 간 동기화, 학년에 맞는 추천 단어 제공
+- AI 기능 제공: AI 단어 완성과 번역 요청 처리, 회원별 하루 사용 한도 관리
+- 서비스 운영: 오류 확인과 대응`],
+        ['제2조 처리하는 개인정보 항목', `회원 가입 시 필수 항목
+- 아이디, 비밀번호, 학년
+- 비밀번호는 되돌릴 수 없는 방식(bcrypt)으로 바꿔 저장하며 원래 비밀번호는 저장하지 않습니다.
+서비스 이용 중 만들어지는 정보
+- 이용자가 입력한 단어장(단어, 뜻, 발음, 예문, 메모 등), 학습 기록과 통계, 앱 설정
+- 로그인 세션 정보(토큰은 해시로 바꿔 저장), 가입·로그인 일시, 로그인 실패 횟수
+- AI 기능의 날짜별 사용 횟수
+자동으로 생성되는 정보
+- 서비스에 접속하는 과정에서 IP 주소, 브라우저 종류, 접속 일시가 호스팅·서버 업체의 접속 기록에 남을 수 있습니다.
+수집하지 않는 정보
+- 이름, 이메일, 전화번호, 주소, 위치 정보, 광고 식별자는 수집하지 않습니다.`],
+        ['제3조 개인정보의 처리 및 보유 기간', `- 계정 정보, 단어장, 학습 기록, 설정: 회원 탈퇴(계정 삭제) 시까지. 탈퇴하면 즉시 삭제합니다.
+- 로그인 세션 정보: 로그인 후 90일 또는 로그아웃할 때까지
+- AI 날짜별 사용 횟수: 30일
+- 접속 기록(IP 주소 등): 호스팅·서버 업체의 기록 보관 기간 동안. 운영자는 따로 보관하지 않습니다.
+서비스는 무료이며 결제 기능이 없어, 법령에 따라 별도로 보관해야 하는 정보는 없습니다.`],
+        ['제4조 개인정보의 제3자 제공', '운영자는 이용자의 개인정보를 제3자에게 제공하지 않습니다. 다만 이용자가 동의하거나 법률에 특별한 규정이 있는 경우(「개인정보 보호법」 제17조, 제18조)는 예외로 합니다.'],
+        ['제5조 개인정보 처리의 위탁', `운영자는 서비스 제공을 위해 다음과 같이 개인정보 처리 업무를 위탁합니다. 위탁 기간은 회원 탈퇴 또는 위탁 계약 종료 시까지입니다.
+- Supabase, Inc.: 계정과 학습 데이터 저장, 서버 기능 실행 (서버 위치: ${region})
+- Netlify, Inc.: 웹앱 배포와 호스팅 (미국)
+- Google LLC: AI 단어 완성과 번역 처리(Gemini API) (미국)
+운영자는 「개인정보 보호법」 제26조에 따라 수탁자가 개인정보를 안전하게 처리하는지 관리합니다.`],
+        ['제6조 개인정보의 국외 이전', `서비스 이용 과정에서 다음과 같이 개인정보가 국외로 이전됩니다. 모든 전송은 암호화된 통신(HTTPS)으로 이루어집니다.
+- Google LLC (미국, https://policies.google.com/privacy): AI 완성·번역을 누를 때 입력한 영어 단어나 문장을 보냅니다. 아이디 등 계정 정보는 보내지 않습니다. 목적은 AI 결과 생성이며, 보유 기간은 Google의 Gemini API 약관을 따릅니다.
+- Netlify, Inc. (미국, privacy@netlify.com): 서비스에 접속할 때 IP 주소, 브라우저 정보가 전송됩니다. 목적은 웹앱 전송이며, 보유 기간은 Netlify의 기록 보관 기간을 따릅니다.
+- Translated srl, MyMemory (이탈리아, https://mymemory.translated.net): AI 번역을 쓸 수 없을 때 번역할 문장을 보냅니다. 목적은 번역 결과 생성입니다.
+- jsDelivr (Prospect One, 폴란드, https://www.jsdelivr.com/terms/privacy-policy-jsdelivr-net): 글꼴 파일을 받을 때 IP 주소가 전송됩니다.
+- Supabase, Inc. (서버 위치: ${region}): 서버 위치가 국외인 경우 제2조의 계정·학습 정보가 그 국가에 저장됩니다.
+이전을 원하지 않으면 AI 완성과 번역을 쓰지 않으면 됩니다. 내장 사전에 있는 단어는 외부로 보내지 않고 기기 안에서 채웁니다. 다만 접속 기록과 계정 정보 저장은 서비스 제공에 꼭 필요해 거부하면 서비스를 이용할 수 없습니다.
+이용자가 설정에서 직접 입력한 AI 키로 이용하는 경우, 입력한 단어와 문장은 이용자 기기에서 해당 AI 제공자(Google, OpenAI, xAI, Anthropic)로 바로 전송되며 운영자 서버를 거치지 않습니다. 이 키는 이용자 기기에만 저장합니다.`],
+        ['제7조 개인정보의 파기 절차 및 방법', `보유 기간이 끝나거나 처리 목적을 이루면 지체 없이 파기합니다.
+- 회원 탈퇴: 설정의 "계정과 데이터 삭제"를 누르면 서버의 계정과 학습 데이터를 즉시 삭제하며 복구할 수 없습니다.
+- 세션 정보와 AI 사용 횟수: 보유 기간이 지나면 자동으로 삭제합니다.
+- 전자 파일은 복구할 수 없는 방법으로 삭제하며, 종이 문서로는 개인정보를 보관하지 않습니다.
+- 이용자 기기에 저장된 정보는 앱의 로그아웃·삭제 기능이나 브라우저의 사이트 데이터 삭제로 지울 수 있습니다.`],
+        ['제8조 이용자와 법정대리인의 권리와 행사 방법', `이용자는 언제든지 자신의 개인정보에 대해 열람, 정정, 삭제, 처리정지, 전송을 요구할 수 있습니다.
+- 열람·전송: 설정의 "백업 파일 내려받기"(JSON)나 단어장 메뉴의 "CSV로 내보내기"로 직접 내려받을 수 있습니다.
+- 정정: 앱에서 단어장과 설정을 직접 고칠 수 있습니다.
+- 삭제·처리정지: 설정의 "계정과 데이터 삭제"로 바로 할 수 있습니다.
+- 그 밖의 요구는 이메일(${mail})로 보내 주시면 10일 이내에 조치하고 결과를 알려 드립니다.
+법정대리인이나 위임을 받은 사람을 통해서도 권리를 행사할 수 있으며, 이 경우 위임장을 함께 제출해야 합니다.`],
+        ['제9조 자동 수집 장치의 설치·운영 및 거부', `서비스는 쿠키를 사용하지 않습니다. 로그인 상태, 설정, 학습 데이터를 이용자 기기의 브라우저 저장소(localStorage)에 저장하며, 이는 서비스 제공에 꼭 필요합니다. 브라우저 설정의 사이트 데이터 삭제로 지울 수 있으며, 이 경우 로그아웃되고 아직 동기화되지 않은 데이터가 지워질 수 있습니다.
+광고, 행태정보 수집, 이용 분석 도구는 사용하지 않습니다.`],
+        ['제10조 개인정보의 안전성 확보 조치', `- 비밀번호는 bcrypt로 단방향 암호화하고, 로그인 세션 토큰은 해시로 저장하며 90일 뒤 만료합니다.
+- 모든 통신은 HTTPS로 암호화합니다.
+- 데이터베이스 표에 대한 직접 접근을 막고(RLS), 정해진 서버 함수로만 처리합니다.
+- 로그인을 5회 실패하면 10분간 잠그고, 가입과 반복 실패 시 보안문자를 확인합니다.
+- 서버 비밀키는 서버에만 보관하고 앱 코드에 넣지 않습니다.
+- 개인정보에 접근할 수 있는 사람을 운영자 1명으로 제한합니다.`],
+        ['제11조 만 14세 미만 아동의 개인정보', `만 14세 미만 이용자는 서버 계정을 만들지 않고 "이 기기에만 저장" 방식으로 이용합니다. 이 경우 단어장과 학습 기록은 아동의 기기에만 저장되며 운영자는 아동의 개인정보를 수집하지 않습니다. 서버 동기화와 서버 AI 기능은 제공하지 않으며, 내장 사전 등 나머지 학습 기능은 그대로 이용할 수 있습니다.`],
+        ['제12조 자동화된 결정', 'AI 단어 완성은 이용자가 요청한 단어의 뜻과 예문을 채워 주는 기능이며, 이용자의 권리나 의무에 영향을 주는 자동화된 결정(「개인정보 보호법」 제37조의2)은 하지 않습니다. 이용자의 개인정보를 AI 학습에 쓰지 않습니다.'],
+        ['제13조 개인정보 보호책임자', `개인정보 처리에 관한 업무와 고충 처리를 다음 책임자가 맡습니다.
+- 성명: ${I.operator}
+- 직책: 운영자(개발자)
+- 이메일: ${mail}
+1인 운영 서비스라 개인정보 열람 청구 접수와 처리도 같은 책임자가 맡습니다.`],
+        ['제14조 권익침해 구제 방법', `개인정보 침해에 대한 상담이나 분쟁 해결은 아래 기관에 신청할 수 있습니다.
+- 개인정보분쟁조정위원회: 국번 없이 1833-6972 (www.kopico.go.kr)
+- 개인정보침해신고센터: 국번 없이 118 (privacy.kisa.or.kr)
+- 대검찰청: 국번 없이 1301 (www.spo.go.kr)
+- 경찰청: 국번 없이 182 (ecrm.police.go.kr)`],
+        ['제15조 개인정보 처리방침의 변경', `이 방침을 바꿀 때는 시행 7일 전부터 앱 안에서 알리며, 이용자에게 불리하거나 중요한 변경은 30일 전부터 알립니다.
+- 2026년 10월 11일: 제정
+- ${I.effective}: 법정 기재 항목 보완, 학년 정보·AI 기능·국외 이전 내용 반영`],
+        ['시행일', `이 방침은 ${I.effective}부터 시행합니다.`]]],
+      terms: ['이용약관', '', [
+        ['제1조 (목적)', `이 약관은 ${I.operator}(이하 "운영자")이 제공하는 영어 단어 학습 서비스 VocaPro(이하 "서비스")의 이용 조건과 절차, 운영자와 회원의 권리·의무를 정합니다.`],
+        ['제2조 (정의)', `- 서비스: 운영자가 웹과 앱(PWA)으로 제공하는 VocaPro와 관련 기능
+- 회원: 이 약관에 동의하고 계정을 만든 사람
+- 학습 데이터: 회원이 만든 단어장, 학습 기록, 설정
+- AI 기능: AI로 단어 정보를 채우거나 문장을 번역하는 기능`],
+        ['제3조 (약관의 게시와 변경)', `- 운영자는 이 약관을 가입 화면과 설정 화면에서 언제든 볼 수 있게 합니다.
+- 운영자는 관련 법령을 어기지 않는 범위에서 약관을 바꿀 수 있습니다. 바꿀 때는 적용일과 이유를 적어 적용일 7일 전부터 앱 안에서 알리며, 회원에게 불리한 변경은 30일 전부터 알립니다.
+- 알린 적용일까지 거부 의사를 밝히지 않으면 바뀐 약관에 동의한 것으로 본다는 점을 함께 알렸는데도 회원이 거부하지 않으면 동의한 것으로 봅니다. 동의하지 않는 회원은 탈퇴할 수 있습니다.`],
+        ['제4조 (회원 가입)', `- 아이디, 비밀번호, 학년을 입력하고 이 약관과 개인정보 처리방침에 동의하면 가입됩니다.
+- 만 14세 미만은 서버 계정을 만들 수 없으며 "이 기기에만 저장" 방식으로 이용합니다.
+- 다른 사람의 정보를 도용하거나 서비스 운영을 방해할 목적으로 가입한 경우 가입을 거절하거나 취소할 수 있습니다.`],
+        ['제5조 (계정 관리)', '회원은 아이디와 비밀번호를 스스로 관리해야 하며 다른 사람이 쓰게 해서는 안 됩니다. 서비스는 이메일 같은 복구 수단을 받지 않으므로 비밀번호를 잊으면 계정을 되찾을 수 없습니다. 도용을 알게 되면 바로 비밀번호를 바꾸고 운영자에게 알려 주세요.'],
+        ['제6조 (서비스의 제공)', `서비스는 무료이며 다음 기능을 제공합니다.
+- 단어장 관리, 반복 학습, 퀴즈, 듣기, 학습 통계
+- 내장 사전, 학년별·수준별 추천 단어
+- AI 단어 완성과 번역(회원별 하루 사용 한도 적용)
+- 기기 간 동기화와 백업`],
+        ['제7조 (서비스의 변경과 중단)', '운영자는 운영상·기술상 필요하면 서비스 내용을 바꿀 수 있으며, 중요한 변경은 미리 알립니다. 설비 점검, 외부 서비스(호스팅, 데이터베이스, AI 제공자)의 장애, 천재지변 등으로 서비스가 일시 중단될 수 있습니다. 서비스를 끝낼 때는 30일 전에 알리고, 그 기간 동안 학습 데이터를 내려받을 수 있게 합니다.'],
+        ['제8조 (AI 기능)', `- AI 결과는 자동으로 만들어진 것이라 틀릴 수 있으니 학습에 쓰기 전에 확인해 주세요.
+- 하루 사용 한도를 넘으면 다음 날까지 서버 AI를 쓸 수 없습니다.
+- AI 완성과 번역에 다른 사람의 개인정보나 민감한 내용을 입력하지 마세요. 입력한 내용은 개인정보 처리방침에 적힌 AI 제공자에게 전송됩니다.
+- 회원이 직접 입력한 AI 키로 쓰는 경우 해당 AI 제공자의 약관이 적용되며, 그 사용 요금은 회원이 부담합니다.`],
+        ['제9조 (운영자의 의무)', '운영자는 관련 법령과 이 약관을 지키며 서비스를 안정적으로 제공하기 위해 노력합니다. 회원의 개인정보는 개인정보 처리방침에 따라 보호하며, 회원의 의견과 불만은 이메일로 받아 빠르게 처리합니다.'],
+        ['제10조 (회원의 의무)', `회원은 다음 행위를 해서는 안 됩니다.
+- 다른 사람의 계정 도용이나 비밀번호 무차별 대입
+- 프로그램 등을 이용한 과도한 자동 호출, AI 사용 한도 회피
+- 서비스의 정상 운영을 방해하거나 서버에 부정하게 접근하는 행위
+- 법령이나 공공질서에 어긋나는 내용을 저장·공유하는 행위`],
+        ['제11조 (이용 제한)', '회원이 제10조를 어기면 운영자는 경고, 일시 정지, 계정 삭제 순으로 이용을 제한할 수 있습니다. 다만 서비스 운영에 심각한 피해를 주는 경우 바로 제한할 수 있습니다. 회원은 이용 제한에 대해 이메일로 이의를 제기할 수 있습니다.'],
+        ['제12조 (회원 탈퇴)', '회원은 설정의 "계정과 데이터 삭제"로 언제든 탈퇴할 수 있습니다. 탈퇴하면 서버의 계정과 학습 데이터가 즉시 삭제되어 되돌릴 수 없으니, 필요하면 미리 백업 파일을 내려받아 두세요.'],
+        ['제13조 (저작권)', '서비스의 디자인, 프로그램, 내장 사전과 추천 단어 목록의 권리는 운영자에게 있습니다. 회원이 만든 학습 데이터는 회원의 것이며, 운영자는 서비스 제공 목적 외에는 쓰지 않습니다.'],
+        ['제14조 (책임의 제한)', '운영자는 천재지변, 외부 서비스 장애, 회원의 잘못으로 생긴 손해에는 책임을 지지 않습니다. 내장 사전과 AI 결과의 정확성, 학습 성과는 보장하지 않습니다. 다만 운영자의 고의나 중대한 과실로 생긴 손해는 관련 법령에 따라 책임을 집니다.'],
+        ['제15조 (회원에 대한 통지)', '운영자는 앱 안 공지로 회원에게 알립니다. 서비스는 회원의 연락처를 받지 않으므로 개별 통지가 필요한 경우에도 앱 안 알림으로 합니다.'],
+        ['제16조 (분쟁 해결과 준거법)', `서비스 이용과 관련한 분쟁은 먼저 이메일(${mail})로 협의해 해결합니다. 협의가 되지 않으면 대한민국 법을 적용하며, 관할 법원은 「민사소송법」에 따라 정합니다.`],
+        ['부칙', `이 약관은 ${I.effective}부터 시행합니다.`]]]
+    };
+  }
+  function legalHtml(t) {
+    let out = '', list = '';
+    const flush = () => { if (list) { out += `<ul>${list}</ul>`; list = ''; } };
+    String(t).split('\n').forEach(l => {
+      if (l.startsWith('- ')) list += `<li>${esc(l.slice(2))}</li>`;
+      else { flush(); if (l.trim()) out += `<p>${esc(l)}</p>`; }
+    });
+    flush(); return out;
+  }
   ACTIONS.legal = el => {
-    const d = LEGAL[el.dataset.k]; if (!d || $('lgOv')) return;
+    const d = legalDocs()[el.dataset.k]; if (!d || $('lgOv')) return;
     const ov = document.createElement('div'); ov.className = 'ob lt lg'; ov.id = 'lgOv'; ov.style.zIndex = 700;
-    ov.innerHTML = `<button class="ob-skip" data-lg="x">닫기</button><div class="lg-body"><h2>${d[0]}</h2>${d[1].map(([h, t]) => `<h4>${esc(h)}</h4><p>${esc(t)}</p>`).join('')}</div>`;
+    ov.innerHTML = `<button class="ob-skip" data-lg="x">닫기</button><div class="lg-body"><h2>${d[0]}</h2>${d[1] ? legalHtml(d[1]) : ''}${d[2].map(([h, t]) => `<h4>${esc(h)}</h4>${legalHtml(t)}`).join('')}</div>`;
     ov.addEventListener('click', e => { if (e.target.closest('[data-lg]')) ov.remove(); });
     document.body.appendChild(ov);
   };
   function legalLinksHtml() { return '<div class="legal-links"><a class="lg-a" data-act="legal" data-k="terms">이용약관</a> · <a class="lg-a" data-act="legal" data-k="privacy">개인정보 처리방침</a></div>'; }
 
+
   function flowEntryHtml() { return `<button class="mg-entry" data-act="flow"><span class="mg-ico">${IC.repeat}</span><span class="mg-txt"><b>4단계 집중 학습</b><small>보기, 고르기, 쓰기, 시험으로 확실하게</small></span><span class="mg-chev"></span></button>`; }
+
+  /* =========================================================
+   * 키보드 단축키 (PC)
+   * ======================================================= */
+  const KBD = {
+    card: [['Space', '뒤집기'], ['←', '몰라요'], ['→', '알아요'], ['Esc', '나가기']],
+    choice: [['1~4', '고르기'], ['Esc', '나가기']],
+    spell: [['Enter', '확인 · 다음'], ['Esc', '나가기']],
+    listen: [['Space', '재생 · 정지'], ['← →', '이전 · 다음'], ['Esc', '나가기']]
+  };
+  KBD.rchoice = KBD.choice; KBD.dict = KBD.spell;
+  function kbdHint(mode) { const el = $('kbdHint'); if (el) el.innerHTML = (KBD[mode] || []).map(([k, t]) => `<span><kbd>${k}</kbd>${t}</span>`).join(''); }
+  document.addEventListener('keydown', e => {
+    if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
+    if (document.querySelector('.dlg-ov')) return;
+    const t = e.target, tag = t && t.tagName;
+    const typing = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || !!(t && t.isContentEditable);
+    const sheetOpen = $('sheetOv').classList.contains('open');
+    const study = $('studyScreen').classList.contains('open') && !sheetOpen && !$('flOv') && !$('ltOv') && !$('mgOv');
+    if (e.key === 'Escape') {
+      if ($('trOv')) return;
+      const lg = $('lgOv'); if (lg) { e.preventDefault(); lg.remove(); return; }
+      if ($('authScreen').style.display !== 'none' || $('obOv')) return;
+      for (const [id, sel] of [['flOv', '[data-fl="close"]'], ['ltOv', '[data-lt="close"]'], ['mgOv', '[data-mg="x"]']]) {
+        const ov = $(id); if (!ov) continue;
+        const b = ov.querySelector(sel); if (b) { e.preventDefault(); b.click(); }
+        return;
+      }
+      if (sheetOpen) { e.preventDefault(); closeSheet(); return; }
+      if (study) { e.preventDefault(); ACTIONS['exit-session'](); }
+      return;
+    }
+    if (typing || $('trOv') || $('lgOv')) return;
+    if (/^[1-4]$/.test(e.key)) {
+      const scope = $('flOv') || $('ltOv') || (study ? $('stBody') : null);
+      const b = scope && scope.querySelectorAll('.opt')[+e.key - 1];
+      if (b && !b.disabled) { e.preventDefault(); b.click(); }
+      return;
+    }
+    if (!study || !S.active || S.finished) return;
+    if (tag === 'BUTTON' && (e.key === ' ' || e.key === 'Enter')) return;
+    if (S.mode === 'card') {
+      if (e.key === ' ') { e.preventDefault(); const f = $('fc3d'); if (f && !S.locked) f.classList.toggle('is-flipped'); }
+      else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); flyCard(e.key === 'ArrowRight' ? 1 : -1); }
+    } else if (S.mode === 'listen') {
+      if (e.key === ' ') { e.preventDefault(); ACTIONS['l-toggle'](); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); ACTIONS['l-prev'](); }
+      else if (e.key === 'ArrowRight') { e.preventDefault(); ACTIONS['l-next'](); }
+    }
+  });
 
   /* =========================================================
    * 시작
@@ -3360,7 +3963,9 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
   applyTheme();
   let sess = null;
   try { sess = LS.getItem(KEY_SESS) || sessionStorage.getItem(KEY_SESS); } catch (e) {}
-  if (cloudMode) bootCloud(); else if (sess && getUsers()[sess]) enterApp(sess); else showAuth();
+  let kidBoot = false; try { kidBoot = cloudAvail && LS.getItem(KEY_KID) === '1'; } catch (e) {}
+  if (kidBoot && sess && getUsers()[sess]) { setKidMode(true); enterApp(sess); }
+  else if (cloudMode) bootCloud(); else if (sess && getUsers()[sess]) enterApp(sess); else showAuth();
   </script>
 </body>
 </html>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#ffffff">
+  <meta name="theme-color" content="#f2f4f6">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
@@ -142,6 +142,7 @@
       <span class="st-count" id="stCount"></span>
     </div>
     <div id="stBody"></div>
+    <div class="kbd-hint" id="kbdHint"></div>
   </div>
 
   <!-- 시트 -->
@@ -158,6 +159,7 @@
   <div class="toast" id="toast" role="status"></div>
 
   <nav class="bottom-nav" aria-label="메인 메뉴">
+    <div class="nav-brand"><i class="brand-mark">V</i><span>VocaPro</span></div>
     <button class="nav-item active" data-act="tab" data-t="tabHome">
       <svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>홈</span>
     </button>
@@ -173,6 +175,7 @@
     <button class="nav-item" data-act="tab" data-t="tabSettings">
       <svg viewBox="0 0 24 24"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/></svg><span>설정</span>
     </button>
+    <div class="nav-card" id="navCard"></div>
   </nav>
 
   <script src="config.js"></script>
@@ -186,5 +189,6 @@
   <script src="app7.js"></script>
   <script src="app8.js"></script>
   <script src="app9.js"></script>
+  <script src="app10.js"></script>
 </body>
 </html>
