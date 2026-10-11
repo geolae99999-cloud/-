@@ -48,8 +48,8 @@
       </div>
       <div class="toolbar">
         <input type="text" id="searchFilter" placeholder="단어나 뜻 검색" oninput="onSearch(this.value)">
-        <button class="icon-btn" data-act="shuffle" aria-label="섞기">🔀</button>
-        <button class="icon-btn ${document.body.classList.contains('hide-content') ? 'on' : ''}" id="btnBlurToggle" data-act="blur" aria-label="뜻 가리기">🙈</button>
+        <button class="icon-btn" data-act="shuffle" aria-label="섞기">${IC.shuffle}</button>
+        <button class="icon-btn ${document.body.classList.contains('hide-content') ? 'on' : ''}" id="btnBlurToggle" data-act="blur" aria-label="뜻 가리기">${IC.eyeoff}</button>
       </div>
       <div class="chips" id="bookChips"></div>
       <div class="word-list" id="wordCardStream"></div>
@@ -57,7 +57,7 @@
   }
   function onSearch(v) { currentFilter = v.trim(); renderWordList(); }
 
-  const FILTERS = [['all', '전체'], ['new', '새 단어'], ['learning', '학습 중'], ['mastered', '마스터'], ['star', '⭐ 즐겨찾기'], ['miss', '오답']];
+  const FILTERS = [['all', '전체'], ['new', '새 단어'], ['learning', '학습 중'], ['mastered', '마스터'], ['star', '즐겨찾기'], ['miss', '오답']];
   function renderBookDynamic() {
     const cat = curCat();
     if (!cat) return go('tabBooks');
@@ -136,19 +136,19 @@
       return `
       <div class="wcard ${w.box >= 5 ? 'mastered' : ''}" data-wid="${esc(w.id)}">
         <div class="w-row">
-          <button class="w-star ${w.star ? 'on' : ''}" data-act="star" aria-label="즐겨찾기">${w.star ? '★' : '☆'}</button>
+          <button class="w-star ${w.star ? 'on' : ''}" data-act="star" aria-label="즐겨찾기">${IC.star}</button>
           <div class="w-main" data-act="expand">
             <div class="w-head"><span class="w-word">${esc(w.word)}</span><span class="w-pron">${esc(w.phonetic)}</span>${w.koreanPron ? `<span class="w-kpron">[${esc(w.koreanPron)}]</span>` : ''}</div>
             <div class="w-mean">${esc(w.meaning)}</div>
           </div>
           <div class="w-side">
-            <button class="w-speak" data-act="speak" data-text="${esc(w.word)}" aria-label="발음 듣기">🔊</button>
+            <button class="w-speak" data-act="speak" data-text="${esc(w.word)}" aria-label="발음 듣기">${IC.speaker}</button>
             <div class="w-badges">${w.miss > 0 ? '<span class="badge b-bad">오답</span>' : ''}${lvlBadge(w)}</div>
           </div>
         </div>
         ${open ? `
         <div class="w-detail">
-          ${w.example ? `<div><h4>예문</h4>${esc(w.example)}</div>` : ''}
+          ${w.example ? `<div><h4>예문</h4>${esc(w.example)}<div><button class="btn btn-soft" data-act="tr-ex" data-text="${esc(w.example)}" style="margin-top:8px;">문장 번역</button></div></div>` : ''}
           ${syns.length ? `<div><h4>비슷한 단어 (눌러서 뜻 보기)</h4><div class="syn-chips">${syns.map(s => `<button class="syn" data-act="syn" data-word="${esc(s)}">${esc(s)}</button>`).join('')}</div></div>` : ''}
           <div class="muted" style="font-size:.78rem;">${dueText(w)}${w.wrong ? ` · 틀린 횟수 ${w.wrong}` : ''}</div>
           <div class="w-tools">
@@ -265,46 +265,56 @@
     const btn = $('btnBulk');
     if (bulkBusy) { bulkCancel = true; if (btn.dataset.running !== '1') toast('이전 작업을 마무리하는 중이에요. 잠시 후 다시 눌러 주세요.'); return; }
     const cat = curCat(); if (!cat) return;
-    const lines = $('bulkText').value.split('\n').map(s => s.trim()).filter(Boolean).slice(0, 60);
-    if (!lines.length) return toast('단어를 한 줄에 하나씩 입력하세요.');
-
+    const seen = new Set(cat.words.map(w => w.word.toLowerCase()));
+    let skipped = 0; const entries = [];
+    $('bulkText').value.split('\n').map(s => s.trim()).filter(Boolean).slice(0, 60).forEach(line => {
+      const parts = line.split(/\t|\s+[-–—]\s+|\s*[,;]\s*/);
+      const word = parts[0].trim(); if (!word) return;
+      if (seen.has(word.toLowerCase())) { skipped++; return; }
+      seen.add(word.toLowerCase()); entries.push({ word, um: parts.slice(1).join(', ').trim() });
+    });
+    if (!entries.length) return toast(skipped ? '모두 이미 있는 단어예요.' : '단어를 한 줄에 하나씩 입력하세요.');
     bulkBusy = true; btn.dataset.running = '1'; btn.textContent = '중지'; bulkCancel = false;
-    const status = $('bulkStatus');
-    let added = 0, skipped = 0, failed = [], stopped = '';
-
-    for (let i = 0; i < lines.length; i++) {
-      if (bulkCancel) { stopped = '중지했어요.'; break; }
-      const parts = lines[i].split(/\t|\s+[-–—]\s+|\s*[,;]\s*/);
-      const word = parts[0].trim();
-      const userMeaning = parts.slice(1).join(', ').trim();
-      if (!word) continue;
-      if (cat.words.some(w => w.word.toLowerCase() === word.toLowerCase())) { skipped++; continue; }
-      status.textContent = `${i + 1} / ${lines.length}  ${word} 처리 중...`;
-      let item = null;
-      try {
-        const ai = await callAi(buildPrompt(word, true));
-        item = { ...ai, meaning: userMeaning || ai.meaning };
-      } catch (err) {
-        if ([401, 403, 429].includes(err.status)) { stopped = err.message.split('\n')[0]; break; }
-        if (userMeaning) item = { meaning: userMeaning };
-        else failed.push(word);
+    const status = $('bulkStatus'); let stopped = '', done = 0;
+    const res = new Map(); const need = [];
+    entries.forEach(e => { const h = aicGet(e.word); if (h) res.set(e.word.toLowerCase(), h); else need.push(e); });
+    const chunks = []; for (let i = 0; i < need.length; i += 6) chunks.push(need.slice(i, i + 6));
+    const upd = () => { status.textContent = `${Math.min(entries.length, entries.length - need.length + done)} / ${entries.length} 처리 중...`; };
+    let ci = 0; upd();
+    const worker = async () => {
+      while (!bulkCancel && !stopped) {
+        const ch = chunks[ci++]; if (!ch) return;
+        try {
+          const m = await callAi(buildBatchPrompt(ch.map(e => e.word)), normalizeBatch);
+          ch.forEach(e => { const r = m[e.word.toLowerCase()]; if (r) { res.set(e.word.toLowerCase(), r); aicSet(e.word, r); } });
+        } catch (err) { if ([401, 403, 429].includes(err.status) || /AI를 쓸 수 없|한도|준비되지/.test(err.message)) stopped = err.message.split('\n')[0]; }
+        done += ch.length; upd();
       }
-      if (item) {
-        cat.words.splice(added, 0, sanitizeWord({ id: uid(), word, ...item }));
-        added++;
-        if (added % 5 === 0) syncStorage();
-      }
-      await sleep(250);
+    };
+    await Promise.all([worker(), worker(), worker()]);
+    let retry = entries.filter(e => !res.has(e.word.toLowerCase())).slice(0, 10);
+    for (const e of retry) {
+      if (bulkCancel || stopped) break;
+      try { const r = await lookupWord(e.word, true); res.set(e.word.toLowerCase(), r); } catch (err) { if ([401, 403, 429].includes(err.status)) stopped = err.message.split('\n')[0]; }
     }
+    if (bulkCancel && !stopped) stopped = '중지했어요.';
+    const items = [], failed = [];
+    entries.forEach(e => {
+      const r = res.get(e.word.toLowerCase());
+      if (r) items.push(sanitizeWord({ id: uid(), word: e.word, ...r, meaning: e.um || r.meaning }));
+      else if (e.um) items.push(sanitizeWord({ id: uid(), word: e.word, meaning: e.um }));
+      else failed.push(e.word);
+    });
+    cat.words.unshift(...items);
     syncStorage(); bulkBusy = false; bulkCancel = false;
     btn.dataset.running = '0'; btn.textContent = 'AI로 한꺼번에 채우고 저장';
     renderBookDynamic();
-    let msg = `${added}개 저장했어요.`;
+    let msg = `${items.length}개 저장했어요.`;
     if (skipped) msg += `\n이미 있어서 건너뜀 ${skipped}개`;
     if (failed.length) msg += `\n실패 ${failed.length}개: ${failed.join(', ')}`;
     if (stopped) msg += `\n${stopped}`;
     status.textContent = msg;
-    if (added) toast(`${added}개 단어를 저장했어요.`);
+    if (items.length) toast(`${items.length}개 단어를 저장했어요.`);
   };
 
   /* ----- 단어장 메뉴 / CSV ----- */
@@ -392,12 +402,12 @@
    * 학습 탭 (소스 + 모드 선택)
    * ======================================================= */
   const MODES = {
-    card:    { name: '플래시카드', ico: '🃏', desc: '밀어서 외웠음 / 모름' },
-    choice:  { name: '뜻 고르기', ico: '✅', desc: '단어를 보고 뜻 맞히기' },
-    rchoice: { name: '단어 고르기', ico: '🔁', desc: '뜻을 보고 단어 맞히기' },
-    spell:   { name: '스펠링', ico: '⌨️', desc: '뜻을 보고 직접 쓰기' },
-    dict:    { name: '듣고 쓰기', ico: '🎧', desc: '발음을 듣고 타이핑' },
-    listen:  { name: '듣기 모드', ico: '🔊', desc: '자동으로 이어 듣기' }
+    card:    { name: '플래시카드', ico: IC.cards, desc: '밀어서 외웠음 / 모름' },
+    choice:  { name: '뜻 고르기', ico: IC.check, desc: '단어를 보고 뜻 맞히기' },
+    rchoice: { name: '단어 고르기', ico: IC.repeat, desc: '뜻을 보고 단어 맞히기' },
+    spell:   { name: '스펠링', ico: IC.keyboard, desc: '뜻을 보고 직접 쓰기' },
+    dict:    { name: '듣고 쓰기', ico: IC.headphones, desc: '발음을 듣고 타이핑' },
+    listen:  { name: '듣기 모드', ico: IC.speaker, desc: '자동으로 이어 듣기' }
   };
   const studyPrefs = { src: 'due', count: SESSION_DEFAULT };
   const parseSrc = s => (s && s.startsWith('cat:')) ? { type: 'cat', id: s.slice(4) } : { type: s || 'all' };
@@ -414,7 +424,7 @@
       default: return all;
     }
   }
-  const EMPTY_MSG = { due: '오늘 복습할 단어가 없어요. 잘하고 있어요!', new: '새 단어가 없어요. 단어를 추가해 보세요.', wrong: '오답노트가 비어 있어요.', star: '즐겨찾기한 단어가 없어요. 단어 카드의 ☆를 눌러 보세요.', cat: '이 단어장에 단어가 없어요.', all: '단어가 없어요. 먼저 단어를 추가해 보세요.' };
+  const EMPTY_MSG = { due: '오늘 복습할 단어가 없어요. 잘하고 있어요!', new: '새 단어가 없어요. 단어를 추가해 보세요.', wrong: '오답노트가 비어 있어요.', star: '즐겨찾기한 단어가 없어요. 단어 카드의 별 아이콘을 눌러 보세요.', cat: '이 단어장에 단어가 없어요.', all: '단어가 없어요. 먼저 단어를 추가해 보세요.' };
 
   function renderStudy() {
     const c = counts();

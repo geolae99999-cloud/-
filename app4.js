@@ -17,14 +17,14 @@
     if (k && !/^[\x21-\x7E]+$/.test(k)) throw new ApiError('API 키에 한글이나 특수문자가 섞여 있어요. 키를 다시 복사해서 붙여넣어 주세요.', 0);
     return k;
   }
-  async function http(url, options = {}, timeoutMs = 30000) {
+  async function http(url, options = {}, timeoutMs = 20000) {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), timeoutMs);
     let resp;
     try { resp = await fetch(url, { ...options, signal: ctrl.signal }); }
     catch (e) {
       clearTimeout(timer);
-      if (e.name === 'AbortError') throw new ApiError('응답 시간이 초과되었어요 (30초). 네트워크를 확인하세요.', 0);
+      if (e.name === 'AbortError') throw new ApiError(`응답 시간이 초과되었어요 (${Math.round(timeoutMs / 1000)}초). 네트워크를 확인하세요.`, 0);
       throw new ApiError('서버에 연결하지 못했어요. 인터넷 연결, VPN, 광고차단 확장프로그램을 확인하고, 파일을 file:// 로 열었다면 웹 주소로 열어 보세요.', 0);
     }
     clearTimeout(timer);
@@ -94,10 +94,11 @@
   }
   async function requestModel(p, key, model, prompt) {
     if (p === 'gemini') {
-      const body = await http(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders(p, key) },
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.2, responseMimeType: 'application/json' } })
-      });
+      const gurl = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
+      const gsend = gc => http(gurl, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders(p, key) }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: gc }) });
+      let body;
+      try { body = await gsend({ temperature: 0.2, responseMimeType: 'application/json', thinkingConfig: { thinkingBudget: 0 } }); }
+      catch (e) { if (e.status === 400) body = await gsend({ temperature: 0.2, responseMimeType: 'application/json' }); else throw e; }
       const parts = (body.candidates && body.candidates[0] && body.candidates[0].content && body.candidates[0].content.parts) || [];
       const text = parts.filter(x => !x.thought).map(x => x.text || '').join('');
       if (!text) throw new ApiError('빈 응답이 왔어요' + (body.promptFeedback && body.promptFeedback.blockReason ? ` (${body.promptFeedback.blockReason})` : ''), 0);
@@ -139,37 +140,71 @@
   async function callAi(prompt, normalize) {
     normalize = normalize || normalizeResult;
     const p = config.provider;
-    let key;
-    key = cleanKey(config.keys[p]);
-    if (!key) throw new ApiError(`설정에서 ${PROVIDERS[p].label} API 키를 입력해 주세요.`, 401);
-
-    let list = config.modelLists[p] || [];
-    if (!list.length) {
-      try { list = await listModels(p, key); config.modelLists[p] = list; syncStorage(); }
-      catch (e) {
-        if ([401, 403].includes(e.status)) throw new ApiError(friendlyError(p, e), e.status);
-        list = FALLBACK_MODELS[p];
+    const key = cleanKey(config.keys && config.keys[p]);
+    const finish = text => normalize(parseJson(text));
+    if (!key) {
+      if (cloudMode && window.Cloud && Cloud.ai) {
+        let last = null;
+        for (let a = 0; a < 2; a++) {
+          try { const r = finish(await Cloud.ai(prompt)); if (r) return r; last = new ApiError('AI 응답을 해석하지 못했어요. 다시 시도해 주세요.', 0); }
+          catch (e) { last = e; if (e.status && e.status < 500) break; await sleep(900); }
+        }
+        throw new ApiError(last && last.message ? last.message : 'AI를 쓸 수 없어요.', last && last.status);
       }
+      throw new ApiError(`설정에서 ${PROVIDERS[p].label} API 키를 입력해 주세요.`, 401);
     }
-    const candidates = [];
-    if (config.models[p]) candidates.push(config.models[p]);
-    list.forEach(m => { if (!candidates.includes(m)) candidates.push(m); });
-
-    let lastErr = null;
-    for (const model of candidates.slice(0, 4)) {
+    const tryModels = async models => {
+      let lastErr = null;
+      for (const model of models) {
+        for (let a = 0; a < 2; a++) {
+          try {
+            const parsed = finish(await requestModel(p, key, model, prompt));
+            if (!parsed) { lastErr = new ApiError('AI 응답을 해석하지 못했어요. 다시 시도해 주세요.', 0); continue; }
+            if (config.models[p] !== model) { config.models[p] = model; syncStorage(); }
+            return { ok: parsed };
+          } catch (e) {
+            lastErr = e;
+            if ([401, 403].includes(e.status)) throw new ApiError(friendlyError(p, e), e.status);
+            if (e.status === 429) { await sleep(1500 * (a + 1)); continue; }
+            if (e.status === 404 || e.status === 400) break;
+            await sleep(500);
+          }
+        }
+      }
+      return { err: lastErr };
+    };
+    const first = [];
+    [config.models[p], ...(FALLBACK_MODELS[p] || [])].forEach(m => { if (m && !first.includes(m)) first.push(m); });
+    let r = await tryModels(first.slice(0, 2));
+    if (r.ok) return r.ok;
+    if (!(config.modelLists[p] || []).length) {
       try {
-        const text = await requestModel(p, key, model, prompt);
-        const parsed = normalize(parseJson(text));
-        if (!parsed) { lastErr = new ApiError('AI 응답을 해석하지 못했어요. 다시 시도해 주세요.', 0); continue; }
-        if (config.models[p] !== model) { config.models[p] = model; syncStorage(); }
-        return parsed;
-      } catch (e) {
-        lastErr = e;
-        if ([401, 403, 429].includes(e.status)) break;
-      }
+        const list = await listModels(p, key); config.modelLists[p] = list; syncStorage();
+        const more = list.filter(m => !first.slice(0, 2).includes(m)).slice(0, 2);
+        if (more.length) { const r2 = await tryModels(more); if (r2.ok) return r2.ok; r = r2.err ? r2 : r; }
+      } catch (e) { if ([401, 403].includes(e.status)) throw new ApiError(friendlyError(p, e), e.status); }
     }
-    const err = lastErr || new ApiError('알 수 없는 오류', 0);
+    const err = r.err || new ApiError('알 수 없는 오류', 0);
     throw new ApiError(friendlyError(p, err), err.status);
+  }
+
+  /* ----- 단어 조회 캐시 · 묶음 조회 (속도 개선) ----- */
+  const AIC_KEY = 'vocapro_aic'; let aiCache = null;
+  const aicAll = () => aiCache || (aiCache = loadJson(AIC_KEY) || {});
+  const aicGet = w => { const r = aicAll()[String(w).toLowerCase()]; return r ? { ...r } : null; };
+  const aicSet = (w, r) => { const c = aicAll(); c[String(w).toLowerCase()] = r; const ks = Object.keys(c); if (ks.length > 400) delete c[ks[0]]; try { LS.setItem(AIC_KEY, JSON.stringify(c)); } catch (e) {} };
+  async function lookupWord(word, full) {
+    const hit = aicGet(word); if (hit && (hit.example || !full)) return hit;
+    const r = await callAi(buildPrompt(word, full)); if (full) aicSet(word, r); return r;
+  }
+  const buildBatchPrompt = words => `You are an English-Korean dictionary. Define each English word or phrase below.
+Return ONLY one JSON object (no markdown): {"items":[{"word":"<same word as given>","meaning":"핵심 한국어 뜻 (품사 포함)","phonetic":"/IPA/","koreanPron":"한글 발음","example":"짧은 영어 예문 (한국어 해석)","synonyms":"유의어1, 유의어2"}]}
+Keep the same order. WORDS: ${JSON.stringify(words)}`;
+  function normalizeBatch(o) {
+    if (!o || !Array.isArray(o.items)) return null;
+    const m = {};
+    o.items.forEach(it => { const n = normalizeResult(it); if (n && it && it.word) m[String(it.word).trim().toLowerCase()] = n; });
+    return Object.keys(m).length ? m : null;
   }
 
   const buildPrompt = (word, full) => `You are an English-Korean dictionary. Define the English word or phrase "${word}".
@@ -185,7 +220,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     const start = Date.now();
     const timer = setInterval(() => { const tc = $('aiTimerCount'); if (tc) tc.textContent = ((Date.now() - start) / 1000).toFixed(1) + '초'; }, 100);
     try {
-      const r = await callAi(buildPrompt(query, true));
+      const r = await lookupWord(query, true);
       if (!$('fieldMeaning') || $('fieldWord').value.trim() !== query) return;
       $('fieldMeaning').value = r.meaning; $('fieldPhonetic').value = r.phonetic;
       $('fieldKoreanPron').value = r.koreanPron; $('fieldExample').value = r.example; $('fieldSynonyms').value = r.synonyms;
@@ -230,6 +265,11 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     $('cfgModel').value = selected;
   }
   function loadSettingsUI() {
+    if (!$('creditFoot')) $('tabSettings').insertAdjacentHTML('beforeend', '<div class="foot-credit" id="creditFoot">VocaPro · 개발자 김주원</div>');
+    rmUI();
+    if (!$('lgLinks') && $('creditFoot')) $('creditFoot').insertAdjacentHTML('beforebegin', legalLinksHtml().replace('class="legal-links"', 'class="legal-links" id="lgLinks"'));
+    if (!$('btnLt')) { const g = $('cfgGoal'); if (g && g.parentNode) g.insertAdjacentHTML('afterend', '<button class="btn btn-soft btn-block" id="btnLt" data-act="level-test" style="margin-top:8px;">레벨 테스트로 목표 추천받기</button>'); }
+    const bp = $('btnPw'); if (bp) bp.style.display = cloudMode ? '' : 'none';
     const an = $('acctName'); if (an) an.textContent = '현재 계정: ' + (currentLabel || currentUser || '');
     $('cfgProvider').value = config.provider;
     $('cfgTtsRate').value = String(config.ttsRate);

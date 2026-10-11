@@ -6,6 +6,12 @@
   <meta name="theme-color" content="#3a5bff">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon-192.png">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <meta name="apple-mobile-web-app-title" content="VocaPro">
+  <meta name="description" content="단어, 끝까지 외우다 — VocaPro 영단어 학습">
   <title>VocaPro - 스마트 단어 마스터</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,8 +27,7 @@
       <h1 class="brand" id="headTitle"><b>Voca</b>Pro</h1>
     </div>
     <div class="header-right">
-      <span class="by">개발자 : 김주원</span>
-      <button class="round-btn" data-act="theme" id="btnTheme" aria-label="테마 변경">🌙</button>
+      <button class="round-btn" data-act="theme" id="btnTheme" aria-label="테마 변경"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
     </div>
   </header>
 
@@ -61,8 +66,8 @@
       </div>
     </div>
 
-    <div class="settings-card">
-      <div class="settings-title">AI 엔진 · API 키</div>
+    <details class="settings-card adv">
+      <summary class="settings-title">AI 기능 (선택) · API 키</summary>
       <div class="setting-item">
         <span class="setting-label">AI 엔진</span>
         <select id="cfgProvider" onchange="onProviderChange(this.value)">
@@ -84,12 +89,29 @@
       <div class="setting-item" style="margin-top:12px;">
         <button class="btn btn-primary btn-block" id="btnTestConn" onclick="testConnection()">키 저장하고 연결 테스트</button>
       </div>
+    </details>
+
+    <div class="settings-card">
+      <div class="settings-title">복습 알림</div>
+      <div class="setting-item">
+        <div class="rm-row"><label class="switch-row"><input type="checkbox" id="rmOn" onchange="rmSave()"> 알림 받기</label><input type="time" id="rmTime" value="20:00" onchange="rmSave()"></div>
+        <p class="muted" id="rmNote" style="margin:10px 0 0;font-size:.82rem;line-height:1.55;"></p>
+      </div>
+    </div>
+
+    <div class="settings-card">
+      <div class="settings-title">앱으로 설치</div>
+      <div class="setting-item">
+        <p class="muted" style="margin:0 0 10px;font-size:.85rem;line-height:1.55;">홈 화면에 추가하면 앱처럼 실행되고, 인터넷이 없어도 열려요.</p>
+        <button class="btn btn-primary btn-block" data-act="install">홈 화면에 설치</button>
+      </div>
     </div>
 
     <div class="settings-card">
       <div class="settings-title">계정</div>
       <div class="setting-item">
         <div id="acctName" class="muted" style="margin-bottom:10px;font-weight:600;"></div>
+        <button class="btn btn-soft btn-block" id="btnPw" data-act="pw-change" style="display:none;margin-bottom:8px;">비밀번호 변경</button>
         <button class="btn btn-soft btn-block" data-act="logout">로그아웃</button>
         <button class="btn btn-soft btn-block danger" data-act="acct-del" style="margin-top:8px;">계정과 데이터 삭제</button>
       </div>
@@ -114,7 +136,7 @@
   <!-- 학습 화면 -->
   <div class="study-screen" id="studyScreen">
     <div class="study-top">
-      <button class="x" data-act="exit-session" aria-label="학습 종료">✕</button>
+      <button class="x" data-act="exit-session" aria-label="학습 종료"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       <div class="prog"><i id="stProg"></i></div>
       <span class="st-count" id="stCount"></span>
     </div>
@@ -125,7 +147,7 @@
   <div class="sheet-overlay" id="sheetOv" data-act="sheet-bg">
     <div class="sheet" role="dialog" aria-modal="true">
       <div class="sheet-grab"></div>
-      <div class="sheet-head"><b id="sheetTitle"></b><button data-act="sheet-close" aria-label="닫기">✕</button></div>
+      <div class="sheet-head"><b id="sheetTitle"></b><button data-act="sheet-close" aria-label="닫기"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
       <div id="sheetBody"></div>
     </div>
   </div>
@@ -153,11 +175,15 @@
   </nav>
 
   <script src="config.js"></script>
-  <script src="cloud.js"></script>
-  <script src="app1.js"></script>
-  <script src="app2.js"></script>
-  <script src="app3.js"></script>
-  <script src="app4.js"></script>
-  <script src="app5.js"></script>
+<script src="cloud.js"></script>
+<script src="app1.js"></script>
+<script src="app2.js"></script>
+<script src="app3.js"></script>
+<script src="app4.js"></script>
+<script src="app5.js"></script>
+<script src="app6.js"></script>
+<script src="app7.js"></script>
+  
+  
 </body>
 </html>

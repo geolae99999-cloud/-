@@ -37,7 +37,19 @@
     async reset() { throw { code: 'bad_input' }; },
     async load() { const j = await rpc('voca_load', { p_token: getTok() }); return j && j.data ? { data: j.data, updated: Number(j.updated) } : null; },
     save: d => rpc('voca_save', { p_token: getTok(), p_data: d.data, p_updated: d.updated }),
-    async remove() { await rpc('voca_delete', { p_token: getTok() }); setTok(null); cur = null; }
+    changePw: (o, n) => rpc('voca_change_pw', { p_token: getTok(), p_old: o, p_new: n }),
+    async remove() { await rpc('voca_delete', { p_token: getTok() }); setTok(null); cur = null; },
+    async ai(prompt) {
+      let r;
+      try { r = await fetch(cfg.url.replace(/\/+$/, '') + '/functions/v1/ai', { method: 'POST', headers: hdr, body: JSON.stringify({ token: getTok(), prompt }) }); }
+      catch (e) { const x = new Error('서버에 연결하지 못했어요. 인터넷 연결을 확인해 주세요.'); x.status = 0; throw x; }
+      let j = null; try { j = await r.json(); } catch (e) {}
+      if (!r.ok || !j || typeof j.text !== 'string') {
+        const m = r.status === 404 ? '서버 AI가 아직 준비되지 않았어요. 설정에서 내 API 키를 입력하면 바로 쓸 수 있어요.' : r.status === 429 ? '오늘 AI 사용 한도를 다 썼어요. 내일 다시 쓸 수 있어요.' : (j && j.error) || 'AI 호출에 실패했어요.';
+        const x = new Error(m); x.status = r.status; throw x;
+      }
+      return j.text;
+    }
   };
   window.dispatchEvent(new Event('cloudready'));
 })();

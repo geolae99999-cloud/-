@@ -438,6 +438,26 @@
     details.adv > summary::after { content: ''; width: 9px; height: 9px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: rotate(45deg); transition: transform .2s; margin-right: 4px; }
     details.adv[open] > summary { margin-bottom: 14px; } details.adv[open] > summary::after { transform: rotate(-135deg); }
     .foot-credit { text-align: center; color: var(--muted); font-size: .75rem; margin: 26px 0 120px; letter-spacing: .02em; }
+    .lt .lt-bar { height: 6px; border-radius: 6px; background: var(--line); overflow: hidden; margin: 4px 0 0; } .lt .lt-bar i { display: block; height: 100%; background: var(--blue); border-radius: 6px; transition: width .3s; }
+    .lt .lt-q { justify-content: flex-start; padding-top: 6vh; } .lt .opts { display: flex; flex-direction: column; gap: 10px; } .lt .opt { width: 100%; }
+    /* ===== v3: 홈 고정 버튼 · 4단계 학습 · 보안문자 · 약관 ===== */
+    body:has(#tabHome.active) .tr-fab { bottom: calc(146px + env(safe-area-inset-bottom, 0px)); }
+    .mission { color: var(--muted); font-weight: 700; font-size: .95rem; margin: 0 2px 16px; }
+    #tabHome { padding-bottom: 84px; }
+    .home-cta { position: fixed; left: 0; right: 0; bottom: calc(66px + env(safe-area-inset-bottom, 0px)); max-width: 480px; margin: 0 auto; padding: 12px 16px; z-index: 90; background: linear-gradient(to top, var(--bg) 62%, transparent); pointer-events: none; }
+    .home-cta .btn { pointer-events: auto; height: 56px; font-size: 1.05rem; border-radius: 18px; }
+    .fl .fl-step { text-align: center; margin: 12px 0 0; font-size: .85rem; }
+    .fl .fl-card { flex: 1; width: 100%; max-width: 380px; margin: 0 auto; background: var(--surface); border-radius: 26px; padding: 30px 22px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .fl .fl-word { font-size: 2.3rem; font-weight: 800; letter-spacing: -.04em; margin: 6px 0; word-break: break-word; }
+    .fl .fl-mean { font-size: 1.35rem; font-weight: 700; margin-top: 14px; }
+    .fl .fl-ex { color: var(--muted); font-size: .92rem; line-height: 1.6; margin-top: 14px; word-break: keep-all; }
+    .fl .fl-in { width: 100%; max-width: 340px; text-align: center; font-size: 1.3rem; font-weight: 700; padding: 14px; }
+    .fl .fl-fb { min-height: 28px; margin-top: 14px; font-size: 1.05rem; }
+    .fl > .ob-body:has(.fl-card) { justify-content: center; }
+    .cap-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; } .cap-row canvas { border-radius: 12px; flex-shrink: 0; max-width: 100%; }
+    .lg-a { color: var(--blue); font-weight: 700; text-decoration: underline; cursor: pointer; }
+    .legal-links { text-align: center; color: var(--muted); font-size: .8rem; margin: 22px 0 6px; }
+    .lg { overflow-y: auto; align-items: stretch; } .lg .lg-body { max-width: 560px; margin: 0 auto; padding: 8px 4px 40px; } .lg h2 { font-size: 1.6rem; margin: 6px 0 16px; } .lg h4 { margin: 18px 0 4px; } .lg p { color: var(--muted); line-height: 1.75; margin: 0; word-break: keep-all; }
     /* ===== 온보딩 / 오늘의 단어 ===== */
     .ob { position: fixed; inset: 0; z-index: 550; background: var(--bg); display: flex; flex-direction: column; padding: calc(16px + env(safe-area-inset-top, 0px)) 24px calc(24px + env(safe-area-inset-bottom, 0px)); animation: pfade .25s; }
     .ob-skip { align-self: flex-end; background: none; border: none; color: var(--muted); font-weight: 700; font-size: .9rem; padding: 10px 6px; cursor: pointer; }
@@ -470,6 +490,44 @@
     .rm-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
     .rm-row input[type=time] { background: var(--surface-2); border: 1.5px solid transparent; border-radius: 14px; padding: 11px 12px; font: inherit; font-weight: 700; color: var(--ink); }
     .rm-row input[type=time]:focus { outline: none; border-color: var(--blue); box-shadow: var(--ring); }
+    /* ===== 토스 스타일 테마 ===== */
+    :root { --blue: #3182f6; --blue-ink: #1b64da; --blue-soft: #e8f3ff; --grad: #3182f6; --bg: #f2f4f6; --surface: #fff; --surface-2: #f2f4f6; --ink: #191f28; --muted: #8b95a1; --line: #e5e8eb; --coral: #f04452; --shadow: none; --ring: 0 0 0 3px rgba(49, 130, 246, .25); }
+    body.dark { --blue: #4593fc; --blue-soft: #1c2b44; --grad: #4593fc; --bg: #17171c; --surface: #202027; --surface-2: #2c2c35; --ink: #f2f4f6; --muted: #9ea4ae; --line: #2c2c35; --ring: 0 0 0 3px rgba(69, 147, 252, .3); }
+    body { background: var(--bg); letter-spacing: -.02em; }
+    .btn { height: 54px; border-radius: 16px; font-weight: 700; font-size: 1.02rem; box-shadow: none !important; filter: none; }
+    .btn:active { transform: scale(.98); }
+    .btn-primary { background: var(--blue); color: #fff; } .btn-primary:hover { filter: none; background: var(--blue-ink); }
+    .btn-soft { background: var(--blue-soft); color: var(--blue); }
+    .btn-ok { background: #00b493; } .btn-bad { background: var(--coral); }
+    .card, .settings-card, .wcard, .book, .tile, .wod, .auth-box, .tr-out, .streak-card, .stat { border: none; box-shadow: none; border-radius: 22px; }
+    .deck-card { background: var(--blue); box-shadow: none; border-radius: 26px; }
+    .deck-card .btn-primary, .deck-card .btn { background: #fff; color: var(--blue); }
+    .section-title { font-size: 1.1rem; font-weight: 800; letter-spacing: -.03em; color: var(--ink); margin: 28px 4px 12px; }
+    .page-title { font-size: 1.85rem; letter-spacing: -.05em; }
+    input[type=text], input[type=password], input[type=number], input[type=search], textarea, select { background: var(--surface); border-radius: 14px; }
+    .app-header, .bottom-nav { background: var(--surface); } .bottom-nav { border-top: 1px solid var(--line); backdrop-filter: none; }
+    .tr-fab { background: var(--blue); box-shadow: 0 8px 20px rgba(49, 130, 246, .35); border-radius: 50%; }
+    .wod-tag, .tr-dir { border-radius: 8px; }
+    .ob-ic, div.emoji, .mg-medal { box-shadow: none; }
+    .toast { background: #333d4b; border-radius: 14px; box-shadow: none; }
+    .mg-entry { width: 100%; display: flex; align-items: center; gap: 14px; margin-top: 12px; padding: 16px 18px; border: none; border-radius: 22px; background: var(--surface); color: var(--ink); font-family: inherit; text-align: left; cursor: pointer; transition: transform .12s; }
+    .mg-entry:active { transform: scale(.98); }
+    .mg-ico { width: 44px; height: 44px; border-radius: 14px; background: var(--blue-soft); color: var(--blue); display: flex; align-items: center; justify-content: center; flex: none; } .mg-ico .ic { width: 22px; height: 22px; }
+    .mg-txt { flex: 1; display: flex; flex-direction: column; gap: 2px; } .mg-txt b { font-size: 1.02rem; font-weight: 800; } .mg-txt small { color: var(--muted); font-size: .84rem; }
+    .mg-chev { width: 9px; height: 9px; border-right: 2px solid var(--muted); border-top: 2px solid var(--muted); transform: rotate(45deg); margin-right: 4px; }
+    .mg { position: fixed; inset: 0; z-index: 300; background: var(--bg); display: flex; flex-direction: column; padding: calc(14px + env(safe-area-inset-top, 0px)) 16px calc(18px + env(safe-area-inset-bottom, 0px)); animation: pfade .2s; }
+    .mg-top { display: flex; align-items: center; justify-content: space-between; } .mg-top b { font-size: 1.05rem; font-weight: 800; }
+    .mg-top span { min-width: 64px; text-align: right; font-weight: 800; color: var(--blue); font-variant-numeric: tabular-nums; }
+    .mg-sub { text-align: center; color: var(--muted); font-weight: 600; margin: 20px 0 16px; }
+    .mg-grid { flex: 1; max-height: 560px; display: grid; grid-template-columns: repeat(3, 1fr); grid-auto-rows: 1fr; gap: 10px; }
+    .mg-tile { border: 2px solid transparent; border-radius: 18px; background: var(--surface); color: var(--ink); font: 700 1.02rem var(--font); padding: 8px; word-break: keep-all; cursor: pointer; transition: transform .12s, background .15s, border-color .15s, opacity .3s; }
+    .mg-tile.sel { border-color: var(--blue); background: var(--blue-soft); color: var(--blue); }
+    .mg-tile.ok { background: var(--blue-soft); color: var(--blue); opacity: .3; pointer-events: none; transform: scale(.95); }
+    .mg-tile.no { border-color: var(--coral); background: rgba(240, 68, 82, .1); animation: mshake .35s; }
+    @keyframes mshake { 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+    .mg-done { margin: auto; width: 100%; max-width: 340px; text-align: center; }
+    .mg-medal { width: 96px; height: 96px; margin: 0 auto 18px; border-radius: 50%; background: var(--blue); color: #fff; display: flex; align-items: center; justify-content: center; animation: ppop .5s cubic-bezier(.2, .9, .3, 1.2); } .mg-medal .ic { width: 46px; height: 46px; }
+    .mg-done h2 { font-size: 1.7rem; font-weight: 800; letter-spacing: -.045em; margin: 0 0 8px; } .mg-done p { color: var(--muted); font-weight: 600; margin: 0 0 24px; }
   </style>
 </head>
 <body>
@@ -678,7 +736,18 @@ window.VOCA_CLOUD = {
     async load() { const j = await rpc('voca_load', { p_token: getTok() }); return j && j.data ? { data: j.data, updated: Number(j.updated) } : null; },
     save: d => rpc('voca_save', { p_token: getTok(), p_data: d.data, p_updated: d.updated }),
     changePw: (o, n) => rpc('voca_change_pw', { p_token: getTok(), p_old: o, p_new: n }),
-    async remove() { await rpc('voca_delete', { p_token: getTok() }); setTok(null); cur = null; }
+    async remove() { await rpc('voca_delete', { p_token: getTok() }); setTok(null); cur = null; },
+    async ai(prompt) {
+      let r;
+      try { r = await fetch(cfg.url.replace(/\/+$/, '') + '/functions/v1/ai', { method: 'POST', headers: hdr, body: JSON.stringify({ token: getTok(), prompt }) }); }
+      catch (e) { const x = new Error('서버에 연결하지 못했어요. 인터넷 연결을 확인해 주세요.'); x.status = 0; throw x; }
+      let j = null; try { j = await r.json(); } catch (e) {}
+      if (!r.ok || !j || typeof j.text !== 'string') {
+        const m = r.status === 404 ? '서버 AI가 아직 준비되지 않았어요. 설정에서 내 API 키를 입력하면 바로 쓸 수 있어요.' : r.status === 429 ? '오늘 AI 사용 한도를 다 썼어요. 내일 다시 쓸 수 있어요.' : (j && j.error) || 'AI 호출에 실패했어요.';
+        const x = new Error(m); x.status = r.status; throw x;
+      }
+      return j.text;
+    }
   };
   window.dispatchEvent(new Event('cloudready'));
 })();
@@ -1007,7 +1076,8 @@ window.VOCA_CLOUD = {
     const books = categories.slice(0, 3).map(bookCardHtml).join('');
 
     $('tabHome').innerHTML = `
-      <div class="page-title" style="margin-bottom:18px;">${hello}</div>
+      <div class="page-title" style="margin-bottom:4px;">${hello}</div><div class="mission">오늘의 미션 · 복습 ${c.due}개${c.newW ? ` · 새 단어 ${Math.min(c.newW, goal)}개` : ''}</div>
+      <div class="home-cta"><button class="btn btn-primary btn-block" ${cta.attrs}>${cta.btn}</button></div>
       <section class="deck">
         <div class="deck-card deck-3"></div><div class="deck-card deck-2"></div>
         <div class="deck-card deck-1">
@@ -1019,7 +1089,7 @@ window.VOCA_CLOUD = {
             <div class="ring-box">${ringSvg(pct)}<div class="ring-txt"><b>${Math.min(today.n, 999)}</b>/${goal}</div></div>
           </div>
           <div class="deck-sub">${cta.sub}</div>
-          <button class="deck-cta" ${cta.attrs}>${cta.btn}</button>
+          
         </div>
       </section>
 
@@ -1193,7 +1263,7 @@ window.VOCA_CLOUD = {
         </div>
         ${open ? `
         <div class="w-detail">
-          ${w.example ? `<div><h4>예문</h4>${esc(w.example)}</div>` : ''}
+          ${w.example ? `<div><h4>예문</h4>${esc(w.example)}<div><button class="btn btn-soft" data-act="tr-ex" data-text="${esc(w.example)}" style="margin-top:8px;">문장 번역</button></div></div>` : ''}
           ${syns.length ? `<div><h4>비슷한 단어 (눌러서 뜻 보기)</h4><div class="syn-chips">${syns.map(s => `<button class="syn" data-act="syn" data-word="${esc(s)}">${esc(s)}</button>`).join('')}</div></div>` : ''}
           <div class="muted" style="font-size:.78rem;">${dueText(w)}${w.wrong ? ` · 틀린 횟수 ${w.wrong}` : ''}</div>
           <div class="w-tools">
@@ -1310,46 +1380,56 @@ window.VOCA_CLOUD = {
     const btn = $('btnBulk');
     if (bulkBusy) { bulkCancel = true; if (btn.dataset.running !== '1') toast('이전 작업을 마무리하는 중이에요. 잠시 후 다시 눌러 주세요.'); return; }
     const cat = curCat(); if (!cat) return;
-    const lines = $('bulkText').value.split('\n').map(s => s.trim()).filter(Boolean).slice(0, 60);
-    if (!lines.length) return toast('단어를 한 줄에 하나씩 입력하세요.');
-
+    const seen = new Set(cat.words.map(w => w.word.toLowerCase()));
+    let skipped = 0; const entries = [];
+    $('bulkText').value.split('\n').map(s => s.trim()).filter(Boolean).slice(0, 60).forEach(line => {
+      const parts = line.split(/\t|\s+[-–—]\s+|\s*[,;]\s*/);
+      const word = parts[0].trim(); if (!word) return;
+      if (seen.has(word.toLowerCase())) { skipped++; return; }
+      seen.add(word.toLowerCase()); entries.push({ word, um: parts.slice(1).join(', ').trim() });
+    });
+    if (!entries.length) return toast(skipped ? '모두 이미 있는 단어예요.' : '단어를 한 줄에 하나씩 입력하세요.');
     bulkBusy = true; btn.dataset.running = '1'; btn.textContent = '중지'; bulkCancel = false;
-    const status = $('bulkStatus');
-    let added = 0, skipped = 0, failed = [], stopped = '';
-
-    for (let i = 0; i < lines.length; i++) {
-      if (bulkCancel) { stopped = '중지했어요.'; break; }
-      const parts = lines[i].split(/\t|\s+[-–—]\s+|\s*[,;]\s*/);
-      const word = parts[0].trim();
-      const userMeaning = parts.slice(1).join(', ').trim();
-      if (!word) continue;
-      if (cat.words.some(w => w.word.toLowerCase() === word.toLowerCase())) { skipped++; continue; }
-      status.textContent = `${i + 1} / ${lines.length}  ${word} 처리 중...`;
-      let item = null;
-      try {
-        const ai = await callAi(buildPrompt(word, true));
-        item = { ...ai, meaning: userMeaning || ai.meaning };
-      } catch (err) {
-        if ([401, 403, 429].includes(err.status)) { stopped = err.message.split('\n')[0]; break; }
-        if (userMeaning) item = { meaning: userMeaning };
-        else failed.push(word);
+    const status = $('bulkStatus'); let stopped = '', done = 0;
+    const res = new Map(); const need = [];
+    entries.forEach(e => { const h = aicGet(e.word); if (h) res.set(e.word.toLowerCase(), h); else need.push(e); });
+    const chunks = []; for (let i = 0; i < need.length; i += 6) chunks.push(need.slice(i, i + 6));
+    const upd = () => { status.textContent = `${Math.min(entries.length, entries.length - need.length + done)} / ${entries.length} 처리 중...`; };
+    let ci = 0; upd();
+    const worker = async () => {
+      while (!bulkCancel && !stopped) {
+        const ch = chunks[ci++]; if (!ch) return;
+        try {
+          const m = await callAi(buildBatchPrompt(ch.map(e => e.word)), normalizeBatch);
+          ch.forEach(e => { const r = m[e.word.toLowerCase()]; if (r) { res.set(e.word.toLowerCase(), r); aicSet(e.word, r); } });
+        } catch (err) { if ([401, 403, 429].includes(err.status) || /AI를 쓸 수 없|한도|준비되지/.test(err.message)) stopped = err.message.split('\n')[0]; }
+        done += ch.length; upd();
       }
-      if (item) {
-        cat.words.splice(added, 0, sanitizeWord({ id: uid(), word, ...item }));
-        added++;
-        if (added % 5 === 0) syncStorage();
-      }
-      await sleep(250);
+    };
+    await Promise.all([worker(), worker(), worker()]);
+    let retry = entries.filter(e => !res.has(e.word.toLowerCase())).slice(0, 10);
+    for (const e of retry) {
+      if (bulkCancel || stopped) break;
+      try { const r = await lookupWord(e.word, true); res.set(e.word.toLowerCase(), r); } catch (err) { if ([401, 403, 429].includes(err.status)) stopped = err.message.split('\n')[0]; }
     }
+    if (bulkCancel && !stopped) stopped = '중지했어요.';
+    const items = [], failed = [];
+    entries.forEach(e => {
+      const r = res.get(e.word.toLowerCase());
+      if (r) items.push(sanitizeWord({ id: uid(), word: e.word, ...r, meaning: e.um || r.meaning }));
+      else if (e.um) items.push(sanitizeWord({ id: uid(), word: e.word, meaning: e.um }));
+      else failed.push(e.word);
+    });
+    cat.words.unshift(...items);
     syncStorage(); bulkBusy = false; bulkCancel = false;
     btn.dataset.running = '0'; btn.textContent = 'AI로 한꺼번에 채우고 저장';
     renderBookDynamic();
-    let msg = `${added}개 저장했어요.`;
+    let msg = `${items.length}개 저장했어요.`;
     if (skipped) msg += `\n이미 있어서 건너뜀 ${skipped}개`;
     if (failed.length) msg += `\n실패 ${failed.length}개: ${failed.join(', ')}`;
     if (stopped) msg += `\n${stopped}`;
     status.textContent = msg;
-    if (added) toast(`${added}개 단어를 저장했어요.`);
+    if (items.length) toast(`${items.length}개 단어를 저장했어요.`);
   };
 
   /* ----- 단어장 메뉴 / CSV ----- */
@@ -1913,14 +1993,14 @@ window.VOCA_CLOUD = {
     if (k && !/^[\x21-\x7E]+$/.test(k)) throw new ApiError('API 키에 한글이나 특수문자가 섞여 있어요. 키를 다시 복사해서 붙여넣어 주세요.', 0);
     return k;
   }
-  async function http(url, options = {}, timeoutMs = 30000) {
+  async function http(url, options = {}, timeoutMs = 20000) {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), timeoutMs);
     let resp;
     try { resp = await fetch(url, { ...options, signal: ctrl.signal }); }
     catch (e) {
       clearTimeout(timer);
-      if (e.name === 'AbortError') throw new ApiError('응답 시간이 초과되었어요 (30초). 네트워크를 확인하세요.', 0);
+      if (e.name === 'AbortError') throw new ApiError(`응답 시간이 초과되었어요 (${Math.round(timeoutMs / 1000)}초). 네트워크를 확인하세요.`, 0);
       throw new ApiError('서버에 연결하지 못했어요. 인터넷 연결, VPN, 광고차단 확장프로그램을 확인하고, 파일을 file:// 로 열었다면 웹 주소로 열어 보세요.', 0);
     }
     clearTimeout(timer);
@@ -1990,10 +2070,11 @@ window.VOCA_CLOUD = {
   }
   async function requestModel(p, key, model, prompt) {
     if (p === 'gemini') {
-      const body = await http(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders(p, key) },
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.2, responseMimeType: 'application/json' } })
-      });
+      const gurl = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
+      const gsend = gc => http(gurl, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders(p, key) }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: gc }) });
+      let body;
+      try { body = await gsend({ temperature: 0.2, responseMimeType: 'application/json', thinkingConfig: { thinkingBudget: 0 } }); }
+      catch (e) { if (e.status === 400) body = await gsend({ temperature: 0.2, responseMimeType: 'application/json' }); else throw e; }
       const parts = (body.candidates && body.candidates[0] && body.candidates[0].content && body.candidates[0].content.parts) || [];
       const text = parts.filter(x => !x.thought).map(x => x.text || '').join('');
       if (!text) throw new ApiError('빈 응답이 왔어요' + (body.promptFeedback && body.promptFeedback.blockReason ? ` (${body.promptFeedback.blockReason})` : ''), 0);
@@ -2035,37 +2116,71 @@ window.VOCA_CLOUD = {
   async function callAi(prompt, normalize) {
     normalize = normalize || normalizeResult;
     const p = config.provider;
-    let key;
-    key = cleanKey(config.keys[p]);
-    if (!key) throw new ApiError(`설정에서 ${PROVIDERS[p].label} API 키를 입력해 주세요.`, 401);
-
-    let list = config.modelLists[p] || [];
-    if (!list.length) {
-      try { list = await listModels(p, key); config.modelLists[p] = list; syncStorage(); }
-      catch (e) {
-        if ([401, 403].includes(e.status)) throw new ApiError(friendlyError(p, e), e.status);
-        list = FALLBACK_MODELS[p];
+    const key = cleanKey(config.keys && config.keys[p]);
+    const finish = text => normalize(parseJson(text));
+    if (!key) {
+      if (cloudMode && window.Cloud && Cloud.ai) {
+        let last = null;
+        for (let a = 0; a < 2; a++) {
+          try { const r = finish(await Cloud.ai(prompt)); if (r) return r; last = new ApiError('AI 응답을 해석하지 못했어요. 다시 시도해 주세요.', 0); }
+          catch (e) { last = e; if (e.status && e.status < 500) break; await sleep(900); }
+        }
+        throw new ApiError(last && last.message ? last.message : 'AI를 쓸 수 없어요.', last && last.status);
       }
+      throw new ApiError(`설정에서 ${PROVIDERS[p].label} API 키를 입력해 주세요.`, 401);
     }
-    const candidates = [];
-    if (config.models[p]) candidates.push(config.models[p]);
-    list.forEach(m => { if (!candidates.includes(m)) candidates.push(m); });
-
-    let lastErr = null;
-    for (const model of candidates.slice(0, 4)) {
+    const tryModels = async models => {
+      let lastErr = null;
+      for (const model of models) {
+        for (let a = 0; a < 2; a++) {
+          try {
+            const parsed = finish(await requestModel(p, key, model, prompt));
+            if (!parsed) { lastErr = new ApiError('AI 응답을 해석하지 못했어요. 다시 시도해 주세요.', 0); continue; }
+            if (config.models[p] !== model) { config.models[p] = model; syncStorage(); }
+            return { ok: parsed };
+          } catch (e) {
+            lastErr = e;
+            if ([401, 403].includes(e.status)) throw new ApiError(friendlyError(p, e), e.status);
+            if (e.status === 429) { await sleep(1500 * (a + 1)); continue; }
+            if (e.status === 404 || e.status === 400) break;
+            await sleep(500);
+          }
+        }
+      }
+      return { err: lastErr };
+    };
+    const first = [];
+    [config.models[p], ...(FALLBACK_MODELS[p] || [])].forEach(m => { if (m && !first.includes(m)) first.push(m); });
+    let r = await tryModels(first.slice(0, 2));
+    if (r.ok) return r.ok;
+    if (!(config.modelLists[p] || []).length) {
       try {
-        const text = await requestModel(p, key, model, prompt);
-        const parsed = normalize(parseJson(text));
-        if (!parsed) { lastErr = new ApiError('AI 응답을 해석하지 못했어요. 다시 시도해 주세요.', 0); continue; }
-        if (config.models[p] !== model) { config.models[p] = model; syncStorage(); }
-        return parsed;
-      } catch (e) {
-        lastErr = e;
-        if ([401, 403, 429].includes(e.status)) break;
-      }
+        const list = await listModels(p, key); config.modelLists[p] = list; syncStorage();
+        const more = list.filter(m => !first.slice(0, 2).includes(m)).slice(0, 2);
+        if (more.length) { const r2 = await tryModels(more); if (r2.ok) return r2.ok; r = r2.err ? r2 : r; }
+      } catch (e) { if ([401, 403].includes(e.status)) throw new ApiError(friendlyError(p, e), e.status); }
     }
-    const err = lastErr || new ApiError('알 수 없는 오류', 0);
+    const err = r.err || new ApiError('알 수 없는 오류', 0);
     throw new ApiError(friendlyError(p, err), err.status);
+  }
+
+  /* ----- 단어 조회 캐시 · 묶음 조회 (속도 개선) ----- */
+  const AIC_KEY = 'vocapro_aic'; let aiCache = null;
+  const aicAll = () => aiCache || (aiCache = loadJson(AIC_KEY) || {});
+  const aicGet = w => { const r = aicAll()[String(w).toLowerCase()]; return r ? { ...r } : null; };
+  const aicSet = (w, r) => { const c = aicAll(); c[String(w).toLowerCase()] = r; const ks = Object.keys(c); if (ks.length > 400) delete c[ks[0]]; try { LS.setItem(AIC_KEY, JSON.stringify(c)); } catch (e) {} };
+  async function lookupWord(word, full) {
+    const hit = aicGet(word); if (hit && (hit.example || !full)) return hit;
+    const r = await callAi(buildPrompt(word, full)); if (full) aicSet(word, r); return r;
+  }
+  const buildBatchPrompt = words => `You are an English-Korean dictionary. Define each English word or phrase below.
+Return ONLY one JSON object (no markdown): {"items":[{"word":"<same word as given>","meaning":"핵심 한국어 뜻 (품사 포함)","phonetic":"/IPA/","koreanPron":"한글 발음","example":"짧은 영어 예문 (한국어 해석)","synonyms":"유의어1, 유의어2"}]}
+Keep the same order. WORDS: ${JSON.stringify(words)}`;
+  function normalizeBatch(o) {
+    if (!o || !Array.isArray(o.items)) return null;
+    const m = {};
+    o.items.forEach(it => { const n = normalizeResult(it); if (n && it && it.word) m[String(it.word).trim().toLowerCase()] = n; });
+    return Object.keys(m).length ? m : null;
   }
 
   const buildPrompt = (word, full) => `You are an English-Korean dictionary. Define the English word or phrase "${word}".
@@ -2081,7 +2196,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     const start = Date.now();
     const timer = setInterval(() => { const tc = $('aiTimerCount'); if (tc) tc.textContent = ((Date.now() - start) / 1000).toFixed(1) + '초'; }, 100);
     try {
-      const r = await callAi(buildPrompt(query, true));
+      const r = await lookupWord(query, true);
       if (!$('fieldMeaning') || $('fieldWord').value.trim() !== query) return;
       $('fieldMeaning').value = r.meaning; $('fieldPhonetic').value = r.phonetic;
       $('fieldKoreanPron').value = r.koreanPron; $('fieldExample').value = r.example; $('fieldSynonyms').value = r.synonyms;
@@ -2128,6 +2243,8 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
   function loadSettingsUI() {
     if (!$('creditFoot')) $('tabSettings').insertAdjacentHTML('beforeend', '<div class="foot-credit" id="creditFoot">VocaPro · 개발자 김주원</div>');
     rmUI();
+    if (!$('lgLinks') && $('creditFoot')) $('creditFoot').insertAdjacentHTML('beforebegin', legalLinksHtml().replace('class="legal-links"', 'class="legal-links" id="lgLinks"'));
+    if (!$('btnLt')) { const g = $('cfgGoal'); if (g && g.parentNode) g.insertAdjacentHTML('afterend', '<button class="btn btn-soft btn-block" id="btnLt" data-act="level-test" style="margin-top:8px;">레벨 테스트로 목표 추천받기</button>'); }
     const bp = $('btnPw'); if (bp) bp.style.display = cloudMode ? '' : 'none';
     const an = $('acctName'); if (an) an.textContent = '현재 계정: ' + (currentLabel || currentUser || '');
     $('cfgProvider').value = config.provider;
@@ -2233,7 +2350,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     const ov = document.createElement('div'); ov.className = 'tr-ov'; ov.id = 'trOv';
     ov.innerHTML = `<div class="tr-sheet" role="dialog" aria-modal="true" aria-label="번역"><div class="tr-grab"></div>
       <div class="tr-head"><b>번역</b><span id="trDir" class="tr-dir">자동 감지</span><button class="tr-x" data-act="tr-close" aria-label="닫기">${IC.x}</button></div>
-      <textarea id="trIn" rows="3" maxlength="500" placeholder="영어 또는 한국어를 입력하세요" spellcheck="false"></textarea>
+      <textarea id="trIn" rows="4" maxlength="1000" placeholder="영어 또는 한국어 문장을 입력하세요" spellcheck="false"></textarea>
       <div class="tr-actions"><button class="btn btn-soft" data-act="tr-clear">지우기</button><button class="btn btn-primary" id="trGo" data-act="tr-go" style="flex:1">번역하기</button></div>
       <div id="trOut" class="tr-out" style="display:none"></div></div>`;
     document.body.appendChild(ov);
@@ -2247,7 +2364,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
   }
   async function translateText(text, toKo) {
     const from = toKo ? 'English' : 'Korean', to = toKo ? 'Korean' : 'English';
-    if (cleanKey(config.keys && config.keys[config.provider])) {
+    if (cleanKey(config.keys && config.keys[config.provider]) || (cloudMode && window.Cloud && Cloud.ai)) {
       try {
         const r = await callAi(`Translate the text below from ${from} to ${to}. Natural and accurate; keep the meaning and tone. Reply with JSON only, no markdown: {"t":"<translation>"}\n\nTEXT: ${JSON.stringify(text)}`,
           o => (o && typeof o.t === 'string' && o.t.trim() ? { t: o.t.trim() } : null));
@@ -2306,7 +2423,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
   function wodToday() { const d = new Date(); return WOD[Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 864e5) % WOD.length]; }
   function wodHtml() {
     const [w, m, e] = wodToday();
-    return `<div class="wod"><div class="wod-top"><span class="wod-tag">오늘의 단어</span><button class="wod-btn" data-act="wod-speak" aria-label="발음 듣기">${IC.speaker}</button></div><div class="wod-word">${esc(w)}</div><div class="wod-mean">${esc(m)}</div><div class="wod-ex">${esc(e)}</div><button class="btn btn-soft btn-block" data-act="wod-add" style="margin-top:14px;">내 단어장에 추가</button></div>`;
+    return `<div class="wod"><div class="wod-top"><span class="wod-tag">오늘의 단어</span><button class="wod-btn" data-act="wod-speak" aria-label="발음 듣기">${IC.speaker}</button></div><div class="wod-word">${esc(w)}</div><div class="wod-mean">${esc(m)}</div><div class="wod-ex">${esc(e)}</div><button class="btn btn-soft btn-block" data-act="wod-add" style="margin-top:14px;">내 단어장에 추가</button></div><button class="mg-entry" data-act="match"><span class="mg-ico">${IC.cards}</span><span class="mg-txt"><b>짝 맞추기</b><small>영어와 뜻을 빠르게 연결해요</small></span><span class="mg-chev"></span></button>${flowEntryHtml()}${ltEntryHtml()}`;
   }
   ACTIONS['wod-speak'] = () => speak(wodToday()[0], 'en-US');
   ACTIONS['wod-add'] = () => {
@@ -2326,7 +2443,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
       const [ic, t, d] = OB[i];
       ov.innerHTML = `<button class="ob-skip" data-ob="skip">건너뛰기</button><div class="ob-body"><div class="ob-ic">${ic}</div><h2>${t}</h2><p>${d}</p></div><div class="ob-foot"><div class="ob-dots">${OB.map((_, k) => `<i class="${k === i ? 'on' : ''}"></i>`).join('')}</div><button class="btn btn-primary btn-block" data-ob="next">${i === OB.length - 1 ? '시작하기' : '다음'}</button></div>`;
     };
-    const done = () => { try { LS.setItem('vocapro_onboarded', '1'); } catch (e) {} ov.remove(); };
+    const done = () => { try { LS.setItem('vocapro_onboarded', '1'); } catch (e) {} ov.remove(); setTimeout(() => { try { ltOpen(true); } catch (e) {} }, 150); };
     ov.addEventListener('click', e => { const b = e.target.closest('[data-ob]'); if (!b) return; if (b.dataset.ob === 'skip' || i === OB.length - 1) return done(); i++; draw(); });
     draw();
   }
@@ -2341,7 +2458,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
   const rmKey = () => 'vocapro_rm:' + currentUser;
   const rmGet = () => loadJson(rmKey()) || { on: false, time: '20:00', last: '' };
   const rmSet = o => { try { LS.setItem(rmKey(), JSON.stringify(o)); } catch (e) {} };
-  const dueCount = () => { const end = endOfToday(); return allWords().filter(w => w.box > 0 && w.due > 0 && w.due <= end).length; };
+  const dueCount = () => counts().due;
   function rmUI() {
     const r = rmGet(), on = $('rmOn'); if (!on) return;
     on.checked = !!r.on; $('rmTime').value = r.time;
@@ -2371,6 +2488,44 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
   }
   setInterval(rmCheck, 60000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) rmCheck(); });
+
+  /* ----- 짝 맞추기 ----- */
+  let mgT = null;
+  function closeMatch() { clearInterval(mgT); const o = $('mgOv'); if (o) o.remove(); }
+  function openMatch() {
+    const ws = allWords().map(x => x.w).filter(w => w.word && w.meaning);
+    if (ws.length < 4) return toast('단어가 4개 이상 있어야 해요.');
+    closeMatch();
+    const pick = ws.slice().sort(() => Math.random() - .5).slice(0, 6), tiles = [];
+    pick.forEach((w, i) => { tiles.push({ id: i, t: w.word, en: true }, { id: i, t: String(w.meaning).split(/[,;/]/)[0].trim() || w.meaning, en: false }); });
+    tiles.sort(() => Math.random() - .5);
+    const ov = document.createElement('div'); ov.className = 'mg'; ov.id = 'mgOv';
+    ov.innerHTML = `<div class="mg-top"><button class="round-btn" data-mg="x" aria-label="닫기">${IC.x}</button><b>짝 맞추기</b><span id="mgTime">0.0초</span></div><p class="mg-sub">영어와 뜻을 짝지어 눌러 보세요</p><div class="mg-grid">${tiles.map((t, i) => `<button class="mg-tile" data-i="${i}">${esc(t.t)}</button>`).join('')}</div>`;
+    document.body.appendChild(ov);
+    let sel = -1, done = 0, wrong = 0, locked = false, over = false; const t0 = Date.now();
+    mgT = setInterval(() => { const e = $('mgTime'); if (e) e.textContent = ((Date.now() - t0) / 1000).toFixed(1) + '초'; }, 100);
+    const finish = () => {
+      over = true; const sec = ((Date.now() - t0) / 1000).toFixed(1);
+      ov.innerHTML = `<div class="mg-done"><div class="mg-medal">${IC.trophy}</div><h2>${wrong === 0 ? '완벽해요!' : '모두 맞췄어요'}</h2><p>${sec}초 · 오답 ${wrong}번</p><button class="btn btn-primary btn-block" data-mg="again">한 번 더</button><button class="btn btn-soft btn-block" data-mg="x" style="margin-top:8px;">닫기</button></div>`;
+    };
+    ov.addEventListener('click', e => {
+      const k = e.target.closest('[data-mg]');
+      if (k) { if (k.dataset.mg === 'again') { closeMatch(); openMatch(); } else closeMatch(); return; }
+      const b = e.target.closest('.mg-tile'); if (!b || locked || over || b.classList.contains('ok')) return;
+      const i = +b.dataset.i;
+      if (sel === i) { b.classList.remove('sel'); sel = -1; return; }
+      if (sel < 0) { sel = i; b.classList.add('sel'); if (tiles[i].en) speak(tiles[i].t, 'en-US'); return; }
+      const a = tiles[sel], c = tiles[i], ba = ov.querySelector(`[data-i="${sel}"]`);
+      if (a.id === c.id && a.en !== c.en) {
+        [ba, b].forEach(x => { x.classList.remove('sel'); x.classList.add('ok'); }); sel = -1; done++;
+        if (done === pick.length) { clearInterval(mgT); setTimeout(finish, 450); }
+      } else {
+        wrong++; locked = true; [ba, b].forEach(x => x.classList.add('no'));
+        setTimeout(() => { [ba, b].forEach(x => x.classList.remove('no', 'sel')); sel = -1; locked = false; }, 450);
+      }
+    });
+  }
+  ACTIONS.match = openMatch;
 
   /* =========================================================
    * 대화상자 / 계정
@@ -2419,11 +2574,13 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
         <input type="text" id="auId" placeholder="아이디 (2~20자)" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="20">
         <input type="password" id="auPw" placeholder="비밀번호 (${cloudMode ? 6 : 4}자 이상)" autocomplete="${su ? 'new-password' : 'current-password'}">
         ${su ? '<input type="password" id="auPw2" placeholder="비밀번호 확인" autocomplete="new-password">' : ''}
+        ${authExtraHtml(su)}
         <label class="switch-row"><input type="checkbox" id="auKeep" checked> 로그인 유지</label>
         <div id="auMsg" style="display:none;color:var(--coral);font-weight:600;font-size:.85rem;"></div>
         <button class="btn btn-primary btn-block" id="auGo" data-act="auth-go">${su ? '가입하고 시작' : '로그인'}</button>
         <p class="muted" style="font-size:.74rem;line-height:1.6;margin:4px 0 0;">${cloudMode ? '같은 아이디로 로그인하면 어느 기기에서든 단어장과 학습 기록이 이어져요. 비밀번호를 잊으면 복구할 수 없어요. API 키는 보안을 위해 기기마다 따로 입력해요.' : '계정은 이 기기의 브라우저에만 저장돼요. 다른 기기와 동기화되지 않고, 비밀번호를 잊으면 복구할 수 없으니 백업 파일을 받아 두세요.'}</p>
       </div></div>`;
+    setTimeout(drawCaptcha, 0);
   }
   function showAuth() {
     authMode = cloudMode ? 'login' : (Object.keys(getUsers()).length ? 'login' : 'signup');
@@ -2434,7 +2591,11 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
   ACTIONS['auth-mode'] = el => { authMode = el.dataset.m; renderAuth(); };
   ACTIONS['auth-go'] = async () => {
     const btn = $('auGo'); if (!btn || btn.disabled) return;
-    const fail = m => { const e = $('auMsg'); e.textContent = m; e.style.display = 'block'; btn.disabled = false; };
+    const fail = m => {
+      const e = $('auMsg'); e.textContent = m; e.style.display = 'block'; btn.disabled = false;
+      if (authMode !== 'signup' && !/보안문자|동의/.test(m)) { authFails++; if (authFails >= 3) { const cb = $('capBox'); if (cb) cb.style.display = 'block'; drawCaptcha(); } }
+    };
+    { const g = authGate(); if (g) return fail(g); }
     if (cloudMode) {
       const email = $('auId').value.trim(), pw0 = $('auPw').value, keep0 = $('auKeep').checked, su0 = authMode === 'signup';
       if (!/^[\w가-힣-]{2,20}$/.test(email)) return fail('아이디는 2~20자의 한글, 영문, 숫자, _, - 만 쓸 수 있어요.');
@@ -2570,6 +2731,267 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
   document.addEventListener('keydown', e => {
     if (e.key === 'Enter' && e.target.closest && e.target.closest('#authScreen')) { e.preventDefault(); ACTIONS['auth-go'](); }
   });
+
+  /* =========================================================
+   * 레벨 테스트 · 맞춤 시작
+   * ======================================================= */
+  const LT_BANK = [
+    [["apple","사과"],["friend","친구"],["happy","행복한"],["school","학교"],["water","물"],["family","가족"],["morning","아침"],["travel","여행하다"],["bright","밝은"],["borrow","빌리다"]],
+    [["improve","향상시키다"],["decide","결정하다"],["expensive","비싼"],["ordinary","평범한"],["advice","조언"],["habit","습관"],["support","지지하다"],["prepare","준비하다"],["environment","환경"],["communicate","의사소통하다"]],
+    [["reluctant","꺼리는"],["ambiguous","모호한"],["inevitable","피할 수 없는"],["authentic","진짜의"],["enhance","높이다"],["restrict","제한하다"],["acquire","습득하다"],["tolerate","참아내다"],["controversy","논란"],["prosperity","번영"]],
+    [["ubiquitous","어디에나 있는"],["ephemeral","덧없는"],["pragmatic","실용적인"],["meticulous","꼼꼼한"],["scrutinize","면밀히 조사하다"],["alleviate","덜어주다"],["exacerbate","악화시키다"],["indigenous","토착의"],["ostensible","표면상의"],["scarce","드문, 부족한"]]
+  ];
+  const LT_LV = [
+    { name: '입문', goal: 10, desc: '기초 단어부터 차근차근 시작해요.' },
+    { name: '초급', goal: 10, desc: '일상 단어는 익숙해요. 핵심 단어를 늘려가요.' },
+    { name: '중급', goal: 20, desc: '탄탄한 기본기가 있어요. 꾸준히 확장해요.' },
+    { name: '상급', goal: 30, desc: '어려운 단어도 잘 알고 있어요. 고난도에 도전해요.' },
+    { name: '최상급', goal: 50, desc: '최상위 수준이에요. 고난도 단어로 완성해요.' }
+  ];
+  const ltKey = () => 'vocapro_level:' + currentUser;
+  let LT = null;
+  function ltBuild() {
+    const qs = [];
+    LT_BANK.forEach((pool, lv) => {
+      shuffled(pool.slice()).slice(0, 3).forEach(([w, m]) => {
+        const wrong = shuffled(pool.filter(x => x[1] !== m)).slice(0, 3).map(x => x[1]);
+        qs.push({ lv, w, m, opts: shuffled([m, ...wrong]) });
+      });
+    });
+    return qs;
+  }
+  function ltOpen(intro) {
+    if ($('ltOv')) return;
+    LT = { qs: ltBuild(), i: 0, ok: [0, 0, 0, 0], locked: false };
+    const ov = document.createElement('div'); ov.className = 'ob lt'; ov.id = 'ltOv'; document.body.appendChild(ov);
+    ltIntro(ov, intro);
+  }
+  function ltIntro(ov, intro) {
+    ov.innerHTML = `<button class="ob-skip" data-lt="close">${intro ? '나중에 할게요' : '닫기'}</button>
+      <div class="ob-body"><div class="ob-ic">${IC.sprout}</div><h2>내 영어 수준 알아보기</h2>
+      <p>12문제, 약 2분이면 끝나요.<br>결과에 맞춰 하루 목표와 시작 단어를 추천해 드려요.</p></div>
+      <div class="ob-foot"><button class="btn btn-primary btn-block" data-lt="start">테스트 시작</button></div>`;
+  }
+  function ltDraw() {
+    const ov = $('ltOv'); if (!ov || !LT) return;
+    if (LT.i >= LT.qs.length) return ltResult();
+    const q = LT.qs[LT.i];
+    ov.innerHTML = `<button class="ob-skip" data-lt="close">그만하기</button>
+      <div class="lt-bar"><i style="width:${Math.round(LT.i / LT.qs.length * 100)}%"></i></div>
+      <div class="ob-body lt-q"><div class="muted" style="font-weight:700;margin-bottom:10px;">${LT.i + 1} / ${LT.qs.length}</div>
+      <h2 style="font-size:2.1rem;">${esc(q.w)}</h2><p style="margin-bottom:22px;">이 단어의 뜻은?</p>
+      <div class="opts" style="width:100%;">${q.opts.map((o, k) => `<button class="opt" data-lt="opt" data-v="${esc(o)}"><span class="opt-n">${k + 1}</span><span>${esc(o)}</span></button>`).join('')}</div></div>
+      <div class="ob-foot"><button class="btn btn-soft btn-block" data-lt="opt" data-v="">잘 모르겠어요</button></div>`;
+    LT.locked = false;
+  }
+  function ltAnswer(v) {
+    if (!LT || LT.locked) return; LT.locked = true;
+    const q = LT.qs[LT.i];
+    if (v === q.m) LT.ok[q.lv]++;
+    const ov = $('ltOv');
+    ov.querySelectorAll('.opt').forEach(b => { if (b.dataset.v === q.m) b.classList.add('correct'); else if (b.dataset.v === v) b.classList.add('wrong'); });
+    setTimeout(() => { if (LT) { LT.i++; ltDraw(); } }, v === q.m ? 450 : 900);
+  }
+  function ltLevel() { let r = 0; for (let l = 0; l < 4; l++) { if (LT.ok[l] >= 2) r++; else break; } return r; }
+  function ltResult() {
+    const ov = $('ltOv'); if (!ov) return;
+    const r = ltLevel(), info = LT_LV[r], total = LT.ok.reduce((a, b) => a + b, 0);
+    LT.r = r;
+    try { LS.setItem(ltKey(), JSON.stringify({ lv: r, score: total, at: Date.now() })); } catch (e) {}
+    ov.innerHTML = `<div class="ob-body"><div class="ob-ic">${IC.star}</div>
+      <div class="muted" style="font-weight:700;">내 수준은</div><h2 style="font-size:2.4rem;">${info.name}</h2>
+      <p>${info.desc}<br>12문제 중 <b>${total}</b>문제를 맞혔어요.</p>
+      <div class="card" style="width:100%;margin-top:22px;text-align:left;"><b>추천 하루 목표 ${info.goal}개</b><div class="muted" style="font-size:.85rem;margin-top:4px;">'${info.name} 시작 단어' 단어장 ${LT_BANK[Math.min(r, 3)].length}개도 만들어 드려요.</div></div></div>
+      <div class="ob-foot"><button class="btn btn-primary btn-block" data-lt="apply">추천대로 시작하기</button>
+      <button class="btn btn-soft btn-block" data-lt="goal" style="margin-top:8px;">목표만 적용하기</button></div>`;
+  }
+  function ltApply(withBook) {
+    if (!LT || LT.r === undefined) return;
+    const info = LT_LV[LT.r]; config.goal = info.goal;
+    let id = null;
+    if (withBook) {
+      const nm = info.name + ' 시작 단어';
+      let cat = categories.find(c => c.name === nm);
+      if (!cat) {
+        cat = { id: 'c' + uid(), name: nm, words: LT_BANK[Math.min(LT.r, 3)].map(([w, m]) => sanitizeWord({ id: uid(), word: w, meaning: m })) };
+        categories.push(cat);
+      }
+      id = cat.id;
+    }
+    syncStorage(); const ov = $('ltOv'); if (ov) ov.remove(); LT = null;
+    try { go(curTab); } catch (e) {}
+    toast(withBook ? '추천 단어장을 만들었어요.' : '하루 목표를 ' + info.goal + '개로 바꿨어요.');
+    if (id) { try { ACTIONS.start({ dataset: { mode: 'card', src: 'cat:' + id } }); } catch (e) {} }
+  }
+  document.addEventListener('click', e => {
+    const b = e.target.closest && e.target.closest('#ltOv [data-lt]'); if (!b) return;
+    const a = b.dataset.lt;
+    if (a === 'close') { const ov = $('ltOv'); if (ov) ov.remove(); LT = null; }
+    else if (a === 'start') ltDraw();
+    else if (a === 'opt') ltAnswer(b.dataset.v);
+    else if (a === 'apply') ltApply(true);
+    else if (a === 'goal') ltApply(false);
+  });
+  ACTIONS['level-test'] = () => ltOpen(false);
+  function ltEntryHtml() {
+    let s = null; try { s = JSON.parse(LS.getItem(ltKey()) || 'null'); } catch (e) {}
+    const t = s && LT_LV[s.lv] ? '내 수준: ' + LT_LV[s.lv].name + ' · 다시 테스트' : '내 영어 수준 알아보기';
+    const sub = s ? '실력이 늘었다면 다시 측정해 보세요' : '12문제로 하루 목표와 시작 단어를 추천받아요';
+    return `<button class="mg-entry" data-act="level-test"><span class="mg-ico">${IC.sprout}</span><span class="mg-txt"><b>${esc(t)}</b><small>${sub}</small></span><span class="mg-chev"></span></button>`;
+  }
+
+  /* =========================================================
+   * 4단계 집중 학습 (카드 → 뜻 고르기 → 따라 쓰기 → 시험)
+   * ======================================================= */
+  const FL_STEPS = ['카드 보기', '뜻 고르기', '따라 쓰기', '마무리 시험'];
+  let FL = null;
+  function flPick() {
+    let it = poolFor({ type: 'due' }); if (!it.length) it = poolFor({ type: 'new' }); if (!it.length) it = poolFor({ type: 'all' });
+    return shuffled(it.map(x => ({ w: x.w, catId: x.catId }))).slice(0, 8);
+  }
+  function flOpts(w, rev) {
+    const pool = allWords().map(x => rev ? x.w.word : x.w.meaning).concat(LT_BANK.flat().map(x => rev ? x[0] : x[1]));
+    const ans = rev ? w.word : w.meaning, seen = new Set([ans.toLowerCase()]), out = [];
+    shuffled(pool).forEach(o => { if (out.length < 3 && o && !seen.has(o.toLowerCase())) { seen.add(o.toLowerCase()); out.push(o); } });
+    return shuffled([ans, ...out]);
+  }
+  ACTIONS.flow = () => flOpen();
+  function flOpen(items) {
+    if ($('flOv')) return;
+    items = items || flPick();
+    if (!items.length) return toast('학습할 단어가 없어요. 먼저 단어를 추가해 보세요.');
+    FL = { items, step: 0, i: 0, res: {}, locked: false, miss: {} };
+    const ov = document.createElement('div'); ov.className = 'ob lt fl'; ov.id = 'flOv'; document.body.appendChild(ov);
+    flDraw();
+  }
+  function flTotal() { return FL.items.length * 4; }
+  function flDraw() {
+    const ov = $('flOv'); if (!ov || !FL) return;
+    if (FL.i >= FL.items.length) { FL.step++; FL.i = 0; if (FL.step >= 4) return flResult(); }
+    const it = FL.items[FL.i], w = it.w, st = FL.step;
+    const head = `<button class="ob-skip" data-fl="close">그만하기</button><div class="lt-bar"><i style="width:${Math.round((st * FL.items.length + FL.i) / flTotal() * 100)}%"></i></div><div class="muted fl-step"><b>${st + 1}/4 ${FL_STEPS[st]}</b> · ${FL.i + 1}/${FL.items.length}</div>`;
+    FL.locked = false; let body = '', foot = '';
+    if (st === 0) {
+      body = `<div class="fl-card"><button class="q-speak" data-act="speak" data-text="${esc(w.word)}" aria-label="발음 듣기">${IC.speaker}</button><div class="fl-word">${esc(w.word)}</div><div class="q-pron">${esc(pronText(w))}</div><div class="fl-mean">${esc(w.meaning)}</div>${w.example ? `<div class="fl-ex">${esc(w.example)}</div><button class="btn btn-soft" data-fl="trex" data-text="${esc(w.example)}" style="margin-top:12px;">문장 번역</button>` : ''}</div>`;
+      foot = `<button class="btn btn-primary btn-block" data-fl="next">${FL.i === FL.items.length - 1 ? '뜻 고르기로' : '다음'}</button>`;
+      setTimeout(() => { try { playAudio(w.word); } catch (e) {} }, 150);
+    } else if (st === 1 || st === 3) {
+      const rev = st === 3, opts = flOpts(w, rev);
+      body = `<div class="ob-body lt-q"><div class="muted" style="font-weight:700;margin-bottom:8px;">${rev ? '알맞은 영어 단어는?' : '이 단어의 뜻은?'}</div><h2 style="font-size:2rem;">${esc(rev ? w.meaning : w.word)}</h2><div class="opts" style="width:100%;margin-top:22px;">${opts.map((o, k) => `<button class="opt" data-fl="opt" data-v="${esc(o)}"><span class="opt-n">${k + 1}</span><span>${esc(o)}</span></button>`).join('')}</div></div>`;
+      foot = `<button class="btn btn-soft btn-block" data-fl="opt" data-v="">잘 모르겠어요</button>`;
+    } else {
+      body = `<div class="ob-body lt-q"><div class="muted" style="font-weight:700;margin-bottom:8px;">뜻에 맞는 단어를 써 보세요</div><h2 style="font-size:2rem;">${esc(w.meaning)}</h2><div class="muted" style="margin:6px 0 18px;letter-spacing:.2em;">${esc(w.word.charAt(0))}${'_'.repeat(Math.max(0, Math.min(w.word.length - 1, 24)))}</div><input type="text" id="flIn" class="fl-in" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="영어 단어"><div id="flFb" class="fl-fb"></div></div>`;
+      foot = `<button class="btn btn-primary btn-block" id="flGo" data-fl="type">확인</button>`;
+      setTimeout(() => { const i = $('flIn'); if (i) i.focus(); }, 80);
+    }
+    ov.innerHTML = head + (st === 0 ? `<div class="ob-body">${body}</div>` : body) + `<div class="ob-foot">${foot}</div>`;
+  }
+  function flAdvance(ms) { setTimeout(() => { if (FL) { FL.i++; flDraw(); } }, ms); }
+  function flAnswer(v) {
+    if (!FL || FL.locked) return; FL.locked = true;
+    const it = FL.items[FL.i], w = it.w, rev = FL.step === 3, ans = rev ? w.word : w.meaning, ok = v === ans;
+    if (FL.step === 3) FL.res[w.id] = ok; if (!ok) FL.miss[w.id] = true;
+    $('flOv').querySelectorAll('.opt').forEach(b => { if (b.dataset.v === ans) b.classList.add('correct'); else if (b.dataset.v === v) b.classList.add('wrong'); });
+    flAdvance(ok ? 450 : 1000);
+  }
+  function flType() {
+    if (!FL) return; const it = FL.items[FL.i], w = it.w, inp = $('flIn'), fb = $('flFb'), btn = $('flGo'); if (!inp) return;
+    if (FL.locked) { FL.i++; return flDraw(); }
+    const v = inp.value.trim().toLowerCase(); if (!v) return toast('단어를 입력해 주세요.');
+    const ok = v === w.word.trim().toLowerCase(); if (!ok) FL.miss[w.id] = true;
+    FL.locked = true; inp.disabled = true;
+    fb.innerHTML = ok ? '<b style="color:var(--blue)">정답이에요!</b>' : `<b style="color:var(--coral)">정답: ${esc(w.word)}</b>`;
+    btn.textContent = '다음';
+  }
+  function flResult() {
+    const ov = $('flOv'); if (!ov) return;
+    let good = 0; const wrongs = [];
+    FL.items.forEach(it => { const ok = !!FL.res[it.w.id]; grade(it.w, ok); recordStat(ok); if (ok) good++; else wrongs.push(it); });
+    syncStorage(); FL.wrongs = wrongs;
+    try { go(curTab); } catch (e) {}
+    ov.innerHTML = `<div class="ob-body"><div class="ob-ic">${IC.star}</div><div class="muted" style="font-weight:700;">마무리 시험 결과</div><h2 style="font-size:2.4rem;">${good} / ${FL.items.length}</h2><p>${wrongs.length ? '틀린 단어는 내일 다시 복습해요.' : '모두 맞혔어요. 대단해요!'}</p>${wrongs.length ? `<div class="card" style="width:100%;margin-top:18px;text-align:left;">${wrongs.map(it => `<div class="wrong-item"><b>${esc(it.w.word)}</b><span>${esc(it.w.meaning)}</span></div>`).join('')}</div>` : ''}</div><div class="ob-foot">${wrongs.length ? '<button class="btn btn-primary btn-block" data-fl="again">틀린 것만 다시</button><button class="btn btn-soft btn-block" data-fl="close" style="margin-top:8px;">마치기</button>' : '<button class="btn btn-primary btn-block" data-fl="close">마치기</button>'}</div>`;
+    if (good === FL.items.length) { try { confetti(); } catch (e) {} }
+  }
+  document.addEventListener('click', e => {
+    const b = e.target.closest && e.target.closest('#flOv [data-fl]'); if (!b) return;
+    const a = b.dataset.fl;
+    if (a === 'close') { const ov = $('flOv'); if (ov) ov.remove(); FL = null; }
+    else if (a === 'next') { FL.i++; flDraw(); }
+    else if (a === 'opt') flAnswer(b.dataset.v);
+    else if (a === 'type') flType();
+    else if (a === 'again') { const w = FL && FL.wrongs; const ov = $('flOv'); if (ov) ov.remove(); FL = null; if (w && w.length) flOpen(w); }
+    else if (a === 'trex') ACTIONS['tr-ex'](b);
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && FL && FL.step === 2 && e.target && e.target.id === 'flIn') { e.preventDefault(); flType(); }
+  });
+  ACTIONS['tr-ex'] = el => {
+    const t = String(el.dataset.text || '').replace(/\s*[(（][^)）]*[가-힣][^)）]*[)）]\s*$/, '').trim();
+    openTranslator(t); setTimeout(() => { try { ACTIONS['tr-go'](); } catch (e) {} }, 120);
+  };
+
+  /* =========================================================
+   * 보안문자 · 약관 · 개인정보 처리방침
+   * ======================================================= */
+  let capText = '', authFails = 0;
+  const capRnd = n => { try { const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % n; } catch (e) { return Math.floor(Math.random() * n); } };
+  function drawCaptcha() {
+    const c = $('capCv'); if (!c) return;
+    const W = c.width = 160, H = c.height = 52, x = c.getContext('2d'); if (!x) return;
+    const set = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; capText = '';
+    for (let i = 0; i < 5; i++) capText += set[capRnd(set.length)];
+    x.fillStyle = '#eef1f5'; x.fillRect(0, 0, W, H);
+    for (let i = 0; i < 7; i++) { x.strokeStyle = `hsl(${capRnd(360)},40%,60%)`; x.lineWidth = 1 + capRnd(2); x.beginPath(); x.moveTo(capRnd(W), capRnd(H)); x.bezierCurveTo(capRnd(W), capRnd(H), capRnd(W), capRnd(H), capRnd(W), capRnd(H)); x.stroke(); }
+    for (let i = 0; i < capText.length; i++) {
+      x.save(); x.translate(20 + i * 28, 28 + capRnd(8) - 4); x.rotate((capRnd(60) - 30) / 100);
+      x.font = `800 ${26 + capRnd(6)}px sans-serif`; x.fillStyle = `hsl(${capRnd(360)},55%,28%)`; x.textAlign = 'center'; x.fillText(capText[i], 0, 0); x.restore();
+    }
+    for (let i = 0; i < 40; i++) { x.fillStyle = `rgba(60,60,60,${(capRnd(40) + 10) / 100})`; x.fillRect(capRnd(W), capRnd(H), 2, 2); }
+  }
+  function authExtraHtml(su) {
+    return `<div id="capBox" style="display:${su || authFails >= 3 ? 'block' : 'none'}"><div class="cap-row"><canvas id="capCv" width="160" height="52" aria-label="보안문자"></canvas><button type="button" class="btn btn-soft" data-act="cap-refresh">새로고침</button></div><input type="text" id="capIn" placeholder="위 문자를 입력하세요" maxlength="5" autocapitalize="characters" autocomplete="off" spellcheck="false"></div>${su ? '<label class="switch-row"><input type="checkbox" id="auTerms"><span>(필수) <a class="lg-a" data-act="legal" data-k="terms">이용약관</a> 및 <a class="lg-a" data-act="legal" data-k="privacy">개인정보 처리방침</a>에 동의해요</span></label>' : ''}`;
+  }
+  function authGate() {
+    const su = authMode === 'signup';
+    if (su) { const t = $('auTerms'); if (!t || !t.checked) return '이용약관과 개인정보 처리방침에 동의해 주세요.'; }
+    if (su || authFails >= 3) {
+      const v = (($('capIn') && $('capIn').value) || '').trim().toUpperCase();
+      if (!capText || v !== capText) { drawCaptcha(); if ($('capIn')) $('capIn').value = ''; return '보안문자가 맞지 않아요. 새 문자로 다시 입력해 주세요.'; }
+    }
+    return '';
+  }
+  ACTIONS['cap-refresh'] = () => { drawCaptcha(); const i = $('capIn'); if (i) { i.value = ''; i.focus(); } };
+
+  const LEGAL = {
+    terms: ['이용약관', [
+      ['제1조 (목적)', 'VocaPro(이하 "서비스")는 영어 단어 학습을 돕는 앱입니다. 이 약관은 서비스 이용에 관한 운영자(김주원)와 이용자의 권리와 의무를 정합니다.'],
+      ['제2조 (계정)', '이용자는 아이디와 비밀번호로 가입합니다. 비밀번호는 이메일 등 복구 수단이 없어, 잊으면 되찾을 수 없습니다. 계정 관리 책임은 이용자에게 있습니다.'],
+      ['제3조 (서비스 내용)', '단어장 관리, 반복 학습, 퀴즈, 번역, 학습 통계, 기기 간 동기화 기능을 제공합니다. 일부 기능(AI 자동 채우기, 번역)은 외부 서비스에 의존하며, 이 서비스의 사정으로 제한되거나 중단될 수 있습니다.'],
+      ['제4조 (금지 행위)', '타인의 계정을 도용하거나, 서비스를 자동화된 수단으로 과도하게 호출하거나, 서비스의 정상 운영을 방해하는 행위를 금지합니다.'],
+      ['제5조 (이용자 데이터)', '이용자가 만든 단어장과 학습 기록은 이용자의 것입니다. 설정에서 언제든 내려받거나 계정과 함께 삭제할 수 있습니다.'],
+      ['제6조 (면책)', '학습 결과와 AI·번역 결과의 정확성은 보장되지 않습니다. 천재지변, 외부 서비스 장애 등 운영자가 통제할 수 없는 사유로 인한 손해에는 책임을 지지 않습니다.'],
+      ['제7조 (약관 변경)', '약관을 바꿀 때는 앱 안에서 알립니다. 변경 후에도 계속 이용하면 동의한 것으로 봅니다.'],
+      ['시행일', '2026년 10월 11일']]],
+    privacy: ['개인정보 처리방침', [
+      ['1. 수집하는 정보', '아이디, 비밀번호(복호화할 수 없는 해시 형태로 저장), 로그인 세션 정보, 이용자가 입력한 단어장·학습 기록·설정. 이메일, 전화번호, 위치 정보는 수집하지 않습니다.'],
+      ['2. 이용 목적', '계정 인증, 기기 간 데이터 동기화, 서비스 제공과 오류 대응.'],
+      ['3. 보관 기간', '계정을 삭제할 때까지 보관하며, 설정의 "계정과 데이터 삭제"를 누르면 서버 데이터가 즉시 삭제됩니다.'],
+      ['4. 처리 위탁·외부 전송', '데이터 저장: Supabase. 앱 배포: Netlify. 글꼴: jsDelivr. 번역 시 입력한 문장은 번역 서비스(MyMemory 또는 AI 제공자)로 전송됩니다. 이용자가 직접 입력한 AI 키(Google, OpenAI, xAI, Anthropic)는 이 기기에만 저장하며 서버로 보내지 않습니다. 광고와 행태 분석 도구는 사용하지 않습니다.'],
+      ['5. 이용자의 권리', '언제든 열람(백업 내려받기), 수정, 삭제할 수 있습니다.'],
+      ['6. 만 14세 미만', '만 14세 미만은 법정대리인의 동의를 받아 이용해야 합니다.'],
+      ['7. 문의', '개인정보 관련 문의: 개발자 김주원 ([문의 이메일 기재 필요])'],
+      ['시행일', '2026년 10월 11일']]]
+  };
+  ACTIONS.legal = el => {
+    const d = LEGAL[el.dataset.k]; if (!d || $('lgOv')) return;
+    const ov = document.createElement('div'); ov.className = 'ob lt lg'; ov.id = 'lgOv'; ov.style.zIndex = 700;
+    ov.innerHTML = `<button class="ob-skip" data-lg="x">닫기</button><div class="lg-body"><h2>${d[0]}</h2>${d[1].map(([h, t]) => `<h4>${esc(h)}</h4><p>${esc(t)}</p>`).join('')}</div>`;
+    ov.addEventListener('click', e => { if (e.target.closest('[data-lg]')) ov.remove(); });
+    document.body.appendChild(ov);
+  };
+  function legalLinksHtml() { return '<div class="legal-links"><a class="lg-a" data-act="legal" data-k="terms">이용약관</a> · <a class="lg-a" data-act="legal" data-k="privacy">개인정보 처리방침</a></div>'; }
+
+  function flowEntryHtml() { return `<button class="mg-entry" data-act="flow"><span class="mg-ico">${IC.repeat}</span><span class="mg-txt"><b>4단계 집중 학습</b><small>보기, 고르기, 쓰기, 시험으로 확실하게</small></span><span class="mg-chev"></span></button>`; }
 
   /* =========================================================
    * 시작

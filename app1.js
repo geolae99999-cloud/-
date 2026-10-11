@@ -1,9 +1,31 @@
+
   /* =========================================================
    * 유틸
    * ======================================================= */
   const $ = id => document.getElementById(id);
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const str = v => (v == null ? '' : String(v)).trim();
+  const IC = {
+    sun: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
+    moon: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>',
+    speaker: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>',
+    flame: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c1 3.2 5 5.2 5 10a5 5 0 0 1-10 0c0-2 1-3.2 2-4 .5 1.5 1.5 2 2 2 0-3-1-5 1-8z"/></svg>',
+    sprout: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21v-8"/><path d="M12 13c0-4 3-6 7-6 0 4-3 6-7 6z"/><path d="M12 15c0-3-2-5-6-5 0 3 2 5 6 5z"/></svg>',
+    bookx: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2V5z"/><path d="M9.5 8.5l5 5M14.5 8.5l-5 5"/></svg>',
+    star: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9L12 3z"/></svg>',
+    headphones: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 15v-3a8 8 0 0 1 16 0v3"/><path d="M4 15h3v5H5a1 1 0 0 1-1-1v-4zM20 15h-3v5h2a1 1 0 0 0 1-1v-4z"/></svg>',
+    shuffle: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 4h4v4M20 4l-6 6M4 20l5-5M16 20h4v-4M20 20l-5-5M4 4l5 5"/></svg>',
+    eyeoff: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l18 18M10.6 6.2A9.7 9.7 0 0 1 12 6c5 0 8.5 4 9.5 6a14 14 0 0 1-2.6 3.3M6.6 6.7C4.5 8 3 10.2 2.5 12c1 2 4.5 6 9.5 6 1.2 0 2.3-.2 3.3-.6M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>',
+    check: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.7 2.7L16 9.5"/></svg>',
+    repeat: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a3 3 0 0 1 3-3h15"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a3 3 0 0 1-3 3H3"/></svg>',
+    trophy: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg>',
+    sparkles: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z"/><path d="M19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8L19 16z"/></svg>',
+    trend: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>',
+    x: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+    cards: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="14" height="12" rx="2"/><path d="M7 3h12a2 2 0 0 1 2 2v10"/></svg>',
+    keyboard: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg>',
+    translate: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>'
+  };
   const uid = () => 'w' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
   const sleep = ms => new Promise(r => setTimeout(r, ms));
   const shuffled = arr => { const a = [...arr]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
@@ -236,7 +258,7 @@
   ACTIONS.theme = () => { config.darkMode = !config.darkMode; applyTheme(); syncStorage(); };
   function applyTheme() {
     document.body.classList.toggle('dark', !!config.darkMode);
-    $('btnTheme').textContent = config.darkMode ? '☀️' : '🌙';
+    $('btnTheme').innerHTML = config.darkMode ? IC.sun : IC.moon;
     const m = document.querySelector('meta[name="theme-color"]');
     if (m) m.setAttribute('content', config.darkMode ? '#0d1224' : '#3a5bff');
   }
@@ -300,7 +322,8 @@
     const books = categories.slice(0, 3).map(bookCardHtml).join('');
 
     $('tabHome').innerHTML = `
-      <div class="page-title" style="margin-bottom:18px;">${hello}</div>
+      <div class="page-title" style="margin-bottom:4px;">${hello}</div><div class="mission">오늘의 미션 · 복습 ${c.due}개${c.newW ? ` · 새 단어 ${Math.min(c.newW, goal)}개` : ''}</div>
+      <div class="home-cta"><button class="btn btn-primary btn-block" ${cta.attrs}>${cta.btn}</button></div>
       <section class="deck">
         <div class="deck-card deck-3"></div><div class="deck-card deck-2"></div>
         <div class="deck-card deck-1">
@@ -312,22 +335,22 @@
             <div class="ring-box">${ringSvg(pct)}<div class="ring-txt"><b>${Math.min(today.n, 999)}</b>/${goal}</div></div>
           </div>
           <div class="deck-sub">${cta.sub}</div>
-          <button class="deck-cta" ${cta.attrs}>${cta.btn}</button>
+          
         </div>
       </section>
 
       <div class="card streak-card">
-        <div><div class="streak-fire">${st > 0 ? '🔥' : '🌱'}</div></div>
+        <div><div class="streak-fire">${st > 0 ? IC.flame : IC.sprout}</div></div>
         <div style="min-width:74px;"><div class="streak-n">${st}일 연속</div><div class="muted" style="font-size:.74rem;font-weight:600;">${st > 0 ? '학습 중이에요' : '오늘 시작해요'}</div></div>
         <div class="week">${week}</div>
       </div>
 
-      <div class="section-title"><span>바로 학습</span></div>
+      ${wodHtml()}<div class="section-title"><span>바로 학습</span></div>
       <div class="tiles">
-        <button class="tile" data-act="start" data-mode="card" data-src="new"><div class="tile-ico t-sprout">🌱</div><div><div class="tile-name">새 단어</div><div class="tile-n">${c.newW}개</div></div></button>
-        <button class="tile" data-act="start" data-mode="choice" data-src="wrong"><div class="tile-ico t-wrong">📕</div><div><div class="tile-name">오답노트</div><div class="tile-n">${c.miss}개</div></div></button>
-        <button class="tile" data-act="start" data-mode="card" data-src="star"><div class="tile-ico t-star">⭐</div><div><div class="tile-name">즐겨찾기</div><div class="tile-n">${c.star}개</div></div></button>
-        <button class="tile" data-act="start" data-mode="listen" data-src="due"><div class="tile-ico t-ear">🎧</div><div><div class="tile-name">듣기 모드</div><div class="tile-n">복습 단어 들으며 외우기</div></div></button>
+        <button class="tile" data-act="start" data-mode="card" data-src="new"><div class="tile-ico t-sprout"">${IC.sprout}</div><div><div class="tile-name">새 단어</div><div class="tile-n">${c.newW}개</div></div></button>
+        <button class="tile" data-act="start" data-mode="choice" data-src="wrong"><div class="tile-ico t-wrong"">${IC.bookx}</div><div><div class="tile-name">오답노트</div><div class="tile-n">${c.miss}개</div></div></button>
+        <button class="tile" data-act="start" data-mode="card" data-src="star"><div class="tile-ico t-star"">${IC.star}</div><div><div class="tile-name">즐겨찾기</div><div class="tile-n">${c.star}개</div></div></button>
+        <button class="tile" data-act="start" data-mode="listen" data-src="due"><div class="tile-ico t-ear"">${IC.headphones}</div><div><div class="tile-name">듣기 모드</div><div class="tile-n">복습 단어 들으며 외우기</div></div></button>
       </div>
 
       <div class="section-title"><span>내 단어장</span><button data-act="tab" data-t="tabBooks">전체 보기</button></div>

@@ -58,7 +58,7 @@
               <div class="fc-face">
                 <div class="q-word">${esc(w.word)}</div>
                 <div class="q-pron">${esc(pronText(w))}</div>
-                <button class="q-speak" data-act="speak" data-text="${esc(w.word)}" aria-label="발음 듣기">🔊</button>
+                <button class="q-speak" data-act="speak" data-text="${esc(w.word)}" aria-label="발음 듣기">${IC.speaker}</button>
                 <div class="fc-hint">카드를 눌러 뜻 보기</div>
               </div>
               <div class="fc-face fc-back">
@@ -142,7 +142,7 @@
         <div class="q-card">
           ${reverse
             ? `<div class="q-label">이 뜻의 영어 단어는?</div><div class="q-meaning">${esc(w.meaning)}</div>`
-            : `<div class="q-label">이 단어의 뜻은?</div><div class="q-word">${esc(w.word)}</div><div class="q-pron">${esc(pronText(w))}</div><button class="q-speak" data-act="speak" data-text="${esc(w.word)}" aria-label="발음 듣기">🔊</button>`}
+            : `<div class="q-label">이 단어의 뜻은?</div><div class="q-word">${esc(w.word)}</div><div class="q-pron">${esc(pronText(w))}</div><button class="q-speak" data-act="speak" data-text="${esc(w.word)}" aria-label="발음 듣기">${IC.speaker}</button>`}
         </div>
         <div class="opts">${S.options.map((o, i) => `<button class="opt" data-act="opt" data-i="${i}"><span class="opt-n">${i + 1}</span><span>${esc(reverse ? o.word : o.meaning)}</span></button>`).join('')}</div>
       </div>`;
@@ -173,7 +173,7 @@
       <div class="q-wrap">
         <div class="q-card">
           ${dictation
-            ? `<div class="q-label">들리는 단어를 입력하세요</div><button class="q-speak big" data-act="speak" data-text="${esc(w.word)}" aria-label="다시 듣기">🔊</button><div class="q-sub">눌러서 다시 들을 수 있어요</div>`
+            ? `<div class="q-label">들리는 단어를 입력하세요</div><button class="q-speak big" data-act="speak" data-text="${esc(w.word)}" aria-label="다시 듣기">${IC.speaker}</button><div class="q-sub">눌러서 다시 들을 수 있어요</div>`
             : `<div class="q-label">이 뜻의 영어 단어를 쓰세요</div><div class="q-meaning">${esc(w.meaning)}</div><div class="q-hint">${esc(hint)}</div>`}
         </div>
         <input type="text" id="typeInput" class="type-input" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="여기에 입력">
@@ -220,7 +220,7 @@
     $('stCount').textContent = '';
     const first = S.ok + S.no;
     const pct = first ? Math.round(S.ok / first * 100) : 0;
-    const emoji = pct >= 90 ? '🏆' : pct >= 70 ? '🎉' : pct >= 40 ? '💪' : '🌱';
+    const emoji = pct >= 90 ? IC.trophy : pct >= 70 ? IC.sparkles : pct >= 40 ? IC.trend : IC.sprout;
     const title = pct >= 90 ? '완벽해요!' : pct >= 70 ? '아주 잘했어요' : pct >= 40 ? '조금만 더 하면 돼요' : '괜찮아요, 다시 해봐요';
     const st = streak();
     const goal = config.goal || 20;
@@ -233,8 +233,8 @@
         <div class="emoji">${emoji}</div>
         <h2>${title}</h2>
         <div class="score">${S.ok} / ${first}</div>
-        <div class="muted" style="font-weight:600;">${label} ${pct}% · 🔥 ${st}일 연속 · 오늘 ${todayN}/${goal}${goalHit ? ' · 🎯 목표 달성!' : ''}</div>
-        ${wrongs.length ? `<div class="card result-box"><b style="font-size:.95rem;">다시 볼 단어 ${wrongs.length}개</b>${wrongs.map(it => `<div class="wrong-item"><b>${esc(it.w.word)}</b><span>${esc(it.w.meaning)}</span><button class="w-speak" data-act="speak" data-text="${esc(it.w.word)}" aria-label="발음 듣기">🔊</button></div>`).join('')}</div>` : '<div class="card result-box" style="text-align:center;">틀린 단어가 없어요. 대단해요!</div>'}
+        <div class="muted" style="font-weight:600;">${label} ${pct}% · ${st}일 연속 · 오늘 ${todayN}/${goal}${goalHit ? ' · 목표 달성!' : ''}</div>
+        ${wrongs.length ? `<div class="card result-box"><b style="font-size:.95rem;">다시 볼 단어 ${wrongs.length}개</b>${wrongs.map(it => `<div class="wrong-item"><b>${esc(it.w.word)}</b><span>${esc(it.w.meaning)}</span><button class="w-speak" data-act="speak" data-text="${esc(it.w.word)}" aria-label="발음 듣기">${IC.speaker}</button></div>`).join('')}</div>` : '<div class="card result-box" style="text-align:center;">틀린 단어가 없어요. 대단해요!</div>'}
         <div class="row" style="margin-top:6px;">
           ${wrongs.length ? '<button class="btn btn-soft" data-act="retry-wrong">틀린 것만 다시</button>' : '<button class="btn btn-soft" data-act="again">한 번 더</button>'}
           <button class="btn btn-primary" data-act="exit-session">마치기</button>
