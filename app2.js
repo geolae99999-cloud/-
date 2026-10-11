@@ -1,482 +1,77 @@
   /* =========================================================
-   * 단어장 목록 / 단어장 상세
+   * 홈
    * ======================================================= */
-  function bookCardHtml(b) {
-    const total = b.words.length;
-    const mastered = b.words.filter(w => w.box >= 5).length;
-    const end = endOfToday();
-    const due = b.words.filter(w => w.box >= 1 && w.due <= end).length;
-    const pct = total ? Math.round(mastered / total * 100) : 0;
-    return `
-      <div class="book" style="--bk:${bookColor(b.id)}" data-act="open-book" data-id="${esc(b.id)}">
-        <div class="book-spine"><b>${total}</b><small>단어</small></div>
-        <div class="book-body">
-          <div class="book-top"><span class="book-name">${esc(b.name)}</span>${due ? `<span class="badge b-learn">복습 ${due}</span>` : ''}</div>
-          <div class="book-meta">마스터 ${mastered}개 · ${pct}%</div>
-          <div class="bar"><i style="width:${pct}%"></i></div>
-        </div>
-      </div>`;
+  function ringSvg(pct) {
+    const r = 34, c = 2 * Math.PI * r;
+    return `<svg class="ring" viewBox="0 0 84 84"><circle class="ring-bg" cx="42" cy="42" r="${r}"/><circle class="ring-fg" cx="42" cy="42" r="${r}" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${(c * (1 - pct)).toFixed(1)}" transform="rotate(-90 42 42)"/></svg>`;
   }
-  function renderBooks() {
-    $('folderContainer').innerHTML = categories.map(bookCardHtml).join('') ||
-      emptyHtml('단어장이 없어요', '위에서 이름을 입력하고 만들기를 눌러 보세요.');
-  }
-  ACTIONS['add-book'] = () => {
-    const input = $('inCatName');
-    const val = input.value.trim();
-    if (!val) return toast('단어장 이름을 입력하세요.');
-    categories.push({ id: 'c' + uid(), name: val, words: [] });
-    input.value = '';
-    syncStorage(); renderBooks(); toast('단어장을 만들었어요.');
-  };
-  ACTIONS['open-book'] = el => openBook(el.dataset.id);
 
-  let bookFilter = 'all', currentFilter = '', viewOrder = null;
-  const openDrawers = new Set();
+  function renderHome() {
+    const c = counts();
+    const goal = config.goal || 20;
+    const today = stats.days[dayKey()] || { n: 0, ok: 0 };
+    const pct = Math.min(1, today.n / goal);
+    const st = streak();
 
-  function openBook(id) {
-    if (!findBook(id)) return;
-    currentCategoryId = id; bookFilter = 'all'; currentFilter = ''; viewOrder = null; openDrawers.clear();
-    buildBookPane();
-    go('paneBook');
-  }
-  function buildBookPane() {
-    $('paneBook').innerHTML = `
-      <div class="book-sum" id="bookSummary"></div>
-      <div class="book-actions">
-        <button class="btn btn-primary" data-act="start" data-mode="card" data-src="cat:${esc(currentCategoryId)}">카드 학습</button>
-        <button class="btn btn-soft" data-act="start" data-mode="choice" data-src="cat:${esc(currentCategoryId)}">퀴즈</button>
-        <button class="btn btn-soft" data-act="book-menu">더보기</button>
-      </div>
-      <div class="toolbar">
-        <input type="text" id="searchFilter" placeholder="단어나 뜻 검색" oninput="onSearch(this.value)">
-        <button class="icon-btn" data-act="shuffle" aria-label="섞기">${IC.shuffle}</button>
-        <button class="icon-btn ${document.body.classList.contains('hide-content') ? 'on' : ''}" id="btnBlurToggle" data-act="blur" aria-label="뜻 가리기">${IC.eyeoff}</button>
-      </div>
-      <div class="chips" id="bookChips"></div>
-      <div class="word-list" id="wordCardStream"></div>
-      <button class="fab" data-act="add-sheet" aria-label="단어 추가">${IC.plus}</button>`;
-  }
-  function onSearch(v) { currentFilter = v.trim(); renderWordList(); }
+    let cta;
+    if (c.total === 0) cta = { big: '0', unit: '개', label: '오늘의 복습', sub: '단어를 추가하면 복습 일정이 자동으로 만들어져요.', btn: '단어 추가하기', attrs: 'data-act="tab" data-t="tabBooks"' };
+    else if (c.due > 0) cta = { big: c.due, unit: '개', label: '오늘의 복습', sub: '잊어버리기 직전에 복습하면 오래 기억돼요.', btn: '복습 시작', attrs: 'data-act="start" data-mode="card" data-src="due"' };
+    else if (c.newW > 0) cta = { big: c.newW, unit: '개', label: '새 단어', sub: '오늘 복습은 끝났어요. 새 단어를 배워볼까요?', btn: '새 단어 학습', attrs: 'data-act="start" data-mode="card" data-src="new"' };
+    else cta = { big: c.total, unit: '개', label: '전체 단어', sub: '모든 단어를 학습했어요. 새 단어를 더 추가해 보세요.', btn: '단어 추가하기', attrs: 'data-act="tab" data-t="tabBooks"' };
 
-  const FILTERS = [['all', '전체'], ['new', '새 단어'], ['learning', '학습 중'], ['mastered', '마스터'], ['star', '즐겨찾기'], ['miss', '오답']];
-  function renderBookDynamic() {
-    const cat = curCat();
-    if (!cat) return go('tabBooks');
-    const end = endOfToday();
-    const total = cat.words.length, mastered = cat.words.filter(w => w.box >= 5).length;
-    const due = cat.words.filter(w => w.box >= 1 && w.due <= end).length;
-    $('bookSummary').innerHTML = `<div class="sum-box"><b>${total}</b><span>전체</span></div><div class="sum-box"><b>${mastered}</b><span>마스터</span></div><div class="sum-box"><b>${due}</b><span>오늘 복습</span></div>`;
-    $('bookChips').innerHTML = FILTERS.map(([k, n]) => `<button class="chip ${bookFilter === k ? 'on' : ''}" data-act="filter" data-f="${k}">${n}</button>`).join('');
-    renderWordList();
-  }
-  ACTIONS.filter = el => { bookFilter = el.dataset.f; renderBookDynamic(); };
-  ACTIONS.shuffle = () => {
-    const cat = curCat();
-    if (!cat || cat.words.length <= 1) return;
-    viewOrder = shuffled(cat.words.map(w => w.id));
-    renderWordList(); toast('순서를 섞었어요.');
-  };
-  ACTIONS.blur = () => {
-    document.body.classList.toggle('hide-content');
-    const b = $('btnBlurToggle');
-    if (b) b.classList.toggle('on', document.body.classList.contains('hide-content'));
-    renderWordList();
-  };
-
-  function visibleWords() {
-    const cat = curCat();
-    if (!cat) return [];
-    let list = [...cat.words];
-    if (viewOrder) {
-      const pos = new Map(viewOrder.map((id, i) => [id, i]));
-      list.sort((a, b) => (pos.has(a.id) ? pos.get(a.id) : -1) - (pos.has(b.id) ? pos.get(b.id) : -1));
+    const labels = ['일', '월', '화', '수', '목', '금', '토'];
+    let week = '';
+    for (let i = 6; i >= 0; i--) {
+      const t = addDays(startOfDay(), -i);
+      const d = stats.days[dayKey(t)];
+      week += `<div class="day ${d && d.n > 0 ? 'done' : ''} ${i === 0 ? 'today' : ''}"><i>${d && d.n > 0 ? IC.tick : ''}</i>${labels[new Date(t).getDay()]}</div>`;
     }
-    list = list.filter(w => {
-      if (bookFilter === 'new') return w.box === 0;
-      if (bookFilter === 'learning') return w.box >= 1 && w.box < 5;
-      if (bookFilter === 'mastered') return w.box >= 5;
-      if (bookFilter === 'star') return w.star;
-      if (bookFilter === 'miss') return w.miss > 0;
-      return true;
-    });
-    if (currentFilter) {
-      const q = currentFilter.toLowerCase();
-      list = list.filter(w => w.word.toLowerCase().includes(q) || w.meaning.toLowerCase().includes(q));
-    }
-    return list;
-  }
-  function lvlBadge(w) {
-    if (w.box === 0) return '<span class="badge b-new">NEW</span>';
-    if (w.box >= 5) return '<span class="badge b-ok">마스터</span>';
-    return `<span class="badge b-learn">Lv.${w.box}</span>`;
-  }
-  function noteHtml(n) {
-    if (!n) return '';
-    let h = '<div class="note-box">';
-    if (n.etymology) h += `<div><h4>어원 · 구조</h4>${esc(n.etymology)}</div>`;
-    if (n.tip) h += `<div><h4>암기 팁</h4>${esc(n.tip)}</div>`;
-    if (n.examples.length) h += `<div><h4>예문</h4><ul>${n.examples.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>`;
-    if (n.confusable.length) h += `<div><h4>헷갈리는 단어</h4><ul>${n.confusable.map(c => `<li><b>${esc(c.word)}</b> ${esc(c.meaning)} · ${esc(c.diff)}</li>`).join('')}</ul></div>`;
-    return h + '</div>';
-  }
 
-  function renderWordList() {
-    const box = $('wordCardStream');
-    if (!box) return;
-    const list = visibleWords();
-    if (!list.length) {
-      const cat = curCat();
-      box.innerHTML = (cat && cat.words.length === 0)
-        ? emptyHtml('첫 단어를 추가해 볼까요?', '오른쪽 아래 + 버튼을 눌러 단어를 넣으면 뜻과 예문을 채워줘요.', 'happy')
-        : emptyHtml('조건에 맞는 단어가 없어요', '필터나 검색어를 바꿔 보세요.', 'think');
-      return;
-    }
-    box.innerHTML = list.map((w, i) => {
-      const syns = w.synonyms.split(',').map(s => s.trim()).filter(Boolean);
-      const open = openDrawers.has(w.id);
-      return `
-      <div class="wcard ${w.box >= 5 ? 'mastered' : ''} ${open ? 'open' : ''}" data-wid="${esc(w.id)}">
-        <div class="w-row">
-          <span class="w-no">${String(i + 1).padStart(3, '0')}</span>
-          <div class="w-main" data-act="expand">
-            <div class="w-head"><span class="w-word ${w.star ? 'hl' : ''}">${esc(w.word)}</span>${w.phonetic ? `<span class="w-pron">${esc(w.phonetic)}</span>` : ''}${w.koreanPron ? `<span class="w-kpron">[${esc(w.koreanPron)}]</span>` : ''}</div>
-            <div class="w-mean">${esc(w.meaning)}</div>
-            <div class="w-badges">${lvlBadge(w)}${w.miss > 0 ? '<span class="badge b-bad">오답</span>' : ''}</div>
+    const hour = new Date().getHours();
+    const hello = hour < 6 ? '늦은 밤이에요' : hour < 12 ? '좋은 아침이에요' : hour < 18 ? '오늘도 한 걸음 더' : '하루 마무리 복습 어때요?';
+    const gname = GRADE_NAMES[config.grade];
+    const books = categories.slice(0, 3).map(bookCardHtml).join('');
+
+    $('tabHome').innerHTML = `
+      <div class="home-grid">
+      <div class="h-hello"><div class="hello"><div class="hello-who">${MASCOT(today.n >= goal ? 'cheer' : 'happy')}<div><div class="hello-sub">${hello}</div><div class="hello-name">${esc(currentLabel || currentUser || '')}님</div></div></div>
+        <button class="grade-chip" data-act="grade-pick">${gname ? esc(gname) : '학년 설정'}</button></div></div>
+      <div class="h-hero"><section class="hero">
+        <div class="hero-top">
+          <div>
+            <div class="hero-label">${cta.label}</div>
+            <div class="hero-num">${cta.big}<small>${cta.unit}</small></div>
           </div>
-          <div class="w-side">
-            <button class="w-star ${w.star ? 'on' : ''}" data-act="star" aria-label="즐겨찾기">${IC.star}</button>
-            <button class="w-speak" data-act="speak" data-text="${esc(w.word)}" aria-label="발음 듣기">${IC.speaker}</button>
-          </div>
+          <div class="ring-box">${ringSvg(pct)}<div class="ring-txt"><b>${Math.min(today.n, 999)}</b>/${goal}</div></div>
         </div>
-        ${open ? `
-        <div class="w-detail">
-          ${w.example ? `<div class="w-ex"><h4>예문</h4><p class="ex-en">${esc(w.example)} <button class="ex-say" data-act="speak" data-text="${esc(w.example)}" aria-label="예문 듣기">${IC.speaker}</button></p>${w.exampleKo ? `<p class="ex-ko">${esc(w.exampleKo)}</p>` : '<button class="btn btn-soft btn-sm" data-act="fill-exko">예문 해석 채우기</button>'}</div>` : ''}
-          ${syns.length ? `<div><h4>비슷한 단어 (눌러서 뜻 보기)</h4><div class="syn-chips">${syns.map(s => `<button class="syn" data-act="syn" data-word="${esc(s)}">${esc(s)}</button>`).join('')}</div></div>` : ''}
-          <div class="muted w-due">${dueText(w)}${w.wrong ? ` · 틀린 횟수 ${w.wrong}` : ''}</div>
-          <div class="w-tools">
-            <button class="btn btn-soft btn-sm" data-act="edit-word">${IC.edit} 수정</button>
-            <button class="btn btn-soft btn-sm" data-act="mem">${w.box >= 5 ? '마스터 취소' : '이미 알아요'}</button>
-            <button class="btn btn-soft btn-sm danger" data-act="del-word">삭제</button>
-          </div>
-        </div>` : ''}
-      </div>`;
-    }).join('');
-  }
+        <div class="hero-sub">${cta.sub}</div>
+        <div class="hero-mission"><span>복습 <b>${c.due}</b></span><span>새 단어 <b>${c.newW}</b></span><span>마스터 <b>${c.mastered}</b></span></div>
+        <button class="btn hero-btn btn-block" ${cta.attrs}>${cta.btn}</button>
+      </section></div>
 
-  function wordFromEl(el) {
-    const card = el.closest('[data-wid]');
-    const cat = curCat();
-    return cat && card ? cat.words.find(w => w.id === card.dataset.wid) : null;
-  }
-  ACTIONS.star = el => { const w = wordFromEl(el); if (!w) return; w.star = !w.star; syncStorage(); renderWordList(); };
-  ACTIONS.expand = (el, e) => {
-    const w = wordFromEl(el); if (!w) return;
-    const mean = el.querySelector('.w-mean');
-    if (document.body.classList.contains('hide-content') && mean && !mean.classList.contains('reveal')) { mean.classList.add('reveal'); return; }
-    openDrawers.has(w.id) ? openDrawers.delete(w.id) : openDrawers.add(w.id);
-    renderWordList();
-  };
-  ACTIONS.speak = (el, e) => { e.stopPropagation(); playAudio(el.dataset.text); };
-  ACTIONS.mem = el => {
-    const w = wordFromEl(el); if (!w) return;
-    if (w.box >= 5) { w.box = 0; w.due = 0; w.miss = 0; }
-    else { w.box = 5; w.due = addDays(startOfDay(), INTERVALS[5]); w.last = dayKey(); w.miss = 0; }
-    syncStorage(); renderBookDynamic();
-  };
-  ACTIONS['del-word'] = async el => {
-    const w = wordFromEl(el), cat = curCat(); if (!w || !cat) return;
-    if (!await ask(`'${w.word}' 단어를 삭제할까요?`, { ok: '삭제', danger: true })) return;
-    cat.words = cat.words.filter(x => x.id !== w.id);
-    syncStorage(); renderBookDynamic();
-  };
-  ACTIONS.syn = el => inspectSynonym(el.dataset.word);
+      <div class="h-streak"><div class="card streak-card">
+        <div class="streak-fire ${st > 0 ? '' : 'off'}">${st > 0 ? IC.flame : IC.sprout}</div>
+        <div class="streak-txt"><div class="streak-n">${st}일 연속</div><div class="muted">${st > 0 ? '학습 중이에요' : '오늘 시작해요'}</div></div>
+        <div class="week">${week}</div>
+      </div>${wotdHtml()}</div>
 
-  /* ----- 시트 ----- */
-  function openSheet(title, html) {
-    $('sheetTitle').textContent = title;
-    $('sheetBody').innerHTML = html;
-    $('sheetOv').classList.add('open');
-    document.body.classList.add('no-scroll');
-  }
-  function closeSheet() {
-    bulkCancel = true;
-    $('sheetOv').classList.remove('open');
-    if (!$('studyScreen').classList.contains('open')) document.body.classList.remove('no-scroll');
-  }
-  ACTIONS['sheet-close'] = closeSheet;
-  ACTIONS['sheet-bg'] = (el, e) => { if (e.target === el) closeSheet(); };
+      <div class="h-quick"><div class="section-title"><span>바로 학습</span></div>
+      <div class="tiles">
+        <button class="tile" data-act="start" data-mode="card" data-src="new"><div class="tile-ico t-new">${IC.sprout}</div><div><div class="tile-name">새 단어</div><div class="tile-n">${c.newW}개</div></div></button>
+        <button class="tile" data-act="start" data-mode="choice" data-src="wrong"><div class="tile-ico t-wrong">${IC.bookx}</div><div><div class="tile-name">오답노트</div><div class="tile-n">${c.miss}개</div></div></button>
+        <button class="tile" data-act="start" data-mode="card" data-src="star"><div class="tile-ico t-star">${IC.star}</div><div><div class="tile-name">즐겨찾기</div><div class="tile-n">${c.star}개</div></div></button>
+        <button class="tile" data-act="start" data-mode="listen" data-src="due"><div class="tile-ico t-listen">${IC.headphones}</div><div><div class="tile-name">듣기 모드</div><div class="tile-n">복습 단어 듣기</div></div></button>
+      </div></div>
 
-  /* ----- 단어 추가 시트 ----- */
-  ACTIONS['add-sheet'] = () => {
-    openSheet('단어 추가', `
-      <div class="seg" style="margin-bottom:14px;">
-        <button class="on" data-act="add-tab" data-t="one">한 개씩</button>
-        <button data-act="add-tab" data-t="bulk">여러 개 한 번에</button>
+      <div class="h-tools"><div class="section-title"><span>학습 도구</span></div>
+      <div class="tool-list">${flowEntryHtml()}<button class="mg-entry" data-act="match"><span class="mg-ico i-grape">${IC.cards}</span><span class="mg-txt"><b>짝 맞추기</b><small>영어와 뜻을 빠르게 연결해요</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="dict-open"><span class="mg-ico i-teal">${IC.search}</span><span class="mg-txt"><b>영어사전</b><small>뜻, 예문, 비슷한 단어를 바로 찾아요</small></span><span class="mg-chev"></span></button>${recEntryHtml()}${packEntryHtml()}${ltEntryHtml()}</div></div>
+
+      <div class="h-books"><div class="section-title"><span>내 단어장</span><button data-act="tab" data-t="tabBooks">전체 보기</button></div>
+      <div class="book-list">${books || emptyHtml('아직 단어장이 없어요', '단어장 탭에서 새로 만들어 보세요.')}</div></div>
       </div>
-      <div id="addOne" class="form-stack">${wordFormHtml(null)}</div>
-      <div id="addBulk" class="form-stack" style="display:none;">
-        <textarea id="bulkText" placeholder="한 줄에 단어 하나씩 붙여넣으세요.&#10;&#10;consistent&#10;reluctant&#10;apple, 사과&#10;&#10;뜻을 같이 적으면(쉼표, 탭, ' - ' 구분) 그 뜻을 쓰고 나머지는 AI가 채워요."></textarea>
-        <div class="bulk-status" id="bulkStatus">한 번에 최대 60개까지 넣을 수 있어요.</div>
-        <button class="btn btn-primary btn-block" id="btnBulk" data-act="bulk-run">AI로 한꺼번에 채우고 저장</button>
-      </div>`);
-    if (!bulkBusy) bulkCancel = false;
-    setTimeout(() => { const f = $('fieldWord'); if (f) f.focus(); }, 250);
-  };
-  const FIELDS = ['fieldWord', 'fieldMeaning', 'fieldPhonetic', 'fieldKoreanPron', 'fieldExample', 'fieldExampleKo', 'fieldSynonyms'];
-  function wordFormHtml(w) {
-    const v = k => esc(w ? w[k] : ''); formEditId = w ? w.id : null; aiRun++;
-    return `
-        <label class="f-lab" for="fieldWord">영단어</label>
-        <div class="row f-ai">
-          <input type="text" id="fieldWord" value="${v('word')}" placeholder="예: consistent" autocomplete="off" autocapitalize="none" spellcheck="false" onkeydown="if(event.key==='Enter') executeFastAi()">
-          <button class="btn btn-primary" id="btnRunAi" onclick="executeFastAi()">AI 완성</button>
-        </div>
-        <div class="ai-state" id="aiState"></div>
-        <label class="f-lab" for="fieldMeaning">뜻</label>
-        <input type="text" id="fieldMeaning" value="${v('meaning')}" placeholder="한국어 뜻">
-        <div class="row">
-          <div><label class="f-lab" for="fieldPhonetic">발음기호</label><input type="text" id="fieldPhonetic" value="${v('phonetic')}" placeholder="/kənˈsɪstənt/"></div>
-          <div><label class="f-lab" for="fieldKoreanPron">한글 발음</label><input type="text" id="fieldKoreanPron" value="${v('koreanPron')}" placeholder="컨시스턴트"></div>
-        </div>
-        <label class="f-lab" for="fieldExample">예문 (영어)</label>
-        <textarea id="fieldExample" class="short" rows="2" placeholder="Be consistent and results will come.">${v('example')}</textarea>
-        <label class="f-lab" for="fieldExampleKo">예문 해석</label>
-        <div class="row f-ai">
-          <textarea id="fieldExampleKo" class="short" rows="2" placeholder="꾸준히 하면 결과가 따라와요.">${v('exampleKo')}</textarea>
-          <button class="btn btn-soft" id="btnExKo" data-act="form-exko">번역</button>
-        </div>
-        <label class="f-lab" for="fieldSynonyms">비슷한 단어</label>
-        <input type="text" id="fieldSynonyms" value="${v('synonyms')}" placeholder="쉼표로 구분 (steady, constant)">
-        <button class="btn btn-primary btn-block" style="margin-top:10px;" onclick="${w ? `saveEditWord('${esc(w.id)}')` : 'saveNewWord()'}">${w ? '수정 저장' : '단어 저장'}</button>`;
-  }
-  const formVals = () => ({ word: $('fieldWord').value.trim(), meaning: $('fieldMeaning').value.trim(), phonetic: $('fieldPhonetic').value, koreanPron: $('fieldKoreanPron').value, example: $('fieldExample').value, exampleKo: $('fieldExampleKo').value, synonyms: $('fieldSynonyms').value });
-  ACTIONS['edit-word'] = el => {
-    const w = wordFromEl(el); if (!w) return;
-    openSheet('단어 수정', `<div class="form-stack">${wordFormHtml(w)}</div>`);
-  };
-  function saveEditWord(id) {
-    const cat = curCat(), w = cat && cat.words.find(x => x.id === id); if (!w) return closeSheet();
-    const v = formVals();
-    if (!v.word || !v.meaning) return toast('단어와 뜻은 꼭 필요해요.');
-    if (cat.words.some(x => x.id !== id && x.word.toLowerCase() === v.word.toLowerCase())) return toast(`'${v.word}' 는 이 단어장에 이미 있어요.`);
-    const n = sanitizeWord({ ...w, ...v });
-    Object.assign(w, { word: n.word, meaning: n.meaning, phonetic: n.phonetic, koreanPron: n.koreanPron, example: n.example, exampleKo: n.exampleKo, synonyms: n.synonyms });
-    syncStorage(); closeSheet(); renderBookDynamic(); toast('수정했어요.');
-  }
-  ACTIONS['form-exko'] = async el => {
-    const en = ($('fieldExample').value || '').trim();
-    if (!en) return toast('먼저 영어 예문을 입력해 주세요.');
-    el.disabled = true; el.textContent = '번역 중';
-    try { const r = await translateText(en, true); if ($('fieldExampleKo')) $('fieldExampleKo').value = r.t; }
-    catch (e) { toast('번역하지 못했어요. 잠시 후 다시 해 주세요.'); }
-    finally { el.disabled = false; el.textContent = '번역'; }
-  };
-  ACTIONS['fill-exko'] = async el => {
-    const w = wordFromEl(el); if (!w || !w.example) return;
-    el.disabled = true; el.textContent = '해석 채우는 중...';
-    try { const r = await translateText(w.example, true); w.exampleKo = str(r.t); syncStorage(); renderWordList(); }
-    catch (e) { el.disabled = false; el.textContent = '예문 해석 채우기'; toast('번역하지 못했어요. 잠시 후 다시 해 주세요.'); }
-  };
-  ACTIONS['add-tab'] = el => {
-    const bulk = el.dataset.t === 'bulk';
-    $('addOne').style.display = bulk ? 'none' : 'flex';
-    $('addBulk').style.display = bulk ? 'flex' : 'none';
-    el.parentElement.querySelectorAll('button').forEach(b => b.classList.toggle('on', b === el));
-  };
-
-  function saveNewWord() {
-    const cat = curCat();
-    if (!cat) return;
-    const v = formVals();
-    if (!v.word || !v.meaning) return toast('단어와 뜻은 꼭 필요해요.');
-    if (cat.words.some(w => w.word.toLowerCase() === v.word.toLowerCase())) return toast(`'${v.word}' 는 이 단어장에 이미 있어요.`);
-    cat.words.unshift(sanitizeWord({ id: uid(), ...v }));
-    syncStorage();
-    FIELDS.forEach(id => { $(id).value = ''; });
-    aiState('');
-    renderBookDynamic();
-    toast('저장했어요.');
-    $('fieldWord').focus();
+    `;
+    recMaybeShow(); wotdFill();
   }
 
-  let bulkCancel = false, bulkBusy = false;
-  ACTIONS['bulk-run'] = async () => {
-    const btn = $('btnBulk');
-    if (bulkBusy) { bulkCancel = true; if (btn.dataset.running !== '1') toast('이전 작업을 마무리하는 중이에요. 잠시 후 다시 눌러 주세요.'); return; }
-    const cat = curCat(); if (!cat) return;
-    const seen = new Set(cat.words.map(w => w.word.toLowerCase()));
-    let skipped = 0; const entries = [];
-    $('bulkText').value.split('\n').map(s => s.trim()).filter(Boolean).slice(0, 60).forEach(line => {
-      const parts = line.split(/\t|\s+[-–—]\s+|\s*[,;]\s*/);
-      const word = parts[0].trim(); if (!word) return;
-      if (seen.has(word.toLowerCase())) { skipped++; return; }
-      seen.add(word.toLowerCase()); entries.push({ word, um: parts.slice(1).join(', ').trim() });
-    });
-    if (!entries.length) return toast(skipped ? '모두 이미 있는 단어예요.' : '단어를 한 줄에 하나씩 입력하세요.');
-    bulkBusy = true; btn.dataset.running = '1'; btn.textContent = '중지'; bulkCancel = false;
-    const status = $('bulkStatus'); let stopped = '', done = 0;
-    const res = new Map(); const need = [];
-    entries.forEach(e => { const h = aicGet(e.word); if (h) res.set(e.word.toLowerCase(), h); else need.push(e); });
-    const chunks = []; for (let i = 0; i < need.length; i += 6) chunks.push(need.slice(i, i + 6));
-    const upd = () => { status.textContent = `${Math.min(entries.length, entries.length - need.length + done)} / ${entries.length} 처리 중...`; };
-    let ci = 0; upd();
-    const worker = async () => {
-      while (!bulkCancel && !stopped) {
-        const ch = chunks[ci++]; if (!ch) return;
-        try {
-          const m = await callAi(buildBatchPrompt(ch.map(e => e.word)), normalizeBatch, { task: 'batch', words: ch.map(e => e.word) });
-          ch.forEach(e => { const r = m[e.word.toLowerCase()]; if (r) { res.set(e.word.toLowerCase(), r); aicSet(e.word, r); } });
-        } catch (err) { if ([401, 403, 429].includes(err.status) || /AI를 쓸 수 없|한도|준비되지/.test(err.message)) stopped = err.message.split('\n')[0]; }
-        done += ch.length; upd();
-      }
-    };
-    await Promise.all([worker(), worker(), worker()]);
-    let retry = entries.filter(e => !res.has(e.word.toLowerCase())).slice(0, 10);
-    for (const e of retry) {
-      if (bulkCancel || stopped) break;
-      try { const r = await lookupWord(e.word, true); res.set(e.word.toLowerCase(), r); } catch (err) { if ([401, 403, 429].includes(err.status)) stopped = err.message.split('\n')[0]; }
-    }
-    if (bulkCancel && !stopped) stopped = '중지했어요.';
-    const items = [], failed = [];
-    entries.forEach(e => {
-      const r = res.get(e.word.toLowerCase());
-      if (r) items.push(sanitizeWord({ id: uid(), word: e.word, ...r, meaning: e.um || r.meaning }));
-      else if (e.um) items.push(sanitizeWord({ id: uid(), word: e.word, meaning: e.um }));
-      else failed.push(e.word);
-    });
-    cat.words.unshift(...items);
-    syncStorage(); bulkBusy = false; bulkCancel = false;
-    btn.dataset.running = '0'; btn.textContent = 'AI로 한꺼번에 채우고 저장';
-    renderBookDynamic();
-    let msg = `${items.length}개 저장했어요.`;
-    if (skipped) msg += `\n이미 있어서 건너뜀 ${skipped}개`;
-    if (failed.length) msg += `\n실패 ${failed.length}개: ${failed.join(', ')}`;
-    if (stopped) msg += `\n${stopped}`;
-    status.textContent = msg;
-    if (items.length) toast(`${items.length}개 단어를 저장했어요.`);
-  };
-
-  /* ----- 단어장 메뉴 / CSV ----- */
-  ACTIONS['book-menu'] = () => {
-    openSheet('단어장 관리', `<div class="menu-list">
-      <button data-act="book-fill">비어 있는 발음·예문 채우기</button>
-      <button data-act="book-rename">이름 바꾸기</button>
-      <button data-act="csv-export">CSV로 내보내기</button>
-      <button data-act="csv-import">CSV 가져오기 (엑셀, Quizlet 등)</button>
-      <button data-act="book-del" class="danger">단어장 삭제</button></div>
-      <p class="muted" style="font-size:.78rem;margin-top:12px;line-height:1.6;">CSV 열 순서: 단어, 뜻, 발음기호, 한글 발음, 예문, 비슷한 단어, 예문 해석. 앞 두 열(단어, 뜻)만 있어도 가져올 수 있어요.</p>`);
-  };
-  ACTIONS['book-rename'] = async () => {
-    const cat = curCat(); if (!cat) return;
-    const name = await ask('새 이름을 입력하세요.', { input: cat.name });
-    if (name && name.trim()) { cat.name = name.trim().slice(0, 40); syncStorage(); closeSheet(); $('headTitle').textContent = cat.name; }
-  };
-  ACTIONS['book-del'] = async () => {
-    const cat = curCat(); if (!cat) return;
-    if (!await ask(`'${cat.name}' 단어장과 안의 단어 ${cat.words.length}개를 모두 삭제할까요?`, { ok: '삭제', danger: true })) return;
-    categories = categories.filter(c => c.id !== cat.id);
-    syncStorage(); closeSheet(); go('tabBooks');
-  };
-  ACTIONS['csv-export'] = () => {
-    const cat = curCat(); if (!cat) return;
-    const q = v => '"' + String(v).replace(/"/g, '""') + '"';
-    const rows = [['word', 'meaning', 'phonetic', 'koreanPron', 'example', 'synonyms', 'exampleKo'].join(',')]
-      .concat(cat.words.map(w => [w.word, w.meaning, w.phonetic, w.koreanPron, w.example, w.synonyms, w.exampleKo].map(q).join(',')));
-    download(`${cat.name.replace(/[\\/:*?"<>|]/g, '_')}.csv`, '﻿' + rows.join('\r\n'), 'text/csv;charset=utf-8');
-    closeSheet(); toast('CSV 파일을 내려받았어요.');
-  };
-  ACTIONS['csv-import'] = () => { closeSheet(); $('csvFile').click(); };
-  let fillBusy = false;
-  // 비어 있는 칸만 내장 사전으로 채우고, 채운 단어 수를 돌려줘요.
-  async function dictFill(words) {
-    await dictPreload(words.map(w => w.word));
-    let n = 0;
-    for (const w of words) {
-      const d = await dictGet(w.word); if (!d) continue;
-      let hit = false;
-      ['meaning', 'phonetic', 'koreanPron', 'example', 'exampleKo', 'synonyms'].forEach(k => { if (!w[k] && d[k]) { w[k] = d[k]; hit = true; } });
-      if (hit) n++;
-    }
-    return n;
-  }
-  ACTIONS['book-fill'] = async () => {
-    const cat = curCat(); if (!cat || fillBusy) return;
-    const empty = w => !w.phonetic || !w.example;
-    if (!cat.words.some(empty)) { closeSheet(); return toast('비어 있는 칸이 없어요.'); }
-    closeSheet(); fillBusy = true;
-    const fromDict = await dictFill(cat.words.filter(empty));
-    if (fromDict) { syncStorage(); if (curTab === 'paneBook') renderWordList(); }
-    const need = cat.words.filter(empty).slice(0, 60);
-    if (!need.length) { fillBusy = false; return say(`${fromDict}개 단어를 내장 사전으로 채웠어요.`); }
-    if (!aiReady()) { fillBusy = false; return say(`${fromDict ? `${fromDict}개 단어를 내장 사전으로 채웠어요.\n` : ''}남은 ${cat.words.filter(empty).length}개는 AI가 필요해요.\n로그인한 계정으로 쓰거나, 설정에서 내 API 키를 입력해 주세요.`); }
-    let done = fromDict, fail = 0, stop = '';
-    toast(`단어 ${need.length}개를 채우는 중이에요...`);
-    for (let i = 0; i < need.length && !stop; i += 6) {
-      const ch = need.slice(i, i + 6);
-      try {
-        const m = await callAi(buildBatchPrompt(ch.map(w => w.word)), normalizeBatch, { task: 'batch', words: ch.map(w => w.word) });
-        ch.forEach(w => {
-          const r = m[w.word.toLowerCase()]; if (!r) { fail++; return; }
-          aicSet(w.word, r);
-          ['phonetic', 'koreanPron', 'example', 'exampleKo', 'synonyms'].forEach(k => { if (!w[k] && r[k]) w[k] = r[k]; });
-          done++;
-        });
-        syncStorage(); if (curTab === 'paneBook') renderWordList();
-      } catch (e) { fail += ch.length; if ([401, 403, 429].includes(e.status)) stop = e.message.split('\n')[0]; }
-    }
-    fillBusy = false;
-    say(`${done}개 단어를 채웠어요.${fail ? `\n채우지 못한 단어 ${fail}개` : ''}${stop ? '\n' + stop : ''}`);
-  };
-
-  function parseCsv(text) {
-    text = text.replace(/^﻿/, '');
-    const first = text.split(/\r?\n/)[0] || '';
-    const delim = first.includes('\t') ? '\t' : ',';
-    const rows = []; let row = [], cur = '', q = false;
-    for (let i = 0; i < text.length; i++) {
-      const ch = text[i];
-      if (q) {
-        if (ch === '"') { if (text[i + 1] === '"') { cur += '"'; i++; } else q = false; } else cur += ch;
-      } else if (ch === '"' && cur === '') q = true;
-      else if (ch === delim) { row.push(cur); cur = ''; }
-      else if (ch === '\n' || ch === '\r') {
-        if (ch === '\r' && text[i + 1] === '\n') i++;
-        row.push(cur); cur = '';
-        if (row.some(c => c.trim() !== '')) rows.push(row);
-        row = [];
-      } else cur += ch;
-    }
-    row.push(cur);
-    if (row.some(c => c.trim() !== '')) rows.push(row);
-    return rows;
-  }
-  function importCsv(e) {
-    const f = e.target.files[0]; if (!f) return;
-    const cat = curCat();
-    const r = new FileReader();
-    r.onload = ev => {
-      try {
-        if (!cat) throw new Error('no book');
-        const buf = ev.target.result;
-        let txt;
-        try { txt = new TextDecoder('utf-8', { fatal: true }).decode(buf); }
-        catch (e1) { try { txt = new TextDecoder('euc-kr').decode(buf); } catch (e2) { txt = new TextDecoder('utf-8').decode(buf); } }
-        let rows = parseCsv(txt);
-        if (rows.length && /^(word|단어|english|term)$/i.test(str(rows[0][0]))) rows.shift();
-        let added = 0, skipped = 0;
-        rows.forEach(c => {
-          const word = str(c[0]), meaning = str(c[1]);
-          if (!word || !meaning) { skipped++; return; }
-          if (cat.words.some(w => w.word.toLowerCase() === word.toLowerCase())) { skipped++; return; }
-          cat.words.push(sanitizeWord({ id: uid(), word, meaning, phonetic: c[2], koreanPron: c[3], example: c[4], synonyms: c[5], exampleKo: c[6] }));
-          added++;
-        });
-        syncStorage(); renderBookDynamic();
-        toast(`${added}개 가져왔어요${skipped ? ` (건너뜀 ${skipped}개)` : ''}.`);
-      } catch (err) { say('CSV 파일을 읽지 못했어요. 형식을 확인해 주세요.'); }
-      e.target.value = '';
-    };
-    r.readAsArrayBuffer(f);
-  }
+  ACTIONS.start = el => startSession(el.dataset.mode, parseSrc(el.dataset.src), el.dataset.count !== undefined ? parseInt(el.dataset.count, 10) : SESSION_DEFAULT);
 

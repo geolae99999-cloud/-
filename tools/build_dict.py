@@ -26,15 +26,47 @@ for f in sorted(glob.glob(os.path.join(gen, 'out_*_p*.tsv'))):
     if not ph: noipa.append(w)
     D[k] = [w, m, ph, kp, ex, exk, syn]
 missing = [w for w in fixed if w not in D]
+# 변화형 → 원형 연결 (앱이 규칙으로 못 찾는 불규칙 변화만): "went": "go:VBD"
+def base_cands(w):
+  c = []
+  def add(x):
+    if x and len(x) > 1 and x != w and x not in c: c.append(x)
+  dbl = lambda x: x[:-1] if len(x) > 2 and x[-1] == x[-2] else ''
+  if w.endswith('ies'): add(w[:-3] + 'y')
+  if w.endswith('es'): add(w[:-2])
+  if w.endswith('s') and not w.endswith('ss'): add(w[:-1])
+  if w.endswith('ied'): add(w[:-3] + 'y')
+  if w.endswith('ed'): add(w[:-2]); add(w[:-1]); add(dbl(w[:-2]))
+  if w.endswith('ing'):
+    add(w[:-3]); add(w[:-3] + 'e'); add(dbl(w[:-3]))
+    if w.endswith('ying'): add(w[:-4] + 'ie')
+  if w.endswith('ier') or w.endswith('iest'): add(re.sub(r'i(er|est)$', 'y', w))
+  if w.endswith('er'): add(w[:-2]); add(w[:-1]); add(dbl(w[:-2]))
+  if w.endswith('est'): add(w[:-3]); add(w[:-2]); add(dbl(w[:-3]))
+  return c
+alias = {}
+try:
+  from lemminflect import getAllInflections
+  for k in list(D):
+    if ' ' in k: continue
+    for tag, forms in getAllInflections(k).items():
+      for f in forms:
+        f = f.lower()
+        if f == k or f in D or f in alias or not re.fullmatch(r'[a-z]+', f): continue
+        found = next((b for b in base_cands(f) if b in D), None)
+        if found == k: continue
+        alias[f] = f'{k}:{tag}'
+except ImportError:
+  print('lemminflect 없음: 변화형 연결을 건너뜀')
 os.makedirs(os.path.join(out, 'dict'), exist_ok=True)
 for f in glob.glob(os.path.join(out, 'dict', '*.json')): os.remove(f)
 by = {}
-for k, v in D.items(): by.setdefault(k[0], {})[k] = v
+for k, v in list(D.items()) + list(alias.items()): by.setdefault(k[0], {})[k] = v
 size = 0
 for c, d in sorted(by.items()):
   t = json.dumps(dict(sorted(d.items())), ensure_ascii=False, separators=(',', ':'))
   open(os.path.join(out, 'dict', c + '.json'), 'w', encoding='utf-8').write(t); size += len(t.encode())
-print(f'entries {len(D)} (built-in lists {len(fixed) - len(missing)}/{len(fixed)}), bad lines {bad}, no IPA {len(noipa)}, size {size//1024}KB')
+print(f'aliases {len(alias)}'); print(f'entries {len(D)} (built-in lists {len(fixed) - len(missing)}/{len(fixed)}), bad lines {bad}, no IPA {len(noipa)}, size {size//1024}KB')
 if missing: print('missing:', ' '.join(missing[:80]))
 if noipa: print('no ipa:', ' '.join(noipa[:80]))
 json.dump({'missing': missing, 'noipa': noipa}, open(os.path.join(gen, 'report.json'), 'w'))

@@ -1,473 +1,483 @@
   /* =========================================================
-   * 학습 탭 (소스 + 모드 선택)
+   * 단어장 목록 / 단어장 상세
    * ======================================================= */
-  const MODES = {
-    card:    { name: '플래시카드', ico: IC.cards, desc: '밀어서 외웠음 / 모름' },
-    choice:  { name: '뜻 고르기', ico: IC.check, desc: '단어를 보고 뜻 맞히기' },
-    rchoice: { name: '단어 고르기', ico: IC.repeat, desc: '뜻을 보고 단어 맞히기' },
-    spell:   { name: '스펠링', ico: IC.keyboard, desc: '뜻을 보고 직접 쓰기' },
-    dict:    { name: '듣고 쓰기', ico: IC.headphones, desc: '발음을 듣고 타이핑' },
-    listen:  { name: '듣기 모드', ico: IC.speaker, desc: '자동으로 이어 듣기' }
+  function bookCardHtml(b) {
+    const total = b.words.length;
+    const mastered = b.words.filter(w => w.box >= 5).length;
+    const end = endOfToday();
+    const due = b.words.filter(w => w.box >= 1 && w.due <= end).length;
+    const pct = total ? Math.round(mastered / total * 100) : 0;
+    return `
+      <div class="book" style="--bk:${bookColor(b.id)}" data-act="open-book" data-id="${esc(b.id)}">
+        <div class="book-spine"><b>${total}</b><small>단어</small></div>
+        <div class="book-body">
+          <div class="book-top"><span class="book-name">${esc(b.name)}</span>${due ? `<span class="badge b-learn">복습 ${due}</span>` : ''}</div>
+          <div class="book-meta">마스터 ${mastered}개 · ${pct}%</div>
+          <div class="bar"><i style="width:${pct}%"></i></div>
+        </div>
+      </div>`;
+  }
+  function renderBooks() {
+    $('folderContainer').innerHTML = categories.map(bookCardHtml).join('') ||
+      emptyHtml('단어장이 없어요', '위에서 이름을 입력하고 만들기를 눌러 보세요.');
+  }
+  ACTIONS['add-book'] = () => {
+    const input = $('inCatName');
+    const val = input.value.trim();
+    if (!val) return toast('단어장 이름을 입력하세요.');
+    categories.push({ id: 'c' + uid(), name: val, words: [] });
+    input.value = '';
+    syncStorage(); renderBooks(); toast('단어장을 만들었어요.');
   };
-  const studyPrefs = { src: 'due', count: SESSION_DEFAULT };
-  const parseSrc = s => (s && s.startsWith('cat:')) ? { type: 'cat', id: s.slice(4) } : { type: s || 'all' };
-  const srcKey = src => src.type === 'cat' ? 'cat:' + src.id : src.type;
+  ACTIONS['open-book'] = el => openBook(el.dataset.id);
 
-  function poolFor(src) {
-    const end = startOfDay() + DAY - 1, all = allWords();
-    switch (src.type) {
-      case 'cat': return all.filter(x => x.catId === src.id);
-      case 'due': return all.filter(x => x.w.box >= 1 && x.w.due <= end);
-      case 'new': return all.filter(x => x.w.box === 0);
-      case 'wrong': return all.filter(x => x.w.miss > 0);
-      case 'star': return all.filter(x => x.w.star);
-      default: return all;
+  let bookFilter = 'all', currentFilter = '', viewOrder = null;
+  const openDrawers = new Set();
+
+  function openBook(id) {
+    if (!findBook(id)) return;
+    currentCategoryId = id; bookFilter = 'all'; currentFilter = ''; viewOrder = null; openDrawers.clear();
+    buildBookPane();
+    go('paneBook');
+  }
+  function buildBookPane() {
+    $('paneBook').innerHTML = `
+      <div class="book-sum" id="bookSummary"></div>
+      <div class="book-actions">
+        <button class="btn btn-primary" data-act="start" data-mode="card" data-src="cat:${esc(currentCategoryId)}">카드 학습</button>
+        <button class="btn btn-soft" data-act="start" data-mode="choice" data-src="cat:${esc(currentCategoryId)}">퀴즈</button>
+        <button class="btn btn-soft" data-act="book-menu">더보기</button>
+      </div>
+      <div class="toolbar">
+        <input type="text" id="searchFilter" placeholder="단어나 뜻 검색" oninput="onSearch(this.value)">
+        <button class="icon-btn" data-act="shuffle" aria-label="섞기">${IC.shuffle}</button>
+        <button class="icon-btn ${document.body.classList.contains('hide-content') ? 'on' : ''}" id="btnBlurToggle" data-act="blur" aria-label="뜻 가리기">${IC.eyeoff}</button>
+      </div>
+      <div class="chips" id="bookChips"></div>
+      <div class="word-list" id="wordCardStream"></div>
+      <button class="fab" data-act="add-sheet" aria-label="단어 추가">${IC.plus}</button>`;
+  }
+  function onSearch(v) { currentFilter = v.trim(); renderWordList(); }
+
+  const FILTERS = [['all', '전체'], ['new', '새 단어'], ['learning', '학습 중'], ['mastered', '마스터'], ['star', '즐겨찾기'], ['miss', '오답']];
+  function renderBookDynamic() {
+    const cat = curCat();
+    if (!cat) return go('tabBooks');
+    const end = endOfToday();
+    const total = cat.words.length, mastered = cat.words.filter(w => w.box >= 5).length;
+    const due = cat.words.filter(w => w.box >= 1 && w.due <= end).length;
+    $('bookSummary').innerHTML = `<div class="sum-box"><b>${total}</b><span>전체</span></div><div class="sum-box"><b>${mastered}</b><span>마스터</span></div><div class="sum-box"><b>${due}</b><span>오늘 복습</span></div>`;
+    $('bookChips').innerHTML = FILTERS.map(([k, n]) => `<button class="chip ${bookFilter === k ? 'on' : ''}" data-act="filter" data-f="${k}">${n}</button>`).join('');
+    renderWordList();
+  }
+  ACTIONS.filter = el => { bookFilter = el.dataset.f; renderBookDynamic(); };
+  ACTIONS.shuffle = () => {
+    const cat = curCat();
+    if (!cat || cat.words.length <= 1) return;
+    viewOrder = shuffled(cat.words.map(w => w.id));
+    renderWordList(); toast('순서를 섞었어요.');
+  };
+  ACTIONS.blur = () => {
+    document.body.classList.toggle('hide-content');
+    const b = $('btnBlurToggle');
+    if (b) b.classList.toggle('on', document.body.classList.contains('hide-content'));
+    renderWordList();
+  };
+
+  function visibleWords() {
+    const cat = curCat();
+    if (!cat) return [];
+    let list = [...cat.words];
+    if (viewOrder) {
+      const pos = new Map(viewOrder.map((id, i) => [id, i]));
+      list.sort((a, b) => (pos.has(a.id) ? pos.get(a.id) : -1) - (pos.has(b.id) ? pos.get(b.id) : -1));
     }
-  }
-  const EMPTY_MSG = { due: '오늘 복습할 단어가 없어요. 잘하고 있어요!', new: '새 단어가 없어요. 단어를 추가해 보세요.', wrong: '오답노트가 비어 있어요.', star: '즐겨찾기한 단어가 없어요. 단어 카드의 별 아이콘을 눌러 보세요.', cat: '이 단어장에 단어가 없어요.', all: '단어가 없어요. 먼저 단어를 추가해 보세요.' };
-
-  function renderStudy() {
-    const c = counts();
-    const srcs = [
-      { k: 'due', n: '오늘 복습', c: c.due }, { k: 'new', n: '새 단어', c: c.newW },
-      { k: 'wrong', n: '오답노트', c: c.miss }, { k: 'star', n: '즐겨찾기', c: c.star }, { k: 'all', n: '전체', c: c.total }
-    ].concat(categories.map(b => ({ k: 'cat:' + b.id, n: b.name, c: b.words.length })));
-    if (!srcs.some(s => s.k === studyPrefs.src)) studyPrefs.src = 'all';
-    const counts4 = [[10, '10개'], [20, '20개'], [50, '50개'], [0, '전체']];
-    $('tabStudy').innerHTML = `
-      <h2 class="page-title">무엇을 공부할까요?</h2>
-      <div class="src-row">${srcs.map(s => `<button class="src ${studyPrefs.src === s.k ? 'on' : ''}" data-act="pick-src" data-k="${esc(s.k)}"><span>${esc(s.n)}</span><b>${s.c}</b></button>`).join('')}</div>
-      <div class="section-title" style="margin-top:14px;"><span>한 번에 학습할 개수</span></div>
-      <div class="seg">${counts4.map(([v, n]) => `<button class="${studyPrefs.count === v ? 'on' : ''}" data-act="pick-count" data-v="${v}">${n}</button>`).join('')}</div>
-      <div class="section-title"><span>학습 방법</span></div>
-      <div class="modes">${Object.keys(MODES).map(k => `<button class="mode" data-act="study-start" data-mode="${k}"><span class="ico">${MODES[k].ico}</span><b>${MODES[k].name}</b><span>${MODES[k].desc}</span></button>`).join('')}</div>`;
-  }
-  ACTIONS['pick-src'] = el => { studyPrefs.src = el.dataset.k; renderStudy(); };
-  ACTIONS['pick-count'] = el => { studyPrefs.count = parseInt(el.dataset.v, 10); renderStudy(); };
-  ACTIONS['study-start'] = el => startSession(el.dataset.mode, parseSrc(studyPrefs.src), studyPrefs.count);
-
-  /* =========================================================
-   * 학습 세션 엔진
-   * ======================================================= */
-  let S = { active: false };
-
-  function startSession(mode, src, count, override) {
-    if (!MODES[mode]) return;
-    const items = override ? override : poolFor(src);
-    if (!items.length) return toast(EMPTY_MSG[src.type] || '학습할 단어가 없어요.');
-    if ((mode === 'choice' || mode === 'rchoice') && allWords().length < 4) return toast('4지선다는 전체 단어가 4개 이상 있어야 해요.');
-    let q = shuffled(items.map(x => ({ w: x.w, catId: x.catId })));
-    if (count > 0) q = q.slice(0, count);
-    const dpool = poolFor(src).map(x => x.w);
-    S = { active: true, finished: false, mode, src, count, queue: q, total: q.length, idx: 0, ok: 0, no: 0, wrong: new Map(), locked: false, answered: false, options: [], dpool: dpool.length >= 4 ? dpool : allWords().map(x => x.w), startN: (stats.days[dayKey()] || { n: 0 }).n };
-    $('studyScreen').classList.add('open');
-    document.body.classList.add('no-scroll');
-    kbdHint(mode);
-    if (mode === 'listen') startListen(); else renderQuestion();
-  }
-
-  function renderQuestion() {
-    if (S.idx >= S.queue.length) return finishSession();
-    S.locked = false; S.answered = false;
-    $('stProg').style.width = (S.idx / S.queue.length * 100) + '%';
-    $('stCount').textContent = `${S.idx + 1}/${S.queue.length}`;
-    const item = S.queue[S.idx];
-    if (S.mode === 'card') renderCard(item);
-    else if (S.mode === 'choice') renderChoice(item, false);
-    else if (S.mode === 'rchoice') renderChoice(item, true);
-    else renderTyping(item, S.mode === 'dict');
-    $('stBody').scrollTop = 0;
-  }
-  const pronText = w => `${w.phonetic} ${w.koreanPron ? `[${w.koreanPron}]` : ''}`.trim();
-
-  function recordResult(item, ok) {
-    const w = item.w;
-    grade(w, ok);
-    recordStat(ok);
-    if (!item.retry) { ok ? S.ok++ : S.no++; }
-    if (!ok) {
-      if (!S.wrong.has(w.id)) S.wrong.set(w.id, item);
-      if (!item.retry) S.queue.push({ w, catId: item.catId, retry: true });
+    list = list.filter(w => {
+      if (bookFilter === 'new') return w.box === 0;
+      if (bookFilter === 'learning') return w.box >= 1 && w.box < 5;
+      if (bookFilter === 'mastered') return w.box >= 5;
+      if (bookFilter === 'star') return w.star;
+      if (bookFilter === 'miss') return w.miss > 0;
+      return true;
+    });
+    if (currentFilter) {
+      const q = currentFilter.toLowerCase();
+      list = list.filter(w => w.word.toLowerCase().includes(q) || w.meaning.toLowerCase().includes(q));
     }
-    syncStorage();
+    return list;
   }
-  function nextQuestion() { S.idx++; renderQuestion(); }
+  function lvlBadge(w) {
+    if (w.box === 0) return '<span class="badge b-new">NEW</span>';
+    if (w.box >= 5) return '<span class="badge b-ok">마스터</span>';
+    return `<span class="badge b-learn">Lv.${w.box}</span>`;
+  }
+  function noteHtml(n) {
+    if (!n) return '';
+    let h = '<div class="note-box">';
+    if (n.etymology) h += `<div><h4>어원 · 구조</h4>${esc(n.etymology)}</div>`;
+    if (n.tip) h += `<div><h4>암기 팁</h4>${esc(n.tip)}</div>`;
+    if (n.examples.length) h += `<div><h4>예문</h4><ul>${n.examples.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>`;
+    if (n.confusable.length) h += `<div><h4>헷갈리는 단어</h4><ul>${n.confusable.map(c => `<li><b>${esc(c.word)}</b> ${esc(c.meaning)} · ${esc(c.diff)}</li>`).join('')}</ul></div>`;
+    return h + '</div>';
+  }
 
-  /* ----- 플래시카드 ----- */
-  function renderCard(item) {
-    const w = item.w;
-    $('stBody').innerHTML = `
-      <div class="q-wrap">
-        <div class="sw-hint"><span class="no">← 아직 몰라요</span><span class="ok">알아요 →</span></div>
-        <div class="swipe-area">
-          <div class="swipe-wrap" id="swipeWrap" data-dir="">
-            <div class="sw-badge ok">알아요</div><div class="sw-badge no">몰라요</div>
-            <div class="fc-card-3d" id="fc3d">
-              <div class="fc-face">
-                <div class="q-word">${esc(w.word)}</div>
-                <div class="q-pron">${esc(pronText(w))}</div>
-                <button class="q-speak" data-act="speak" data-text="${esc(w.word)}" aria-label="발음 듣기">${IC.speaker}</button>
-                <div class="fc-hint">카드를 눌러 뜻 보기</div>
-              </div>
-              <div class="fc-face fc-back">
-                <div class="q-meaning">${esc(w.meaning)}</div>
-                ${w.example ? `<div class="fc-ex"><span>${esc(w.example)}</span>${w.exampleKo ? `<small>${esc(w.exampleKo)}</small>` : ''}</div>` : ''}
-                <div class="fc-hint">${w.box >= 1 ? esc(dueText(w)) : '새 단어'}</div>
-              </div>
-            </div>
+  function renderWordList() {
+    const box = $('wordCardStream');
+    if (!box) return;
+    const list = visibleWords();
+    if (!list.length) {
+      const cat = curCat();
+      box.innerHTML = (cat && cat.words.length === 0)
+        ? emptyHtml('첫 단어를 추가해 볼까요?', '오른쪽 아래 + 버튼을 눌러 단어를 넣으면 뜻과 예문을 채워줘요.', 'happy')
+        : emptyHtml('조건에 맞는 단어가 없어요', '필터나 검색어를 바꿔 보세요.', 'think');
+      return;
+    }
+    box.innerHTML = list.map((w, i) => {
+      const syns = w.synonyms.split(',').map(s => s.trim()).filter(Boolean);
+      const open = openDrawers.has(w.id);
+      return `
+      <div class="wcard ${w.box >= 5 ? 'mastered' : ''} ${open ? 'open' : ''}" data-wid="${esc(w.id)}">
+        <div class="w-row">
+          <span class="w-no">${String(i + 1).padStart(3, '0')}</span>
+          <div class="w-main" data-act="expand">
+            <div class="w-head"><span class="w-word ${w.star ? 'hl' : ''}">${esc(w.word)}</span>${w.phonetic ? `<span class="w-pron">${esc(w.phonetic)}</span>` : ''}${w.koreanPron ? `<span class="w-kpron">[${esc(w.koreanPron)}]</span>` : ''}</div>
+            <div class="w-mean">${esc(w.meaning)}</div>
+            <div class="w-badges">${lvlBadge(w)}${w.miss > 0 ? '<span class="badge b-bad">오답</span>' : ''}</div>
+          </div>
+          <div class="w-side">
+            <button class="w-star ${w.star ? 'on' : ''}" data-act="star" aria-label="즐겨찾기">${IC.star}</button>
+            <button class="w-speak" data-act="speak" data-text="${esc(w.word)}" aria-label="발음 듣기">${IC.speaker}</button>
           </div>
         </div>
-        <div class="row q-foot">
-          <button class="btn btn-bad" data-act="fly" data-dir="-1">아직 몰라요</button>
-          <button class="btn btn-ok" data-act="fly" data-dir="1">알아요</button>
-        </div>
+        ${open ? `
+        <div class="w-detail">
+          ${w.example ? `<div class="w-ex"><h4>예문</h4><p class="ex-en">${esc(w.example)} <button class="ex-say" data-act="speak" data-text="${esc(w.example)}" aria-label="예문 듣기">${IC.speaker}</button></p>${w.exampleKo ? `<p class="ex-ko">${esc(w.exampleKo)}</p>` : '<button class="btn btn-soft btn-sm" data-act="fill-exko">예문 해석 채우기</button>'}</div>` : ''}
+          ${syns.length ? `<div><h4>비슷한 단어 (눌러서 뜻 보기)</h4><div class="syn-chips">${syns.map(s => `<button class="syn" data-act="syn" data-word="${esc(s)}">${esc(s)}</button>`).join('')}</div></div>` : ''}
+          <div class="muted w-due">${dueText(w)}${w.wrong ? ` · 틀린 횟수 ${w.wrong}` : ''}</div>
+          <div class="w-tools">
+            <button class="btn btn-soft btn-sm" data-act="edit-word">${IC.edit} 수정</button>
+            <button class="btn btn-soft btn-sm" data-act="mem">${w.box >= 5 ? '마스터 취소' : '이미 알아요'}</button>
+            <button class="btn btn-soft btn-sm danger" data-act="del-word">삭제</button>
+          </div>
+        </div>` : ''}
       </div>`;
-    bindSwipe();
-    playAudio(w.word);
+    }).join('');
   }
-  function bindSwipe() {
-    const wrap = $('swipeWrap'); if (!wrap) return;
-    let sx = 0, dx = 0, drag = false, moved = false;
-    const reset = () => { wrap.style.transition = 'transform .2s'; wrap.style.transform = ''; wrap.dataset.dir = ''; };
-    wrap.addEventListener('pointerdown', e => {
-      if (S.locked || e.target.closest('[data-act="speak"]')) return;
-      drag = true; moved = false; sx = e.clientX; dx = 0;
-      wrap.style.transition = 'none';
-      try { wrap.setPointerCapture(e.pointerId); } catch (err) {}
-    });
-    wrap.addEventListener('pointermove', e => {
-      if (!drag) return;
-      dx = e.clientX - sx;
-      if (Math.abs(dx) > 8) moved = true;
-      wrap.style.transform = `translateX(${dx}px) rotate(${dx / 22}deg)`;
-      wrap.dataset.dir = dx > 45 ? 'ok' : dx < -45 ? 'no' : '';
-    });
-    wrap.addEventListener('pointerup', () => {
-      if (!drag) return;
-      drag = false;
-      if (!moved) { reset(); $('fc3d').classList.toggle('is-flipped'); return; }
-      if (dx > 100) flyCard(1); else if (dx < -100) flyCard(-1); else reset();
-    });
-    wrap.addEventListener('pointercancel', () => { drag = false; reset(); });
-  }
-  function flyCard(dir) {
-    const wrap = $('swipeWrap');
-    if (!wrap || S.locked) return;
-    S.locked = true;
-    wrap.dataset.dir = dir > 0 ? 'ok' : 'no';
-    wrap.style.transition = 'transform .28s ease, opacity .28s';
-    wrap.style.transform = `translateX(${dir * 520}px) rotate(${dir * 22}deg)`;
-    wrap.style.opacity = '0';
-    const my = S.idx;
-    setTimeout(() => {
-      if (!S.active || S.idx !== my) return;
-      recordResult(S.queue[S.idx], dir > 0);
-      nextQuestion();
-    }, 260);
-  }
-  ACTIONS.fly = el => flyCard(parseInt(el.dataset.dir, 10));
 
-  /* ----- 4지선다 ----- */
-  function makeOptions(cur, field) {
-    const val = x => x[field];
-    const seen = new Set([val(cur)]);
-    const d = [];
-    const take = list => {
-      for (const w of shuffled(list)) {
-        if (d.length === 3) break;
-        if (w.id !== cur.id && val(w) && !seen.has(val(w))) { seen.add(val(w)); d.push(w); }
+  function wordFromEl(el) {
+    const card = el.closest('[data-wid]');
+    const cat = curCat();
+    return cat && card ? cat.words.find(w => w.id === card.dataset.wid) : null;
+  }
+  ACTIONS.star = el => { const w = wordFromEl(el); if (!w) return; w.star = !w.star; syncStorage(); renderWordList(); };
+  ACTIONS.expand = (el, e) => {
+    const w = wordFromEl(el); if (!w) return;
+    const mean = el.querySelector('.w-mean');
+    if (document.body.classList.contains('hide-content') && mean && !mean.classList.contains('reveal')) { mean.classList.add('reveal'); return; }
+    openDrawers.has(w.id) ? openDrawers.delete(w.id) : openDrawers.add(w.id);
+    renderWordList();
+  };
+  ACTIONS.speak = (el, e) => { e.stopPropagation(); playAudio(el.dataset.text); };
+  ACTIONS.mem = el => {
+    const w = wordFromEl(el); if (!w) return;
+    if (w.box >= 5) { w.box = 0; w.due = 0; w.miss = 0; }
+    else { w.box = 5; w.due = addDays(startOfDay(), INTERVALS[5]); w.last = dayKey(); w.miss = 0; }
+    syncStorage(); renderBookDynamic();
+  };
+  ACTIONS['del-word'] = async el => {
+    const w = wordFromEl(el), cat = curCat(); if (!w || !cat) return;
+    if (!await ask(`'${w.word}' 단어를 삭제할까요?`, { ok: '삭제', danger: true })) return;
+    cat.words = cat.words.filter(x => x.id !== w.id);
+    syncStorage(); renderBookDynamic();
+  };
+  ACTIONS.syn = el => inspectSynonym(el.dataset.word);
+
+  /* ----- 시트 ----- */
+  function openSheet(title, html) {
+    $('sheetTitle').textContent = title;
+    $('sheetBody').innerHTML = html;
+    $('sheetOv').classList.add('open');
+    document.body.classList.add('no-scroll');
+  }
+  function closeSheet() {
+    bulkCancel = true;
+    $('sheetOv').classList.remove('open');
+    if (!$('studyScreen').classList.contains('open')) document.body.classList.remove('no-scroll');
+  }
+  ACTIONS['sheet-close'] = closeSheet;
+  ACTIONS['sheet-bg'] = (el, e) => { if (e.target === el) closeSheet(); };
+
+  /* ----- 단어 추가 시트 ----- */
+  ACTIONS['add-sheet'] = () => {
+    openSheet('단어 추가', `
+      <div class="seg" style="margin-bottom:14px;">
+        <button class="on" data-act="add-tab" data-t="one">한 개씩</button>
+        <button data-act="add-tab" data-t="bulk">여러 개 한 번에</button>
+      </div>
+      <div id="addOne" class="form-stack">${wordFormHtml(null)}</div>
+      <div id="addBulk" class="form-stack" style="display:none;">
+        <textarea id="bulkText" placeholder="한 줄에 단어 하나씩 붙여넣으세요.&#10;&#10;consistent&#10;reluctant&#10;apple, 사과&#10;&#10;뜻을 같이 적으면(쉼표, 탭, ' - ' 구분) 그 뜻을 쓰고 나머지는 AI가 채워요."></textarea>
+        <div class="bulk-status" id="bulkStatus">한 번에 최대 60개까지 넣을 수 있어요.</div>
+        <button class="btn btn-primary btn-block" id="btnBulk" data-act="bulk-run">AI로 한꺼번에 채우고 저장</button>
+      </div>`);
+    if (!bulkBusy) bulkCancel = false;
+    setTimeout(() => { const f = $('fieldWord'); if (f) f.focus(); }, 250);
+  };
+  const FIELDS = ['fieldWord', 'fieldMeaning', 'fieldPhonetic', 'fieldKoreanPron', 'fieldExample', 'fieldExampleKo', 'fieldSynonyms'];
+  function wordFormHtml(w) {
+    const v = k => esc(w ? w[k] : ''); formEditId = w ? w.id : null; aiRun++;
+    return `
+        <label class="f-lab" for="fieldWord">영단어</label>
+        <div class="row f-ai">
+          <input type="text" id="fieldWord" value="${v('word')}" placeholder="예: consistent" autocomplete="off" autocapitalize="none" spellcheck="false" onkeydown="if(event.key==='Enter') executeFastAi()">
+          <button class="btn btn-primary" id="btnRunAi" onclick="executeFastAi()">AI 완성</button>
+        </div>
+        <div class="ai-state" id="aiState"></div>
+        <label class="f-lab" for="fieldMeaning">뜻</label>
+        <input type="text" id="fieldMeaning" value="${v('meaning')}" placeholder="한국어 뜻">
+        <div class="row">
+          <div><label class="f-lab" for="fieldPhonetic">발음기호</label><input type="text" id="fieldPhonetic" value="${v('phonetic')}" placeholder="/kənˈsɪstənt/"></div>
+          <div><label class="f-lab" for="fieldKoreanPron">한글 발음</label><input type="text" id="fieldKoreanPron" value="${v('koreanPron')}" placeholder="컨시스턴트"></div>
+        </div>
+        <label class="f-lab" for="fieldExample">예문 (영어)</label>
+        <textarea id="fieldExample" class="short" rows="2" placeholder="Be consistent and results will come.">${v('example')}</textarea>
+        <label class="f-lab" for="fieldExampleKo">예문 해석</label>
+        <div class="row f-ai">
+          <textarea id="fieldExampleKo" class="short" rows="2" placeholder="꾸준히 하면 결과가 따라와요.">${v('exampleKo')}</textarea>
+          <button class="btn btn-soft" id="btnExKo" data-act="form-exko">번역</button>
+        </div>
+        <label class="f-lab" for="fieldSynonyms">비슷한 단어</label>
+        <input type="text" id="fieldSynonyms" value="${v('synonyms')}" placeholder="쉼표로 구분 (steady, constant)">
+        <button class="btn btn-primary btn-block" style="margin-top:10px;" onclick="${w ? `saveEditWord('${esc(w.id)}')` : 'saveNewWord()'}">${w ? '수정 저장' : '단어 저장'}</button>`;
+  }
+  const formVals = () => ({ word: $('fieldWord').value.trim(), meaning: $('fieldMeaning').value.trim(), phonetic: $('fieldPhonetic').value, koreanPron: $('fieldKoreanPron').value, example: $('fieldExample').value, exampleKo: $('fieldExampleKo').value, synonyms: $('fieldSynonyms').value });
+  ACTIONS['edit-word'] = el => {
+    const w = wordFromEl(el); if (!w) return;
+    openSheet('단어 수정', `<div class="form-stack">${wordFormHtml(w)}</div>`);
+  };
+  function saveEditWord(id) {
+    const cat = curCat(), w = cat && cat.words.find(x => x.id === id); if (!w) return closeSheet();
+    const v = formVals();
+    if (!v.word || !v.meaning) return toast('단어와 뜻은 꼭 필요해요.');
+    if (cat.words.some(x => x.id !== id && x.word.toLowerCase() === v.word.toLowerCase())) return toast(`'${v.word}' 는 이 단어장에 이미 있어요.`);
+    const n = sanitizeWord({ ...w, ...v });
+    Object.assign(w, { word: n.word, meaning: n.meaning, phonetic: n.phonetic, koreanPron: n.koreanPron, example: n.example, exampleKo: n.exampleKo, synonyms: n.synonyms });
+    syncStorage(); closeSheet(); renderBookDynamic(); toast('수정했어요.');
+  }
+  ACTIONS['form-exko'] = async el => {
+    const en = ($('fieldExample').value || '').trim();
+    if (!en) return toast('먼저 영어 예문을 입력해 주세요.');
+    el.disabled = true; el.textContent = '번역 중';
+    try { const r = await translateText(en, true); if ($('fieldExampleKo')) $('fieldExampleKo').value = r.t; }
+    catch (e) { toast('번역하지 못했어요. 잠시 후 다시 해 주세요.'); }
+    finally { el.disabled = false; el.textContent = '번역'; }
+  };
+  ACTIONS['fill-exko'] = async el => {
+    const w = wordFromEl(el); if (!w || !w.example) return;
+    el.disabled = true; el.textContent = '해석 채우는 중...';
+    try { const r = await translateText(w.example, true); w.exampleKo = str(r.t); syncStorage(); renderWordList(); }
+    catch (e) { el.disabled = false; el.textContent = '예문 해석 채우기'; toast('번역하지 못했어요. 잠시 후 다시 해 주세요.'); }
+  };
+  ACTIONS['add-tab'] = el => {
+    const bulk = el.dataset.t === 'bulk';
+    $('addOne').style.display = bulk ? 'none' : 'flex';
+    $('addBulk').style.display = bulk ? 'flex' : 'none';
+    el.parentElement.querySelectorAll('button').forEach(b => b.classList.toggle('on', b === el));
+  };
+
+  function saveNewWord() {
+    const cat = curCat();
+    if (!cat) return;
+    const v = formVals();
+    if (!v.word || !v.meaning) return toast('단어와 뜻은 꼭 필요해요.');
+    if (cat.words.some(w => w.word.toLowerCase() === v.word.toLowerCase())) return toast(`'${v.word}' 는 이 단어장에 이미 있어요.`);
+    cat.words.unshift(sanitizeWord({ id: uid(), ...v }));
+    syncStorage();
+    FIELDS.forEach(id => { $(id).value = ''; });
+    aiState('');
+    renderBookDynamic();
+    toast('저장했어요.');
+    $('fieldWord').focus();
+  }
+
+  let bulkCancel = false, bulkBusy = false;
+  ACTIONS['bulk-run'] = async () => {
+    const btn = $('btnBulk');
+    if (bulkBusy) { bulkCancel = true; if (btn.dataset.running !== '1') toast('이전 작업을 마무리하는 중이에요. 잠시 후 다시 눌러 주세요.'); return; }
+    const cat = curCat(); if (!cat) return;
+    const seen = new Set(cat.words.map(w => w.word.toLowerCase()));
+    let skipped = 0; const entries = [];
+    $('bulkText').value.split('\n').map(s => s.trim()).filter(Boolean).slice(0, 60).forEach(line => {
+      const parts = line.split(/\t|\s+[-–—]\s+|\s*[,;]\s*/);
+      const word = parts[0].trim(); if (!word) return;
+      if (seen.has(word.toLowerCase())) { skipped++; return; }
+      seen.add(word.toLowerCase()); entries.push({ word, um: parts.slice(1).join(', ').trim() });
+    });
+    if (!entries.length) return toast(skipped ? '모두 이미 있는 단어예요.' : '단어를 한 줄에 하나씩 입력하세요.');
+    bulkBusy = true; btn.dataset.running = '1'; btn.textContent = '중지'; bulkCancel = false;
+    const status = $('bulkStatus'); let stopped = '', done = 0;
+    const res = new Map(); const need = [];
+    entries.forEach(e => { const h = aicGet(e.word); if (h) res.set(e.word.toLowerCase(), h); else need.push(e); });
+    const chunks = []; for (let i = 0; i < need.length; i += 6) chunks.push(need.slice(i, i + 6));
+    const upd = () => { status.textContent = `${Math.min(entries.length, entries.length - need.length + done)} / ${entries.length} 처리 중...`; };
+    let ci = 0; upd();
+    const worker = async () => {
+      while (!bulkCancel && !stopped) {
+        const ch = chunks[ci++]; if (!ch) return;
+        try {
+          const m = await callAi(buildBatchPrompt(ch.map(e => e.word)), normalizeBatch, { task: 'batch', words: ch.map(e => e.word) });
+          ch.forEach(e => { const r = m[e.word.toLowerCase()]; if (r) { res.set(e.word.toLowerCase(), r); aicSet(e.word, r); } });
+        } catch (err) { if ([401, 403, 429].includes(err.status) || /AI를 쓸 수 없|한도|준비되지/.test(err.message)) stopped = err.message.split('\n')[0]; }
+        done += ch.length; upd();
       }
     };
-    take(S.dpool);
-    if (d.length < 3) take(allWords().map(x => x.w));
-    return shuffled([cur, ...d]);
-  }
-  function renderChoice(item, reverse) {
-    const w = item.w;
-    S.options = makeOptions(w, reverse ? 'word' : 'meaning');
-    $('stBody').innerHTML = `
-      <div class="q-wrap">
-        <div class="q-card">
-          ${reverse
-            ? `<div class="q-label">이 뜻의 영어 단어는?</div><div class="q-meaning">${esc(w.meaning)}</div>`
-            : `<div class="q-label">이 단어의 뜻은?</div><div class="q-word">${esc(w.word)}</div><div class="q-pron">${esc(pronText(w))}</div><button class="q-speak" data-act="speak" data-text="${esc(w.word)}" aria-label="발음 듣기">${IC.speaker}</button>`}
-        </div>
-        <div class="opts">${S.options.map((o, i) => `<button class="opt" data-act="opt" data-i="${i}"><span class="opt-n">${i + 1}</span><span>${esc(reverse ? o.word : o.meaning)}</span></button>`).join('')}</div>
-      </div>`;
-    if (!reverse) playAudio(w.word);
-  }
-  const PRAISE = ['정답이에요', '좋아요', '잘했어요', '훌륭해요', '완벽해요'];
-  ACTIONS.opt = el => {
-    if (S.locked || !S.active) return;
-    S.locked = true;
-    const item = S.queue[S.idx];
-    const chosen = S.options[parseInt(el.dataset.i, 10)];
-    const ok = chosen.id === item.w.id;
-    const btns = [...$('stBody').querySelectorAll('.opt')];
-    btns.forEach(b => { b.disabled = true; });
-    el.classList.add(ok ? 'correct' : 'wrong');
-    if (!ok) { const ci = S.options.findIndex(o => o.id === item.w.id); if (btns[ci]) btns[ci].classList.add('correct'); }
-    S.combo = ok ? (S.combo || 0) + 1 : 0;
-    const qw = $('stBody').querySelector('.q-wrap');
-    if (qw) {
-      const bar = document.createElement('div');
-      bar.className = 'ans-bar ' + (ok ? 'ok' : 'bad');
-      bar.innerHTML = `<span class="ans-ic">${ok ? IC.tick : IC.x}</span><span class="ans-t"><b>${ok ? PRAISE[Math.floor(Math.random() * PRAISE.length)] : '정답은 이거예요'}</b><span>${esc(item.w.word)} · ${esc(item.w.meaning)}</span></span>${ok && S.combo >= 3 ? `<span class="ans-combo">${S.combo}연속 정답</span>` : ''}`;
-      qw.appendChild(bar);
+    await Promise.all([worker(), worker(), worker()]);
+    let retry = entries.filter(e => !res.has(e.word.toLowerCase())).slice(0, 10);
+    for (const e of retry) {
+      if (bulkCancel || stopped) break;
+      try { const r = await lookupWord(e.word, true); res.set(e.word.toLowerCase(), r); } catch (err) { if ([401, 403, 429].includes(err.status)) stopped = err.message.split('\n')[0]; }
     }
-    if (S.mode === 'rchoice') playAudio(item.w.word);
-    recordResult(item, ok);
-    const my = S.idx;
-    setTimeout(() => { if (S.active && S.idx === my) nextQuestion(); }, ok ? 700 : 1600);
-  };
-
-  /* ----- 스펠링 / 듣고 쓰기 ----- */
-  const norm = s => String(s).toLowerCase().replace(/\s+/g, ' ').replace(/[.,!?]+$/g, '').trim();
-  function renderTyping(item, dictation) {
-    const w = item.w;
-    const hint = w.word.split('').map((ch, i) => ch === ' ' ? '  ' : (i === 0 ? ch : '_')).join(' ');
-    $('stBody').innerHTML = `
-      <div class="q-wrap">
-        <div class="q-card">
-          ${dictation
-            ? `<div class="q-label">들리는 단어를 입력하세요</div><button class="q-speak big" data-act="speak" data-text="${esc(w.word)}" aria-label="다시 듣기">${IC.speaker}</button><div class="q-sub">눌러서 다시 들을 수 있어요</div>`
-            : `<div class="q-label">이 뜻의 영어 단어를 쓰세요</div><div class="q-meaning">${esc(w.meaning)}</div><div class="q-hint">${esc(hint)}</div>`}
-        </div>
-        <input type="text" id="typeInput" class="type-input" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="여기에 입력">
-        <div id="typeFeedback"></div>
-        <div class="row q-foot">
-          <button class="btn btn-soft" id="typeSkip" data-act="type-skip">모르겠어요</button>
-          <button class="btn btn-primary" id="typeBtn" data-act="type-submit">확인</button>
-        </div>
-      </div>`;
-    if (dictation) playAudio(w.word);
-    setTimeout(() => { const i = $('typeInput'); if (i) i.focus(); }, 120);
-  }
-  function showTypeResult(ok, typed) {
-    const item = S.queue[S.idx], w = item.w;
-    S.answered = true;
-    $('typeInput').disabled = true;
-    $('typeFeedback').innerHTML = ok
-      ? `<div class="fb ok"><span class="ans-ic">${IC.tick}</span><div>정답이에요! <b>${esc(w.word)}</b><div class="fb-sub">${esc(w.meaning)}</div></div></div>`
-      : `<div class="fb bad"><span class="ans-ic">${IC.x}</span><div>정답은 <b>${esc(w.word)}</b> ${esc(w.phonetic)}<div class="fb-sub">${esc(w.meaning)}${w.example ? '<br>' + esc(w.example) : ''}${w.exampleKo ? '<br>' + esc(w.exampleKo) : ''}</div></div></div>`;
-    $('typeBtn').textContent = '다음';
-    $('typeSkip').style.display = 'none';
-    playAudio(w.word);
-    recordResult(item, ok);
-  }
-  ACTIONS['type-submit'] = () => {
-    if (!S.active) return;
-    if (S.answered) return nextQuestion();
-    const typed = $('typeInput').value;
-    if (!typed.trim()) return toast('답을 입력해 주세요.');
-    showTypeResult(norm(typed) === norm(S.queue[S.idx].w.word), typed);
-  };
-  ACTIONS['type-skip'] = () => { if (S.active && !S.answered) showTypeResult(false, ''); };
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && S.active && (S.mode === 'spell' || S.mode === 'dict') && !S.finished) {
-      if (e.target.id === 'typeInput' || S.answered) { e.preventDefault(); ACTIONS['type-submit'](); }
-    }
-  });
-
-  /* ----- 결과 ----- */
-  function finishSession() {
-    S.finished = true;
-    kbdHint('');
-    try { window.speechSynthesis.cancel(); } catch (e) {}
-    $('stProg').style.width = '100%';
-    $('stCount').textContent = '';
-    const first = S.ok + S.no;
-    const pct = first ? Math.round(S.ok / first * 100) : 0;
-    const mood = pct >= 90 ? 'cheer' : pct >= 70 ? 'happy' : 'think';
-    const title = pct >= 90 ? '완벽해요!' : pct >= 70 ? '아주 잘했어요' : pct >= 40 ? '조금만 더 하면 돼요' : '괜찮아요, 다시 해봐요';
-    const st = streak();
-    const goal = config.goal || 20;
-    const todayN = (stats.days[dayKey()] || { n: 0 }).n;
-    const goalHit = S.startN < goal && todayN >= goal;
-    const wrongs = [...S.wrong.values()];
-    const label = S.mode === 'card' ? '알아요' : '정답';
-    $('stBody').innerHTML = `
-      <div class="result">
-        <div class="result-art">${MASCOT(mood)}</div>
-        <h2>${title}</h2>
-        <div class="score">${S.ok} / ${first}</div>
-        <div class="result-stats"><div><b>${pct}%</b><span>${label}</span></div><div><b>${st}일</b><span>연속 학습</span></div><div class="${goalHit ? 'hit' : ''}"><b>${todayN}/${goal}</b><span>${goalHit ? '목표 달성!' : '오늘 목표'}</span></div></div>
-        ${wrongs.length ? `<div class="card result-box"><b style="font-size:.95rem;">다시 볼 단어 ${wrongs.length}개</b>${wrongs.map(it => `<div class="wrong-item"><b>${esc(it.w.word)}</b><span>${esc(it.w.meaning)}</span><button class="w-speak" data-act="speak" data-text="${esc(it.w.word)}" aria-label="발음 듣기">${IC.speaker}</button></div>`).join('')}</div>` : '<div class="card result-box" style="text-align:center;">틀린 단어가 없어요. 대단해요!</div>'}
-        <div class="row" style="margin-top:6px;">
-          ${wrongs.length ? '<button class="btn btn-soft" data-act="retry-wrong">틀린 것만 다시</button>' : '<button class="btn btn-soft" data-act="again">한 번 더</button>'}
-          <button class="btn btn-primary" data-act="exit-session">마치기</button>
-        </div>
-      </div>`;
-    if (pct >= 80 || goalHit) confetti();
-  }
-  ACTIONS['retry-wrong'] = () => {
-    const items = [...S.wrong.values()].map(i => ({ w: i.w, catId: i.catId }));
-    startSession(S.mode, S.src, 0, items);
-  };
-  ACTIONS.again = () => startSession(S.mode, S.src, S.count);
-
-  async function exitSession(force) {
-    if (!force && S.active && !S.finished && S.idx > 0 && S.mode !== 'listen') {
-      if (!await ask('학습을 그만할까요?\n지금까지 푼 결과는 저장돼 있어요.', { ok: '그만하기' })) return;
-    }
-    L.token++;
-    try { window.speechSynthesis.cancel(); } catch (e) {}
-    S.active = false;
-    $('studyScreen').classList.remove('open');
-    if (!$('sheetOv').classList.contains('open')) document.body.classList.remove('no-scroll');
-    go(curTab);
-  }
-  ACTIONS['exit-session'] = () => exitSession(false);
-
-  /* ----- 듣기 모드 ----- */
-  let L = { token: 0, items: [], i: 0, playing: false, example: true };
-  function startListen() {
-    L = { token: L.token + 1, items: S.queue, i: 0, playing: true, example: true };
-    renderListen();
-    listenLoop(L.token);
-  }
-  function renderListen() {
-    const it = L.items[L.i];
-    if (!it) return;
-    const w = it.w;
-    $('stProg').style.width = (L.i / L.items.length * 100) + '%';
-    $('stCount').textContent = `${L.i + 1}/${L.items.length}`;
-    $('stBody').innerHTML = `
-      <div class="q-wrap">
-        <div class="q-card">
-          <div class="q-word">${esc(w.word)}</div>
-          <div class="q-pron">${esc(pronText(w))}</div>
-          <div class="q-meaning" style="margin-top:10px;">${esc(w.meaning)}</div>
-          ${w.example ? `<div class="q-sub">${esc(w.example)}${w.exampleKo ? `<br><span class="ex-ko">${esc(w.exampleKo)}</span>` : ''}</div>` : ''}
-        </div>
-        <div class="player">
-          <button data-act="l-prev" aria-label="이전">${IC.prev}</button>
-          <button class="play" data-act="l-toggle" aria-label="재생/일시정지">${L.playing ? IC.pause : IC.play}</button>
-          <button data-act="l-next" aria-label="다음">${IC.next}</button>
-        </div>
-        <label class="switch-row"><input type="checkbox" ${L.example ? 'checked' : ''} onchange="L.example = this.checked"> 예문도 읽어주기</label>
-      </div>`;
-  }
-  async function listenLoop(token) {
-    while (L.token === token && L.playing && L.i < L.items.length) {
-      const w = L.items[L.i].w;
-      renderListen();
-      await speak(w.word, 'en-US');
-      if (L.token !== token || !L.playing) return;
-      await sleep(450);
-      await speak(w.meaning.replace(/[()\[\]]/g, ' '), 'ko-KR');
-      if (L.token !== token || !L.playing) return;
-      if (L.example && w.example) {
-        await sleep(350);
-        await speak(w.example, 'en-US');
-        if (L.token !== token || !L.playing) return;
-      }
-      await sleep(900);
-      if (L.token !== token || !L.playing) return;
-      L.i++;
-    }
-    if (L.token === token && L.i >= L.items.length) {
-      L.playing = false; L.i = L.items.length - 1;
-      $('stProg').style.width = '100%';
-      toast('한 바퀴 끝! 다시 들으려면 재생을 누르세요.');
-      renderListen();
-      L.i = 0;
-    }
-  }
-  function listenRestart() { L.token++; try { window.speechSynthesis.cancel(); } catch (e) {} renderListen(); if (L.playing) listenLoop(L.token); }
-  ACTIONS['l-toggle'] = () => {
-    L.playing = !L.playing;
-    if (!L.playing) { L.token++; try { window.speechSynthesis.cancel(); } catch (e) {} renderListen(); }
-    else { L.token++; listenLoop(L.token); }
-  };
-  ACTIONS['l-next'] = () => { if (L.i < L.items.length - 1) { L.i++; listenRestart(); } };
-  ACTIONS['l-prev'] = () => { if (L.i > 0) { L.i--; listenRestart(); } };
-
-  /* =========================================================
-   * 통계
-   * ======================================================= */
-  function renderStats() {
-    const days = stats.days, goal = config.goal || 20, c = counts();
-    let totalN = 0, totalOk = 0;
-    Object.keys(days).forEach(k => { totalN += days[k].n; totalOk += days[k].ok; });
-    const acc = totalN ? Math.round(totalOk / totalN * 100) : 0;
-
-    const labels = ['일', '월', '화', '수', '목', '금', '토'];
-    const week = [];
-    for (let i = 6; i >= 0; i--) { const t = addDays(startOfDay(), -i); week.push({ t, n: (days[dayKey(t)] || { n: 0 }).n, today: i === 0 }); }
-    const maxN = Math.max(goal, ...week.map(x => x.n), 1);
-    const bars = week.map(x => `<div class="bar-col ${x.today ? 'today' : ''}">${x.n || ''}<i style="height:${Math.max(4, Math.round(x.n / maxN * 100))}%"></i>${labels[new Date(x.t).getDay()]}</div>`).join('');
-
-    const dow = new Date().getDay();
-    const gridStart = addDays(startOfDay(), -(28 + dow));
-    let heat = labels.map(l => `<div class="heat-h">${l}</div>`).join('');
-    for (let i = 0; i < 35; i++) {
-      const t = addDays(gridStart, i);
-      if (t > startOfDay()) { heat += '<div class="cell future"></div>'; continue; }
-      const n = (days[dayKey(t)] || { n: 0 }).n;
-      const lv = n === 0 ? 0 : n < 5 ? 1 : n < 15 ? 2 : n < 30 ? 3 : 4;
-      heat += `<div class="cell l${lv} ${t === startOfDay() ? 'is-today' : ''}" title="${dayKey(t)} · ${n}개"></div>`;
-    }
-
-    const tot = Math.max(1, c.total);
-    const top = allWords().map(x => x.w).filter(w => w.wrong > 0).sort((a, b) => b.wrong - a.wrong).slice(0, 5);
-
-    $('tabStats').innerHTML = `
-      <h2 class="page-title">학습 통계</h2>
-      <div class="stat-tiles">
-        <div class="stat-tile"><b>${streak()}일</b><span>연속 학습</span></div>
-        <div class="stat-tile"><b>${bestStreak()}일</b><span>최고 기록</span></div>
-        <div class="stat-tile"><b>${acc}%</b><span>전체 정답률</span></div>
-      </div>
-      <div class="card" style="margin-bottom:12px;">
-        <b>최근 7일</b>
-        <div class="bars">${bars}</div>
-        <div class="goal-line">하루 목표 ${goal}개 · 총 ${totalN}번 학습했어요</div>
-      </div>
-      <div class="card" style="margin-bottom:12px;">
-        <b>단어 레벨</b>
-        <div class="stack">
-          <i style="width:${c.mastered / tot * 100}%;background:var(--mint)"></i>
-          <i style="width:${c.learning / tot * 100}%;background:var(--blue)"></i>
-          <i style="width:${c.newW / tot * 100}%;background:var(--line)"></i>
-        </div>
-        <div class="legend"><span style="--c:var(--mint)">마스터 ${c.mastered}</span><span style="--c:var(--blue)">학습 중 ${c.learning}</span><span style="--c:var(--line)">새 단어 ${c.newW}</span></div>
-      </div>
-      <div class="card" style="margin-bottom:12px;">
-        <b>최근 5주 학습 달력</b>
-        <div class="heat">${heat}</div>
-      </div>
-      <div class="card">
-        <b>자주 틀리는 단어</b>
-        ${top.length ? top.map(w => `<div class="miss-item"><b>${esc(w.word)}</b><span>${esc(w.meaning)}</span><span class="badge b-bad" style="flex:none;">${w.wrong}회</span></div>`).join('') : emptyHtml('아직 틀린 단어가 없어요', '', 'happy')}
-      </div>`;
-  }
-
-  /* =========================================================
-   * TTS
-   * ======================================================= */
-  function voiceFor(lang) {
-    try {
-      const vs = window.speechSynthesis.getVoices(), L2 = lang.toLowerCase(), n = v => (v.lang || '').toLowerCase().replace('_', '-');
-      const exact = vs.filter(v => n(v) === L2);
-      if (L2 === 'en-us') return exact.find(v => /samantha|google us|aria|jenny|ava|allison|zira|natural|siri/i.test(v.name)) || exact[0] || null;
-      return exact[0] || vs.find(v => n(v).startsWith(L2.slice(0, 2))) || null;
-    } catch (e) { return null; }
-  }
-  function speak(text, lang) {
-    return new Promise(res => {
-      if (!('speechSynthesis' in window) || !text) return res();
-      try { window.speechSynthesis.cancel(); } catch (e) {}
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = lang || 'en-US';
-      u.rate = parseFloat(config.ttsRate) || 0.9;
-      const v = voiceFor(u.lang); if (v) u.voice = v;
-      let done = false;
-      const fin = () => { if (!done) { done = true; res(); } };
-      u.onend = fin; u.onerror = fin;
-      setTimeout(fin, 6000 + text.length * 160);
-      window.speechSynthesis.speak(u);
+    if (bulkCancel && !stopped) stopped = '중지했어요.';
+    const items = [], failed = [];
+    entries.forEach(e => {
+      const r = res.get(e.word.toLowerCase());
+      if (r) items.push(sanitizeWord({ id: uid(), word: e.word, ...r, meaning: e.um || r.meaning }));
+      else if (e.um) items.push(sanitizeWord({ id: uid(), word: e.word, meaning: e.um }));
+      else failed.push(e.word);
     });
+    cat.words.unshift(...items);
+    syncStorage(); bulkBusy = false; bulkCancel = false;
+    btn.dataset.running = '0'; btn.textContent = 'AI로 한꺼번에 채우고 저장';
+    renderBookDynamic();
+    let msg = `${items.length}개 저장했어요.`;
+    if (skipped) msg += `\n이미 있어서 건너뜀 ${skipped}개`;
+    if (failed.length) msg += `\n실패 ${failed.length}개: ${failed.join(', ')}`;
+    if (stopped) msg += `\n${stopped}`;
+    status.textContent = msg;
+    if (items.length) toast(`${items.length}개 단어를 저장했어요.`);
+  };
+
+  /* ----- 단어장 메뉴 / CSV ----- */
+  ACTIONS['book-menu'] = () => {
+    openSheet('단어장 관리', `<div class="menu-list">
+      <button data-act="book-fill">비어 있는 발음·예문 채우기</button>
+      <button data-act="book-print">단어 시험지 만들기 (인쇄, PDF)</button>
+      <button data-act="book-rename">이름 바꾸기</button>
+      <button data-act="csv-export">CSV로 내보내기</button>
+      <button data-act="csv-import">CSV 가져오기 (엑셀, Quizlet 등)</button>
+      <button data-act="book-del" class="danger">단어장 삭제</button></div>
+      <p class="muted" style="font-size:.78rem;margin-top:12px;line-height:1.6;">CSV 열 순서: 단어, 뜻, 발음기호, 한글 발음, 예문, 비슷한 단어, 예문 해석. 앞 두 열(단어, 뜻)만 있어도 가져올 수 있어요.</p>`);
+  };
+  ACTIONS['book-rename'] = async () => {
+    const cat = curCat(); if (!cat) return;
+    const name = await ask('새 이름을 입력하세요.', { input: cat.name });
+    if (name && name.trim()) { cat.name = name.trim().slice(0, 40); syncStorage(); closeSheet(); $('headTitle').textContent = cat.name; }
+  };
+  ACTIONS['book-del'] = async () => {
+    const cat = curCat(); if (!cat) return;
+    if (!await ask(`'${cat.name}' 단어장과 안의 단어 ${cat.words.length}개를 모두 삭제할까요?`, { ok: '삭제', danger: true })) return;
+    categories = categories.filter(c => c.id !== cat.id);
+    syncStorage(); closeSheet(); go('tabBooks');
+  };
+  ACTIONS['csv-export'] = () => {
+    const cat = curCat(); if (!cat) return;
+    const q = v => '"' + String(v).replace(/"/g, '""') + '"';
+    const rows = [['word', 'meaning', 'phonetic', 'koreanPron', 'example', 'synonyms', 'exampleKo'].join(',')]
+      .concat(cat.words.map(w => [w.word, w.meaning, w.phonetic, w.koreanPron, w.example, w.synonyms, w.exampleKo].map(q).join(',')));
+    download(`${cat.name.replace(/[\\/:*?"<>|]/g, '_')}.csv`, '﻿' + rows.join('\r\n'), 'text/csv;charset=utf-8');
+    closeSheet(); toast('CSV 파일을 내려받았어요.');
+  };
+  ACTIONS['csv-import'] = () => { closeSheet(); $('csvFile').click(); };
+  let fillBusy = false;
+  // 비어 있는 칸만 내장 사전으로 채우고, 채운 단어 수를 돌려줘요.
+  async function dictFill(words) {
+    await dictPreload(words.map(w => w.word));
+    let n = 0;
+    for (const w of words) {
+      const d = await dictGet(w.word); if (!d) continue;
+      let hit = false;
+      ['meaning', 'phonetic', 'koreanPron', 'example', 'exampleKo', 'synonyms'].forEach(k => { if (!w[k] && d[k]) { w[k] = d[k]; hit = true; } });
+      if (hit) n++;
+    }
+    return n;
   }
-  function playAudio(text) { speak(text, 'en-US'); }
+  ACTIONS['book-fill'] = async () => {
+    const cat = curCat(); if (!cat || fillBusy) return;
+    const empty = w => !w.phonetic || !w.example;
+    if (!cat.words.some(empty)) { closeSheet(); return toast('비어 있는 칸이 없어요.'); }
+    closeSheet(); fillBusy = true;
+    const fromDict = await dictFill(cat.words.filter(empty));
+    if (fromDict) { syncStorage(); if (curTab === 'paneBook') renderWordList(); }
+    const need = cat.words.filter(empty).slice(0, 60);
+    if (!need.length) { fillBusy = false; return say(`${fromDict}개 단어를 내장 사전으로 채웠어요.`); }
+    if (!aiReady()) { fillBusy = false; return say(`${fromDict ? `${fromDict}개 단어를 내장 사전으로 채웠어요.\n` : ''}남은 ${cat.words.filter(empty).length}개는 AI가 필요해요.\n로그인한 계정으로 쓰거나, 설정에서 내 API 키를 입력해 주세요.`); }
+    let done = fromDict, fail = 0, stop = '';
+    toast(`단어 ${need.length}개를 채우는 중이에요...`);
+    for (let i = 0; i < need.length && !stop; i += 6) {
+      const ch = need.slice(i, i + 6);
+      try {
+        const m = await callAi(buildBatchPrompt(ch.map(w => w.word)), normalizeBatch, { task: 'batch', words: ch.map(w => w.word) });
+        ch.forEach(w => {
+          const r = m[w.word.toLowerCase()]; if (!r) { fail++; return; }
+          aicSet(w.word, r);
+          ['phonetic', 'koreanPron', 'example', 'exampleKo', 'synonyms'].forEach(k => { if (!w[k] && r[k]) w[k] = r[k]; });
+          done++;
+        });
+        syncStorage(); if (curTab === 'paneBook') renderWordList();
+      } catch (e) { fail += ch.length; if ([401, 403, 429].includes(e.status)) stop = e.message.split('\n')[0]; }
+    }
+    fillBusy = false;
+    say(`${done}개 단어를 채웠어요.${fail ? `\n채우지 못한 단어 ${fail}개` : ''}${stop ? '\n' + stop : ''}`);
+  };
+
+  function parseCsv(text) {
+    text = text.replace(/^﻿/, '');
+    const first = text.split(/\r?\n/)[0] || '';
+    const delim = first.includes('\t') ? '\t' : ',';
+    const rows = []; let row = [], cur = '', q = false;
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i];
+      if (q) {
+        if (ch === '"') { if (text[i + 1] === '"') { cur += '"'; i++; } else q = false; } else cur += ch;
+      } else if (ch === '"' && cur === '') q = true;
+      else if (ch === delim) { row.push(cur); cur = ''; }
+      else if (ch === '\n' || ch === '\r') {
+        if (ch === '\r' && text[i + 1] === '\n') i++;
+        row.push(cur); cur = '';
+        if (row.some(c => c.trim() !== '')) rows.push(row);
+        row = [];
+      } else cur += ch;
+    }
+    row.push(cur);
+    if (row.some(c => c.trim() !== '')) rows.push(row);
+    return rows;
+  }
+  function importCsv(e) {
+    const f = e.target.files[0]; if (!f) return;
+    const cat = curCat();
+    const r = new FileReader();
+    r.onload = ev => {
+      try {
+        if (!cat) throw new Error('no book');
+        const buf = ev.target.result;
+        let txt;
+        try { txt = new TextDecoder('utf-8', { fatal: true }).decode(buf); }
+        catch (e1) { try { txt = new TextDecoder('euc-kr').decode(buf); } catch (e2) { txt = new TextDecoder('utf-8').decode(buf); } }
+        let rows = parseCsv(txt);
+        if (rows.length && /^(word|단어|english|term)$/i.test(str(rows[0][0]))) rows.shift();
+        let added = 0, skipped = 0;
+        rows.forEach(c => {
+          const word = str(c[0]), meaning = str(c[1]);
+          if (!word || !meaning) { skipped++; return; }
+          if (cat.words.some(w => w.word.toLowerCase() === word.toLowerCase())) { skipped++; return; }
+          cat.words.push(sanitizeWord({ id: uid(), word, meaning, phonetic: c[2], koreanPron: c[3], example: c[4], synonyms: c[5], exampleKo: c[6] }));
+          added++;
+        });
+        syncStorage(); renderBookDynamic();
+        toast(`${added}개 가져왔어요${skipped ? ` (건너뜀 ${skipped}개)` : ''}.`);
+      } catch (err) { say('CSV 파일을 읽지 못했어요. 형식을 확인해 주세요.'); }
+      e.target.value = '';
+    };
+    r.readAsArrayBuffer(f);
+  }
 

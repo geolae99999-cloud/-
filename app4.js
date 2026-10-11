@@ -1,404 +1,473 @@
   /* =========================================================
-   * AI 연동 (모델 자동 조회)
+   * 학습 탭 (소스 + 모드 선택)
    * ======================================================= */
-  const PROVIDERS = {
-    gemini:    { label: 'Google Gemini',    hint: 'AIza... 로 시작하는 키 (Google AI Studio에서 발급)' },
-    xai:       { label: 'xAI Grok',         hint: 'xai-... 로 시작하는 키 (console.x.ai, 크레딧 충전 필요)' },
-    openai:    { label: 'OpenAI ChatGPT',   hint: 'sk-... 로 시작하는 키' },
-    anthropic: { label: 'Anthropic Claude', hint: 'sk-ant-... 로 시작하는 키' }
+  const MODES = {
+    card:    { name: '플래시카드', ico: IC.cards, desc: '밀어서 외웠음 / 모름' },
+    choice:  { name: '뜻 고르기', ico: IC.check, desc: '단어를 보고 뜻 맞히기' },
+    rchoice: { name: '단어 고르기', ico: IC.repeat, desc: '뜻을 보고 단어 맞히기' },
+    spell:   { name: '스펠링', ico: IC.keyboard, desc: '뜻을 보고 직접 쓰기' },
+    dict:    { name: '듣고 쓰기', ico: IC.headphones, desc: '발음을 듣고 타이핑' },
+    listen:  { name: '듣기 모드', ico: IC.speaker, desc: '자동으로 이어 듣기' }
   };
-  const FALLBACK_MODELS = { gemini: ['gemini-2.5-flash', 'gemini-2.0-flash'], xai: ['grok-3-mini', 'grok-3'], openai: ['gpt-4o-mini'], anthropic: ['claude-haiku-4-5'] };
+  const studyPrefs = { src: 'due', count: SESSION_DEFAULT };
+  const parseSrc = s => (s && s.startsWith('cat:')) ? { type: 'cat', id: s.slice(4) } : { type: s || 'all' };
+  const srcKey = src => src.type === 'cat' ? 'cat:' + src.id : src.type;
 
-  class ApiError extends Error { constructor(msg, status) { super(msg); this.status = status || 0; } }
+  function poolFor(src) {
+    const end = startOfDay() + DAY - 1, all = allWords();
+    switch (src.type) {
+      case 'cat': return all.filter(x => x.catId === src.id);
+      case 'due': return all.filter(x => x.w.box >= 1 && x.w.due <= end);
+      case 'new': return all.filter(x => x.w.box === 0);
+      case 'wrong': return all.filter(x => x.w.miss > 0);
+      case 'star': return all.filter(x => x.w.star);
+      default: return all;
+    }
+  }
+  const EMPTY_MSG = { due: '오늘 복습할 단어가 없어요. 잘하고 있어요!', new: '새 단어가 없어요. 단어를 추가해 보세요.', wrong: '오답노트가 비어 있어요.', star: '즐겨찾기한 단어가 없어요. 단어 카드의 별 아이콘을 눌러 보세요.', cat: '이 단어장에 단어가 없어요.', all: '단어가 없어요. 먼저 단어를 추가해 보세요.' };
 
-  function cleanKey(raw) {
-    const k = String(raw || '').replace(/[\s"'`]/g, '');
-    if (k && !/^[\x21-\x7E]+$/.test(k)) throw new ApiError('API 키에 한글이나 특수문자가 섞여 있어요. 키를 다시 복사해서 붙여넣어 주세요.', 0);
-    return k;
+  function renderStudy() {
+    const c = counts();
+    const srcs = [
+      { k: 'due', n: '오늘 복습', c: c.due }, { k: 'new', n: '새 단어', c: c.newW },
+      { k: 'wrong', n: '오답노트', c: c.miss }, { k: 'star', n: '즐겨찾기', c: c.star }, { k: 'all', n: '전체', c: c.total }
+    ].concat(categories.map(b => ({ k: 'cat:' + b.id, n: b.name, c: b.words.length })));
+    if (!srcs.some(s => s.k === studyPrefs.src)) studyPrefs.src = 'all';
+    const counts4 = [[10, '10개'], [20, '20개'], [50, '50개'], [0, '전체']];
+    $('tabStudy').innerHTML = `
+      <h2 class="page-title">무엇을 공부할까요?</h2>
+      <div class="src-row">${srcs.map(s => `<button class="src ${studyPrefs.src === s.k ? 'on' : ''}" data-act="pick-src" data-k="${esc(s.k)}"><span>${esc(s.n)}</span><b>${s.c}</b></button>`).join('')}</div>
+      <div class="section-title" style="margin-top:14px;"><span>한 번에 학습할 개수</span></div>
+      <div class="seg">${counts4.map(([v, n]) => `<button class="${studyPrefs.count === v ? 'on' : ''}" data-act="pick-count" data-v="${v}">${n}</button>`).join('')}</div>
+      <div class="section-title"><span>학습 방법</span></div>
+      <div class="modes">${Object.keys(MODES).map(k => `<button class="mode" data-act="study-start" data-mode="${k}"><span class="ico">${MODES[k].ico}</span><b>${MODES[k].name}</b><span>${MODES[k].desc}</span></button>`).join('')}</div>`;
   }
-  async function http(url, options = {}, timeoutMs = 15000) {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), timeoutMs);
-    let resp;
-    try { resp = await fetch(url, { ...options, signal: ctrl.signal }); }
-    catch (e) {
-      clearTimeout(timer);
-      if (e.name === 'AbortError') throw new ApiError(`응답 시간이 초과되었어요 (${Math.round(timeoutMs / 1000)}초). 네트워크를 확인하세요.`, 0);
-      throw new ApiError('서버에 연결하지 못했어요. 인터넷 연결, VPN, 광고차단 확장프로그램을 확인하고, 파일을 file:// 로 열었다면 웹 주소로 열어 보세요.', 0);
-    }
-    clearTimeout(timer);
-    const text = await resp.text();
-    let body = null; try { body = JSON.parse(text); } catch (e) {}
-    if (!resp.ok) {
-      let m = (body && ((body.error && body.error.message) || body.error || body.message)) || text.slice(0, 200) || resp.statusText;
-      if (typeof m !== 'string') m = JSON.stringify(m);
-      throw new ApiError(m, resp.status);
-    }
-    return body;
-  }
-  function authHeaders(p, key) {
-    if (p === 'gemini') return { 'x-goog-api-key': key };
-    if (p === 'anthropic') return { 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' };
-    return { 'Authorization': `Bearer ${key}` };
-  }
-  function friendlyError(p, e) {
-    const name = PROVIDERS[p].label, s = e.status, raw = e.message || '';
-    if (s === 401 || s === 403 || /API key not valid|invalid.*key|permission/i.test(raw)) {
-      const extra = (p === 'xai' && /credit|billing|spending/i.test(raw)) ? '\nxAI는 크레딧(결제)이 있어야 호출돼요. console.x.ai 에서 확인하세요.' : '';
-      return `${name} 키 인증에 실패했어요 (${s || '키 오류'}). 키를 다시 확인하세요.${extra}\n원문: ${raw}`;
-    }
-    if (s === 429) return `${name} 사용 한도를 넘었거나 요청이 너무 잦아요. 잠시 후 다시 시도하거나 결제/한도를 확인하세요.\n원문: ${raw}`;
-    if (s === 404) return `${name} 모델을 찾지 못했어요. 설정에서 연결 테스트로 모델 목록을 다시 불러오세요.\n원문: ${raw}`;
-    if (s === 400) return `${name} 요청 오류(400).\n원문: ${raw}`;
-    if (s >= 500) return `${name} 서버 오류(${s}). 잠시 후 다시 시도하세요.`;
-    return raw || `${name} 알 수 없는 오류`;
-  }
-
-  const verOf = id => (id.replace(/-\d{8}$/, '').replace(/-\d{4}-\d{2}-\d{2}$/, '').match(/\d+(?:\.\d+)?/g) || []).map(Number);
-  function cmpVerDesc(a, b) {
-    const A = verOf(a), B = verOf(b);
-    for (let i = 0; i < Math.max(A.length, B.length); i++) { const d = (B[i] || 0) - (A[i] || 0); if (d) return d; }
-    return 0;
-  }
-  function rankModels(p, ids) {
-    let list = [...new Set(ids)], rank;
-    if (p === 'gemini') {
-      list = list.filter(id => /^gemini-/.test(id) && !/image|tts|embed|live|audio|robotics|computer|aqa|imagen|veo|native|learnlm/.test(id));
-      rank = id => (/flash/.test(id) && !/lite/.test(id) ? 0 : /flash-lite/.test(id) ? 1 : 2) + (/preview|exp/.test(id) ? 0.5 : 0);
-    } else if (p === 'xai') {
-      list = list.filter(id => /^grok/.test(id) && !/image|imagine|video|vision/.test(id));
-      rank = id => (/mini|fast/.test(id) ? 0 : 1);
-    } else if (p === 'openai') {
-      list = list.filter(id => /^gpt-/.test(id) && !/audio|realtime|image|tts|transcribe|search|instruct|embedding|moderation|codex|chat-latest|preview|-\d{4}-\d{2}-\d{2}$/.test(id));
-      rank = id => (/mini|nano/.test(id) ? 0 : 1);
-    } else {
-      list = list.filter(id => /^claude-/.test(id));
-      rank = id => (/haiku/.test(id) ? 0 : /sonnet/.test(id) ? 1 : 2);
-    }
-    return list.sort((a, b) => rank(a) - rank(b) || cmpVerDesc(a, b));
-  }
-  async function listModels(p, key) {
-    let ids = [];
-    if (p === 'gemini') {
-      const body = await http('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200', { headers: authHeaders(p, key) });
-      ids = (body.models || []).filter(m => (m.supportedGenerationMethods || []).includes('generateContent')).map(m => String(m.name).replace(/^models\//, ''));
-    } else if (p === 'xai') {
-      ids = ((await http('https://api.x.ai/v1/models', { headers: authHeaders(p, key) })).data || []).map(m => m.id);
-    } else if (p === 'openai') {
-      ids = ((await http('https://api.openai.com/v1/models', { headers: authHeaders(p, key) })).data || []).map(m => m.id);
-    } else {
-      ids = ((await http('https://api.anthropic.com/v1/models?limit=100', { headers: authHeaders(p, key) })).data || []).map(m => m.id);
-    }
-    return rankModels(p, ids);
-  }
-  async function requestModel(p, key, model, prompt) {
-    if (p === 'gemini') {
-      const gurl = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
-      const gsend = gc => http(gurl, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders(p, key) }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: gc }) });
-      let body;
-      try { body = await gsend({ temperature: 0.2, responseMimeType: 'application/json', thinkingConfig: { thinkingBudget: 0 } }); }
-      catch (e) { if (e.status === 400) body = await gsend({ temperature: 0.2, responseMimeType: 'application/json' }); else throw e; }
-      const parts = (body.candidates && body.candidates[0] && body.candidates[0].content && body.candidates[0].content.parts) || [];
-      const text = parts.filter(x => !x.thought).map(x => x.text || '').join('');
-      if (!text) throw new ApiError('빈 응답이 왔어요' + (body.promptFeedback && body.promptFeedback.blockReason ? ` (${body.promptFeedback.blockReason})` : ''), 0);
-      return text;
-    }
-    if (p === 'xai' || p === 'openai') {
-      const url = p === 'xai' ? 'https://api.x.ai/v1/chat/completions' : 'https://api.openai.com/v1/chat/completions';
-      const base = { model, messages: [{ role: 'system', content: 'You are a dictionary API. Reply with a single JSON object only.' }, { role: 'user', content: prompt }] };
-      const send = payload => http(url, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders(p, key) }, body: JSON.stringify(payload) });
-      let body;
-      try { body = await send({ ...base, temperature: 0.2, response_format: { type: 'json_object' } }); }
-      catch (e) { if (e.status === 400) body = await send(base); else throw e; }
-      const text = (body.choices && body.choices[0] && body.choices[0].message && body.choices[0].message.content) || '';
-      if (!text) throw new ApiError('빈 응답이 왔어요', 0);
-      return text;
-    }
-    const body = await http('https://api.anthropic.com/v1/messages', {
-      method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders(p, key) },
-      body: JSON.stringify({ model, max_tokens: 1600, messages: [{ role: 'user', content: prompt }] })
-    });
-    const text = (body.content || []).map(c => c.text || '').join('');
-    if (!text) throw new ApiError('빈 응답이 왔어요', 0);
-    return text;
-  }
-  function parseJson(text) {
-    if (!text) return null;
-    let clean = String(text).replace(/```json/gi, '').replace(/```/g, '').trim();
-    const a = clean.indexOf('{'), b = clean.lastIndexOf('}');
-    if (a !== -1 && b > a) clean = clean.slice(a, b + 1);
-    try { return JSON.parse(clean); } catch (e) { return null; }
-  }
-  function normalizeResult(r) {
-    if (!r || typeof r !== 'object') return null;
-    const syn = Array.isArray(r.synonyms) ? r.synonyms.join(', ') : r.synonyms;
-    const ex = splitExample(r.example, r.exampleKo);
-    const out = { meaning: str(r.meaning), phonetic: str(r.phonetic), koreanPron: str(r.koreanPron), example: ex.en, exampleKo: ex.ko, synonyms: str(syn) };
-    return out.meaning ? out : null;
-  }
-
-  const ownKey = () => { try { return cleanKey(config.keys && config.keys[config.provider]); } catch (e) { return ''; } };
-  const aiReady = () => !!ownKey() || !!(cloudMode && window.Cloud && Cloud.ai);
-  /* task: 서버 AI가 프롬프트를 직접 만들 수 있게 보내는 정보 ({task:'word'|'batch'|'translate', ...}) */
-  async function callAi(prompt, normalize, task) {
-    normalize = normalize || normalizeResult;
-    const p = config.provider;
-    const key = cleanKey(config.keys && config.keys[p]);
-    const finish = text => normalize(parseJson(text));
-    if (!key) {
-      if (cloudMode && window.Cloud && Cloud.ai) {
-        let last = null;
-        for (let a = 0; a < 2; a++) {
-          try { const r = finish(await Cloud.ai(prompt, task)); if (r) return r; last = new ApiError('AI 응답을 해석하지 못했어요. 다시 시도해 주세요.', 0); }
-          catch (e) { last = e; if (e.status && e.status < 500 && e.status !== 408) break; }
-          if (a < 1) await sleep(600);
-        }
-        throw new ApiError(last && last.message ? last.message : 'AI를 쓸 수 없어요.', last && last.status);
-      }
-      throw new ApiError(`AI를 쓰려면 로그인하거나 설정에서 ${PROVIDERS[p].label} API 키를 입력해 주세요.`, 401);
-    }
-    const deadline = Date.now() + 30000;
-    const tryModels = async models => {
-      let lastErr = null;
-      for (const model of models) {
-        for (let a = 0; a < 2; a++) {
-          if (Date.now() > deadline) return { err: lastErr || new ApiError('응답이 너무 늦어요. 잠시 후 다시 시도해 주세요.', 0) };
-          try {
-            const parsed = finish(await requestModel(p, key, model, prompt));
-            if (!parsed) { lastErr = new ApiError('AI 응답을 해석하지 못했어요. 다시 시도해 주세요.', 0); continue; }
-            if (config.models[p] !== model) { config.models[p] = model; syncStorage(); }
-            return { ok: parsed };
-          } catch (e) {
-            lastErr = e;
-            if ([401, 403].includes(e.status)) throw new ApiError(friendlyError(p, e), e.status);
-            if (e.status === 429) { await sleep(1200 * (a + 1)); continue; }
-            if (e.status === 404 || e.status === 400 || e.status === 0) break;
-            await sleep(400);
-          }
-        }
-      }
-      return { err: lastErr };
-    };
-    const first = [];
-    [config.models[p], ...(FALLBACK_MODELS[p] || [])].forEach(m => { if (m && !first.includes(m)) first.push(m); });
-    let r = await tryModels(first.slice(0, 2));
-    if (r.ok) return r.ok;
-    if (!(config.modelLists[p] || []).length && Date.now() < deadline) {
-      try {
-        const list = await listModels(p, key); config.modelLists[p] = list; syncStorage();
-        const more = list.filter(m => !first.slice(0, 2).includes(m)).slice(0, 2);
-        if (more.length) { const r2 = await tryModels(more); if (r2.ok) return r2.ok; r = r2.err ? r2 : r; }
-      } catch (e) { if ([401, 403].includes(e.status)) throw new ApiError(friendlyError(p, e), e.status); }
-    }
-    const err = r.err || new ApiError('알 수 없는 오류', 0);
-    throw new ApiError(friendlyError(p, err), err.status);
-  }
-
-  /* ----- 단어 조회 캐시 · 내장 사전 · 묶음 조회 ----- */
-  const AIC_KEY = 'vocapro_aic2'; let aiCache = null;
-  const aicAll = () => aiCache || (aiCache = loadJson(AIC_KEY) || {});
-  const aicGet = w => { const r = aicAll()[String(w).toLowerCase()]; return r ? { ...r } : null; };
-  const aicSet = (w, r) => { const c = aicAll(); c[String(w).toLowerCase()] = r; const ks = Object.keys(c); if (ks.length > 600) delete c[ks[0]]; try { LS.setItem(AIC_KEY, JSON.stringify(c)); } catch (e) {} };
-  // 내장 사전: dict/<첫 글자>.json 을 필요할 때만 불러와요. [단어, 뜻, 발음기호, 한글 발음, 예문, 예문 해석, 유의어]
-  const DICT_KEYS = ['word', 'meaning', 'phonetic', 'koreanPron', 'example', 'exampleKo', 'synonyms'];
-  const dictShards = {};
-  function dictShard(c) {
-    if (!dictShards[c]) dictShards[c] = fetch(`dict/${c}.json`).then(r => r.ok ? r.json() : null).catch(() => null)
-      .then(d => { if (!d) delete dictShards[c]; return d || {}; });
-    return dictShards[c];
-  }
-  const dictLetter = w => { const c = String(w || '').trim().charAt(0).toLowerCase(); return c >= 'a' && c <= 'z' ? c : ''; };
-  async function dictGet(word) {
-    const c = dictLetter(word); if (!c) return null;
-    const a = (await dictShard(c))[String(word).trim().toLowerCase()];
-    if (!a) return null;
-    const o = {}; DICT_KEYS.forEach((k, i) => { o[k] = a[i] || ''; }); return o;
-  }
-  async function dictPreload(words) { await Promise.all([...new Set(words.map(dictLetter).filter(Boolean))].map(dictShard)); }
-  async function lookupWord(word, full) {
-    const own = await dictGet(word); if (own) return own;
-    const hit = aicGet(word); if (hit && (hit.example || !full)) return hit;
-    const r = await callAi(buildPrompt(word, full), normalizeResult, { task: 'word', word, full: !!full }); if (full) aicSet(word, r); return r;
-  }
-  const buildBatchPrompt = words => `You are an English-Korean dictionary for Korean students. Define each English word or phrase below.
-Return ONLY one JSON object (no markdown): {"items":[{"word":"<same word as given>","meaning":"핵심 한국어 뜻 (품사 포함, 예: 형 일관된)","phonetic":"/IPA/","koreanPron":"한글 발음","example":"short natural English sentence (under 12 words)","exampleKo":"그 예문의 자연스러운 한국어 해석","synonyms":"synonym1, synonym2"}]}
-Keep the same order. WORDS: ${JSON.stringify(words)}`;
-  function normalizeBatch(o) {
-    if (!o || !Array.isArray(o.items)) return null;
-    const m = {};
-    o.items.forEach(it => { const n = normalizeResult(it); if (n && it && it.word) m[String(it.word).trim().toLowerCase()] = n; });
-    return Object.keys(m).length ? m : null;
-  }
-
-  const buildPrompt = (word, full) => `You are an English-Korean dictionary for Korean students. Define the English word or phrase "${word}".
-Return ONLY one JSON object (no markdown, no commentary) with exactly these keys:
-{"meaning":"가장 핵심적인 한국어 뜻 (품사 포함, 예: 형 일관된)","phonetic":"/IPA/","koreanPron":"한글 발음 표기","example":${full ? '"short natural English sentence (under 12 words)"' : '""'},"exampleKo":${full ? '"그 예문의 자연스러운 한국어 해석"' : '""'},"synonyms":${full ? '"synonym1, synonym2, synonym3"' : '""'}}`;
-
-  let formEditId = null, aiRun = 0;
-  function aiState(html, kind) { const e = $('aiState'); if (!e) return; e.className = 'ai-state' + (html ? ' show ' + (kind || '') : ''); e.innerHTML = html || ''; }
-  async function executeFastAi() {
-    const query = $('fieldWord').value.trim();
-    if (!query) return toast('단어를 입력하세요.');
-    const btn = $('btnRunAi'), run = ++aiRun, edit = !!formEditId;
-    const set = (id, v, force) => { const f = $(id); if (f && v && (force || !f.value.trim())) f.value = v; };
-    const local = builtinMeaning(query);
-    if (local) set('fieldMeaning', local, !edit);
-    btn.disabled = true; btn.textContent = '조회 중';
-    const start = Date.now();
-    const tick = () => { if (run === aiRun) aiState(`<span class="dot"></span>${local ? '기본 뜻을 먼저 채웠어요. 발음과 예문을 채우는 중' : 'AI가 채우는 중'} · ${((Date.now() - start) / 1000).toFixed(1)}초`, 'busy'); };
-    tick(); const timer = setInterval(tick, 100);
-    try {
-      const fromDict = await dictGet(query);
-      const r = fromDict || await lookupWord(query, true);
-      if (run !== aiRun || !$('fieldMeaning') || $('fieldWord').value.trim() !== query) return;
-      const force = !edit;
-      set('fieldMeaning', r.meaning, force || $('fieldMeaning').value === local); set('fieldPhonetic', r.phonetic, force); set('fieldKoreanPron', r.koreanPron, force);
-      set('fieldExample', r.example, force); set('fieldExampleKo', r.exampleKo, force); set('fieldSynonyms', r.synonyms, force);
-      clearInterval(timer);
-      aiState(fromDict ? '내장 사전에서 바로 채웠어요' : `채웠어요 · ${((Date.now() - start) / 1000).toFixed(1)}초`, 'ok');
-      playAudio(query);
-    } catch (err) {
-      clearInterval(timer);
-      if (run !== aiRun) return;
-      const msg = esc(String(err.message || '').split('\n')[0]);
-      aiState(`${local ? '기본 뜻만 채웠어요. ' : ''}${msg || 'AI 응답을 받지 못했어요.'} <button class="link-btn" onclick="executeFastAi()">다시 시도</button>`, 'err');
-    } finally { clearInterval(timer); if (run === aiRun && btn) { btn.disabled = false; btn.textContent = 'AI 완성'; } }
-  }
-
-  /* ----- 유의어 시트 ----- */
-  let synData = null;
-  async function inspectSynonym(word) {
-    synData = null;
-    openSheet(word, `<div id="synBox"><div class="q-meaning" style="font-size:1.2rem;">뜻을 찾는 중...</div></div>
-      <div class="row" style="margin-top:16px;"><button class="btn btn-soft" data-act="speak" data-text="${esc(word)}">발음 듣기</button><button class="btn btn-primary" data-act="syn-add">단어장에 추가</button></div>`);
-    playAudio(word);
-    try {
-      const local = builtinMeaning(word);
-      const res = (await dictGet(word)) || (local ? { meaning: local, phonetic: '', koreanPron: '' } : await lookupWord(word, false));
-      if ($('sheetTitle').textContent !== word || !$('synBox')) return;
-      synData = { word, ...res };
-      $('synBox').innerHTML = `<div class="q-pron" style="margin-bottom:6px;">${esc(pronText(res))}</div><div class="q-meaning" style="font-size:1.4rem;">${esc(res.meaning)}</div>`;
-    } catch (e) {
-      if ($('synBox')) $('synBox').innerHTML = `<div class="muted">뜻을 가져오지 못했어요.<br>${esc(e.message.split('\n')[0])}</div>`;
-    }
-  }
-  ACTIONS['syn-add'] = () => {
-    const cat = curCat();
-    if (!synData || !cat) return toast('뜻을 불러온 뒤에 추가할 수 있어요.');
-    if (cat.words.some(w => w.word.toLowerCase() === synData.word.toLowerCase())) return toast('이미 이 단어장에 있어요.');
-    cat.words.unshift(sanitizeWord({ id: uid(), word: synData.word, meaning: synData.meaning, phonetic: synData.phonetic, koreanPron: synData.koreanPron }));
-    syncStorage(); closeSheet(); renderBookDynamic(); toast(`'${synData.word}' 을(를) 추가했어요.`);
-  };
+  ACTIONS['pick-src'] = el => { studyPrefs.src = el.dataset.k; renderStudy(); };
+  ACTIONS['pick-count'] = el => { studyPrefs.count = parseInt(el.dataset.v, 10); renderStudy(); };
+  ACTIONS['study-start'] = el => startSession(el.dataset.mode, parseSrc(studyPrefs.src), studyPrefs.count);
 
   /* =========================================================
-   * 설정
+   * 학습 세션 엔진
    * ======================================================= */
-  function setStatus(type, msg) { const el = $('cfgStatus'); el.className = 'cfg-status ' + type; el.textContent = msg; }
-  function renderModelSelect() {
-    const p = $('cfgProvider').value;
-    const list = config.modelLists[p] || [], selected = config.models[p] || '';
-    const all = selected && !list.includes(selected) ? [selected, ...list] : list;
-    $('cfgModel').innerHTML = '<option value="">자동 선택 (권장)</option>' + all.map(m => `<option value="${esc(m)}">${esc(m)}</option>`).join('');
-    $('cfgModel').value = selected;
-  }
-  function loadSettingsUI() {
-    if (!$('creditFoot')) $('tabSettings').insertAdjacentHTML('beforeend', '<div class="foot-credit" id="creditFoot">VocaPro · 개발자 김주원</div>');
-    rmUI();
-    if (!$('lgLinks') && $('creditFoot')) $('creditFoot').insertAdjacentHTML('beforebegin', legalLinksHtml().replace('class="legal-links"', 'class="legal-links" id="lgLinks"'));
-    if (!$('btnLt')) { const g = $('cfgGoal'); if (g && g.parentNode) g.insertAdjacentHTML('afterend', '<button class="btn btn-soft btn-block" id="btnLt" data-act="level-test" style="margin-top:8px;">레벨 테스트로 목표 추천받기</button>'); }
-    const bp = $('btnPw'); if (bp) bp.style.display = cloudMode ? '' : 'none';
-    const an = $('acctName'); if (an) an.textContent = '현재 계정: ' + (currentLabel || currentUser || '');
-    $('cfgProvider').value = config.provider;
-    $('cfgTtsRate').value = String(config.ttsRate);
-    $('cfgGoal').value = String(config.goal);
-    $('cfgGrade').innerHTML = `<option value="">선택 안 함</option>${gradeOptions(config.grade)}`;
-    onProviderChange(config.provider, true);
-    $('cfgStatus').className = 'cfg-status';
-  }
-  function onProviderChange(p, silent) {
-    if (!silent) config.provider = p;
-    $('cfgKeyLabel').textContent = `${PROVIDERS[p].label} API Key`;
-    $('cfgKey').placeholder = PROVIDERS[p].hint;
-    $('cfgKey').value = config.keys[p] || '';
-    renderModelSelect();
-    if (!silent) { $('cfgStatus').className = 'cfg-status'; syncStorage(); }
-  }
-  $('cfgModel').addEventListener('change', e => { config.models[$('cfgProvider').value] = e.target.value; syncStorage(); });
+  let S = { active: false };
 
-  async function testConnection() {
-    const p = $('cfgProvider').value, btn = $('btnTestConn');
-    config.provider = p;
-    try {
-      const key = cleanKey($('cfgKey').value);
-      if (!key) return setStatus('err', 'API 키를 입력해 주세요.');
-      config.keys[p] = key; $('cfgKey').value = key; syncStorage();
-      btn.disabled = true;
-      setStatus('info', '모델 목록을 불러오는 중...');
-      let list;
-      try { list = await listModels(p, key); }
-      catch (e) { if ([401, 403].includes(e.status) || e.status === 0) throw e; list = []; }
-      const usedFallback = !list.length;
-      if (usedFallback) list = FALLBACK_MODELS[p];
-      config.modelLists[p] = list;
-      if (config.models[p] && !list.includes(config.models[p]) && !usedFallback) config.models[p] = '';
-      syncStorage(); renderModelSelect();
+  function startSession(mode, src, count, override) {
+    if (!MODES[mode]) return;
+    const items = override ? override : poolFor(src);
+    if (!items.length) return toast(EMPTY_MSG[src.type] || '학습할 단어가 없어요.');
+    if ((mode === 'choice' || mode === 'rchoice') && allWords().length < 4) return toast('4지선다는 전체 단어가 4개 이상 있어야 해요.');
+    let q = shuffled(items.map(x => ({ w: x.w, catId: x.catId })));
+    if (count > 0) q = q.slice(0, count);
+    const dpool = poolFor(src).map(x => x.w);
+    S = { active: true, finished: false, mode, src, count, queue: q, total: q.length, idx: 0, ok: 0, no: 0, wrong: new Map(), locked: false, answered: false, options: [], dpool: dpool.length >= 4 ? dpool : allWords().map(x => x.w), startN: (stats.days[dayKey()] || { n: 0 }).n };
+    $('studyScreen').classList.add('open');
+    document.body.classList.add('no-scroll');
+    kbdHint(mode);
+    if (mode === 'listen') startListen(); else renderQuestion();
+  }
 
-      setStatus('info', `모델 ${list.length}개를 확인했어요. 실제 호출을 테스트하는 중...`);
-      const tried = [];
-      const order = [config.models[p], ...list].filter(Boolean).filter((m, i, a) => a.indexOf(m) === i).slice(0, 4);
-      for (const model of order) {
-        try {
-          await requestModel(p, key, model, buildPrompt('test', false));
-          config.models[p] = model; syncStorage(); renderModelSelect();
-          setStatus('ok', `연결에 성공했어요.\n사용 모델: ${model}\n사용 가능한 모델 ${list.length}개를 위 목록에 불러왔어요.`);
-          return;
-        } catch (e) {
-          tried.push(`• ${model}: ${e.message.slice(0, 120)}`);
-          if ([401, 403, 429].includes(e.status)) throw e;
-        }
+  function renderQuestion() {
+    if (S.idx >= S.queue.length) return finishSession();
+    S.locked = false; S.answered = false;
+    $('stProg').style.width = (S.idx / S.queue.length * 100) + '%';
+    $('stCount').textContent = `${S.idx + 1}/${S.queue.length}`;
+    const item = S.queue[S.idx];
+    if (S.mode === 'card') renderCard(item);
+    else if (S.mode === 'choice') renderChoice(item, false);
+    else if (S.mode === 'rchoice') renderChoice(item, true);
+    else renderTyping(item, S.mode === 'dict');
+    $('stBody').scrollTop = 0;
+  }
+  const pronText = w => `${w.phonetic} ${w.koreanPron ? `[${w.koreanPron}]` : ''}`.trim();
+
+  function recordResult(item, ok) {
+    const w = item.w;
+    grade(w, ok);
+    recordStat(ok);
+    if (!item.retry) { ok ? S.ok++ : S.no++; }
+    if (!ok) {
+      if (!S.wrong.has(w.id)) S.wrong.set(w.id, item);
+      if (!item.retry) S.queue.push({ w, catId: item.catId, retry: true });
+    }
+    syncStorage();
+  }
+  function nextQuestion() { S.idx++; renderQuestion(); }
+
+  /* ----- 플래시카드 ----- */
+  function renderCard(item) {
+    const w = item.w;
+    $('stBody').innerHTML = `
+      <div class="q-wrap">
+        <div class="sw-hint"><span class="no">← 아직 몰라요</span><span class="ok">알아요 →</span></div>
+        <div class="swipe-area">
+          <div class="swipe-wrap" id="swipeWrap" data-dir="">
+            <div class="sw-badge ok">알아요</div><div class="sw-badge no">몰라요</div>
+            <div class="fc-card-3d" id="fc3d">
+              <div class="fc-face">
+                <div class="q-word">${esc(w.word)}</div>
+                <div class="q-pron">${esc(pronText(w))}</div>
+                <button class="q-speak" data-act="speak" data-text="${esc(w.word)}" aria-label="발음 듣기">${IC.speaker}</button>
+                <div class="fc-hint">카드를 눌러 뜻 보기</div>
+              </div>
+              <div class="fc-face fc-back">
+                <div class="q-meaning">${esc(w.meaning)}</div>
+                ${w.example ? `<div class="fc-ex"><span>${esc(w.example)}</span>${w.exampleKo ? `<small>${esc(w.exampleKo)}</small>` : ''}</div>` : ''}
+                <div class="fc-hint">${w.box >= 1 ? esc(dueText(w)) : '새 단어'}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row q-foot">
+          <button class="btn btn-bad" data-act="fly" data-dir="-1">아직 몰라요</button>
+          <button class="btn btn-ok" data-act="fly" data-dir="1">알아요</button>
+        </div>
+      </div>`;
+    bindSwipe();
+    playAudio(w.word);
+  }
+  function bindSwipe() {
+    const wrap = $('swipeWrap'); if (!wrap) return;
+    let sx = 0, dx = 0, drag = false, moved = false;
+    const reset = () => { wrap.style.transition = 'transform .2s'; wrap.style.transform = ''; wrap.dataset.dir = ''; };
+    wrap.addEventListener('pointerdown', e => {
+      if (S.locked || e.target.closest('[data-act="speak"]')) return;
+      drag = true; moved = false; sx = e.clientX; dx = 0;
+      wrap.style.transition = 'none';
+      try { wrap.setPointerCapture(e.pointerId); } catch (err) {}
+    });
+    wrap.addEventListener('pointermove', e => {
+      if (!drag) return;
+      dx = e.clientX - sx;
+      if (Math.abs(dx) > 8) moved = true;
+      wrap.style.transform = `translateX(${dx}px) rotate(${dx / 22}deg)`;
+      wrap.dataset.dir = dx > 45 ? 'ok' : dx < -45 ? 'no' : '';
+    });
+    wrap.addEventListener('pointerup', () => {
+      if (!drag) return;
+      drag = false;
+      if (!moved) { reset(); $('fc3d').classList.toggle('is-flipped'); return; }
+      if (dx > 100) flyCard(1); else if (dx < -100) flyCard(-1); else reset();
+    });
+    wrap.addEventListener('pointercancel', () => { drag = false; reset(); });
+  }
+  function flyCard(dir) {
+    const wrap = $('swipeWrap');
+    if (!wrap || S.locked) return;
+    S.locked = true;
+    wrap.dataset.dir = dir > 0 ? 'ok' : 'no';
+    wrap.style.transition = 'transform .28s ease, opacity .28s';
+    wrap.style.transform = `translateX(${dir * 520}px) rotate(${dir * 22}deg)`;
+    wrap.style.opacity = '0';
+    const my = S.idx;
+    setTimeout(() => {
+      if (!S.active || S.idx !== my) return;
+      recordResult(S.queue[S.idx], dir > 0);
+      nextQuestion();
+    }, 260);
+  }
+  ACTIONS.fly = el => flyCard(parseInt(el.dataset.dir, 10));
+
+  /* ----- 4지선다 ----- */
+  function makeOptions(cur, field) {
+    const val = x => x[field];
+    const seen = new Set([val(cur)]);
+    const d = [];
+    const take = list => {
+      for (const w of shuffled(list)) {
+        if (d.length === 3) break;
+        if (w.id !== cur.id && val(w) && !seen.has(val(w))) { seen.add(val(w)); d.push(w); }
       }
-      throw new ApiError('시도한 모델이 모두 실패했어요.\n' + tried.join('\n'), 400);
-    } catch (e) {
-      setStatus('err', friendlyError(p, e instanceof ApiError ? e : new ApiError(e.message, 0)));
-    } finally { btn.disabled = false; }
-  }
-
-  /* ----- 백업 ----- */
-  ACTIONS['export-json'] = () => {
-    const data = { app: 'VocaPro', version: 12, settings: { ttsRate: config.ttsRate, darkMode: config.darkMode, goal: config.goal, grade: config.grade }, categories, stats };
-    download(`VocaPro_${dayKey()}.json`, JSON.stringify(data, null, 2), 'application/json');
-    toast('백업 파일을 내려받았어요. API 키는 포함되지 않아요.');
-  };
-  ACTIONS['import-json'] = () => $('importFile').click();
-  function importBackup(e) {
-    const f = e.target.files[0]; if (!f) return;
-    const r = new FileReader();
-    r.onload = async ev => {
-      try {
-        const res = JSON.parse(ev.target.result);
-        const cats = sanitizeCategories(res.categories);
-        if (!cats) throw new Error('형식 오류');
-        if (!await ask(`현재 데이터를 지우고 단어장 ${cats.length}개를 복원할까요?`, { ok: '복원', danger: true })) { e.target.value = ''; return; }
-        categories = cats;
-        if (res.stats) stats = sanitizeStats(res.stats);
-        if (res.settings) {
-          if (res.settings.ttsRate) config.ttsRate = parseFloat(res.settings.ttsRate) || config.ttsRate;
-          if (res.settings.goal) config.goal = parseInt(res.settings.goal, 10) || config.goal;
-          if (typeof res.settings.darkMode === 'boolean') config.darkMode = res.settings.darkMode;
-          if (GRADE_NAMES[res.settings.grade]) config.grade = res.settings.grade;
-        }
-        currentCategoryId = null; viewOrder = null; openDrawers.clear();
-        applyTheme(); syncStorage(); loadSettingsUI(); toast('복원했어요.');
-      } catch (err) { say('올바른 VocaPro 백업 파일이 아니에요.'); }
-      e.target.value = '';
     };
-    r.readAsText(f);
+    take(S.dpool);
+    if (d.length < 3) take(allWords().map(x => x.w));
+    return shuffled([cur, ...d]);
   }
-  ACTIONS['reset-all'] = async () => {
-    if (!await ask('모든 단어장, 단어, 학습 기록이 사라져요. 계속할까요?', { ok: '계속', danger: true })) return;
-    if (!await ask('정말 지울까요? 되돌릴 수 없어요.', { ok: '지우기', danger: true })) return;
-    categories = defaultCats(); stats = { days: {} };
-    syncStorage(); toast('초기화했어요.');
+  function renderChoice(item, reverse) {
+    const w = item.w;
+    S.options = makeOptions(w, reverse ? 'word' : 'meaning');
+    $('stBody').innerHTML = `
+      <div class="q-wrap">
+        <div class="q-card">
+          ${reverse
+            ? `<div class="q-label">이 뜻의 영어 단어는?</div><div class="q-meaning">${esc(w.meaning)}</div>`
+            : `<div class="q-label">이 단어의 뜻은?</div><div class="q-word">${esc(w.word)}</div><div class="q-pron">${esc(pronText(w))}</div><button class="q-speak" data-act="speak" data-text="${esc(w.word)}" aria-label="발음 듣기">${IC.speaker}</button>`}
+        </div>
+        <div class="opts">${S.options.map((o, i) => `<button class="opt" data-act="opt" data-i="${i}"><span class="opt-n">${i + 1}</span><span>${esc(reverse ? o.word : o.meaning)}</span></button>`).join('')}</div>
+      </div>`;
+    if (!reverse) playAudio(w.word);
+  }
+  const PRAISE = ['정답이에요', '좋아요', '잘했어요', '훌륭해요', '완벽해요'];
+  ACTIONS.opt = el => {
+    if (S.locked || !S.active) return;
+    S.locked = true;
+    const item = S.queue[S.idx];
+    const chosen = S.options[parseInt(el.dataset.i, 10)];
+    const ok = chosen.id === item.w.id;
+    const btns = [...$('stBody').querySelectorAll('.opt')];
+    btns.forEach(b => { b.disabled = true; });
+    el.classList.add(ok ? 'correct' : 'wrong');
+    if (!ok) { const ci = S.options.findIndex(o => o.id === item.w.id); if (btns[ci]) btns[ci].classList.add('correct'); }
+    S.combo = ok ? (S.combo || 0) + 1 : 0;
+    const qw = $('stBody').querySelector('.q-wrap');
+    if (qw) {
+      const bar = document.createElement('div');
+      bar.className = 'ans-bar ' + (ok ? 'ok' : 'bad');
+      bar.innerHTML = `<span class="ans-ic">${ok ? IC.tick : IC.x}</span><span class="ans-t"><b>${ok ? PRAISE[Math.floor(Math.random() * PRAISE.length)] : '정답은 이거예요'}</b><span>${esc(item.w.word)} · ${esc(item.w.meaning)}</span></span>${ok && S.combo >= 3 ? `<span class="ans-combo">${S.combo}연속 정답</span>` : ''}`;
+      qw.appendChild(bar);
+    }
+    if (S.mode === 'rchoice') playAudio(item.w.word);
+    recordResult(item, ok);
+    const my = S.idx;
+    setTimeout(() => { if (S.active && S.idx === my) nextQuestion(); }, ok ? 700 : 1600);
   };
 
+  /* ----- 스펠링 / 듣고 쓰기 ----- */
+  const norm = s => String(s).toLowerCase().replace(/\s+/g, ' ').replace(/[.,!?]+$/g, '').trim();
+  function renderTyping(item, dictation) {
+    const w = item.w;
+    const hint = w.word.split('').map((ch, i) => ch === ' ' ? '  ' : (i === 0 ? ch : '_')).join(' ');
+    $('stBody').innerHTML = `
+      <div class="q-wrap">
+        <div class="q-card">
+          ${dictation
+            ? `<div class="q-label">들리는 단어를 입력하세요</div><button class="q-speak big" data-act="speak" data-text="${esc(w.word)}" aria-label="다시 듣기">${IC.speaker}</button><div class="q-sub">눌러서 다시 들을 수 있어요</div>`
+            : `<div class="q-label">이 뜻의 영어 단어를 쓰세요</div><div class="q-meaning">${esc(w.meaning)}</div><div class="q-hint">${esc(hint)}</div>`}
+        </div>
+        <input type="text" id="typeInput" class="type-input" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="여기에 입력">
+        <div id="typeFeedback"></div>
+        <div class="row q-foot">
+          <button class="btn btn-soft" id="typeSkip" data-act="type-skip">모르겠어요</button>
+          <button class="btn btn-primary" id="typeBtn" data-act="type-submit">확인</button>
+        </div>
+      </div>`;
+    if (dictation) playAudio(w.word);
+    setTimeout(() => { const i = $('typeInput'); if (i) i.focus(); }, 120);
+  }
+  function showTypeResult(ok, typed) {
+    const item = S.queue[S.idx], w = item.w;
+    S.answered = true;
+    $('typeInput').disabled = true;
+    $('typeFeedback').innerHTML = ok
+      ? `<div class="fb ok"><span class="ans-ic">${IC.tick}</span><div>정답이에요! <b>${esc(w.word)}</b><div class="fb-sub">${esc(w.meaning)}</div></div></div>`
+      : `<div class="fb bad"><span class="ans-ic">${IC.x}</span><div>정답은 <b>${esc(w.word)}</b> ${esc(w.phonetic)}<div class="fb-sub">${esc(w.meaning)}${w.example ? '<br>' + esc(w.example) : ''}${w.exampleKo ? '<br>' + esc(w.exampleKo) : ''}</div></div></div>`;
+    $('typeBtn').textContent = '다음';
+    $('typeSkip').style.display = 'none';
+    playAudio(w.word);
+    recordResult(item, ok);
+  }
+  ACTIONS['type-submit'] = () => {
+    if (!S.active) return;
+    if (S.answered) return nextQuestion();
+    const typed = $('typeInput').value;
+    if (!typed.trim()) return toast('답을 입력해 주세요.');
+    showTypeResult(norm(typed) === norm(S.queue[S.idx].w.word), typed);
+  };
+  ACTIONS['type-skip'] = () => { if (S.active && !S.answered) showTypeResult(false, ''); };
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && S.active && (S.mode === 'spell' || S.mode === 'dict') && !S.finished) {
+      if (e.target.id === 'typeInput' || S.answered) { e.preventDefault(); ACTIONS['type-submit'](); }
+    }
+  });
+
+  /* ----- 결과 ----- */
+  function finishSession() {
+    S.finished = true;
+    kbdHint('');
+    try { window.speechSynthesis.cancel(); } catch (e) {}
+    $('stProg').style.width = '100%';
+    $('stCount').textContent = '';
+    const first = S.ok + S.no;
+    const pct = first ? Math.round(S.ok / first * 100) : 0;
+    const mood = pct >= 90 ? 'cheer' : pct >= 70 ? 'happy' : 'think';
+    const title = pct >= 90 ? '완벽해요!' : pct >= 70 ? '아주 잘했어요' : pct >= 40 ? '조금만 더 하면 돼요' : '괜찮아요, 다시 해봐요';
+    const st = streak();
+    const goal = config.goal || 20;
+    const todayN = (stats.days[dayKey()] || { n: 0 }).n;
+    const goalHit = S.startN < goal && todayN >= goal;
+    const wrongs = [...S.wrong.values()];
+    const label = S.mode === 'card' ? '알아요' : '정답';
+    $('stBody').innerHTML = `
+      <div class="result">
+        <div class="result-art">${MASCOT(mood)}</div>
+        <h2>${title}</h2>
+        <div class="score">${S.ok} / ${first}</div>
+        <div class="result-stats"><div><b>${pct}%</b><span>${label}</span></div><div><b>${st}일</b><span>연속 학습</span></div><div class="${goalHit ? 'hit' : ''}"><b>${todayN}/${goal}</b><span>${goalHit ? '목표 달성!' : '오늘 목표'}</span></div></div>
+        ${wrongs.length ? `<div class="card result-box"><b style="font-size:.95rem;">다시 볼 단어 ${wrongs.length}개</b>${wrongs.map(it => `<div class="wrong-item"><b>${esc(it.w.word)}</b><span>${esc(it.w.meaning)}</span><button class="w-speak" data-act="speak" data-text="${esc(it.w.word)}" aria-label="발음 듣기">${IC.speaker}</button></div>`).join('')}</div>` : '<div class="card result-box" style="text-align:center;">틀린 단어가 없어요. 대단해요!</div>'}
+        <div class="row" style="margin-top:6px;">
+          ${wrongs.length ? '<button class="btn btn-soft" data-act="retry-wrong">틀린 것만 다시</button>' : '<button class="btn btn-soft" data-act="again">한 번 더</button>'}
+          <button class="btn btn-primary" data-act="exit-session">마치기</button>
+        </div>
+      </div>`;
+    if (pct >= 80 || goalHit) confetti();
+  }
+  ACTIONS['retry-wrong'] = () => {
+    const items = [...S.wrong.values()].map(i => ({ w: i.w, catId: i.catId }));
+    startSession(S.mode, S.src, 0, items);
+  };
+  ACTIONS.again = () => startSession(S.mode, S.src, S.count);
+
+  async function exitSession(force) {
+    if (!force && S.active && !S.finished && S.idx > 0 && S.mode !== 'listen') {
+      if (!await ask('학습을 그만할까요?\n지금까지 푼 결과는 저장돼 있어요.', { ok: '그만하기' })) return;
+    }
+    L.token++;
+    try { window.speechSynthesis.cancel(); } catch (e) {}
+    S.active = false;
+    $('studyScreen').classList.remove('open');
+    if (!$('sheetOv').classList.contains('open')) document.body.classList.remove('no-scroll');
+    go(curTab);
+  }
+  ACTIONS['exit-session'] = () => exitSession(false);
+
+  /* ----- 듣기 모드 ----- */
+  let L = { token: 0, items: [], i: 0, playing: false, example: true };
+  function startListen() {
+    L = { token: L.token + 1, items: S.queue, i: 0, playing: true, example: true };
+    renderListen();
+    listenLoop(L.token);
+  }
+  function renderListen() {
+    const it = L.items[L.i];
+    if (!it) return;
+    const w = it.w;
+    $('stProg').style.width = (L.i / L.items.length * 100) + '%';
+    $('stCount').textContent = `${L.i + 1}/${L.items.length}`;
+    $('stBody').innerHTML = `
+      <div class="q-wrap">
+        <div class="q-card">
+          <div class="q-word">${esc(w.word)}</div>
+          <div class="q-pron">${esc(pronText(w))}</div>
+          <div class="q-meaning" style="margin-top:10px;">${esc(w.meaning)}</div>
+          ${w.example ? `<div class="q-sub">${esc(w.example)}${w.exampleKo ? `<br><span class="ex-ko">${esc(w.exampleKo)}</span>` : ''}</div>` : ''}
+        </div>
+        <div class="player">
+          <button data-act="l-prev" aria-label="이전">${IC.prev}</button>
+          <button class="play" data-act="l-toggle" aria-label="재생/일시정지">${L.playing ? IC.pause : IC.play}</button>
+          <button data-act="l-next" aria-label="다음">${IC.next}</button>
+        </div>
+        <label class="switch-row"><input type="checkbox" ${L.example ? 'checked' : ''} onchange="L.example = this.checked"> 예문도 읽어주기</label>
+      </div>`;
+  }
+  async function listenLoop(token) {
+    while (L.token === token && L.playing && L.i < L.items.length) {
+      const w = L.items[L.i].w;
+      renderListen();
+      await speak(w.word, 'en-US');
+      if (L.token !== token || !L.playing) return;
+      await sleep(450);
+      await speak(w.meaning.replace(/[()\[\]]/g, ' '), 'ko-KR');
+      if (L.token !== token || !L.playing) return;
+      if (L.example && w.example) {
+        await sleep(350);
+        await speak(w.example, 'en-US');
+        if (L.token !== token || !L.playing) return;
+      }
+      await sleep(900);
+      if (L.token !== token || !L.playing) return;
+      L.i++;
+    }
+    if (L.token === token && L.i >= L.items.length) {
+      L.playing = false; L.i = L.items.length - 1;
+      $('stProg').style.width = '100%';
+      toast('한 바퀴 끝! 다시 들으려면 재생을 누르세요.');
+      renderListen();
+      L.i = 0;
+    }
+  }
+  function listenRestart() { L.token++; try { window.speechSynthesis.cancel(); } catch (e) {} renderListen(); if (L.playing) listenLoop(L.token); }
+  ACTIONS['l-toggle'] = () => {
+    L.playing = !L.playing;
+    if (!L.playing) { L.token++; try { window.speechSynthesis.cancel(); } catch (e) {} renderListen(); }
+    else { L.token++; listenLoop(L.token); }
+  };
+  ACTIONS['l-next'] = () => { if (L.i < L.items.length - 1) { L.i++; listenRestart(); } };
+  ACTIONS['l-prev'] = () => { if (L.i > 0) { L.i--; listenRestart(); } };
+
+  /* =========================================================
+   * 통계
+   * ======================================================= */
+  function renderStats() {
+    const days = stats.days, goal = config.goal || 20, c = counts();
+    let totalN = 0, totalOk = 0;
+    Object.keys(days).forEach(k => { totalN += days[k].n; totalOk += days[k].ok; });
+    const acc = totalN ? Math.round(totalOk / totalN * 100) : 0;
+
+    const labels = ['일', '월', '화', '수', '목', '금', '토'];
+    const week = [];
+    for (let i = 6; i >= 0; i--) { const t = addDays(startOfDay(), -i); week.push({ t, n: (days[dayKey(t)] || { n: 0 }).n, today: i === 0 }); }
+    const maxN = Math.max(goal, ...week.map(x => x.n), 1);
+    const bars = week.map(x => `<div class="bar-col ${x.today ? 'today' : ''}">${x.n || ''}<i style="height:${Math.max(4, Math.round(x.n / maxN * 100))}%"></i>${labels[new Date(x.t).getDay()]}</div>`).join('');
+
+    const dow = new Date().getDay();
+    const gridStart = addDays(startOfDay(), -(28 + dow));
+    let heat = labels.map(l => `<div class="heat-h">${l}</div>`).join('');
+    for (let i = 0; i < 35; i++) {
+      const t = addDays(gridStart, i);
+      if (t > startOfDay()) { heat += '<div class="cell future"></div>'; continue; }
+      const n = (days[dayKey(t)] || { n: 0 }).n;
+      const lv = n === 0 ? 0 : n < 5 ? 1 : n < 15 ? 2 : n < 30 ? 3 : 4;
+      heat += `<div class="cell l${lv} ${t === startOfDay() ? 'is-today' : ''}" title="${dayKey(t)} · ${n}개"></div>`;
+    }
+
+    const tot = Math.max(1, c.total);
+    const top = allWords().map(x => x.w).filter(w => w.wrong > 0).sort((a, b) => b.wrong - a.wrong).slice(0, 5);
+
+    $('tabStats').innerHTML = `
+      <h2 class="page-title">학습 통계</h2>
+      <div class="stat-tiles">
+        <div class="stat-tile"><b>${streak()}일</b><span>연속 학습</span></div>
+        <div class="stat-tile"><b>${bestStreak()}일</b><span>최고 기록</span></div>
+        <div class="stat-tile"><b>${acc}%</b><span>전체 정답률</span></div>
+      </div>
+      <div class="card" style="margin-bottom:12px;">
+        <b>최근 7일</b>
+        <div class="bars">${bars}</div>
+        <div class="goal-line">하루 목표 ${goal}개 · 총 ${totalN}번 학습했어요</div>
+      </div>
+      <div class="card" style="margin-bottom:12px;">
+        <b>단어 레벨</b>
+        <div class="stack">
+          <i style="width:${c.mastered / tot * 100}%;background:var(--mint)"></i>
+          <i style="width:${c.learning / tot * 100}%;background:var(--blue)"></i>
+          <i style="width:${c.newW / tot * 100}%;background:var(--line)"></i>
+        </div>
+        <div class="legend"><span style="--c:var(--mint)">마스터 ${c.mastered}</span><span style="--c:var(--blue)">학습 중 ${c.learning}</span><span style="--c:var(--line)">새 단어 ${c.newW}</span></div>
+      </div>
+      <div class="card" style="margin-bottom:12px;">
+        <b>최근 5주 학습 달력</b>
+        <div class="heat">${heat}</div>
+      </div>
+      <div class="card">
+        <b>자주 틀리는 단어</b>
+        ${top.length ? top.map(w => `<div class="miss-item"><b>${esc(w.word)}</b><span>${esc(w.meaning)}</span><span class="badge b-bad" style="flex:none;">${w.wrong}회</span></div>`).join('') : emptyHtml('아직 틀린 단어가 없어요', '', 'happy')}
+      </div>`;
+  }
+
+  /* =========================================================
+   * TTS
+   * ======================================================= */
+  function voiceFor(lang) {
+    try {
+      const vs = window.speechSynthesis.getVoices(), L2 = lang.toLowerCase(), n = v => (v.lang || '').toLowerCase().replace('_', '-');
+      const exact = vs.filter(v => n(v) === L2);
+      if (L2 === 'en-us') return exact.find(v => /samantha|google us|aria|jenny|ava|allison|zira|natural|siri/i.test(v.name)) || exact[0] || null;
+      return exact[0] || vs.find(v => n(v).startsWith(L2.slice(0, 2))) || null;
+    } catch (e) { return null; }
+  }
+  function speak(text, lang) {
+    return new Promise(res => {
+      if (!('speechSynthesis' in window) || !text) return res();
+      try { window.speechSynthesis.cancel(); } catch (e) {}
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = lang || 'en-US';
+      u.rate = parseFloat(config.ttsRate) || 0.9;
+      const v = voiceFor(u.lang); if (v) u.voice = v;
+      let done = false;
+      const fin = () => { if (!done) { done = true; res(); } };
+      u.onend = fin; u.onerror = fin;
+      setTimeout(fin, 6000 + text.length * 160);
+      window.speechSynthesis.speak(u);
+    });
+  }
+  function playAudio(text) { speak(text, 'en-US'); }
 
