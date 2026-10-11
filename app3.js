@@ -1,3 +1,50 @@
+  /* =========================================================
+   * 학습 탭 (소스 + 모드 선택)
+   * ======================================================= */
+  const MODES = {
+    card:    { name: '플래시카드', ico: IC.cards, desc: '밀어서 외웠음 / 모름' },
+    choice:  { name: '뜻 고르기', ico: IC.check, desc: '단어를 보고 뜻 맞히기' },
+    rchoice: { name: '단어 고르기', ico: IC.repeat, desc: '뜻을 보고 단어 맞히기' },
+    spell:   { name: '스펠링', ico: IC.keyboard, desc: '뜻을 보고 직접 쓰기' },
+    dict:    { name: '듣고 쓰기', ico: IC.headphones, desc: '발음을 듣고 타이핑' },
+    listen:  { name: '듣기 모드', ico: IC.speaker, desc: '자동으로 이어 듣기' }
+  };
+  const studyPrefs = { src: 'due', count: SESSION_DEFAULT };
+  const parseSrc = s => (s && s.startsWith('cat:')) ? { type: 'cat', id: s.slice(4) } : { type: s || 'all' };
+  const srcKey = src => src.type === 'cat' ? 'cat:' + src.id : src.type;
+
+  function poolFor(src) {
+    const end = startOfDay() + DAY - 1, all = allWords();
+    switch (src.type) {
+      case 'cat': return all.filter(x => x.catId === src.id);
+      case 'due': return all.filter(x => x.w.box >= 1 && x.w.due <= end);
+      case 'new': return all.filter(x => x.w.box === 0);
+      case 'wrong': return all.filter(x => x.w.miss > 0);
+      case 'star': return all.filter(x => x.w.star);
+      default: return all;
+    }
+  }
+  const EMPTY_MSG = { due: '오늘 복습할 단어가 없어요. 잘하고 있어요!', new: '새 단어가 없어요. 단어를 추가해 보세요.', wrong: '오답노트가 비어 있어요.', star: '즐겨찾기한 단어가 없어요. 단어 카드의 별 아이콘을 눌러 보세요.', cat: '이 단어장에 단어가 없어요.', all: '단어가 없어요. 먼저 단어를 추가해 보세요.' };
+
+  function renderStudy() {
+    const c = counts();
+    const srcs = [
+      { k: 'due', n: '오늘 복습', c: c.due }, { k: 'new', n: '새 단어', c: c.newW },
+      { k: 'wrong', n: '오답노트', c: c.miss }, { k: 'star', n: '즐겨찾기', c: c.star }, { k: 'all', n: '전체', c: c.total }
+    ].concat(categories.map(b => ({ k: 'cat:' + b.id, n: b.name, c: b.words.length })));
+    if (!srcs.some(s => s.k === studyPrefs.src)) studyPrefs.src = 'all';
+    const counts4 = [[10, '10개'], [20, '20개'], [50, '50개'], [0, '전체']];
+    $('tabStudy').innerHTML = `
+      <h2 class="page-title">무엇을 공부할까요?</h2>
+      <div class="src-row">${srcs.map(s => `<button class="src ${studyPrefs.src === s.k ? 'on' : ''}" data-act="pick-src" data-k="${esc(s.k)}"><span>${esc(s.n)}</span><b>${s.c}</b></button>`).join('')}</div>
+      <div class="section-title" style="margin-top:14px;"><span>한 번에 학습할 개수</span></div>
+      <div class="seg">${counts4.map(([v, n]) => `<button class="${studyPrefs.count === v ? 'on' : ''}" data-act="pick-count" data-v="${v}">${n}</button>`).join('')}</div>
+      <div class="section-title"><span>학습 방법</span></div>
+      <div class="modes">${Object.keys(MODES).map(k => `<button class="mode" data-act="study-start" data-mode="${k}"><span class="ico">${MODES[k].ico}</span><b>${MODES[k].name}</b><span>${MODES[k].desc}</span></button>`).join('')}</div>`;
+  }
+  ACTIONS['pick-src'] = el => { studyPrefs.src = el.dataset.k; renderStudy(); };
+  ACTIONS['pick-count'] = el => { studyPrefs.count = parseInt(el.dataset.v, 10); renderStudy(); };
+  ACTIONS['study-start'] = el => startSession(el.dataset.mode, parseSrc(studyPrefs.src), studyPrefs.count);
 
   /* =========================================================
    * 학습 세션 엔진
@@ -63,7 +110,7 @@
               </div>
               <div class="fc-face fc-back">
                 <div class="q-meaning">${esc(w.meaning)}</div>
-                ${w.example ? `<div class="fc-ex">${esc(w.example)}</div>` : ''}
+                ${w.example ? `<div class="fc-ex"><span>${esc(w.example)}</span>${w.exampleKo ? `<small>${esc(w.exampleKo)}</small>` : ''}</div>` : ''}
                 <div class="fc-hint">${w.box >= 1 ? esc(dueText(w)) : '새 단어'}</div>
               </div>
             </div>
@@ -192,7 +239,7 @@
     $('typeInput').disabled = true;
     $('typeFeedback').innerHTML = ok
       ? `<div class="fb ok">정답이에요! <b>${esc(w.word)}</b><div class="fb-sub">${esc(w.meaning)}</div></div>`
-      : `<div class="fb bad">정답은 <b>${esc(w.word)}</b> ${esc(w.phonetic)}<div class="fb-sub">${esc(w.meaning)}${w.example ? '<br>' + esc(w.example) : ''}</div></div>`;
+      : `<div class="fb bad">정답은 <b>${esc(w.word)}</b> ${esc(w.phonetic)}<div class="fb-sub">${esc(w.meaning)}${w.example ? '<br>' + esc(w.example) : ''}${w.exampleKo ? '<br>' + esc(w.exampleKo) : ''}</div></div>`;
     $('typeBtn').textContent = '다음';
     $('typeSkip').style.display = 'none';
     playAudio(w.word);
@@ -280,12 +327,12 @@
           <div class="q-word">${esc(w.word)}</div>
           <div class="q-pron">${esc(pronText(w))}</div>
           <div class="q-meaning" style="margin-top:10px;">${esc(w.meaning)}</div>
-          ${w.example ? `<div class="q-sub">${esc(w.example)}</div>` : ''}
+          ${w.example ? `<div class="q-sub">${esc(w.example)}${w.exampleKo ? `<br><span class="ex-ko">${esc(w.exampleKo)}</span>` : ''}</div>` : ''}
         </div>
         <div class="player">
-          <button data-act="l-prev" aria-label="이전">⏮</button>
-          <button class="play" data-act="l-toggle" aria-label="재생/일시정지">${L.playing ? '⏸' : '▶'}</button>
-          <button data-act="l-next" aria-label="다음">⏭</button>
+          <button data-act="l-prev" aria-label="이전">${IC.prev}</button>
+          <button class="play" data-act="l-toggle" aria-label="재생/일시정지">${L.playing ? IC.pause : IC.play}</button>
+          <button data-act="l-next" aria-label="다음">${IC.next}</button>
         </div>
         <label class="switch-row"><input type="checkbox" ${L.example ? 'checked' : ''} onchange="L.example = this.checked"> 예문도 읽어주기</label>
       </div>`;
@@ -301,7 +348,7 @@
       if (L.token !== token || !L.playing) return;
       if (L.example && w.example) {
         await sleep(350);
-        await speak(w.example.split('(')[0], 'en-US');
+        await speak(w.example, 'en-US');
         if (L.token !== token || !L.playing) return;
       }
       await sleep(900);
@@ -311,7 +358,7 @@
     if (L.token === token && L.i >= L.items.length) {
       L.playing = false; L.i = L.items.length - 1;
       $('stProg').style.width = '100%';
-      toast('한 바퀴 끝! 다시 들으려면 ▶를 누르세요.');
+      toast('한 바퀴 끝! 다시 들으려면 재생을 누르세요.');
       renderListen();
       L.i = 0;
     }
@@ -412,3 +459,4 @@
     });
   }
   function playAudio(text) { speak(text, 'en-US'); }
+

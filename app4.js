@@ -1,4 +1,3 @@
-
   /* =========================================================
    * AI 연동 (모델 자동 조회)
    * ======================================================= */
@@ -17,7 +16,7 @@
     if (k && !/^[\x21-\x7E]+$/.test(k)) throw new ApiError('API 키에 한글이나 특수문자가 섞여 있어요. 키를 다시 복사해서 붙여넣어 주세요.', 0);
     return k;
   }
-  async function http(url, options = {}, timeoutMs = 20000) {
+  async function http(url, options = {}, timeoutMs = 15000) {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), timeoutMs);
     let resp;
@@ -133,11 +132,15 @@
   function normalizeResult(r) {
     if (!r || typeof r !== 'object') return null;
     const syn = Array.isArray(r.synonyms) ? r.synonyms.join(', ') : r.synonyms;
-    const out = { meaning: str(r.meaning), phonetic: str(r.phonetic), koreanPron: str(r.koreanPron), example: str(r.example), synonyms: str(syn) };
+    const ex = splitExample(r.example, r.exampleKo);
+    const out = { meaning: str(r.meaning), phonetic: str(r.phonetic), koreanPron: str(r.koreanPron), example: ex.en, exampleKo: ex.ko, synonyms: str(syn) };
     return out.meaning ? out : null;
   }
 
-  async function callAi(prompt, normalize) {
+  const ownKey = () => { try { return cleanKey(config.keys && config.keys[config.provider]); } catch (e) { return ''; } };
+  const aiReady = () => !!ownKey() || !!(cloudMode && window.Cloud && Cloud.ai);
+  /* task: 서버 AI가 프롬프트를 직접 만들 수 있게 보내는 정보 ({task:'word'|'batch'|'translate', ...}) */
+  async function callAi(prompt, normalize, task) {
     normalize = normalize || normalizeResult;
     const p = config.provider;
     const key = cleanKey(config.keys && config.keys[p]);
@@ -146,17 +149,20 @@
       if (cloudMode && window.Cloud && Cloud.ai) {
         let last = null;
         for (let a = 0; a < 2; a++) {
-          try { const r = finish(await Cloud.ai(prompt)); if (r) return r; last = new ApiError('AI 응답을 해석하지 못했어요. 다시 시도해 주세요.', 0); }
-          catch (e) { last = e; if (e.status && e.status < 500) break; await sleep(900); }
+          try { const r = finish(await Cloud.ai(prompt, task)); if (r) return r; last = new ApiError('AI 응답을 해석하지 못했어요. 다시 시도해 주세요.', 0); }
+          catch (e) { last = e; if (e.status && e.status < 500 && e.status !== 408) break; }
+          if (a < 1) await sleep(600);
         }
         throw new ApiError(last && last.message ? last.message : 'AI를 쓸 수 없어요.', last && last.status);
       }
-      throw new ApiError(`설정에서 ${PROVIDERS[p].label} API 키를 입력해 주세요.`, 401);
+      throw new ApiError(`AI를 쓰려면 로그인하거나 설정에서 ${PROVIDERS[p].label} API 키를 입력해 주세요.`, 401);
     }
+    const deadline = Date.now() + 30000;
     const tryModels = async models => {
       let lastErr = null;
       for (const model of models) {
         for (let a = 0; a < 2; a++) {
+          if (Date.now() > deadline) return { err: lastErr || new ApiError('응답이 너무 늦어요. 잠시 후 다시 시도해 주세요.', 0) };
           try {
             const parsed = finish(await requestModel(p, key, model, prompt));
             if (!parsed) { lastErr = new ApiError('AI 응답을 해석하지 못했어요. 다시 시도해 주세요.', 0); continue; }
@@ -165,9 +171,9 @@
           } catch (e) {
             lastErr = e;
             if ([401, 403].includes(e.status)) throw new ApiError(friendlyError(p, e), e.status);
-            if (e.status === 429) { await sleep(1500 * (a + 1)); continue; }
-            if (e.status === 404 || e.status === 400) break;
-            await sleep(500);
+            if (e.status === 429) { await sleep(1200 * (a + 1)); continue; }
+            if (e.status === 404 || e.status === 400 || e.status === 0) break;
+            await sleep(400);
           }
         }
       }
@@ -177,7 +183,7 @@
     [config.models[p], ...(FALLBACK_MODELS[p] || [])].forEach(m => { if (m && !first.includes(m)) first.push(m); });
     let r = await tryModels(first.slice(0, 2));
     if (r.ok) return r.ok;
-    if (!(config.modelLists[p] || []).length) {
+    if (!(config.modelLists[p] || []).length && Date.now() < deadline) {
       try {
         const list = await listModels(p, key); config.modelLists[p] = list; syncStorage();
         const more = list.filter(m => !first.slice(0, 2).includes(m)).slice(0, 2);
@@ -188,17 +194,34 @@
     throw new ApiError(friendlyError(p, err), err.status);
   }
 
-  /* ----- 단어 조회 캐시 · 묶음 조회 (속도 개선) ----- */
-  const AIC_KEY = 'vocapro_aic'; let aiCache = null;
+  /* ----- 단어 조회 캐시 · 내장 사전 · 묶음 조회 ----- */
+  const AIC_KEY = 'vocapro_aic2'; let aiCache = null;
   const aicAll = () => aiCache || (aiCache = loadJson(AIC_KEY) || {});
   const aicGet = w => { const r = aicAll()[String(w).toLowerCase()]; return r ? { ...r } : null; };
-  const aicSet = (w, r) => { const c = aicAll(); c[String(w).toLowerCase()] = r; const ks = Object.keys(c); if (ks.length > 400) delete c[ks[0]]; try { LS.setItem(AIC_KEY, JSON.stringify(c)); } catch (e) {} };
-  async function lookupWord(word, full) {
-    const hit = aicGet(word); if (hit && (hit.example || !full)) return hit;
-    const r = await callAi(buildPrompt(word, full)); if (full) aicSet(word, r); return r;
+  const aicSet = (w, r) => { const c = aicAll(); c[String(w).toLowerCase()] = r; const ks = Object.keys(c); if (ks.length > 600) delete c[ks[0]]; try { LS.setItem(AIC_KEY, JSON.stringify(c)); } catch (e) {} };
+  // 내장 사전: dict/<첫 글자>.json 을 필요할 때만 불러와요. [단어, 뜻, 발음기호, 한글 발음, 예문, 예문 해석, 유의어]
+  const DICT_KEYS = ['word', 'meaning', 'phonetic', 'koreanPron', 'example', 'exampleKo', 'synonyms'];
+  const dictShards = {};
+  function dictShard(c) {
+    if (!dictShards[c]) dictShards[c] = fetch(`dict/${c}.json`).then(r => r.ok ? r.json() : null).catch(() => null)
+      .then(d => { if (!d) delete dictShards[c]; return d || {}; });
+    return dictShards[c];
   }
-  const buildBatchPrompt = words => `You are an English-Korean dictionary. Define each English word or phrase below.
-Return ONLY one JSON object (no markdown): {"items":[{"word":"<same word as given>","meaning":"핵심 한국어 뜻 (품사 포함)","phonetic":"/IPA/","koreanPron":"한글 발음","example":"짧은 영어 예문 (한국어 해석)","synonyms":"유의어1, 유의어2"}]}
+  const dictLetter = w => { const c = String(w || '').trim().charAt(0).toLowerCase(); return c >= 'a' && c <= 'z' ? c : ''; };
+  async function dictGet(word) {
+    const c = dictLetter(word); if (!c) return null;
+    const a = (await dictShard(c))[String(word).trim().toLowerCase()];
+    if (!a) return null;
+    const o = {}; DICT_KEYS.forEach((k, i) => { o[k] = a[i] || ''; }); return o;
+  }
+  async function dictPreload(words) { await Promise.all([...new Set(words.map(dictLetter).filter(Boolean))].map(dictShard)); }
+  async function lookupWord(word, full) {
+    const own = await dictGet(word); if (own) return own;
+    const hit = aicGet(word); if (hit && (hit.example || !full)) return hit;
+    const r = await callAi(buildPrompt(word, full), normalizeResult, { task: 'word', word, full: !!full }); if (full) aicSet(word, r); return r;
+  }
+  const buildBatchPrompt = words => `You are an English-Korean dictionary for Korean students. Define each English word or phrase below.
+Return ONLY one JSON object (no markdown): {"items":[{"word":"<same word as given>","meaning":"핵심 한국어 뜻 (품사 포함, 예: 형 일관된)","phonetic":"/IPA/","koreanPron":"한글 발음","example":"short natural English sentence (under 12 words)","exampleKo":"그 예문의 자연스러운 한국어 해석","synonyms":"synonym1, synonym2"}]}
 Keep the same order. WORDS: ${JSON.stringify(words)}`;
   function normalizeBatch(o) {
     if (!o || !Array.isArray(o.items)) return null;
@@ -207,26 +230,39 @@ Keep the same order. WORDS: ${JSON.stringify(words)}`;
     return Object.keys(m).length ? m : null;
   }
 
-  const buildPrompt = (word, full) => `You are an English-Korean dictionary. Define the English word or phrase "${word}".
+  const buildPrompt = (word, full) => `You are an English-Korean dictionary for Korean students. Define the English word or phrase "${word}".
 Return ONLY one JSON object (no markdown, no commentary) with exactly these keys:
-{"meaning":"가장 핵심적인 한국어 뜻 (품사 포함, 예: 형 일관된)","phonetic":"/IPA 발음기호/","koreanPron":"한글 발음 표기","example":${full ? '"자연스러운 영어 예문 (한국어 해석)"' : '""'},"synonyms":${full ? '"유의어1, 유의어2, 유의어3"' : '""'}}`;
+{"meaning":"가장 핵심적인 한국어 뜻 (품사 포함, 예: 형 일관된)","phonetic":"/IPA/","koreanPron":"한글 발음 표기","example":${full ? '"short natural English sentence (under 12 words)"' : '""'},"exampleKo":${full ? '"그 예문의 자연스러운 한국어 해석"' : '""'},"synonyms":${full ? '"synonym1, synonym2, synonym3"' : '""'}}`;
 
+  let formEditId = null, aiRun = 0;
+  function aiState(html, kind) { const e = $('aiState'); if (!e) return; e.className = 'ai-state' + (html ? ' show ' + (kind || '') : ''); e.innerHTML = html || ''; }
   async function executeFastAi() {
     const query = $('fieldWord').value.trim();
     if (!query) return toast('단어를 입력하세요.');
-    const btn = $('btnRunAi');
+    const btn = $('btnRunAi'), run = ++aiRun, edit = !!formEditId;
+    const set = (id, v, force) => { const f = $(id); if (f && v && (force || !f.value.trim())) f.value = v; };
+    const local = builtinMeaning(query);
+    if (local) set('fieldMeaning', local, !edit);
     btn.disabled = true; btn.textContent = '조회 중';
-    const badge = $('aiTimerBadge'); badge.style.display = 'block';
     const start = Date.now();
-    const timer = setInterval(() => { const tc = $('aiTimerCount'); if (tc) tc.textContent = ((Date.now() - start) / 1000).toFixed(1) + '초'; }, 100);
+    const tick = () => { if (run === aiRun) aiState(`<span class="dot"></span>${local ? '기본 뜻을 먼저 채웠어요. 발음과 예문을 채우는 중' : 'AI가 채우는 중'} · ${((Date.now() - start) / 1000).toFixed(1)}초`, 'busy'); };
+    tick(); const timer = setInterval(tick, 100);
     try {
-      const r = await lookupWord(query, true);
-      if (!$('fieldMeaning') || $('fieldWord').value.trim() !== query) return;
-      $('fieldMeaning').value = r.meaning; $('fieldPhonetic').value = r.phonetic;
-      $('fieldKoreanPron').value = r.koreanPron; $('fieldExample').value = r.example; $('fieldSynonyms').value = r.synonyms;
+      const fromDict = await dictGet(query);
+      const r = fromDict || await lookupWord(query, true);
+      if (run !== aiRun || !$('fieldMeaning') || $('fieldWord').value.trim() !== query) return;
+      const force = !edit;
+      set('fieldMeaning', r.meaning, force || $('fieldMeaning').value === local); set('fieldPhonetic', r.phonetic, force); set('fieldKoreanPron', r.koreanPron, force);
+      set('fieldExample', r.example, force); set('fieldExampleKo', r.exampleKo, force); set('fieldSynonyms', r.synonyms, force);
+      clearInterval(timer);
+      aiState(fromDict ? '내장 사전에서 바로 채웠어요' : `채웠어요 · ${((Date.now() - start) / 1000).toFixed(1)}초`, 'ok');
       playAudio(query);
-    } catch (err) { say('조회 실패\n\n' + err.message); }
-    finally { clearInterval(timer); btn.disabled = false; btn.textContent = 'AI 완성'; }
+    } catch (err) {
+      clearInterval(timer);
+      if (run !== aiRun) return;
+      const msg = esc(String(err.message || '').split('\n')[0]);
+      aiState(`${local ? '기본 뜻만 채웠어요. ' : ''}${msg || 'AI 응답을 받지 못했어요.'} <button class="link-btn" onclick="executeFastAi()">다시 시도</button>`, 'err');
+    } finally { clearInterval(timer); if (run === aiRun && btn) { btn.disabled = false; btn.textContent = 'AI 완성'; } }
   }
 
   /* ----- 유의어 시트 ----- */
@@ -237,7 +273,8 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
       <div class="row" style="margin-top:16px;"><button class="btn btn-soft" data-act="speak" data-text="${esc(word)}">발음 듣기</button><button class="btn btn-primary" data-act="syn-add">단어장에 추가</button></div>`);
     playAudio(word);
     try {
-      const res = await callAi(buildPrompt(word, false));
+      const local = builtinMeaning(word);
+      const res = (await dictGet(word)) || (local ? { meaning: local, phonetic: '', koreanPron: '' } : await lookupWord(word, false));
       if ($('sheetTitle').textContent !== word || !$('synBox')) return;
       synData = { word, ...res };
       $('synBox').innerHTML = `<div class="q-pron" style="margin-bottom:6px;">${esc(pronText(res))}</div><div class="q-meaning" style="font-size:1.4rem;">${esc(res.meaning)}</div>`;
@@ -274,6 +311,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     $('cfgProvider').value = config.provider;
     $('cfgTtsRate').value = String(config.ttsRate);
     $('cfgGoal').value = String(config.goal);
+    $('cfgGrade').innerHTML = `<option value="">선택 안 함</option>${gradeOptions(config.grade)}`;
     onProviderChange(config.provider, true);
     $('cfgStatus').className = 'cfg-status';
   }
@@ -327,7 +365,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
 
   /* ----- 백업 ----- */
   ACTIONS['export-json'] = () => {
-    const data = { app: 'VocaPro', version: 11, settings: { ttsRate: config.ttsRate, darkMode: config.darkMode, goal: config.goal }, categories, stats };
+    const data = { app: 'VocaPro', version: 12, settings: { ttsRate: config.ttsRate, darkMode: config.darkMode, goal: config.goal, grade: config.grade }, categories, stats };
     download(`VocaPro_${dayKey()}.json`, JSON.stringify(data, null, 2), 'application/json');
     toast('백업 파일을 내려받았어요. API 키는 포함되지 않아요.');
   };
@@ -347,6 +385,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
           if (res.settings.ttsRate) config.ttsRate = parseFloat(res.settings.ttsRate) || config.ttsRate;
           if (res.settings.goal) config.goal = parseInt(res.settings.goal, 10) || config.goal;
           if (typeof res.settings.darkMode === 'boolean') config.darkMode = res.settings.darkMode;
+          if (GRADE_NAMES[res.settings.grade]) config.grade = res.settings.grade;
         }
         currentCategoryId = null; viewOrder = null; openDrawers.clear();
         applyTheme(); syncStorage(); loadSettingsUI(); toast('복원했어요.');
@@ -361,4 +400,5 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     categories = defaultCats(); stats = { days: {} };
     syncStorage(); toast('초기화했어요.');
   };
+
 

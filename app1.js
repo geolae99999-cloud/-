@@ -1,4 +1,3 @@
-
   /* =========================================================
    * 유틸
    * ======================================================= */
@@ -24,6 +23,15 @@
     x: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',
     cards: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="14" height="12" rx="2"/><path d="M7 3h12a2 2 0 0 1 2 2v10"/></svg>',
     keyboard: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg>',
+    play: '<svg class="ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg>',
+    pause: '<svg class="ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1.2"/><rect x="14" y="5" width="4" height="14" rx="1.2"/></svg>',
+    prev: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 5v14M18 6l-8 6 8 6V6z"/></svg>',
+    next: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 5v14M6 6l8 6-8 6V6z"/></svg>',
+    edit: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/></svg>',
+    plus: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
+    tick: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+    book: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"/></svg>',
+    bell: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4l2-2z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>',
     translate: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>'
   };
   const uid = () => 'w' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
@@ -93,7 +101,7 @@
     keys: { gemini: '', xai: '', openai: '', anthropic: '' },
     models: { gemini: '', xai: '', openai: '', anthropic: '' },
     modelLists: { gemini: [], xai: [], openai: [], anthropic: [] },
-    ttsRate: 0.9, goal: 20, darkMode: false
+    ttsRate: 0.9, goal: 20, darkMode: false, grade: ''
   };
 
   function sanitizeNote(n) {
@@ -105,15 +113,26 @@
     };
     return (o.etymology || o.tip || o.examples.length || o.confusable.length) ? o : null;
   }
+  /* 예전 데이터의 "영어 예문 (한국어 해석)" 을 예문/해석 두 칸으로 나눠요 */
+  function splitExample(en, ko) {
+    en = str(en); ko = str(ko);
+    if (!ko && en) {
+      const m = en.match(/^(.*?[A-Za-z].*?)\s*[(（]([^()（）]*[가-힣][^()（）]*)[)）]\s*$/);
+      if (m) { en = m[1].trim(); ko = m[2].trim(); }
+      else { const k = en.search(/[가-힣]/); if (k > 0 && /[A-Za-z]/.test(en.slice(0, k))) { ko = en.slice(k).replace(/^[\s/\-–—:]+/, '').trim(); en = en.slice(0, k).replace(/[\s/\-–—:(（]+$/, '').trim(); } }
+    }
+    return { en, ko };
+  }
   function sanitizeWord(w) {
     const n = x => (Number.isFinite(+x) ? +x : 0);
     const box = (w.box !== undefined && Number.isFinite(+w.box)) ? Math.max(0, Math.min(5, Math.floor(+w.box))) : (w.memorized ? 5 : 0);
     let due = n(w.due);
     if (box > 0 && due <= 0) due = addDays(startOfDay(), INTERVALS[box]);
     if (box === 0) due = 0;
+    const ex = splitExample(w.example, w.exampleKo);
     return {
       id: safeId(w.id) || uid(), word: str(w.word), meaning: str(w.meaning), phonetic: str(w.phonetic),
-      koreanPron: str(w.koreanPron), example: str(w.example), synonyms: str(w.synonyms),
+      koreanPron: str(w.koreanPron), example: ex.en, exampleKo: ex.ko, synonyms: str(w.synonyms),
       star: !!w.star, box, due, reps: Math.max(0, Math.floor(n(w.reps))), wrong: Math.max(0, Math.floor(n(w.wrong))),
       miss: Math.max(0, Math.min(9, Math.floor(n(w.miss)))), last: str(w.last), created: n(w.created) || Date.now(), note: sanitizeNote(w.note)
     };
@@ -156,6 +175,7 @@
       cfg.ttsRate = saved.ttsRate || cfg.ttsRate;
       cfg.goal = saved.goal || cfg.goal;
       cfg.darkMode = !!saved.darkMode;
+      cfg.grade = GRADE_NAMES[saved.grade] ? saved.grade : '';
       for (const p of Object.keys(cfg.keys)) {
         if (saved.keys && saved.keys[p]) cfg.keys[p] = saved.keys[p];
         if (saved.models && saved.models[p]) cfg.models[p] = saved.models[p];
@@ -249,7 +269,7 @@
     if (ok) stats.days[k].ok++;
   }
 
-  const BOOK_COLORS = ['#3a5bff', '#14b890', '#ff8a3d', '#a259ff', '#ff5a8a', '#1aa7e8'];
+  const BOOK_COLORS = ['#2f54eb', '#13a07a', '#f08c1a', '#7a52e0', '#e0457b', '#1196c9'];
   const bookColor = id => { let h = 0; for (const ch of String(id)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return BOOK_COLORS[h % BOOK_COLORS.length]; };
 
   /* =========================================================
@@ -260,19 +280,20 @@
     document.body.classList.toggle('dark', !!config.darkMode);
     $('btnTheme').innerHTML = config.darkMode ? IC.sun : IC.moon;
     const m = document.querySelector('meta[name="theme-color"]');
-    if (m) m.setAttribute('content', config.darkMode ? '#0d1224' : '#3a5bff');
+    if (m) m.setAttribute('content', config.darkMode ? '#16181d' : '#ffffff');
   }
 
   let curTab = 'tabHome';
   const TITLES = { tabBooks: '단어장', tabStudy: '학습', tabStats: '통계', tabSettings: '설정' };
   function go(id) {
     curTab = id;
+    if (id !== 'tabHome') { const rv = $('recOv'); if (rv) rv.remove(); }
     document.querySelectorAll('.view-pane').forEach(el => el.classList.remove('active'));
     $(id).classList.add('active');
     const navFor = id === 'paneBook' ? 'tabBooks' : id;
     document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.t === navFor));
     $('btnBackHome').style.display = id === 'paneBook' ? 'flex' : 'none';
-    if (id === 'tabHome') $('headTitle').innerHTML = '<b>Voca</b>Pro';
+    if (id === 'tabHome') $('headTitle').innerHTML = '<i class="brand-mark">V</i><span><b>Voca</b>Pro</span>';
     else if (id === 'paneBook') $('headTitle').textContent = (curCat() || {}).name || '단어장';
     else $('headTitle').textContent = TITLES[id] || 'VocaPro';
 
@@ -313,49 +334,52 @@
     for (let i = 6; i >= 0; i--) {
       const t = addDays(startOfDay(), -i);
       const d = stats.days[dayKey(t)];
-      week += `<div class="day ${d && d.n > 0 ? 'done' : ''} ${i === 0 ? 'today' : ''}"><i>${d && d.n > 0 ? '✓' : ''}</i>${labels[new Date(t).getDay()]}</div>`;
+      week += `<div class="day ${d && d.n > 0 ? 'done' : ''} ${i === 0 ? 'today' : ''}"><i>${d && d.n > 0 ? IC.tick : ''}</i>${labels[new Date(t).getDay()]}</div>`;
     }
 
     const hour = new Date().getHours();
     const hello = hour < 6 ? '늦은 밤이에요' : hour < 12 ? '좋은 아침이에요' : hour < 18 ? '오늘도 한 걸음 더' : '하루 마무리 복습 어때요?';
-
+    const gname = GRADE_NAMES[config.grade];
     const books = categories.slice(0, 3).map(bookCardHtml).join('');
 
     $('tabHome').innerHTML = `
-      <div class="page-title" style="margin-bottom:4px;">${hello}</div><div class="mission">오늘의 미션 · 복습 ${c.due}개${c.newW ? ` · 새 단어 ${Math.min(c.newW, goal)}개` : ''}</div>
-      <div class="home-cta"><button class="btn btn-primary btn-block" ${cta.attrs}>${cta.btn}</button></div>
-      <section class="deck">
-        <div class="deck-card deck-3"></div><div class="deck-card deck-2"></div>
-        <div class="deck-card deck-1">
-          <div class="deck-top">
-            <div>
-              <div class="deck-label">${cta.label}</div>
-              <div class="deck-num">${cta.big}<small>${cta.unit}</small></div>
-            </div>
-            <div class="ring-box">${ringSvg(pct)}<div class="ring-txt"><b>${Math.min(today.n, 999)}</b>/${goal}</div></div>
+      <div class="hello"><div><div class="hello-sub">${hello}</div><div class="hello-name">${esc(currentLabel || currentUser || '')}님</div></div>
+        <button class="grade-chip" data-act="grade-pick">${gname ? esc(gname) : '학년 설정'}</button></div>
+      <section class="hero">
+        <div class="hero-top">
+          <div>
+            <div class="hero-label">${cta.label}</div>
+            <div class="hero-num">${cta.big}<small>${cta.unit}</small></div>
           </div>
-          <div class="deck-sub">${cta.sub}</div>
-          
+          <div class="ring-box">${ringSvg(pct)}<div class="ring-txt"><b>${Math.min(today.n, 999)}</b>/${goal}</div></div>
         </div>
+        <div class="hero-sub">${cta.sub}</div>
+        <div class="hero-mission"><span>복습 <b>${c.due}</b></span><span>새 단어 <b>${c.newW}</b></span><span>마스터 <b>${c.mastered}</b></span></div>
+        <button class="btn hero-btn btn-block" ${cta.attrs}>${cta.btn}</button>
       </section>
 
       <div class="card streak-card">
-        <div><div class="streak-fire">${st > 0 ? IC.flame : IC.sprout}</div></div>
-        <div style="min-width:74px;"><div class="streak-n">${st}일 연속</div><div class="muted" style="font-size:.74rem;font-weight:600;">${st > 0 ? '학습 중이에요' : '오늘 시작해요'}</div></div>
+        <div class="streak-fire">${st > 0 ? IC.flame : IC.sprout}</div>
+        <div class="streak-txt"><div class="streak-n">${st}일 연속</div><div class="muted">${st > 0 ? '학습 중이에요' : '오늘 시작해요'}</div></div>
         <div class="week">${week}</div>
       </div>
 
-      ${wodHtml()}<div class="section-title"><span>바로 학습</span></div>
+      <div class="section-title"><span>바로 학습</span></div>
       <div class="tiles">
-        <button class="tile" data-act="start" data-mode="card" data-src="new"><div class="tile-ico t-sprout"">${IC.sprout}</div><div><div class="tile-name">새 단어</div><div class="tile-n">${c.newW}개</div></div></button>
-        <button class="tile" data-act="start" data-mode="choice" data-src="wrong"><div class="tile-ico t-wrong"">${IC.bookx}</div><div><div class="tile-name">오답노트</div><div class="tile-n">${c.miss}개</div></div></button>
-        <button class="tile" data-act="start" data-mode="card" data-src="star"><div class="tile-ico t-star"">${IC.star}</div><div><div class="tile-name">즐겨찾기</div><div class="tile-n">${c.star}개</div></div></button>
-        <button class="tile" data-act="start" data-mode="listen" data-src="due"><div class="tile-ico t-ear"">${IC.headphones}</div><div><div class="tile-name">듣기 모드</div><div class="tile-n">복습 단어 들으며 외우기</div></div></button>
+        <button class="tile" data-act="start" data-mode="card" data-src="new"><div class="tile-ico">${IC.sprout}</div><div><div class="tile-name">새 단어</div><div class="tile-n">${c.newW}개</div></div></button>
+        <button class="tile" data-act="start" data-mode="choice" data-src="wrong"><div class="tile-ico t-wrong">${IC.bookx}</div><div><div class="tile-name">오답노트</div><div class="tile-n">${c.miss}개</div></div></button>
+        <button class="tile" data-act="start" data-mode="card" data-src="star"><div class="tile-ico t-star">${IC.star}</div><div><div class="tile-name">즐겨찾기</div><div class="tile-n">${c.star}개</div></div></button>
+        <button class="tile" data-act="start" data-mode="listen" data-src="due"><div class="tile-ico">${IC.headphones}</div><div><div class="tile-name">듣기 모드</div><div class="tile-n">복습 단어 듣기</div></div></button>
       </div>
+
+      <div class="section-title"><span>학습 도구</span></div>
+      <div class="tool-list">${flowEntryHtml()}<button class="mg-entry" data-act="match"><span class="mg-ico">${IC.cards}</span><span class="mg-txt"><b>짝 맞추기</b><small>영어와 뜻을 빠르게 연결해요</small></span><span class="mg-chev"></span></button>${recEntryHtml()}${packEntryHtml()}${ltEntryHtml()}</div>
 
       <div class="section-title"><span>내 단어장</span><button data-act="tab" data-t="tabBooks">전체 보기</button></div>
       <div class="book-list">${books || '<div class="empty"><b>아직 단어장이 없어요</b>단어장 탭에서 새로 만들어 보세요.</div>'}</div>
     `;
+    recMaybeShow();
   }
 
   ACTIONS.start = el => startSession(el.dataset.mode, parseSrc(el.dataset.src), el.dataset.count !== undefined ? parseInt(el.dataset.count, 10) : SESSION_DEFAULT);
+
