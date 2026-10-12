@@ -43,7 +43,7 @@
   function ownedWords() { const o = new Set(); allWords().forEach(({ w }) => o.add(w.word.toLowerCase())); return o; }
   const recLeft = k => { const o = ownedWords(); return gradeWords(k).filter(e => !o.has(e.w.toLowerCase())); };
   function recMaybeShow() {
-    if (recShown || !currentUser || isTeacher()) return;
+    if (recShown || !currentUser || isTeacher() || $('pfOv')) return;
     let hid = ''; try { hid = LS.getItem(recHideKey()) || ''; } catch (e) {}
     if (hid === dayKey()) return;
     recShown = true; setTimeout(() => recOpen(), 500);

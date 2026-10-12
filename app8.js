@@ -50,7 +50,7 @@
         ${su ? `<input type="password" id="auPw2" placeholder="비밀번호 확인" autocomplete="new-password"><select id="auGrade" aria-label="학년 또는 선생님" onchange="authRoleChange()"><option value="">학년 또는 선생님을 골라 주세요</option>${roleOptions('')}</select>
         <input type="text" id="auName" placeholder="이름" autocomplete="name" maxlength="20">
         <input type="text" id="auSchool" placeholder="학교 (예: 한빛중학교)" autocomplete="organization" maxlength="30">
-        <input type="text" id="auSno" placeholder="학번 (선택, 예: 20315)" inputmode="numeric" maxlength="12">` : ''}
+        <input type="text" id="auSno" placeholder="학번 (예: 20315)" inputmode="numeric" maxlength="12">` : ''}
         ${authExtraHtml(su)}
         <label class="switch-row"><input type="checkbox" id="auKeep" checked> 로그인 유지</label>
         <div id="auMsg" style="display:none;color:var(--coral);font-weight:600;font-size:.85rem;"></div>
@@ -66,9 +66,45 @@
     $('authScreen').style.display = 'flex';
     setTimeout(() => { const f = $('auId'); if (f) f.focus(); }, 100);
   }
+  // 이름, 학교, 학번이 비어 있는 계정은 로그인하면 먼저 입력받아요
+  const profileMissing = () => { const p = config.profile || {}; return !p.name || !p.school || (!isTeacher() && !p.sno); };
+  function profileCheck() {
+    if (!currentUser || !profileMissing() || $('pfOv')) return;
+    const p = config.profile || cleanProfile(), role = isTeacher() ? 'teacher' : config.grade;
+    const ov = document.createElement('div'); ov.id = 'pfOv'; ov.className = 'dlg-ov pf-ov';
+    ov.innerHTML = `<div class="dlg pf-dlg" role="dialog" aria-modal="true" aria-labelledby="pfT">
+      <div class="pf-art">${MASCOT('happy')}</div>
+      <h3 id="pfT">내 정보를 알려 주세요</h3>
+      <p class="muted">학교에서 함께 쓰려면 이름, 학교, 학번이 필요해요. 내 앱 안에서만 쓰고 다른 사람에게 보여주지 않아요.</p>
+      <div class="form-stack">
+        <select id="pqRole" onchange="pqRoleChange()" aria-label="학년 또는 선생님"><option value="">학년 또는 선생님을 골라 주세요</option>${roleOptions(role)}</select>
+        <input type="text" id="pqName" placeholder="이름" maxlength="20" value="${esc(p.name)}" aria-label="이름">
+        <input type="text" id="pqSchool" placeholder="학교 (예: 한빛중학교)" maxlength="30" value="${esc(p.school)}" aria-label="학교">
+        <input type="text" id="pqSno" placeholder="학번 (예: 20315)" inputmode="numeric" maxlength="12" value="${esc(p.sno)}" aria-label="학번" style="${role === 'teacher' ? 'display:none' : ''}">
+        <div id="pqMsg" class="pf-msg"></div>
+        <button class="btn btn-primary btn-block" data-act="pq-save">저장하고 시작</button>
+      </div></div>`;
+    document.body.appendChild(ov);
+    setTimeout(() => { const i = ov.querySelector('input:not([value]), #pqName'); if (i) i.focus(); }, 80);
+  }
+  function pqRoleChange() { const t = ($('pqRole') || {}).value === 'teacher', sn = $('pqSno'); if (sn) { sn.style.display = t ? 'none' : ''; if (t) sn.value = ''; } }
+  ACTIONS['pq-save'] = () => {
+    const role = $('pqRole').value, nm = $('pqName').value.trim(), sc = $('pqSchool').value.trim(), sn = role === 'teacher' ? '' : $('pqSno').value.trim();
+    const msg = t => { $('pqMsg').textContent = t; };
+    if (!GRADE_NAMES[role] && role !== 'teacher') return msg('학년이나 선생님을 골라 주세요.');
+    if (!nm) return msg('이름을 입력해 주세요.');
+    if (!sc) return msg('학교 이름을 입력해 주세요.');
+    if (role !== 'teacher' && !sn) return msg('학번을 입력해 주세요. (예: 2학년 3반 15번이면 20315)');
+    if (sn && !/^[0-9A-Za-z-]{1,12}$/.test(sn)) return msg('학번은 숫자로 입력해 주세요.');
+    if (role === 'teacher') { config.role = 'teacher'; config.grade = ''; } else { config.role = ''; config.grade = role; }
+    config.profile = cleanProfile({ name: nm, school: sc, sno: sn }); syncStorage();
+    $('pfOv').remove(); toast('내 정보를 저장했어요.'); go(curTab); recShown = false; recMaybeShow(); shareCheck();
+  };
   ACTIONS['pf-save'] = () => {
     const nm = $('pfName').value.trim(), sc = $('pfSchool').value.trim(), sn = isTeacher() ? '' : $('pfSno').value.trim();
     if (!nm) return toast('이름을 입력해 주세요.');
+    if (!sc) return toast('학교 이름을 입력해 주세요.');
+    if (!isTeacher() && !sn) return toast('학번을 입력해 주세요.');
     if (sn && !/^[0-9A-Za-z-]{1,12}$/.test(sn)) return toast('학번은 숫자로 입력해 주세요.');
     config.profile = cleanProfile({ name: nm, school: sc, sno: sn }); syncStorage(); toast('내 정보를 저장했어요.');
   };
@@ -96,6 +132,7 @@
       const nm = $('auName').value.trim(), sc = $('auSchool').value.trim(), sn = gr === 'teacher' ? '' : $('auSno').value.trim();
       if (!nm) return fail('이름을 입력해 주세요.');
       if (!sc) return fail('학교 이름을 입력해 주세요.');
+      if (gr !== 'teacher' && !sn) return fail('학번을 입력해 주세요. (예: 2학년 3반 15번이면 20315)');
       if (sn && !/^[0-9A-Za-z-]{1,12}$/.test(sn)) return fail('학번은 숫자로 입력해 주세요. (예: 20315)');
       pendingGrade = gr; pendingProfile = cleanProfile({ name: nm, school: sc, sno: sn }); } else { pendingGrade = ''; pendingProfile = null; }
     if (cloudMode) {
@@ -161,7 +198,7 @@
     if (remote && remote.updated > (+LS.getItem(KEY_DATA + ':ts') || 0)) { try { applyRemote(remote); applied = true; } catch (e) { toast('서버 데이터를 읽지 못했어요.'); } }
     if (pendingGrade) { if (pendingGrade === 'teacher') { config.role = 'teacher'; config.grade = ''; } else { config.role = ''; config.grade = pendingGrade; } pendingGrade = ''; applied = false; }
     if (pendingProfile) { config.profile = pendingProfile; pendingProfile = null; applied = false; }
-    recShown = false; applyTheme(); if (!applied) syncStorage(); go('tabHome'); showOnboarding(); rmCheck(); setTimeout(shareCheck, 700);
+    recShown = false; applyTheme(); if (!applied) syncStorage(); go('tabHome'); if (profileMissing()) profileCheck(); else showOnboarding(); rmCheck(); setTimeout(shareCheck, 700);
   }
   ACTIONS.logout = async () => {
     if (cloudTimer) await cloudPush();

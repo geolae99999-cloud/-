@@ -226,7 +226,7 @@
     let code = ''; try { code = sessionStorage.getItem(SHARE_KEY) || ''; } catch (e) {}
     if (!code || !currentUser) return;
     clearTimeout(shareWait);
-    if ($('obOv') || $('ltOv') || document.querySelector('#recOv.show') || $('sheetOv').classList.contains('open') || S.active) { shareWait = setTimeout(shareCheck, 800); return; }
+    if ($('pfOv') || $('obOv') || $('ltOv') || document.querySelector('#recOv.show') || $('sheetOv').classList.contains('open') || S.active) { shareWait = setTimeout(shareCheck, 800); return; }
     shareDecode(code).then(d => {
       shareIn = d;
       openSheet('공유받은 단어장', `<div class="form-stack">

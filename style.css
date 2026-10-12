@@ -559,6 +559,12 @@
     .grade-btn { border: 1.5px solid var(--line); background: var(--surface); border-radius: 14px; padding: 14px 6px; display: flex; flex-direction: column; align-items: center; gap: 1px; }
     .grade-btn b { font-size: 1.15rem; font-weight: 900; }
     .grade-btn small { font-size: .72rem; color: var(--muted); font-weight: 700; }
+    .pf-ov { z-index: 600; }
+    .pf-dlg { max-width: 400px; text-align: center; }
+    .pf-dlg .pf-art .mascot { width: 76px; height: 76px; margin: 0 auto 4px; display: block; }
+    .pf-dlg h3 { font-size: 1.2rem; font-weight: 800; margin: 4px 0 6px; }
+    .pf-dlg p { font-size: .84rem; line-height: 1.6; margin: 0 0 14px; }
+    .pf-msg { color: var(--coral); font-weight: 700; font-size: .84rem; min-height: 1.1em; text-align: left; }
     .hello-school { font-size: .8rem; color: var(--muted); font-weight: 600; margin-top: 2px; }
     .grade-btn.wide { grid-column: 1 / -1; flex-direction: row; justify-content: center; gap: 10px; }
     .grade-btn.on { background: var(--ink); border-color: var(--ink); color: var(--bg); }
