@@ -34,8 +34,8 @@
 
     $('tabHome').innerHTML = `
       <div class="home-grid">
-      <div class="h-hello"><div class="hello"><div class="hello-who">${MASCOT(today.n >= goal ? 'cheer' : 'happy')}<div><div class="hello-sub">${hello}</div><div class="hello-name">${esc(currentLabel || currentUser || '')}님</div></div></div>
-        <button class="grade-chip" data-act="grade-pick">${gname ? esc(gname) : '학년 설정'}</button></div></div>
+      <div class="h-hello"><div class="hello"><div class="hello-who">${MASCOT(today.n >= goal ? 'cheer' : 'happy')}<div><div class="hello-sub">${hello}</div><div class="hello-name">${esc(currentLabel || currentUser || '')}${isTeacher() ? ' 선생님' : '님'}</div></div></div>
+        <button class="grade-chip" data-act="grade-pick">${isTeacher() ? '선생님' : gname ? esc(gname) : '학년 설정'}</button></div></div>
       <div class="h-hero"><section class="hero">
         <div class="hero-top">
           <div>
@@ -63,7 +63,7 @@
         <button class="tile" data-act="start" data-mode="listen" data-src="due"><div class="tile-ico t-listen">${IC.headphones}</div><div><div class="tile-name">듣기 모드</div><div class="tile-n">복습 단어 듣기</div></div></button>
       </div></div>
 
-      <div class="h-tools"><div class="section-title"><span>학습 도구</span></div>
+      <div class="h-tools">${isTeacher() ? teachToolsHtml() : ''}<div class="section-title"><span>학습 도구</span></div>
       <div class="tool-list">${flowEntryHtml()}<button class="mg-entry" data-act="match"><span class="mg-ico i-grape">${IC.cards}</span><span class="mg-txt"><b>짝 맞추기</b><small>영어와 뜻을 빠르게 연결해요</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="exam-open"><span class="mg-ico i-coral">${IC.trophy}</span><span class="mg-txt"><b>실전 시험</b><small>섞인 문제를 풀고 점수와 등급을 받아요</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="dict-open"><span class="mg-ico i-teal">${IC.search}</span><span class="mg-txt"><b>영어사전</b><small>뜻, 예문, 비슷한 단어를 바로 찾아요</small></span><span class="mg-chev"></span></button>${recEntryHtml()}${packEntryHtml()}${ltEntryHtml()}</div></div>
 
       <div class="h-books"><div class="section-title"><span>내 단어장</span><button data-act="tab" data-t="tabBooks">전체 보기</button></div>

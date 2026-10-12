@@ -357,13 +357,30 @@
     if (items.length) toast(`${items.length}개 단어를 저장했어요.`);
   };
 
+  ACTIONS['book-split'] = () => {
+    const cat = curCat(); if (!cat) return;
+    if (cat.words.length < 10) return toast('단어가 10개 이상일 때 나눌 수 있어요.');
+    openSheet('Day별로 나누기', `<div class="form-stack">
+      <p class="muted" style="margin:0;font-size:.86rem;line-height:1.6;">'${esc(cat.name)}' 단어 ${cat.words.length}개를 하루 분량씩 새 단어장으로 나눠요. 원래 단어장과 학습 기록은 그대로 남아요.</p>
+      <label class="setting-label">하루에 몇 개씩?</label>
+      <div class="seg" id="spN">${[10, 20, 30, 50].filter(k => k < cat.words.length).map(k => `<button class="${k === 20 || (k === 10 && cat.words.length <= 20) ? 'on' : ''}" data-act="pt-opt" data-g="spN" data-v="${k}">${k}개</button>`).join('')}</div>
+      <button class="btn btn-primary btn-block" data-act="split-go">나누기</button></div>`);
+  };
+  ACTIONS['split-go'] = () => {
+    const cat = curCat(), b = document.querySelector('#spN .on'), n = b ? +b.dataset.v : 20; if (!cat) return;
+    const days = Math.ceil(cat.words.length / n);
+    for (let d = 0; d < days; d++) categories.push({ id: 'c' + uid(), name: `${cat.name} Day ${d + 1}`.slice(0, 40), words: cat.words.slice(d * n, d * n + n).map(w => ({ ...w, id: uid() })) });
+    syncStorage(); closeSheet(); toast(`Day 1부터 Day ${days}까지 ${days}개 단어장을 만들었어요.`); go('tabBooks');
+  };
   /* ----- 단어장 메뉴 / CSV ----- */
   ACTIONS['book-menu'] = () => {
     openSheet('단어장 관리', `<div class="menu-list">
       <button data-act="book-fill">비어 있는 발음·예문 채우기</button>
       <button data-act="exam-open">이 단어장으로 실전 시험 보기</button>
+      <button data-act="present">수업용 큰 화면으로 보기</button>
       <button data-act="book-print">단어 시험지 만들기 (인쇄, PDF)</button>
       <button data-act="book-share">링크로 공유하기</button>
+      <button data-act="book-split">Day별로 나누기 (하루 분량씩)</button>
       <button data-act="book-rename">이름 바꾸기</button>
       <button data-act="csv-export">CSV로 내보내기</button>
       <button data-act="csv-import">CSV 가져오기 (엑셀, Quizlet 등)</button>

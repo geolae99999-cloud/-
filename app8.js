@@ -1,109 +1,326 @@
   /* =========================================================
-   * 4단계 집중 학습 (카드 → 뜻 고르기 → 따라 쓰기 → 시험)
+   * 대화상자 / 계정
    * ======================================================= */
-  const FL_STEPS = ['카드 보기', '뜻 고르기', '따라 쓰기', '마무리 시험'];
-  let FL = null;
-  function flPick() {
-    let it = poolFor({ type: 'due' }); if (!it.length) it = poolFor({ type: 'new' }); if (!it.length) it = poolFor({ type: 'all' });
-    return shuffled(it.map(x => ({ w: x.w, catId: x.catId }))).slice(0, 8);
+  function ask(msg, o = {}) {
+    return new Promise(res => {
+      const ov = document.createElement('div'); ov.className = 'dlg-ov';
+      ov.innerHTML = `<div class="dlg" role="alertdialog" aria-modal="true"><p>${esc(msg)}</p>${o.input !== undefined ? `<input type="${o.pw ? 'password' : 'text'}" id="dlgIn" maxlength="72">` : ''}<div class="row">${o.alert ? '' : '<button class="btn btn-soft" style="flex:1" data-d="0">취소</button>'}<button class="btn ${o.danger ? 'btn-bad' : 'btn-primary'}" style="flex:1" data-d="1">${esc(o.ok || '확인')}</button></div></div>`;
+      document.body.appendChild(ov);
+      const inp = ov.querySelector('#dlgIn');
+      if (inp) { inp.value = o.input; setTimeout(() => { inp.focus(); inp.select(); }, 50); } else ov.querySelector('[data-d="1"]').focus();
+      const done = v => { ov.remove(); document.removeEventListener('keydown', kd, true); res(v); };
+      const kd = e => {
+        if (e.key === 'Escape') { e.stopImmediatePropagation(); done(inp ? null : false); }
+        else if (e.key === 'Enter') { e.preventDefault(); e.stopImmediatePropagation(); done(inp ? inp.value : true); }
+      };
+      ov.addEventListener('click', e => { const b = e.target.closest('[data-d]'); if (b) done(b.dataset.d === '1' ? (inp ? inp.value : true) : (inp ? null : false)); });
+      document.addEventListener('keydown', kd, true);
+    });
   }
-  function flOpts(w, rev) {
-    const pool = allWords().map(x => rev ? x.w.word : x.w.meaning).concat(LT_BANK.flat().map(x => rev ? x[0] : x[1]));
-    const ans = rev ? w.word : w.meaning, seen = new Set([ans.toLowerCase()]), out = [];
-    shuffled(pool).forEach(o => { if (out.length < 3 && o && !seen.has(o.toLowerCase())) { seen.add(o.toLowerCase()); out.push(o); } });
-    return shuffled([ans, ...out]);
-  }
-  ACTIONS.flow = () => flOpen();
-  function flOpen(items) {
-    if ($('flOv')) return;
-    items = items || flPick();
-    if (!items.length) return toast('학습할 단어가 없어요. 먼저 단어를 추가해 보세요.');
-    FL = { items, step: 0, i: 0, res: {}, locked: false, miss: {} };
-    const ov = document.createElement('div'); ov.className = 'ob lt fl'; ov.id = 'flOv'; document.body.appendChild(ov);
-    flDraw();
-  }
-  function flTotal() { return FL.items.length * 4; }
-  function flDraw() {
-    const ov = $('flOv'); if (!ov || !FL) return;
-    if (FL.i >= FL.items.length) { FL.step++; FL.i = 0; if (FL.step >= 4) return flResult(); }
-    const it = FL.items[FL.i], w = it.w, st = FL.step;
-    const head = `<button class="ob-skip" data-fl="close">그만하기</button><div class="lt-bar"><i style="width:${Math.round((st * FL.items.length + FL.i) / flTotal() * 100)}%"></i></div><div class="muted fl-step"><b>${st + 1}/4 ${FL_STEPS[st]}</b> · ${FL.i + 1}/${FL.items.length}</div>`;
-    FL.locked = false; let body = '', foot = '';
-    if (st === 0) {
-      body = `<div class="fl-card"><button class="q-speak" data-act="speak" data-text="${esc(w.word)}" aria-label="발음 듣기">${IC.speaker}</button><div class="fl-word">${esc(w.word)}</div><div class="q-pron">${esc(pronText(w))}</div><div class="fl-mean">${esc(w.meaning)}</div>${w.example ? `<div class="fl-ex">${esc(w.example)}${w.exampleKo ? `<span class="ex-ko">${esc(w.exampleKo)}</span>` : ''}</div>` : ''}</div>`;
-      foot = `<button class="btn btn-primary btn-block" data-fl="next">${FL.i === FL.items.length - 1 ? '뜻 고르기로' : '다음'}</button>`;
-      setTimeout(() => { try { playAudio(w.word); } catch (e) {} }, 150);
-    } else if (st === 1 || st === 3) {
-      const rev = st === 3, opts = flOpts(w, rev);
-      body = `<div class="ob-body lt-q"><div class="muted" style="font-weight:700;margin-bottom:8px;">${rev ? '알맞은 영어 단어는?' : '이 단어의 뜻은?'}</div><h2 style="font-size:2rem;">${esc(rev ? w.meaning : w.word)}</h2><div class="opts" style="width:100%;margin-top:22px;">${opts.map((o, k) => `<button class="opt" data-fl="opt" data-v="${esc(o)}"><span class="opt-n">${k + 1}</span><span>${esc(o)}</span></button>`).join('')}</div></div>`;
-      foot = `<button class="btn btn-soft btn-block" data-fl="opt" data-v="">잘 모르겠어요</button>`;
-    } else {
-      body = `<div class="ob-body lt-q"><div class="muted" style="font-weight:700;margin-bottom:8px;">뜻에 맞는 단어를 써 보세요</div><h2 style="font-size:2rem;">${esc(w.meaning)}</h2><div class="muted" style="margin:6px 0 18px;letter-spacing:.2em;">${esc(w.word.charAt(0))}${'_'.repeat(Math.max(0, Math.min(w.word.length - 1, 24)))}</div><input type="text" id="flIn" class="fl-in" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="영어 단어"><div id="flFb" class="fl-fb"></div></div>`;
-      foot = `<button class="btn btn-primary btn-block" id="flGo" data-fl="type">확인</button>`;
-      setTimeout(() => { const i = $('flIn'); if (i) i.focus(); }, 80);
+  const say = msg => ask(msg, { alert: true });
+
+  const getUsers = () => loadJson(KEY_USERS) || {};
+  const saveUsers = u => { try { LS.setItem(KEY_USERS, JSON.stringify(u)); return true; } catch (e) { return false; } };
+  const hasCrypto = () => !!(window.crypto && crypto.subtle && window.TextEncoder);
+  async function hashPw(pw, salt, m) {
+    if (m === 'p') {
+      if (!hasCrypto()) throw new Error('이 주소에서는 로그인 암호화를 쓸 수 없어요. https 주소로 열어 주세요.');
+      const enc = new TextEncoder();
+      const km = await crypto.subtle.importKey('raw', enc.encode(pw), 'PBKDF2', false, ['deriveBits']);
+      const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt: enc.encode(salt), iterations: 100000, hash: 'SHA-256' }, km, 256);
+      return [...new Uint8Array(bits)].map(b => b.toString(16).padStart(2, '0')).join('');
     }
-    ov.innerHTML = head + (st === 0 ? `<div class="ob-body">${body}</div>` : body) + `<div class="ob-foot">${foot}</div>`;
+    let h = 5381; const t = salt + pw;
+    for (let r = 0; r < 2000; r++) for (let i = 0; i < t.length; i++) h = ((h * 33) ^ t.charCodeAt(i)) >>> 0;
+    return String(h);
   }
-  function flAdvance(ms) { setTimeout(() => { if (FL) { FL.i++; flDraw(); } }, ms); }
-  function flAnswer(v) {
-    if (!FL || FL.locked) return; FL.locked = true;
-    const it = FL.items[FL.i], w = it.w, rev = FL.step === 3, ans = rev ? w.word : w.meaning, ok = v === ans;
-    if (FL.step === 3) FL.res[w.id] = ok; if (!ok) FL.miss[w.id] = true;
-    $('flOv').querySelectorAll('.opt').forEach(b => { if (b.dataset.v === ans) b.classList.add('correct'); else if (b.dataset.v === v) b.classList.add('wrong'); });
-    flAdvance(ok ? 450 : 1000);
+  let authMode = 'login', pendingGrade = '', ageOk = false;
+  function renderAuth() {
+    const su = authMode === 'signup';
+    $('authScreen').innerHTML = `<div class="auth-box">
+      <div class="auth-hero">${MASCOT('happy')}</div>
+      <div class="page-title" style="text-align:center;margin-bottom:6px;"><b>Voca</b>Pro</div>
+      <p class="muted" style="text-align:center;margin:0 0 18px;">${su ? '새 계정을 만들어요' : '로그인하고 이어서 외워요'}</p>
+      ${kidMode ? '<div class="kid-note"><b>만 14세 미만 계정</b>보호자와 함께 만들어 주세요. 단어장과 기록은 이 기기에만 저장되고 서버로 보내지 않아요.</div>' : ''}
+      <div class="seg" style="margin-bottom:14px;"><button class="${su ? '' : 'on'}" data-act="auth-mode" data-m="login">로그인</button><button class="${su ? 'on' : ''}" data-act="auth-mode" data-m="signup">회원가입</button></div>
+      ${su && cloudAvail && !kidMode ? `<div class="seg age-seg" style="margin-bottom:12px;"><button class="${ageOk ? 'on' : ''}" data-act="auth-age" data-k="0">만 14세 이상</button><button data-act="auth-age" data-k="1">만 14세 미만</button></div>` : ''}
+      <div class="form-stack">
+        <input type="text" id="auId" placeholder="아이디 (2~20자)" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="20">
+        <input type="password" id="auPw" placeholder="비밀번호 (${cloudMode ? 6 : 4}자 이상)" autocomplete="${su ? 'new-password' : 'current-password'}">
+        ${su ? `<input type="password" id="auPw2" placeholder="비밀번호 확인" autocomplete="new-password"><select id="auGrade" aria-label="학년 또는 선생님"><option value="">학년 또는 선생님을 골라 주세요</option>${roleOptions('')}</select>` : ''}
+        ${authExtraHtml(su)}
+        <label class="switch-row"><input type="checkbox" id="auKeep" checked> 로그인 유지</label>
+        <div id="auMsg" style="display:none;color:var(--coral);font-weight:600;font-size:.85rem;"></div>
+        <button class="btn btn-primary btn-block" id="auGo" data-act="auth-go">${su ? '가입하고 시작' : '로그인'}</button>
+        ${cloudAvail ? `<button class="link-btn kid-link" data-act="auth-age" data-k="${kidMode ? 0 : 1}">${kidMode ? '만 14세 이상 계정으로 돌아가기' : (su ? '' : '이 기기의 어린이 계정(만 14세 미만)으로 로그인')}</button>` : ''}
+        <p class="muted" style="font-size:.74rem;line-height:1.6;margin:4px 0 0;">${cloudMode ? '같은 아이디로 로그인하면 어느 기기에서든 단어장과 학습 기록이 이어져요. 비밀번호를 잊으면 복구할 수 없어요. API 키는 보안을 위해 기기마다 따로 입력해요.' : '계정은 이 기기의 브라우저에만 저장돼요. 다른 기기와 동기화되지 않고, 비밀번호를 잊으면 복구할 수 없으니 백업 파일을 받아 두세요.'}</p>
+      </div></div>`;
+    setTimeout(drawCaptcha, 0);
   }
-  function flType() {
-    if (!FL) return; const it = FL.items[FL.i], w = it.w, inp = $('flIn'), fb = $('flFb'), btn = $('flGo'); if (!inp) return;
-    if (FL.locked) { FL.i++; return flDraw(); }
-    const v = inp.value.trim().toLowerCase(); if (!v) return toast('단어를 입력해 주세요.');
-    const ok = v === w.word.trim().toLowerCase(); if (!ok) FL.miss[w.id] = true;
-    FL.locked = true; inp.disabled = true;
-    fb.innerHTML = ok ? '<b style="color:var(--blue)">정답이에요!</b>' : `<b style="color:var(--coral)">정답: ${esc(w.word)}</b>`;
-    btn.textContent = '다음';
+  function showAuth() {
+    authMode = cloudMode ? 'login' : (Object.keys(getUsers()).length ? 'login' : 'signup');
+    renderAuth();
+    $('authScreen').style.display = 'flex';
+    setTimeout(() => { const f = $('auId'); if (f) f.focus(); }, 100);
   }
-  function flResult() {
-    const ov = $('flOv'); if (!ov) return;
-    let good = 0; const wrongs = [];
-    FL.items.forEach(it => { const ok = !!FL.res[it.w.id]; grade(it.w, ok); recordStat(ok); if (ok) good++; else wrongs.push(it); });
-    syncStorage(); FL.wrongs = wrongs;
+  ACTIONS['auth-mode'] = el => { authMode = el.dataset.m; renderAuth(); };
+  ACTIONS['auth-age'] = el => {
+    const kid = el.dataset.k === '1';
+    if (kid) { setKidMode(true); if (!Object.keys(getUsers()).length) authMode = 'signup'; }
+    else if (kidMode) setKidMode(false);
+    else ageOk = true;
+    renderAuth();
+  };
+  ACTIONS['auth-go'] = async () => {
+    const btn = $('auGo'); if (!btn || btn.disabled) return;
+    const fail = m => {
+      const e = $('auMsg'); e.textContent = m; e.style.display = 'block'; btn.disabled = false;
+      if (authMode !== 'signup' && !/보안문자|동의/.test(m)) { authFails++; if (authFails >= 3) { const cb = $('capBox'); if (cb) cb.style.display = 'block'; drawCaptcha(); } }
+    };
+    { const g = authGate(); if (g) return fail(g); }
+    if (authMode === 'signup') { const gr = $('auGrade') && $('auGrade').value; if (!GRADE_NAMES[gr] && gr !== 'teacher') return fail('학년이나 선생님을 골라 주세요. 학년에 맞는 단어를 추천해 드려요.'); pendingGrade = gr; } else pendingGrade = '';
+    if (cloudMode) {
+      const email = $('auId').value.trim(), pw0 = $('auPw').value, keep0 = $('auKeep').checked, su0 = authMode === 'signup';
+      if (!/^[\w가-힣-]{2,20}$/.test(email)) return fail('아이디는 2~20자의 한글, 영문, 숫자, _, - 만 쓸 수 있어요.');
+      if (pw0.length < 6) return fail('비밀번호는 6자 이상이어야 해요.');
+      if (su0 && pw0 !== $('auPw2').value) return fail('비밀번호 확인이 달라요.');
+      if (su0 && !ageOk) return fail('만 14세 이상인지 골라 주세요. 만 14세 미만은 이 기기에만 저장하는 계정으로 만들어요.');
+      btn.disabled = true;
+      try {
+        if (!window.Cloud) throw { code: 'offline' };
+        const u = su0 ? await Cloud.signup(email, pw0, keep0) : await Cloud.login(email, pw0, keep0);
+        let remote = null;
+        try { remote = await Cloud.load(); } catch (e) { toast('서버에서 불러오지 못해 이 기기의 저장본을 써요.'); }
+        enterApp(u.uid, remote, u.email);
+      } catch (e) { fail(cloudMsg(e)); }
+      return;
+    }
+    const id = $('auId').value.trim(), pw = $('auPw').value, keep = $('auKeep').checked, su = authMode === 'signup';
+    if (!/^[\w가-힣-]{2,20}$/.test(id)) return fail('아이디는 2~20자의 한글, 영문, 숫자, _, - 만 쓸 수 있어요.');
+    if (pw.length < 4) return fail('비밀번호는 4자 이상이어야 해요.');
+    if (su && pw !== $('auPw2').value) return fail('비밀번호 확인이 달라요.');
+    btn.disabled = true;
+    const key = id.toLowerCase(), users = getUsers();
+    try {
+      if (su) {
+        if (users[key]) return fail('이미 있는 아이디예요.');
+        const salt = Math.random().toString(36).slice(2) + Date.now().toString(36), m = hasCrypto() ? 'p' : 'f';
+        users[key] = { name: id, s: salt, m, h: await hashPw(pw, salt, m), t: Date.now() };
+        if (!saveUsers(users)) return fail('브라우저가 저장을 막고 있어서 가입할 수 없어요. 사이트 데이터/쿠키 차단을 확인해 주세요.');
+        if (Object.keys(users).length === 1) {
+          try {
+            const old = loadJson('vocapro_v11_data');
+            if (old) { LS.setItem('vocapro_v11_data:' + key, JSON.stringify(old)); const oc = loadJson('vocapro_v10_cfg'); if (oc) LS.setItem('vocapro_v10_cfg:' + key, JSON.stringify(oc)); }
+          } catch (e) {}
+        }
+      } else {
+        const u = users[key];
+        if (!u || (await hashPw(pw, u.s, u.m)) !== u.h) return fail('아이디 또는 비밀번호가 맞지 않아요.');
+      }
+    } catch (e) { return fail(e.message || '오류가 발생했어요.'); }
+    try { LS.removeItem(KEY_SESS); sessionStorage.removeItem(KEY_SESS); (keep ? LS : sessionStorage).setItem(KEY_SESS, key); } catch (e) {}
+    enterApp(key);
+  };
+  function enterApp(key, remote, label) {
+    currentUser = key; currentLabel = label || key; KEY_DATA = 'vocapro_v11_data:' + key; KEY_CFG = 'vocapro_v10_cfg:' + key;
+    if (cloudMode) {
+      try {
+        LS.setItem('vocapro_last_uid', key); LS.setItem('vocapro_last_label', currentLabel);
+        if (!remote && !LS.getItem(KEY_DATA) && !LS.getItem('vocapro_legacy_taken')) {
+          const old = loadJson('vocapro_v11_data'), oc = loadJson('vocapro_v10_cfg');
+          if (old) { LS.setItem(KEY_DATA, JSON.stringify(old)); if (oc) LS.setItem(KEY_CFG, JSON.stringify(oc)); LS.setItem('vocapro_legacy_taken', '1'); }
+        }
+      } catch (e) {}
+    }
+    try { if (kidMode) LS.setItem(KEY_KID, '1'); else LS.removeItem(KEY_KID); } catch (e) {}
+    config = loadConfig(); const db = loadDb(); categories = db.categories; stats = db.stats;
+    currentCategoryId = null; viewOrder = null; openDrawers.clear(); S = { active: false };
+    ['studyScreen', 'sheetOv'].forEach(i => $(i).classList.remove('open'));
+    document.body.classList.remove('no-scroll');
+    $('authScreen').style.display = 'none';
+    let applied = false;
+    if (remote && remote.updated > (+LS.getItem(KEY_DATA + ':ts') || 0)) { try { applyRemote(remote); applied = true; } catch (e) { toast('서버 데이터를 읽지 못했어요.'); } }
+    if (pendingGrade) { if (pendingGrade === 'teacher') { config.role = 'teacher'; config.grade = ''; } else { config.role = ''; config.grade = pendingGrade; } pendingGrade = ''; applied = false; }
+    recShown = false; applyTheme(); if (!applied) syncStorage(); go('tabHome'); showOnboarding(); rmCheck(); setTimeout(shareCheck, 700);
+  }
+  ACTIONS.logout = async () => {
+    if (cloudTimer) await cloudPush();
+    if (cloudMode && window.Cloud) { try { await Cloud.logout(); } catch (e) {} try { LS.removeItem('vocapro_last_uid'); } catch (e) {} }
+    L.token++; try { window.speechSynthesis.cancel(); } catch (e) {}
+    try { LS.removeItem(KEY_SESS); sessionStorage.removeItem(KEY_SESS); } catch (e) {}
+    currentUser = null; S = { active: false };
+    ['studyScreen', 'sheetOv'].forEach(i => $(i).classList.remove('open'));
+    if (kidMode) { setKidMode(false); try { LS.removeItem(KEY_KID); } catch (e) {} }
+    showAuth();
+  };
+  ACTIONS['acct-del'] = async () => {
+    if (!await ask(`'${currentUser}' 계정과 모든 단어, 학습 기록이 삭제돼요.\n되돌릴 수 없어요. 계속할까요?`, { ok: '삭제', danger: true })) return;
+    if (cloudMode) {
+      try { await Cloud.remove(); } catch (e) { return say(e.code === 'auth/requires-recent-login' ? '보안을 위해 로그인한 직후에만 삭제할 수 있어요. 로그아웃하고 다시 로그인한 뒤 시도해 주세요.' : '삭제하지 못했어요: ' + (e.code || e.message)); }
+    } else { const u = getUsers(); delete u[currentUser]; saveUsers(u); }
+    try { LS.removeItem(KEY_DATA); LS.removeItem(KEY_CFG); } catch (e) {}
+    ACTIONS.logout();
+  };
+  /* ----- 클라우드 동기화 ----- */
+  function cloudMsg(e) {
+    const c = (e && e.code) || '';
+    return ({ exists: '이미 있는 아이디예요.', invalid: '아이디 또는 비밀번호가 맞지 않아요.', locked: '비밀번호를 여러 번 틀려서 10분간 잠겼어요. 잠시 후 다시 해 주세요.',
+      bad_input: '아이디(2~20자)와 비밀번호(6자 이상)를 확인해 주세요.', auth: '로그인이 만료됐어요. 다시 로그인해 주세요.', network: '인터넷 연결을 확인해 주세요.',
+      server: '서버 설정에 문제가 있어요. SQL을 실행했는지, config.js 값이 맞는지 확인해 주세요.', offline: '서버에 연결하지 못했어요. 잠시 후 다시 해 주세요.' })[c] || ('오류: ' + (c || (e && e.message) || '알 수 없음'));
+  }
+  function cloudQueue() { if (!cloudMode || !window.Cloud || !currentUser) return; clearTimeout(cloudTimer); cloudTimer = setTimeout(cloudPush, 1500); }
+  async function cloudPush() {
+    clearTimeout(cloudTimer); cloudTimer = null;
+    if (!cloudMode || !window.Cloud || !currentUser || !Cloud.user()) return;
+    const json = JSON.stringify({ categories, stats, cfg: { ttsRate: config.ttsRate, goal: config.goal, darkMode: config.darkMode, provider: config.provider, grade: config.grade, role: config.role || '' } });
+    if (json.length > 900000) toast('데이터가 서버 저장 한도(약 1MB)에 가까워요. 단어장을 줄이거나 백업해 두세요.');
+    try { await Cloud.save({ data: json, updated: +LS.getItem(KEY_DATA + ':ts') || Date.now() }); }
+    catch (e) { toast('서버 저장에 실패했어요. 인터넷을 확인하세요. (' + (e.code || e.message) + ')'); }
+  }
+  function applyRemote(r) {
+    const d = JSON.parse(r.data);
+    categories = sanitizeCategories(d.categories) || defaultCats(); stats = sanitizeStats(d.stats);
+    if (d.cfg) {
+      config.ttsRate = parseFloat(d.cfg.ttsRate) || config.ttsRate; config.goal = parseInt(d.cfg.goal, 10) || config.goal;
+      config.darkMode = !!d.cfg.darkMode; if (PROVIDERS[d.cfg.provider]) config.provider = d.cfg.provider;
+      if (GRADE_NAMES[d.cfg.grade]) config.grade = d.cfg.grade;
+      if (d.cfg.role !== undefined) config.role = d.cfg.role === 'teacher' ? 'teacher' : '';
+    }
+    LS.setItem(KEY_DATA, JSON.stringify({ categories, stats })); LS.setItem(KEY_CFG, JSON.stringify(config)); LS.setItem(KEY_DATA + ':ts', String(r.updated));
+    applyTheme();
+  }
+  async function cloudPull() {
+    if (!cloudMode || !window.Cloud || !currentUser || cloudTimer || (S && S.active) || $('sheetOv').classList.contains('open') || !Cloud.user()) return;
+    try {
+      const r = await Cloud.load();
+      if (r && r.updated > (+LS.getItem(KEY_DATA + ':ts') || 0)) { applyRemote(r); go(curTab); toast('다른 기기의 변경 내용을 불러왔어요.'); }
+    } catch (e) {}
+  }
+  window.addEventListener('pagehide', () => { if (cloudTimer) cloudPush(); });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) { if (cloudTimer) cloudPush(); } else cloudPull(); });
+  async function bootCloud() {
+    $('authScreen').style.display = 'flex';
+    $('authScreen').innerHTML = '<div class="auth-box"><p class="muted" style="text-align:center">불러오는 중...</p></div>';
+    const ok = await new Promise(r => { if (window.Cloud) return r(true); window.addEventListener('cloudready', () => r(true), { once: true }); setTimeout(() => r(false), 8000); });
+    if (!ok) {
+      const last = LS.getItem('vocapro_last_uid');
+      if (last) { toast('서버에 연결하지 못해 이 기기의 저장본으로 열었어요.'); return enterApp(last, null, LS.getItem('vocapro_last_label')); }
+      showAuth(); const m = $('auMsg'); if (m) { m.textContent = '서버에 연결하지 못했어요. 인터넷을 확인하세요.'; m.style.display = 'block'; } return;
+    }
+    const u = await Cloud.first;
+    if (!u) return showAuth();
+    let remote = null; try { remote = await Cloud.load(); } catch (e) {}
+    enterApp(u.uid, remote, u.email);
+  }
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && e.target.closest && e.target.closest('#authScreen')) { e.preventDefault(); ACTIONS['auth-go'](); }
+  });
+
+  /* =========================================================
+   * 레벨 테스트 · 맞춤 시작
+   * ======================================================= */
+  const LT_BANK = [
+    [["apple","사과"],["friend","친구"],["happy","행복한"],["school","학교"],["water","물"],["family","가족"],["morning","아침"],["travel","여행하다"],["bright","밝은"],["borrow","빌리다"]],
+    [["improve","향상시키다"],["decide","결정하다"],["expensive","비싼"],["ordinary","평범한"],["advice","조언"],["habit","습관"],["support","지지하다"],["prepare","준비하다"],["environment","환경"],["communicate","의사소통하다"]],
+    [["reluctant","꺼리는"],["ambiguous","모호한"],["inevitable","피할 수 없는"],["authentic","진짜의"],["enhance","높이다"],["restrict","제한하다"],["acquire","습득하다"],["tolerate","참아내다"],["controversy","논란"],["prosperity","번영"]],
+    [["ubiquitous","어디에나 있는"],["ephemeral","덧없는"],["pragmatic","실용적인"],["meticulous","꼼꼼한"],["scrutinize","면밀히 조사하다"],["alleviate","덜어주다"],["exacerbate","악화시키다"],["indigenous","토착의"],["ostensible","표면상의"],["scarce","드문, 부족한"]]
+  ];
+  const LT_LV = [
+    { name: '입문', goal: 10, desc: '기초 단어부터 차근차근 시작해요.' },
+    { name: '초급', goal: 10, desc: '일상 단어는 익숙해요. 핵심 단어를 늘려가요.' },
+    { name: '중급', goal: 20, desc: '탄탄한 기본기가 있어요. 꾸준히 확장해요.' },
+    { name: '상급', goal: 30, desc: '어려운 단어도 잘 알고 있어요. 고난도에 도전해요.' },
+    { name: '최상급', goal: 50, desc: '최상위 수준이에요. 고난도 단어로 완성해요.' }
+  ];
+  const ltKey = () => 'vocapro_level:' + currentUser;
+  let LT = null;
+  function ltBuild() {
+    const qs = [];
+    LT_BANK.forEach((pool, lv) => {
+      shuffled(pool.slice()).slice(0, 3).forEach(([w, m]) => {
+        const wrong = shuffled(pool.filter(x => x[1] !== m)).slice(0, 3).map(x => x[1]);
+        qs.push({ lv, w, m, opts: shuffled([m, ...wrong]) });
+      });
+    });
+    return qs;
+  }
+  function ltOpen(intro) {
+    if ($('ltOv')) return;
+    LT = { qs: ltBuild(), i: 0, ok: [0, 0, 0, 0], locked: false };
+    const ov = document.createElement('div'); ov.className = 'ob lt'; ov.id = 'ltOv'; document.body.appendChild(ov);
+    ltIntro(ov, intro);
+  }
+  function ltIntro(ov, intro) {
+    ov.innerHTML = `<button class="ob-skip" data-lt="close">${intro ? '나중에 할게요' : '닫기'}</button>
+      <div class="ob-body"><div class="ob-art">${MASCOT('think')}</div><h2>내 영어 수준 알아보기</h2>
+      <p>12문제, 약 2분이면 끝나요.<br>결과에 맞춰 하루 목표와 시작 단어를 추천해 드려요.</p></div>
+      <div class="ob-foot"><button class="btn btn-primary btn-block" data-lt="start">테스트 시작</button></div>`;
+  }
+  function ltDraw() {
+    const ov = $('ltOv'); if (!ov || !LT) return;
+    if (LT.i >= LT.qs.length) return ltResult();
+    const q = LT.qs[LT.i];
+    ov.innerHTML = `<button class="ob-skip" data-lt="close">그만하기</button>
+      <div class="lt-bar"><i style="width:${Math.round(LT.i / LT.qs.length * 100)}%"></i></div>
+      <div class="ob-body lt-q"><div class="muted" style="font-weight:700;margin-bottom:10px;">${LT.i + 1} / ${LT.qs.length}</div>
+      <h2 style="font-size:2.1rem;">${esc(q.w)}</h2><p style="margin-bottom:22px;">이 단어의 뜻은?</p>
+      <div class="opts" style="width:100%;">${q.opts.map((o, k) => `<button class="opt" data-lt="opt" data-v="${esc(o)}"><span class="opt-n">${k + 1}</span><span>${esc(o)}</span></button>`).join('')}</div></div>
+      <div class="ob-foot"><button class="btn btn-soft btn-block" data-lt="opt" data-v="">잘 모르겠어요</button></div>`;
+    LT.locked = false;
+  }
+  function ltAnswer(v) {
+    if (!LT || LT.locked) return; LT.locked = true;
+    const q = LT.qs[LT.i];
+    if (v === q.m) LT.ok[q.lv]++;
+    const ov = $('ltOv');
+    ov.querySelectorAll('.opt').forEach(b => { if (b.dataset.v === q.m) b.classList.add('correct'); else if (b.dataset.v === v) b.classList.add('wrong'); });
+    setTimeout(() => { if (LT) { LT.i++; ltDraw(); } }, v === q.m ? 450 : 900);
+  }
+  function ltLevel() { let r = 0; for (let l = 0; l < 4; l++) { if (LT.ok[l] >= 2) r++; else break; } return r; }
+  function ltResult() {
+    const ov = $('ltOv'); if (!ov) return;
+    const r = ltLevel(), info = LT_LV[r], total = LT.ok.reduce((a, b) => a + b, 0);
+    LT.r = r;
+    try { LS.setItem(ltKey(), JSON.stringify({ lv: r, score: total, at: Date.now() })); } catch (e) {}
+    ov.innerHTML = `<div class="ob-body"><div class="ob-art">${MASCOT('cheer')}</div>
+      <div class="muted" style="font-weight:700;">내 수준은</div><h2 style="font-size:2.4rem;">${info.name}</h2>
+      <p>${info.desc}<br>12문제 중 <b>${total}</b>문제를 맞혔어요.</p>
+      <div class="card" style="width:100%;margin-top:22px;text-align:left;"><b>추천 하루 목표 ${info.goal}개</b><div class="muted" style="font-size:.85rem;margin-top:4px;">'${info.name} 시작 단어' 단어장 ${LT_BANK[Math.min(r, 3)].length}개도 만들어 드려요.</div></div></div>
+      <div class="ob-foot"><button class="btn btn-primary btn-block" data-lt="apply">추천대로 시작하기</button>
+      <button class="btn btn-soft btn-block" data-lt="goal" style="margin-top:8px;">목표만 적용하기</button></div>`;
+  }
+  function ltApply(withBook) {
+    if (!LT || LT.r === undefined) return;
+    const info = LT_LV[LT.r]; config.goal = info.goal;
+    let id = null;
+    if (withBook) {
+      const nm = info.name + ' 시작 단어';
+      let cat = categories.find(c => c.name === nm);
+      if (!cat) {
+        cat = { id: 'c' + uid(), name: nm, words: LT_BANK[Math.min(LT.r, 3)].map(([w, m]) => sanitizeWord({ id: uid(), word: w, meaning: m })) };
+        categories.push(cat);
+      }
+      id = cat.id;
+    }
+    syncStorage(); const ov = $('ltOv'); if (ov) ov.remove(); LT = null;
     try { go(curTab); } catch (e) {}
-    ov.innerHTML = `<div class="ob-body"><div class="ob-art">${MASCOT(wrongs.length ? 'happy' : 'cheer')}</div><div class="muted" style="font-weight:700;">마무리 시험 결과</div><h2 style="font-size:2.4rem;">${good} / ${FL.items.length}</h2><p>${wrongs.length ? '틀린 단어는 내일 다시 복습해요.' : '모두 맞혔어요. 대단해요!'}</p>${wrongs.length ? `<div class="card" style="width:100%;margin-top:18px;text-align:left;">${wrongs.map(it => `<div class="wrong-item"><b>${esc(it.w.word)}</b><span>${esc(it.w.meaning)}</span></div>`).join('')}</div>` : ''}</div><div class="ob-foot">${wrongs.length ? '<button class="btn btn-primary btn-block" data-fl="again">틀린 것만 다시</button><button class="btn btn-soft btn-block" data-fl="close" style="margin-top:8px;">마치기</button>' : '<button class="btn btn-primary btn-block" data-fl="close">마치기</button>'}</div>`;
-    if (good === FL.items.length) { try { confetti(); } catch (e) {} }
+    toast(withBook ? '추천 단어장을 만들었어요.' : '하루 목표를 ' + info.goal + '개로 바꿨어요.');
+    if (id) { try { ACTIONS.start({ dataset: { mode: 'card', src: 'cat:' + id } }); } catch (e) {} }
   }
   document.addEventListener('click', e => {
-    const b = e.target.closest && e.target.closest('#flOv [data-fl]'); if (!b) return;
-    const a = b.dataset.fl;
-    if (a === 'close') { const ov = $('flOv'); if (ov) ov.remove(); FL = null; }
-    else if (a === 'next') { FL.i++; flDraw(); }
-    else if (a === 'opt') flAnswer(b.dataset.v);
-    else if (a === 'type') flType();
-    else if (a === 'again') { const w = FL && FL.wrongs; const ov = $('flOv'); if (ov) ov.remove(); FL = null; if (w && w.length) flOpen(w); }
+    const b = e.target.closest && e.target.closest('#ltOv [data-lt]'); if (!b) return;
+    const a = b.dataset.lt;
+    if (a === 'close') { const ov = $('ltOv'); if (ov) ov.remove(); LT = null; }
+    else if (a === 'start') ltDraw();
+    else if (a === 'opt') ltAnswer(b.dataset.v);
+    else if (a === 'apply') ltApply(true);
+    else if (a === 'goal') ltApply(false);
   });
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && FL && FL.step === 2 && e.target && e.target.id === 'flIn') { e.preventDefault(); flType(); }
-  });
-  /* =========================================================
-   * 학년별 추천 단어 데이터 (초등)
-   * ======================================================= */
-  const GW_E = {
-    e1: "hello:안녕(만날 때)|bye:잘 가|yes:네, 응|no:아니요|mom:엄마|dad:아빠|baby:아기|boy:소년|girl:소녀|one:하나, 1|two:둘, 2|three:셋, 3|four:넷, 4|five:다섯, 5|six:여섯, 6|seven:일곱, 7|eight:여덟, 8|nine:아홉, 9|ten:열, 10|red:빨간색|blue:파란색|yellow:노란색|green:초록색|pink:분홍색|black:검은색|white:흰색|brown:갈색|cat:고양이|dog:개|pig:돼지|cow:소|duck:오리|bird:새|fish:물고기|lion:사자|tiger:호랑이|bear:곰|monkey:원숭이|rabbit:토끼|horse:말|frog:개구리|ant:개미|bee:벌|apple:사과|banana:바나나|egg:달걀|milk:우유|water:물|juice:주스|bread:빵|cake:케이크|candy:사탕|pizza:피자|grape:포도|orange:오렌지|lemon:레몬|rice:밥, 쌀|eye:눈|ear:귀|nose:코|mouth:입|hand:손|foot:발|head:머리|arm:팔|leg:다리|face:얼굴|sun:해, 태양|moon:달|star:별|tree:나무|flower:꽃|ball:공|doll:인형|toy:장난감|book:책|pen:펜|bag:가방|hat:모자|box:상자|car:자동차|bus:버스|big:큰|small:작은|happy:행복한|sad:슬픈|hot:뜨거운, 더운|cold:차가운, 추운|go:가다|run:달리다|walk:걷다|jump:뛰다|swim:수영하다|sing:노래하다|dance:춤추다|eat:먹다|drink:마시다|sleep:자다|sit:앉다|stand:서다",
-    e2: "come:오다|look:보다|like:좋아하다|love:사랑하다|play:놀다|friend:친구|teacher:선생님|school:학교|house:집|room:방|bed:침대|door:문|window:창문|desk:책상|chair:의자|table:탁자|pencil:연필|cup:컵|shoe:신발|sock:양말|cap:야구 모자|bike:자전거|ship:배|brother:형, 오빠, 남동생|sister:언니, 누나, 여동생|family:가족|grandma:할머니|grandpa:할아버지|name:이름|chicken:닭|sheep:양|goat:염소|mouse:쥐|snake:뱀|turtle:거북|whale:고래|elephant:코끼리|giraffe:기린|zebra:얼룩말|butterfly:나비|melon:멜론|peach:복숭아|corn:옥수수|carrot:당근|potato:감자|tomato:토마토|onion:양파|strawberry:딸기|watermelon:수박|cookie:쿠키|sandwich:샌드위치|soup:수프|salad:샐러드|breakfast:아침 식사|lunch:점심 식사|dinner:저녁 식사|rain:비|snow:눈(내리는 눈)|sunny:맑은|cloudy:흐린|rainy:비 오는|windy:바람 부는|spring:봄|summer:여름|fall:가을; 떨어지다|winter:겨울|morning:아침|night:밤|today:오늘|tall:키가 큰|short:짧은, 키가 작은|long:긴|fast:빠른|slow:느린|old:늙은, 오래된|young:어린, 젊은|new:새로운|good:좋은|bad:나쁜|pretty:예쁜|cute:귀여운|hungry:배고픈|tired:피곤한|read:읽다|write:쓰다|draw:그리다|open:열다|close:닫다|listen:듣다|help:돕다|cook:요리하다; 요리사|wash:씻다|fly:날다|ride:타다|park:공원|zoo:동물원|farm:농장|kitchen:부엌|bathroom:욕실|garden:정원",
-    e3: "mother:어머니|father:아버지|man:남자|woman:여자|student:학생|classroom:교실|home:집, 가정|bedroom:침실|sofa:소파|lamp:전등|clock:시계(벽시계)|spoon:숟가락|fork:포크|plate:접시|color:색깔|purple:보라색|gray:회색|shape:모양|circle:원|square:정사각형|triangle:삼각형|number:숫자|eleven:열하나, 11|twelve:열둘, 12|twenty:스물, 20|hundred:백, 100|hair:머리카락|finger:손가락|tooth:이, 치아|body:몸|sky:하늘|cloud:구름|wind:바람|warm:따뜻한|cool:시원한; 멋진|weather:날씨|sick:아픈|fine:괜찮은|thirsty:목마른|coat:외투|shirt:셔츠|pants:바지|skirt:치마|dress:원피스|jacket:재킷|glasses:안경|gloves:장갑|umbrella:우산|eraser:지우개|ruler:자|scissors:가위|glue:풀|notebook:공책|paper:종이|picture:그림, 사진|song:노래|music:음악|art:미술|math:수학|science:과학|English:영어|Korean:한국어; 한국의|week:주, 일주일|Monday:월요일|Tuesday:화요일|Wednesday:수요일|Thursday:목요일|Friday:금요일|Saturday:토요일|Sunday:일요일|weekend:주말|time:시간|hour:시간(60분)|minute:분|have:가지다|want:원하다|make:만들다|know:알다|see:보다|hear:듣다, 들리다|say:말하다|talk:이야기하다|ask:묻다, 부탁하다|give:주다|take:가져가다, 잡다|put:놓다|find:찾다|buy:사다|here:여기|there:거기|under:~아래에|behind:~뒤에|near:가까운|far:먼|left:왼쪽|right:오른쪽; 옳은|river:강|sea:바다|mountain:산|train:기차",
-    e4: "airplane:비행기|taxi:택시|subway:지하철|boat:배, 보트|road:도로|street:거리|bridge:다리(건너는 다리)|city:도시|town:마을|shop:가게|store:가게|hospital:병원|library:도서관|restaurant:식당|bakery:빵집|market:시장|bank:은행|museum:박물관|station:역|airport:공항|doctor:의사|nurse:간호사|farmer:농부|police officer:경찰관|soccer:축구|baseball:야구|basketball:농구|tennis:테니스|game:게임, 경기|team:팀|player:선수|win:이기다|lose:지다, 잃어버리다|hobby:취미|movie:영화|camera:카메라|piano:피아노|guitar:기타|violin:바이올린|drum:북, 드럼|camping:캠핑|fishing:낚시|hiking:등산|birthday:생일|party:파티|gift:선물|present:선물; 현재의|holiday:휴일|vacation:방학, 휴가|trip:여행|travel:여행하다|visit:방문하다|invite:초대하다|meet:만나다|wait:기다리다|start:시작하다|finish:끝내다|stop:멈추다|learn:배우다|study:공부하다|teach:가르치다|think:생각하다|feel:느끼다|need:필요하다|homework:숙제|test:시험|question:질문|answer:대답; 대답하다|word:단어|letter:글자, 편지|story:이야기|money:돈|coin:동전|price:가격|cheap:값싼|expensive:비싼|easy:쉬운|difficult:어려운|busy:바쁜|free:자유로운, 무료의|kind:친절한; 종류|funny:재미있는|smart:똑똑한|brave:용감한|lazy:게으른|quiet:조용한|loud:시끄러운|strong:강한|weak:약한|heavy:무거운|light:가벼운; 빛|dark:어두운|bright:밝은|dirty:더러운|clean:깨끗한; 청소하다|wet:젖은|dry:마른|beautiful:아름다운|wonderful:멋진|great:훌륭한",
-    e5: "day:날, 낮|afternoon:오후|evening:저녁|first:첫 번째의|second:두 번째의; 초|third:세 번째의|tea:차|food:음식|snack:간식|fruit:과일|vegetable:채소|meat:고기|sugar:설탕|salt:소금|cheese:치즈|butter:버터|noodle:국수|sweet:달콤한|salty:짠|spicy:매운|sour:신|delicious:맛있는|neck:목|shoulder:어깨|knee:무릎|back:등; 뒤로|stomach:배, 위|heart:심장, 마음|headache:두통|stomachache:복통|fever:열|cough:기침|medicine:약|dentist:치과의사|hurt:다치게 하다, 아프다|rest:휴식; 쉬다|computer:컴퓨터|phone:전화기|television:텔레비전|beach:해변|island:섬|forest:숲|lake:호수|ocean:대양|nature:자연|animal:동물|insect:곤충|plant:식물; 심다|map:지도|place:장소|way:길, 방법|corner:모퉁이|post office:우체국|north:북쪽|south:남쪽|east:동쪽|west:서쪽|job:직업, 일|work:일하다; 일|singer:가수|pilot:조종사|artist:예술가|writer:작가|scientist:과학자|firefighter:소방관|engineer:기술자|dream:꿈; 꿈꾸다|future:미래|tell:말해 주다|speak:말하다|call:부르다, 전화하다|live:살다|stay:머무르다|leave:떠나다|wake:깨다|drive:운전하다|sell:팔다|use:사용하다|always:항상|usually:보통|often:자주|sometimes:가끔|never:결코 ~ 않다|early:이른; 일찍|late:늦은; 늦게|cry:울다|laugh:웃다|smile:미소; 미소 짓다|angry:화난|afraid:두려워하는|excited:신이 난|bored:지루해하는|surprised:놀란|enjoy:즐기다|worry:걱정하다|remember:기억하다|forget:잊다|try:시도하다|hope:바라다|healthy:건강한",
-    e6: "month:달, 월|year:해, 연도|January:1월|February:2월|March:3월|April:4월|May:5월|June:6월|July:7월|August:8월|September:9월|October:10월|November:11월|December:12월|season:계절|tomorrow:내일|yesterday:어제|tonight:오늘 밤|soon:곧|later:나중에|ago:~전에|already:이미|still:아직, 여전히|grade:학년, 성적|subject:과목|lesson:수업, 교훈|classmate:반 친구|uniform:교복, 제복|middle school:중학교|elementary:초등의|cousin:사촌|uncle:삼촌|aunt:이모, 고모|son:아들|daughter:딸|parent:부모|neighbor:이웃|guest:손님|king:왕|queen:여왕|prince:왕자|princess:공주|castle:성|village:마을|building:건물|floor:층, 바닥|wall:벽|stairs:계단|elevator:엘리베이터|key:열쇠|country:나라|world:세계|earth:지구|culture:문화|history:역사|language:언어|festival:축제|contest:대회|prize:상|club:동아리|member:회원|leader:지도자|rule:규칙|safe:안전한|danger:위험|accident:사고|trash:쓰레기|recycle:재활용하다|save:구하다, 아끼다|health:건강|exercise:운동; 운동하다|choose:고르다|decide:결정하다|agree:동의하다|believe:믿다|understand:이해하다|explain:설명하다|bring:가져오다|send:보내다|carry:나르다|build:짓다|fix:고치다|change:바꾸다; 변화|become:~이 되다|nervous:긴장한|proud:자랑스러운|lonely:외로운|honest:정직한|careful:조심하는|enough:충분한|almost:거의|between:~사이에|through:~을 통해|across:건너편에|along:~을 따라|maybe:아마도|probably:아마|instead:대신에|tradition:전통|temperature:온도"
-  };
+  ACTIONS['level-test'] = () => ltOpen(false);
+  function ltEntryHtml() {
+    let s = null; try { s = JSON.parse(LS.getItem(ltKey()) || 'null'); } catch (e) {}
+    const t = s && LT_LV[s.lv] ? '내 수준: ' + LT_LV[s.lv].name + ' · 다시 테스트' : '내 영어 수준 알아보기';
+    const sub = s ? '실력이 늘었다면 다시 측정해 보세요' : '12문제로 하루 목표와 시작 단어를 추천받아요';
+    return `<button class="mg-entry" data-act="level-test"><span class="mg-ico i-coral">${IC.sprout}</span><span class="mg-txt"><b>${esc(t)}</b><small>${sub}</small></span><span class="mg-chev"></span></button>`;
+  }
 
-  /* =========================================================
-   * 학년별 추천 단어 데이터 (중·고등)
-   * ======================================================= */
-  const GW_MH = {
-    m1: "fun:재미|ice:얼음|air:공기|diary:일기|dessert:디저트|dinosaur:공룡|gym:체육관|hometown:고향|alone:혼자|above:~위에|below:~아래에|able:~할 수 있는|adventure:모험|actor:배우|chef:요리사|customer:손님|visitor:방문객|hurry:서두르다|bake:굽다|boil:끓이다|mix:섞다|pour:붓다|fill:채우다|drop:떨어뜨리다|pull:당기다|push:밀다|hold:잡다, 개최하다|bite:물다|hide:숨다, 숨기다|arrive:도착하다|borrow:빌리다|lend:빌려주다|join:가입하다|cheer:응원하다|celebrate:축하하다|collect:모으다|return:돌아오다|shout:소리치다|relax:휴식을 취하다|share:나누다, 공유하다|famous:유명한|popular:인기 있는|lucky:운이 좋은|curious:호기심이 많은|crowded:붐비는|dangerous:위험한|amazing:놀라운|exciting:흥미진진한|fantastic:환상적인|excellent:훌륭한|fresh:신선한|simple:간단한|polite:예의 바른|rude:무례한|clever:영리한|silly:어리석은|kindness:친절|friendship:우정|joke:농담|joy:기쁨|habit:습관|mistake:실수|secret:비밀|goal:목표|chance:기회|exam:시험|example:예|reason:이유|result:결과|fact:사실|traffic:교통|journey:여행|abroad:해외로|foreign:외국의|local:지역의|business:사업|energy:에너지|information:정보|experience:경험|interest:관심, 흥미|skill:기술|survey:설문 조사|suddenly:갑자기|during:~동안|especially:특히|prepare:준비하다|practice:연습하다|protect:보호하다|receive:받다|solve:해결하다|spend:(돈·시간을) 쓰다|invent:발명하다|discover:발견하다|imagine:상상하다|express:표현하다|describe:묘사하다|continue:계속하다|important:중요한|comfortable:편안한|environment:환경",
-    m2: "add:더하다|action:행동|follow:따라가다|fail:실패하다|own:자신의; 소유하다|order:주문; 명령하다|lie:거짓말; 눕다|calm:침착한|perfect:완벽한|possible:가능한|impossible:불가능한|common:흔한, 공통의|serious:심각한, 진지한|public:공공의|type:유형|form:형태; 형성하다|allow:허락하다|accept:받아들이다|appear:나타나다|disappear:사라지다|attend:참석하다|award:상; 수여하다|compare:비교하다|complete:완성하다|condition:상태, 조건|contact:연락; 연락하다|control:통제하다|create:창조하다|deliver:배달하다|design:디자인; 설계하다|develop:발달시키다, 개발하다|discuss:토론하다|effort:노력|improve:향상시키다|include:포함하다|knowledge:지식|manage:관리하다|offer:제안하다|repeat:반복하다|success:성공|support:지지하다|trust:신뢰; 믿다|achieve:성취하다|ancient:고대의|century:세기|courage:용기|custom:관습|diet:식단|emergency:비상사태|enemy:적|fear:두려움|harvest:수확|human:인간|law:법|memory:기억|nation:국가|peace:평화|war:전쟁|planet:행성|soldier:군인|symbol:상징|treasure:보물|victory:승리|wealth:부, 재산|instrument:악기, 도구|opinion:의견|article:기사|audience:청중|behavior:행동|emotion:감정|climate:기후|citizen:시민|community:공동체|direction:방향|amount:양|average:평균; 평균의|absent:결석한|actually:실제로|apologize:사과하다|announce:발표하다|anniversary:기념일|argue:논쟁하다|attack:공격; 공격하다|breathe:숨 쉬다|donate:기부하다|encourage:격려하다|escape:탈출하다|expect:기대하다|explore:탐험하다|increase:증가하다|decrease:감소하다|destroy:파괴하다|introduce:소개하다|necessary:필요한|normal:보통의|familiar:친숙한|fair:공정한|equal:동등한|recent:최근의|realize:깨닫다",
-    m3: "several:몇몇의|similar:비슷한|focus:집중하다; 초점|expert:전문가|career:경력, 직업|device:장치|connect:연결하다|ceremony:의식, 식|technology:기술|solution:해결책|source:원천|structure:구조|suffer:고통받다|rare:드문|cancel:취소하다|crime:범죄|disaster:재난|decorate:장식하다|athlete:운동선수|ancestor:조상|oxygen:산소|flavor:맛|routine:일과|desire:욕구|regret:후회하다|react:반응하다|combine:결합하다|calculate:계산하다|grateful:감사하는|curiosity:호기심|passion:열정|income:수입|install:설치하다|translate:번역하다|transport:수송하다|destination:목적지|despite:~에도 불구하고|ability:능력|challenge:도전|cause:원인; 일으키다|balance:균형|benefit:이익|positive:긍정적인|negative:부정적인|opportunity:기회|patient:참을성 있는; 환자|physical:신체의|pressure:압력|private:사적인|process:과정|produce:생산하다|purpose:목적|reduce:줄이다|refuse:거절하다|region:지역|relationship:관계|remove:제거하다|rely:의지하다|ignore:무시하다|impress:깊은 인상을 주다|independent:독립적인|influence:영향; 영향을 주다|injure:부상을 입히다|insist:주장하다|judge:판단하다; 판사|lack:부족; 부족하다|major:주요한|material:재료|measure:측정하다|method:방법|mention:언급하다|generation:세대|global:세계적인|government:정부|gradually:점차|exist:존재하다|factor:요인|adapt:적응하다|admire:존경하다, 감탄하다|affect:영향을 미치다|afford:여유가 있다|aim:목표; 목표로 하다|apply:지원하다, 적용하다|arrange:정리하다, 준비하다|attract:끌다|aware:알고 있는|blame:비난하다|budget:예산|concentrate:집중하다|confident:자신 있는|consider:고려하다|contain:포함하다|convenient:편리한|damage:손상; 손상시키다|debate:토론|depend:의존하다|disappoint:실망시키다|communicate:의사소통하다|compete:경쟁하다|complain:불평하다",
-    h1: "available:이용 가능한|economy:경제|victim:희생자|wisdom:지혜|defend:방어하다|inspire:영감을 주다|observe:관찰하다|overcome:극복하다|recognize:알아보다|respond:응답하다|previous:이전의|profit:이익|progress:진전|propose:제안하다|origin:기원|personality:성격|feature:특징|impact:영향|individual:개인; 개인의|evidence:증거|attitude:태도|atmosphere:대기, 분위기|conflict:갈등|conclusion:결론|crisis:위기|criticize:비판하다|determine:결정하다|identify:확인하다|flexible:유연한|frequently:자주|demand:수요; 요구하다|delay:지연; 미루다|deny:부인하다|admit:인정하다|adopt:채택하다, 입양하다|approach:접근하다; 접근법|alternative:대안; 대안의|analyze:분석하다|annual:매년의|anxiety:불안|severe:심한|obstacle:장애물|habitat:서식지|extinct:멸종된|function:기능|element:요소|establish:설립하다|expense:비용|exhibit:전시하다|former:이전의|concern:걱정; 관련되다|context:맥락|critical:비판적인, 중대한|identity:정체성|intelligence:지능|instinct:본능|literature:문학|policy:정책|poverty:가난|strategy:전략|technique:기술|rural:시골의|urban:도시의|represent:나타내다, 대표하다|reflect:반영하다, 반사하다|abandon:버리다|absorb:흡수하다|accurate:정확한|acquire:습득하다|adjust:조정하다|advance:발전; 나아가다|approve:승인하다|assist:돕다|assume:가정하다|automatic:자동의|capable:~할 수 있는|capture:포착하다|category:범주|claim:주장하다|colleague:동료|consequence:결과|construct:건설하다|consume:소비하다|contribute:기여하다|cooperate:협력하다|define:정의하다|detect:감지하다|diverse:다양한|efficient:효율적인|essential:필수적인|estimate:추정하다|evaluate:평가하다|expand:확장하다|extend:연장하다|extreme:극단적인|generate:발생시키다|immediate:즉각적인|involve:포함하다, 관련시키다|maintain:유지하다|crucial:중대한",
-    h2: "brief:짧은|enormous:거대한|temporary:일시적인|significant:중요한, 상당한|artificial:인공의|outcome:결과|reveal:드러내다|absolute:절대적인|accomplish:성취하다|agriculture:농업|appeal:호소하다; 매력|barrier:장벽|burden:부담|democracy:민주주의|heritage:유산|moral:도덕적인|nutrition:영양|philosophy:철학|psychology:심리학|participant:참가자|permanent:영구적인|sensitive:민감한|status:지위|sympathy:동정|territory:영토|welfare:복지|release:풀어 주다, 발표하다|resist:저항하다|reputation:평판|sacrifice:희생|recall:기억해 내다|oppose:반대하다|interact:상호 작용하다|inherit:물려받다|immune:면역의|internal:내부의|external:외부의|fatal:치명적인|vital:필수적인|vivid:생생한|tremendous:엄청난|trait:특성|voluntary:자발적인|mechanism:메커니즘, 작용 원리|obligation:의무|emission:배출|empathy:공감|encounter:마주치다|endure:견디다|engage:참여하다|evident:분명한|expose:노출시키다|impose:부과하다|regulate:규제하다|distribute:분배하다|distinguish:구별하다|considerable:상당한|conscious:의식하는|compromise:타협하다|commitment:헌신|capacity:수용력|cope:대처하다|arise:생기다|alter:바꾸다|acknowledge:인정하다|academic:학업의|authority:권위, 당국|boundary:경계|commercial:상업의; 광고|currency:통화|contrast:대조|conserve:보존하다|convince:설득하다|commit:저지르다, 전념하다|accuse:고발하다, 비난하다|bias:편견|decline:감소하다, 거절하다|eliminate:제거하다|emerge:나타나다|emphasize:강조하다|enable:가능하게 하다|evolve:진화하다|exceed:초과하다|genuine:진짜의|guarantee:보장하다|hesitate:망설이다|indicate:나타내다|initial:처음의|innovation:혁신|insight:통찰력|intend:의도하다|interpret:해석하다|investigate:조사하다|mature:성숙한|maximum:최대; 최대의|modify:수정하다|motivate:동기를 부여하다|abstract:추상적인|fundamental:근본적인|inevitable:피할 수 없는",
-    h3: "aspect:측면|ambition:야망|appropriate:적절한|adequate:적절한, 충분한|apparent:명백한|abundant:풍부한|accompany:동반하다|accumulate:축적하다|adolescent:청소년|aggressive:공격적인|anticipate:예상하다|assess:평가하다|attribute:~의 탓으로 돌리다; 속성|beneficial:유익한|circumstance:상황|collapse:붕괴하다|component:구성 요소|concrete:구체적인|confront:직면하다|consistent:일관된|contemporary:현대의|controversy:논란|conventional:관습적인|demonstrate:입증하다|derive:끌어내다, 유래하다|diminish:줄어들다|discrimination:차별|distinct:뚜렷한|domestic:국내의, 가정의|dominant:지배적인|embrace:받아들이다|enhance:높이다, 향상시키다|ensure:보장하다|ethical:윤리적인|exaggerate:과장하다|explicit:명시적인|facilitate:용이하게 하다|flourish:번성하다|foster:육성하다|hypothesis:가설|imply:암시하다|incentive:장려책|inherent:고유한|integrate:통합하다|interfere:간섭하다|manipulate:조작하다|mutual:상호의|neglect:소홀히 하다|negotiate:협상하다|notion:개념|numerous:많은|objective:객관적인; 목표|overlook:간과하다|perspective:관점|phenomenon:현상|plausible:그럴듯한|prejudice:편견|preserve:보존하다|principle:원리|profound:심오한|prominent:두드러진|rational:합리적인|reinforce:강화하다|relevant:관련 있는|reluctant:꺼리는|resemble:닮다|restore:복원하다|restrict:제한하다|scarce:부족한|sophisticated:정교한|subjective:주관적인|substantial:상당한|subtle:미묘한|sufficient:충분한|sustain:지속시키다|transform:변형시키다|undermine:약화시키다|unprecedented:전례 없는|adversity:역경|aesthetic:미적인|autonomy:자율성|catastrophe:재앙|cognitive:인지의|conform:순응하다|consensus:합의|deteriorate:악화되다|empirical:경험적인|evoke:불러일으키다|exert:발휘하다|feasible:실현 가능한|implicit:암묵적인|indigenous:토착의|infer:추론하다|innate:타고난|intuitive:직관적인|alleviate:완화하다|mitigate:완화하다|pragmatic:실용적인|reciprocal:상호의|compliance:준수"
-  };
-
-  const GW_PACK = {};
