@@ -1,5 +1,11 @@
-import cmudict, re
+import cmudict, re, os
 CMU = cmudict.dict()
+# CMU에 없는 단어의 발음(ARPAbet): tools/ipa_extra.tsv  (단어<TAB>AH0 B ...)
+_X = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ipa_extra.tsv')
+if os.path.exists(_X):
+  for _l in open(_X, encoding='utf-8'):
+    _a = _l.rstrip('\n').split('\t')
+    if len(_a) == 2 and _a[1].strip() and _a[0].lower() not in CMU: CMU[_a[0].lower()] = [_a[1].split()]
 V = {'AA':'ɑ','AE':'æ','AH':'ʌ','AO':'ɔ','AW':'aʊ','AY':'aɪ','EH':'ɛ','ER':'ɜr','EY':'eɪ','IH':'ɪ','IY':'i','OW':'oʊ','OY':'ɔɪ','UH':'ʊ','UW':'u'}
 C = {'B':'b','CH':'tʃ','D':'d','DH':'ð','F':'f','G':'g','HH':'h','JH':'dʒ','K':'k','L':'l','M':'m','N':'n','NG':'ŋ','P':'p','R':'r','S':'s','SH':'ʃ','T':'t','TH':'θ','V':'v','W':'w','Y':'j','Z':'z','ZH':'ʒ'}
 ONS = set('b d f g h k l m n p r s t v w j z ʃ tʃ dʒ θ ð ʒ'.split()) | set(tuple(x.split()) for x in [])
