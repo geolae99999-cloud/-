@@ -201,6 +201,7 @@
     spell: [['Enter', '확인 · 다음'], ['Esc', '나가기']],
     listen: [['Space', '재생 · 정지'], ['← →', '이전 · 다음'], ['Esc', '나가기']]
   };
+  KBD.lchoice = KBD.choice; KBD.mix = [['1~4', '고르기'], ['Enter', '확인 · 다음'], ['Esc', '나가기']]; KBD.scramble = [['Esc', '나가기']];
   KBD.rchoice = KBD.choice; KBD.dict = KBD.spell; KBD.test = [['1~4', '고르기'], ['Enter', '제출'], ['Esc', '나가기']]; KBD.cloze = KBD.choice;
   function kbdHint(mode) { const el = $('kbdHint'); if (el) el.innerHTML = (KBD[mode] || []).map(([k, t]) => `<span><kbd>${k}</kbd>${t}</span>`).join(''); }
   document.addEventListener('keydown', e => {

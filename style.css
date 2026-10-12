@@ -1154,3 +1154,20 @@
     .lv-ok { display: flex; gap: 10px; font-size: .78rem; font-weight: 800; } .lv-ok .ok { color: var(--mint); } .lv-ok .no { color: var(--coral); }
     .lv-today { font-size: .76rem; color: var(--muted); font-weight: 700; }
     .lv-foot { text-align: center; color: var(--muted); font-size: .78rem; padding-bottom: 8px; }
+    /* ----- 철자 퍼즐 · 단어 비 · 오늘의 학습 ----- */
+    .today-entry { border-color: var(--mint); box-shadow: 0 0 0 1px var(--mint) inset; }
+    .scr-slots { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-top: 16px; }
+    .scr-slots span { width: 34px; height: 42px; border-bottom: 3px solid var(--line); display: grid; place-items: center; font-size: 1.35rem; font-weight: 800; color: var(--ink); }
+    .scr-slots span.on { border-color: var(--blue); } .scr-slots i { width: 12px; font-style: normal; display: grid; place-items: center; font-weight: 800; }
+    .scr-slots.ok span { border-color: var(--mint); color: var(--mint); } .scr-slots.bad span { border-color: var(--coral); color: var(--coral); animation: mshake .35s; }
+    .scr-tiles { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 18px 0 6px; }
+    .scr-t { width: 48px; height: 52px; border-radius: 14px; border: none; background: var(--surface); box-shadow: 0 3px 0 var(--sh-line); font-size: 1.3rem; font-weight: 800; color: var(--ink); }
+    .scr-t:disabled { opacity: .25; box-shadow: none; transform: translateY(3px); }
+    .rn { display: flex; flex-direction: column; gap: 10px; }
+    .rn-life { display: flex; gap: 6px; justify-content: center; } .rn-life i { width: 12px; height: 12px; border-radius: 50%; background: var(--line); } .rn-life i.on { background: var(--coral); }
+    .rn-sky { position: relative; flex: 1; min-height: 240px; border-radius: 20px; background: linear-gradient(var(--blue-soft), var(--surface)); overflow: hidden; border-bottom: 4px solid var(--coral-soft); }
+    .rn-drop { position: absolute; top: 0; max-width: 60%; padding: 10px 14px; border-radius: 16px; background: var(--blue); color: #fff; font-weight: 800; font-size: 1.05rem; word-break: keep-all; box-shadow: 0 8px 18px rgba(49,130,246,.3); }
+    .rn-drop.pop { background: var(--mint); transform: scale(1.1); transition: background .2s; } .rn-drop.miss { background: var(--coral); }
+    .rn-opts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .rn-intro { position: absolute; inset: 0; background: color-mix(in srgb, var(--bg) 92%, transparent); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 24px; text-align: center; }
+    .rn-intro svg { width: 110px; height: 110px; } .rn-intro small { color: var(--muted); line-height: 1.5; } .rn-intro .btn { max-width: 320px; }

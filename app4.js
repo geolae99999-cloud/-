@@ -10,6 +10,9 @@
     listen:  { name: '듣기 모드', ico: IC.speaker, desc: '자동으로 이어 듣기' },
     cloze:   { name: '문장 빈칸', ico: IC.quote, desc: '예문 속 빈칸 단어 고르기' },
     speak:   { name: '말하기', ico: IC.mic, desc: '소리 내어 발음 확인' },
+    lchoice: { name: '듣고 고르기', ico: IC.headphones, desc: '발음만 듣고 뜻 맞히기' },
+    scramble:{ name: '철자 퍼즐', ico: IC.shuffle, desc: '글자 조각을 눌러 단어 완성' },
+    mix:     { name: '섞어 풀기', ico: IC.sparkle, desc: '5가지 문제 유형을 섞어서' },
     test:    { name: '실전 시험', ico: IC.trophy, desc: '섞인 문제를 풀고 점수 받기' }
   };
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -25,10 +28,11 @@
       case 'new': return all.filter(x => x.w.box === 0);
       case 'wrong': return all.filter(x => x.w.miss > 0);
       case 'star': return all.filter(x => x.w.star);
+      case 'today': return all.filter(x => (x.w.box >= 1 && x.w.due <= end) || x.w.box === 0);
       default: return all;
     }
   }
-  const EMPTY_MSG = { due: '오늘 복습할 단어가 없어요. 잘하고 있어요!', new: '새 단어가 없어요. 단어를 추가해 보세요.', wrong: '오답노트가 비어 있어요.', star: '즐겨찾기한 단어가 없어요. 단어 카드의 별 아이콘을 눌러 보세요.', cat: '이 단어장에 단어가 없어요.', all: '단어가 없어요. 먼저 단어를 추가해 보세요.' };
+  const EMPTY_MSG = { due: '오늘 복습할 단어가 없어요. 잘하고 있어요!', new: '새 단어가 없어요. 단어를 추가해 보세요.', wrong: '오답노트가 비어 있어요.', star: '즐겨찾기한 단어가 없어요. 단어 카드의 별 아이콘을 눌러 보세요.', today: '오늘 할 단어가 없어요.', cat: '이 단어장에 단어가 없어요.', all: '단어가 없어요. 먼저 단어를 추가해 보세요.' };
 
   function renderStudy() {
     const c = counts();

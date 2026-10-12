@@ -1170,6 +1170,23 @@
     .lv-ok { display: flex; gap: 10px; font-size: .78rem; font-weight: 800; } .lv-ok .ok { color: var(--mint); } .lv-ok .no { color: var(--coral); }
     .lv-today { font-size: .76rem; color: var(--muted); font-weight: 700; }
     .lv-foot { text-align: center; color: var(--muted); font-size: .78rem; padding-bottom: 8px; }
+    /* ----- 철자 퍼즐 · 단어 비 · 오늘의 학습 ----- */
+    .today-entry { border-color: var(--mint); box-shadow: 0 0 0 1px var(--mint) inset; }
+    .scr-slots { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-top: 16px; }
+    .scr-slots span { width: 34px; height: 42px; border-bottom: 3px solid var(--line); display: grid; place-items: center; font-size: 1.35rem; font-weight: 800; color: var(--ink); }
+    .scr-slots span.on { border-color: var(--blue); } .scr-slots i { width: 12px; font-style: normal; display: grid; place-items: center; font-weight: 800; }
+    .scr-slots.ok span { border-color: var(--mint); color: var(--mint); } .scr-slots.bad span { border-color: var(--coral); color: var(--coral); animation: mshake .35s; }
+    .scr-tiles { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 18px 0 6px; }
+    .scr-t { width: 48px; height: 52px; border-radius: 14px; border: none; background: var(--surface); box-shadow: 0 3px 0 var(--sh-line); font-size: 1.3rem; font-weight: 800; color: var(--ink); }
+    .scr-t:disabled { opacity: .25; box-shadow: none; transform: translateY(3px); }
+    .rn { display: flex; flex-direction: column; gap: 10px; }
+    .rn-life { display: flex; gap: 6px; justify-content: center; } .rn-life i { width: 12px; height: 12px; border-radius: 50%; background: var(--line); } .rn-life i.on { background: var(--coral); }
+    .rn-sky { position: relative; flex: 1; min-height: 240px; border-radius: 20px; background: linear-gradient(var(--blue-soft), var(--surface)); overflow: hidden; border-bottom: 4px solid var(--coral-soft); }
+    .rn-drop { position: absolute; top: 0; max-width: 60%; padding: 10px 14px; border-radius: 16px; background: var(--blue); color: #fff; font-weight: 800; font-size: 1.05rem; word-break: keep-all; box-shadow: 0 8px 18px rgba(49,130,246,.3); }
+    .rn-drop.pop { background: var(--mint); transform: scale(1.1); transition: background .2s; } .rn-drop.miss { background: var(--coral); }
+    .rn-opts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .rn-intro { position: absolute; inset: 0; background: color-mix(in srgb, var(--bg) 92%, transparent); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 24px; text-align: center; }
+    .rn-intro svg { width: 110px; height: 110px; } .rn-intro small { color: var(--muted); line-height: 1.5; } .rn-intro .btn { max-width: 320px; }
   </style>
 </head>
 <body>
@@ -1839,7 +1856,7 @@ window.VOCA_CLOUD = {
       </div></div>
 
       <div class="h-tools">${isTeacher() ? teachToolsHtml() : ''}<div class="section-title"><span>학습 도구</span></div>
-      <div class="tool-list">${isTeacher() ? '' : classEntryHtml()}${flowEntryHtml()}<button class="mg-entry" data-act="match"><span class="mg-ico i-grape">${IC.cards}</span><span class="mg-txt"><b>짝 맞추기</b><small>영어와 뜻을 빠르게 연결해요</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="exam-open"><span class="mg-ico i-coral">${IC.trophy}</span><span class="mg-txt"><b>실전 시험</b><small>섞인 문제를 풀고 점수와 등급을 받아요</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="dict-open"><span class="mg-ico i-teal">${IC.search}</span><span class="mg-txt"><b>영어사전</b><small>뜻, 예문, 비슷한 단어를 바로 찾아요</small></span><span class="mg-chev"></span></button>${recEntryHtml()}${packEntryHtml()}${ltEntryHtml()}</div></div>
+      <div class="tool-list">${isTeacher() ? '' : classEntryHtml()}${todayHtml()}${flowEntryHtml()}<button class="mg-entry" data-act="match"><span class="mg-ico i-grape">${IC.cards}</span><span class="mg-txt"><b>짝 맞추기</b><small>영어와 뜻을 빠르게 연결해요</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="rain"><span class="mg-ico i-teal">${IC.play}</span><span class="mg-txt"><b>단어 비</b><small>떨어지는 뜻이 닿기 전에 단어를 골라요</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="exam-open"><span class="mg-ico i-coral">${IC.trophy}</span><span class="mg-txt"><b>실전 시험</b><small>섞인 문제를 풀고 점수와 등급을 받아요</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="dict-open"><span class="mg-ico i-teal">${IC.search}</span><span class="mg-txt"><b>영어사전</b><small>뜻, 예문, 비슷한 단어를 바로 찾아요</small></span><span class="mg-chev"></span></button>${recEntryHtml()}${packEntryHtml()}${ltEntryHtml()}</div></div>
 
       <div class="h-books"><div class="section-title"><span>내 단어장</span><button data-act="tab" data-t="tabBooks">전체 보기</button></div>
       <div class="book-list">${books || emptyHtml('아직 단어장이 없어요', '단어장 탭에서 새로 만들어 보세요.')}</div></div>
@@ -2364,6 +2381,9 @@ window.VOCA_CLOUD = {
     listen:  { name: '듣기 모드', ico: IC.speaker, desc: '자동으로 이어 듣기' },
     cloze:   { name: '문장 빈칸', ico: IC.quote, desc: '예문 속 빈칸 단어 고르기' },
     speak:   { name: '말하기', ico: IC.mic, desc: '소리 내어 발음 확인' },
+    lchoice: { name: '듣고 고르기', ico: IC.headphones, desc: '발음만 듣고 뜻 맞히기' },
+    scramble:{ name: '철자 퍼즐', ico: IC.shuffle, desc: '글자 조각을 눌러 단어 완성' },
+    mix:     { name: '섞어 풀기', ico: IC.sparkle, desc: '5가지 문제 유형을 섞어서' },
     test:    { name: '실전 시험', ico: IC.trophy, desc: '섞인 문제를 풀고 점수 받기' }
   };
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -2379,10 +2399,11 @@ window.VOCA_CLOUD = {
       case 'new': return all.filter(x => x.w.box === 0);
       case 'wrong': return all.filter(x => x.w.miss > 0);
       case 'star': return all.filter(x => x.w.star);
+      case 'today': return all.filter(x => (x.w.box >= 1 && x.w.due <= end) || x.w.box === 0);
       default: return all;
     }
   }
-  const EMPTY_MSG = { due: '오늘 복습할 단어가 없어요. 잘하고 있어요!', new: '새 단어가 없어요. 단어를 추가해 보세요.', wrong: '오답노트가 비어 있어요.', star: '즐겨찾기한 단어가 없어요. 단어 카드의 별 아이콘을 눌러 보세요.', cat: '이 단어장에 단어가 없어요.', all: '단어가 없어요. 먼저 단어를 추가해 보세요.' };
+  const EMPTY_MSG = { due: '오늘 복습할 단어가 없어요. 잘하고 있어요!', new: '새 단어가 없어요. 단어를 추가해 보세요.', wrong: '오답노트가 비어 있어요.', star: '즐겨찾기한 단어가 없어요. 단어 카드의 별 아이콘을 눌러 보세요.', today: '오늘 할 단어가 없어요.', cat: '이 단어장에 단어가 없어요.', all: '단어가 없어요. 먼저 단어를 추가해 보세요.' };
 
   function renderStudy() {
     const c = counts();
@@ -2413,12 +2434,14 @@ window.VOCA_CLOUD = {
     if (!MODES[mode]) return;
     const items = override ? override : poolFor(src);
     if (!items.length) return toast(EMPTY_MSG[src.type] || '학습할 단어가 없어요.');
-    if (mode === 'speak' && !SR) return say('이 브라우저는 말하기 연습을 지원하지 않아요.\n안드로이드 크롬, PC 크롬이나 엣지, 아이폰 사파리에서 써 보세요.');
-    if ((mode === 'choice' || mode === 'rchoice' || mode === 'test' || mode === 'cloze') && allWords().length < 4) return toast(mode === 'test' ? '시험은 전체 단어가 4개 이상 있어야 해요.' : '4지선다는 전체 단어가 4개 이상 있어야 해요.');
+    if (['choice', 'rchoice', 'test', 'cloze', 'lchoice', 'mix'].includes(mode) && allWords().length < 4) return toast(mode === 'test' ? '시험은 전체 단어가 4개 이상 있어야 해요.' : '4지선다는 전체 단어가 4개 이상 있어야 해요.');
     let q = shuffled(items.map(x => ({ w: x.w, catId: x.catId })));
+    if (mode === 'scramble') { q = q.filter(x => scrOk(x.w)); if (!q.length) return toast('철자 퍼즐로 풀 수 있는 단어가 없어요.'); }
+    if (src.type === 'today') q.sort((a, b) => (a.w.box === 0) - (b.w.box === 0));
     if (mode === 'test') q.forEach((x, i) => { const sp = /^[a-z][a-z'-]{0,13}$/i.test(x.w.word); x.t = ['choice', 'rchoice', sp ? 'spell' : 'choice'][i % 3]; });
     if (mode === 'test') q = shuffled(q);
     if (count > 0) q = q.slice(0, count);
+    if (mode === 'mix') mixTypes(q);
     const dpool = poolFor(src).map(x => x.w);
     S = { active: true, finished: false, mode, src, count, queue: q, total: q.length, idx: 0, ok: 0, no: 0, wrong: new Map(), locked: false, answered: false, options: [], dpool: dpool.length >= 4 ? dpool : allWords().map(x => x.w), startN: (stats.days[dayKey()] || { n: 0 }).n, t0: Date.now(), log: [] };
     $('studyScreen').classList.add('open');
@@ -2434,12 +2457,14 @@ window.VOCA_CLOUD = {
     $('stProg').style.width = (S.idx / S.queue.length * 100) + '%';
     $('stCount').textContent = `${S.idx + 1}/${S.queue.length}`;
     const item = S.queue[S.idx];
-    const md = S.mode === 'test' ? item.t : S.mode;
+    const md = S.mode === 'test' || S.mode === 'mix' ? (item.t || 'choice') : S.mode;
     if (md === 'card') renderCard(item);
     else if (md === 'choice') renderChoice(item, false);
     else if (md === 'rchoice') renderChoice(item, true);
     else if (md === 'cloze') { if (!renderCloze(item)) renderChoice(item, true); }
     else if (md === 'speak') renderSpeak(item);
+    else if (md === 'lchoice') renderLChoice(item);
+    else if (md === 'scramble') renderScramble(item);
     else renderTyping(item, md === 'dict');
     if (S.mode === 'test') { const qc = $('stBody').querySelector('.q-card'); if (qc) qc.insertAdjacentHTML('afterbegin', `<div class="exam-no">문제 ${S.idx + 1}</div>`); }
     $('stBody').scrollTop = 0;
@@ -2588,11 +2613,159 @@ window.VOCA_CLOUD = {
       bar.innerHTML = `<span class="ans-ic">${ok ? IC.tick : IC.x}</span><span class="ans-t"><b>${ok ? PRAISE[Math.floor(Math.random() * PRAISE.length)] : '정답은 이거예요'}</b><span>${esc(item.w.word)} · ${esc(item.w.meaning)}</span></span>${ok && S.combo >= 3 ? `<span class="ans-combo">${S.combo}연속 정답</span>` : ''}`;
       qw.appendChild(bar);
     }
-    if (S.mode === 'rchoice' || S.mode === 'cloze') playAudio(item.w.word);
+    const omd = S.mode === 'mix' ? item.t : S.mode;
+    if (omd === 'rchoice' || omd === 'cloze') playAudio(item.w.word);
     recordResult(item, ok);
     const my = S.idx;
     setTimeout(() => { if (S.active && S.idx === my) nextQuestion(); }, ok ? 700 : 1600);
   };
+
+  /* ----- 듣고 고르기 ----- */
+  function renderLChoice(item) {
+    const w = item.w;
+    S.options = makeOptions(w, 'meaning');
+    $('stBody').innerHTML = `
+      <div class="q-wrap">
+        <div class="q-card">
+          <div class="q-label">들리는 단어의 뜻은?</div>
+          <button class="q-speak big" data-act="speak" data-text="${esc(w.word)}" aria-label="다시 듣기">${IC.speaker}</button>
+          <div class="q-sub">눌러서 다시 들을 수 있어요</div>
+        </div>
+        <div class="opts">${S.options.map((o, i) => `<button class="opt" data-act="opt" data-i="${i}"><span class="opt-n">${i + 1}</span><span>${esc(o.meaning)}</span></button>`).join('')}</div>
+      </div>`;
+    playAudio(w.word);
+  }
+
+  /* ----- 철자 퍼즐 (글자 조각을 눌러 단어 완성) ----- */
+  const scrOk = w => /^[a-z][a-z' -]{1,17}$/i.test(w.word) && w.word.replace(/[^a-z]/gi, '').length >= 2;
+  function renderScramble(item) {
+    const w = item.w, letters = w.word.split('').filter(c => /[a-z']/i.test(c));
+    let order = shuffled(letters.map((c, i) => i)); if (letters.length > 1 && order.every((v, i) => v === i)) order = order.slice(1).concat(order[0]);
+    S.scr = { letters, order, picked: [] };
+    $('stBody').innerHTML = `
+      <div class="q-wrap">
+        <div class="q-card">
+          <div class="q-label">글자를 순서대로 눌러 단어를 완성하세요</div>
+          <div class="q-meaning">${esc(w.meaning)}</div>
+          <div class="scr-slots" id="scrSlots"></div>
+        </div>
+        <div class="scr-tiles" id="scrTiles"></div>
+        <div id="typeFeedback"></div>
+        <div class="row q-foot"><button class="btn btn-soft" data-act="scr-back">한 글자 지우기</button><button class="btn btn-soft" data-act="scr-skip">모르겠어요</button></div>
+      </div>`;
+    scrDraw();
+  }
+  function scrDraw() {
+    const s = S.scr, w = S.queue[S.idx].w; let k = 0;
+    $('scrSlots').innerHTML = w.word.split('').map(c => /[a-z']/i.test(c) ? `<span class="${s.picked[k] !== undefined ? 'on' : ''}">${s.picked[k] !== undefined ? esc(s.letters[s.picked[k++]]) : (k++, '')}</span>` : `<i>${c === ' ' ? '&nbsp;' : esc(c)}</i>`).join('');
+    $('scrTiles').innerHTML = s.order.map(i => `<button class="scr-t" data-act="scr-pick" data-i="${i}"${s.picked.includes(i) ? ' disabled' : ''}>${esc(s.letters[i].toLowerCase())}</button>`).join('');
+  }
+  ACTIONS['scr-pick'] = el => {
+    if (!S.active || S.locked || !S.scr) return;
+    const s = S.scr, i = +el.dataset.i; if (s.picked.includes(i)) return;
+    s.picked.push(i); scrDraw();
+    if (s.picked.length === s.letters.length) {
+      const got = s.picked.map(j => s.letters[j]).join('').toLowerCase(), want = s.letters.join('').toLowerCase();
+      scrDone(got === want);
+    }
+  };
+  ACTIONS['scr-back'] = () => { if (!S.active || S.locked || !S.scr) return; S.scr.picked.pop(); scrDraw(); };
+  ACTIONS['scr-skip'] = () => { if (!S.active || S.locked) return; scrDone(false); };
+  function scrDone(ok) {
+    S.locked = true; const item = S.queue[S.idx], w = item.w;
+    $('stBody').querySelectorAll('.scr-t, .q-foot .btn').forEach(b => { b.disabled = true; });
+    $('scrSlots').classList.add(ok ? 'ok' : 'bad');
+    $('typeFeedback').innerHTML = ok ? `<div class="fb ok"><span class="ans-ic">${IC.tick}</span><div>정답이에요! <b>${esc(w.word)}</b></div></div>`
+      : `<div class="fb bad"><span class="ans-ic">${IC.x}</span><div>정답은 <b>${esc(w.word)}</b> ${esc(w.phonetic || '')}<div class="fb-sub">${esc(w.meaning)}</div></div></div>`;
+    playAudio(w.word); recordResult(item, ok);
+    const my = S.idx; setTimeout(() => { if (S.active && S.idx === my) nextQuestion(); }, ok ? 900 : 1900);
+  }
+
+  /* ----- 오늘의 학습 (복습 + 새 단어를 여러 문제 유형으로) ----- */
+  function mixTypes(q) {
+    const seq = ['choice', 'lchoice', 'scramble', 'rchoice', 'spell'];
+    q.forEach((x, i) => {
+      let t = seq[i % seq.length];
+      if (t === 'scramble' && !scrOk(x.w)) t = 'rchoice';
+      if (t === 'spell' && !/^[a-z][a-z'-]{0,13}$/i.test(x.w.word)) t = 'choice';
+      if (x.w.box === 0 && (t === 'spell' || t === 'scramble')) t = i % 2 ? 'scramble' : 'choice';
+      if (t === 'scramble' && !scrOk(x.w)) t = 'choice';
+      x.t = t;
+    });
+  }
+  function todayHtml() {
+    const c = counts(); if (!c.total) return '';
+    const n = Math.min(20, c.due + c.newW);
+    return `<button class="mg-entry today-entry" data-act="today-go"><span class="mg-ico i-mint">${IC.sparkle}</span><span class="mg-txt"><b>오늘의 학습</b><small>${n ? `복습 ${Math.min(c.due, 20)}개 + 새 단어, 5가지 문제로 ${n}개` : '오늘 할 단어를 다 했어요. 전체에서 20개를 섞어 풀어요'}</small></span><span class="mg-chev"></span></button>`;
+  }
+  ACTIONS['today-go'] = () => { const c = counts(); startSession('mix', { type: c.due + c.newW ? 'today' : 'all' }, 20); };
+
+  /* ----- 단어 비 (떨어지는 뜻을 보고 단어 고르기) ----- */
+  let RN = null;
+  const rnBestKey = () => 'vocapro_rain_best:' + currentUser;
+  function rnClose() { if (RN) { cancelAnimationFrame(RN.raf); RN = null; } const o = $('rnOv'); if (o) o.remove(); document.body.classList.remove('no-scroll'); }
+  function openRain() {
+    const ws = allWords().map(x => x.w).filter(w => w.word && w.meaning);
+    if (ws.length < 4) return toast('단어가 4개 이상 있어야 해요.');
+    rnClose();
+    const ov = document.createElement('div'); ov.className = 'mg rn'; ov.id = 'rnOv'; document.body.appendChild(ov); document.body.classList.add('no-scroll');
+    const best = +(LS.getItem(rnBestKey()) || 0);
+    ov.innerHTML = `<div class="mg-top"><button class="round-btn" data-rn="x" aria-label="닫기">${IC.x}</button><b>단어 비</b><span id="rnScore">0점</span></div>
+      <div class="rn-life" id="rnLife"></div>
+      <div class="rn-sky" id="rnSky"><div class="rn-drop" id="rnDrop"></div></div>
+      <div class="rn-opts" id="rnOpts"></div>
+      <div class="rn-intro" id="rnIntro">${MASCOT('happy')}<b>뜻이 바닥에 닿기 전에 맞는 단어를 고르세요</b><small>맞힐수록 빨라져요. 3번 놓치면 끝나요.${best ? ` 최고 기록 ${best}점` : ''}</small><button class="btn btn-primary btn-block" data-rn="go">시작</button></div>`;
+    RN = { ws, score: 0, life: 3, n: 0, cur: null, y: 0, raf: 0, last: 0, lock: false, best };
+    ov.addEventListener('click', e => {
+      const k = e.target.closest('[data-rn]'); if (k) { const a = k.dataset.rn; if (a === 'x') rnClose(); else if (a === 'go') { const i = $('rnIntro'); if (i) i.remove(); rnNext(); } else if (a === 'again') { rnClose(); openRain(); } return; }
+      const b = e.target.closest('.rn-opt'); if (b) rnPick(+b.dataset.i);
+    });
+  }
+  function rnNext() {
+    const r = RN; if (!r) return;
+    r.cur = r.ws[Math.floor(Math.random() * r.ws.length)];
+    const d = [], seen = new Set([r.cur.word.toLowerCase()]);
+    for (const w of shuffled(r.ws)) { if (d.length === 3) break; if (!seen.has(w.word.toLowerCase())) { seen.add(w.word.toLowerCase()); d.push(w); } }
+    r.opts = shuffled([r.cur, ...d]); r.y = 0; r.lock = false; r.last = performance.now();
+    r.speed = Math.min(0.42, 0.12 + r.n * 0.012);
+    $('rnDrop').textContent = String(r.cur.meaning).split(/[;]/)[0].trim(); $('rnDrop').className = 'rn-drop'; $('rnDrop').style.left = (8 + Math.random() * 44) + '%';
+    $('rnOpts').innerHTML = r.opts.map((w, i) => `<button class="rn-opt opt" data-i="${i}"><span class="opt-n">${i + 1}</span><span>${esc(w.word)}</span></button>`).join('');
+    $('rnLife').innerHTML = [0, 1, 2].map(i => `<i class="${i < r.life ? 'on' : ''}"></i>`).join('');
+    cancelAnimationFrame(r.raf); r.raf = requestAnimationFrame(rnFrame);
+  }
+  function rnFrame(t) {
+    const r = RN; if (!r || r.lock) return;
+    const sky = $('rnSky'), drop = $('rnDrop'); if (!sky || !drop) return;
+    r.y += (t - r.last) * r.speed / 1000 * 100; r.last = t;
+    const max = sky.clientHeight - drop.offsetHeight;
+    drop.style.transform = `translateY(${Math.min(max, r.y / 100 * max)}px)`;
+    if (r.y >= 100) return rnMiss(-1);
+    r.raf = requestAnimationFrame(rnFrame);
+  }
+  function rnPick(i) {
+    const r = RN; if (!r || r.lock || !r.cur) return;
+    const ok = r.opts[i] === r.cur, btn = $('rnOpts').children[i];
+    if (!ok) return rnMiss(i);
+    r.lock = true; cancelAnimationFrame(r.raf); r.n++; r.score += 10 + Math.max(0, Math.round((100 - r.y) / 10));
+    btn.classList.add('correct'); $('rnDrop').classList.add('pop'); $('rnScore').textContent = r.score + '점';
+    speak(r.cur.word, 'en-US'); setTimeout(() => RN === r && rnNext(), 450);
+  }
+  function rnMiss(i) {
+    const r = RN; if (!r) return;
+    r.lock = true; cancelAnimationFrame(r.raf); r.life--;
+    const btns = $('rnOpts').children; if (i >= 0 && btns[i]) btns[i].classList.add('wrong');
+    const ci = r.opts.indexOf(r.cur); if (btns[ci]) btns[ci].classList.add('correct');
+    $('rnDrop').classList.add('miss'); $('rnLife').innerHTML = [0, 1, 2].map(k => `<i class="${k < r.life ? 'on' : ''}"></i>`).join('');
+    setTimeout(() => { if (RN !== r) return; if (r.life > 0) return rnNext(); rnEnd(); }, 1100);
+  }
+  function rnEnd() {
+    const r = RN, ov = $('rnOv'); if (!r || !ov) return;
+    const nb = r.score > r.best; if (nb) { try { LS.setItem(rnBestKey(), String(r.score)); } catch (e) {} }
+    ov.innerHTML = `<div class="mg-done"><div class="result-art">${MASCOT(nb ? 'cheer' : 'happy')}</div><h2>${nb ? '최고 기록이에요!' : '끝났어요'}</h2><p>${r.score}점 · ${r.n}개 맞힘${r.best && !nb ? ` · 최고 ${r.best}점` : ''}</p><button class="btn btn-primary btn-block" data-rn="again">한 번 더</button><button class="btn btn-soft btn-block" data-rn="x" style="margin-top:8px;">닫기</button></div>`;
+    if (nb && r.score > 0) confetti();
+  }
+  ACTIONS.rain = openRain;
+  document.addEventListener('keydown', e => { if (!RN || !$('rnOv')) return; if (/^[1-4]$/.test(e.key)) { e.preventDefault(); e.stopImmediatePropagation(); rnPick(+e.key - 1); } else if (e.key === 'Escape' && !document.querySelector('.dlg-ov')) { e.preventDefault(); e.stopImmediatePropagation(); rnClose(); } }, true);
 
   /* ----- 문장 빈칸 ----- */
   const reEsc = x => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -2620,9 +2793,31 @@ window.VOCA_CLOUD = {
 
   /* ----- 말하기 ----- */
   let SPK = null;
-  const spkNorm = x => String(x || '').toLowerCase().replace(/[^a-z' ]/g, '').replace(/\s+/g, ' ').trim();
+  const spkNorm = x => String(x || '').toLowerCase().replace(/[-_/]+/g, ' ').replace(/[^a-z' ]/g, '').replace(/\s+/g, ' ').trim();
+  const SPK_NUM = { 0: 'zero', 1: 'one', 2: 'two', 3: 'three', 4: 'four', 5: 'five', 6: 'six', 7: 'seven', 8: 'eight', 9: 'nine', 10: 'ten', 11: 'eleven', 12: 'twelve', 20: 'twenty', 100: 'hundred' };
+  const spkWords = x => String(x || '').toLowerCase().replace(/\d+/g, d => SPK_NUM[d] ? ' ' + SPK_NUM[d] + ' ' : d);
+  // 소리가 같은 단어(right/write, see/sea 등)는 맞은 것으로 봐요.
+  const SPK_HOMO = (() => { const m = {}; 'right write rite|see sea|know no|knew new|two to too|four for fore|eight ate|one won|son sun|hear here|there their theyre|by buy bye|meet meat|weak week|wait weight|mail male|tail tale|flower flour|pair pear pare|peace piece|plain plane|road rode rowed|sail sale|sell cell|sent cent scent|steal steel|wear where ware|which witch|whole hole|hour our|i eye|blue blew|break brake|dear deer|die dye|fair fare|hair hare|heal heel|made maid|night knight|not knot|red read|sew so sow|some sum|stair stare|wood would|your youre|be bee|allowed aloud|bare bear|berry bury|board bored|cereal serial|course coarse|flew flu flue|grown groan|guessed guest|higher hire|knows nose|lead led|loan lone|pail pale|pause paws|poor pour pore|principal principle|rain reign rein|real reel|ring wring|role roll|root route|scene seen|sight site cite|soul sole|tea tee|threw through|toe tow|waist waste|way weigh|weather whether|wine whine|ant aunt|ball bawl|band banned|bored board|brows browse|ceiling sealing|chews choose|days daze|due dew do|feet feat|find fined|hi high|him hymn|in inn|jeans genes|kernel colonel|mist missed|morning mourning|oh owe|pain pane|past passed|patience patients|prey pray|rap wrap|rays raise|sees seas seize|shoe shoo|stationary stationery|suite sweet|tied tide|vain vein|wade weighed|wee we|yolk yoke'.split('|').forEach(g => { const a = g.split(' ').map(x => x.replace(/'/g, '')); a.forEach(x => { m[x] = a; }); }); return m; })();
+  const spkSame = (a, b) => { const x = a.replace(/'/g, ''), y = b.replace(/'/g, ''); return x === y || !!(SPK_HOMO[x] && SPK_HOMO[x].includes(y)); };
+  function spkDist(a, b) {
+    if (Math.abs(a.length - b.length) > 2) return 9;
+    let p = Array.from({ length: b.length + 1 }, (_, i) => i);
+    for (let i = 1; i <= a.length; i++) { const c = [i]; for (let j = 1; j <= b.length; j++) c[j] = Math.min(p[j] + 1, c[j - 1] + 1, p[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); p = c; }
+    return p[b.length];
+  }
+  function spkMatch(heard, target) {
+    const h = spkNorm(spkWords(heard)), t = spkNorm(target);
+    if (!h || !t) return false;
+    const hs = h.replace(/ /g, ''), ts = t.replace(/ /g, '');
+    if (hs === ts || h.split(' ').includes(t) || (t.includes(' ') && h.includes(t))) return true;
+    const parts = t.includes(' ') ? [h] : h.split(' ').concat(h);
+    return parts.some(p => { const ps = p.replace(/ /g, ''); if (!ps) return false; if (spkSame(ps, ts)) return true; return ts.length >= 5 && spkDist(ps, ts) <= (ts.length >= 9 ? 2 : 1); });
+  }
+  const SPK_FATAL = { 'not-allowed': '마이크 사용이 막혀 있어요. 주소창의 자물쇠를 눌러 마이크를 허용해 주세요.', 'service-not-allowed': '이 브라우저는 음성 인식을 막아 두었어요.', network: '음성 인식 서버에 연결하지 못했어요.', 'audio-capture': '마이크를 찾지 못했어요.', 'language-not-supported': '이 기기는 영어 음성 인식을 지원하지 않아요.' };
+  let spkSelf = false;
   function renderSpeak(item) {
     const w = item.w; S.tries = 0;
+    const self = spkSelf || !SR;
     $('stBody').innerHTML = `
       <div class="q-wrap">
         <div class="q-card">
@@ -2632,32 +2827,54 @@ window.VOCA_CLOUD = {
           <div class="q-sub">${esc(w.meaning)}</div>
           <button class="q-speak" data-act="speak" data-text="${esc(w.word)}" aria-label="먼저 듣기">${IC.speaker}</button>
         </div>
-        <button class="mic-btn" id="micBtn" data-act="spk-go" aria-label="말하기 시작">${IC.mic}</button>
+        ${self ? `<div class="spk-out">발음을 듣고 따라 말한 뒤 스스로 표시해 주세요.${S.spkWhy ? `<br><small>${esc(S.spkWhy)}</small>` : ''}</div>
+          <div class="row q-foot"><button class="btn btn-soft" data-act="spk-self" data-ok="0">다시 연습할게요</button><button class="btn btn-primary" data-act="spk-self" data-ok="1">잘 말했어요</button></div>`
+        : `<button class="mic-btn" id="micBtn" data-act="spk-go" aria-label="말하기 시작">${IC.mic}</button>
         <div class="spk-out" id="spkOut">버튼을 누르고 또박또박 말해 주세요</div>
-        <div class="row q-foot"><button class="btn btn-soft" data-act="spk-skip">넘어가기</button></div>
+        <div class="row q-foot"><button class="btn btn-soft" data-act="spk-skip">넘어가기</button></div>`}
       </div>`;
+    if (self) playAudio(w.word);
+  }
+  function spkStop() { const r = SPK; SPK = null; clearTimeout(S.spkT); if (r) { try { r.onresult = r.onerror = r.onend = null; r.abort(); } catch (e) {} } }
+  function spkFallback(why) {
+    spkStop(); spkSelf = true; S.spkWhy = why + ' 이번에는 스스로 확인하는 방식으로 바꿀게요.';
+    if (S.active && S.mode === 'speak' && !S.locked) renderSpeak(S.queue[S.idx]);
   }
   ACTIONS['spk-go'] = () => {
     if (!S.active || S.locked || !SR) return;
-    const item = S.queue[S.idx], out = $('spkOut'), btn = $('micBtn');
-    try { if (SPK) SPK.abort(); } catch (e) {}
-    const r = new SR(); SPK = r; r.lang = 'en-US'; r.maxAlternatives = 5; r.interimResults = false;
+    const item = S.queue[S.idx], out = $('spkOut'), btn = $('micBtn'); if (!out || !btn) return;
+    spkStop();
+    try { window.speechSynthesis.cancel(); } catch (e) {}
+    let r; try { r = new SR(); } catch (e) { return spkFallback('이 브라우저에서는 음성 인식을 시작할 수 없어요.'); }
+    SPK = r; r.lang = 'en-US'; r.maxAlternatives = 5; r.interimResults = false; r.continuous = false;
+    const mine = () => SPK === r && S.active && S.queue[S.idx] === item;
     btn.classList.add('on'); out.textContent = '듣고 있어요...';
     let got = false;
+    S.spkT = setTimeout(() => { if (mine()) { try { r.stop(); } catch (e) {} } }, 8000);
     r.onresult = e => {
-      got = true; const alts = [...e.results[0]].map(a => spkNorm(a.transcript)), target = spkNorm(item.w.word);
-      const ok = alts.some(a => a === target || a.split(' ').includes(target) || (target.includes(' ') && a.includes(target)));
+      if (!mine()) return;
+      got = true; const alts = [...(e.results[0] || [])].map(a => a.transcript);
+      const ok = alts.some(a => spkMatch(a, item.w.word));
       S.tries = (S.tries || 0) + 1;
       if (ok) {
-        S.locked = true; out.innerHTML = `<b class="ok">정확해요!</b> "${esc(alts[0])}"`; recordResult(item, true);
+        S.locked = true; out.innerHTML = `<b class="ok">정확해요!</b> "${esc(spkNorm(alts[0]) || item.w.word)}"`; recordResult(item, true);
         const my = S.idx; setTimeout(() => { if (S.active && S.idx === my) nextQuestion(); }, 900);
-      } else out.innerHTML = `<b class="bad">"${esc(alts[0] || '...')}"(으)로 들렸어요.</b> ${S.tries >= 3 ? '넘어가도 괜찮아요.' : '한 번 더 말해 볼까요?'}`;
+      } else out.innerHTML = `<b class="bad">"${esc(spkNorm(alts[0]) || '...')}"(으)로 들렸어요.</b> ${S.tries >= 3 ? '넘어가도 괜찮아요.' : '한 번 더 말해 볼까요?'}`;
     };
-    r.onerror = e => { out.textContent = e.error === 'not-allowed' ? '마이크 사용을 허용해 주세요.' : e.error === 'no-speech' ? '소리가 들리지 않았어요. 다시 눌러 주세요.' : '인식하지 못했어요. 다시 눌러 주세요.'; };
-    r.onend = () => { btn.classList.remove('on'); if (!got && out.textContent === '듣고 있어요...') out.textContent = '다시 눌러서 말해 주세요.'; };
-    try { r.start(); } catch (e) { btn.classList.remove('on'); out.textContent = '마이크를 쓸 수 없어요.'; }
+    r.onerror = e => {
+      if (!mine()) return;
+      if (SPK_FATAL[e.error]) return spkFallback(SPK_FATAL[e.error]);
+      out.textContent = e.error === 'no-speech' ? '소리가 들리지 않았어요. 다시 눌러 주세요.' : e.error === 'aborted' ? '다시 눌러서 말해 주세요.' : '인식하지 못했어요. 다시 눌러 주세요.';
+    };
+    r.onend = () => { if (SPK !== r) return; SPK = null; clearTimeout(S.spkT); btn.classList.remove('on'); if (!got && out.textContent === '듣고 있어요...') out.textContent = '다시 눌러서 말해 주세요.'; };
+    try { r.start(); } catch (e) { spkFallback('마이크를 시작하지 못했어요.'); }
   };
-  ACTIONS['spk-skip'] = () => { if (!S.active || S.locked) return; try { if (SPK) SPK.abort(); } catch (e) {} S.locked = true; recordResult(S.queue[S.idx], false); nextQuestion(); };
+  ACTIONS['spk-skip'] = () => { if (!S.active || S.locked) return; spkStop(); S.locked = true; recordResult(S.queue[S.idx], false); nextQuestion(); };
+  ACTIONS['spk-self'] = el => {
+    if (!S.active || S.locked) return; S.locked = true;
+    const item = S.queue[S.idx], ok = el.dataset.ok === '1'; recordResult(item, ok);
+    const my = S.idx; setTimeout(() => { if (S.active && S.idx === my) nextQuestion(); }, 250);
+  };
 
   /* ----- 스펠링 / 듣고 쓰기 ----- */
   const norm = s => String(s).toLowerCase().replace(/\s+/g, ' ').replace(/[.,!?]+$/g, '').trim();
@@ -2753,7 +2970,7 @@ window.VOCA_CLOUD = {
   const mmss = sec => `${Math.floor(sec / 60)}분 ${String(sec % 60).padStart(2, '0')}초`;
   function srcLabel(src) {
     if (src.type === 'cat') { const c = categories.find(x => x.id === src.id); return c ? c.name : '단어장'; }
-    return ({ due: '오늘 복습', new: '새 단어', wrong: '오답노트', star: '즐겨찾기', all: '전체 단어' })[src.type] || '전체 단어';
+    return ({ today: '오늘의 학습', due: '오늘 복습', new: '새 단어', wrong: '오답노트', star: '즐겨찾기', all: '전체 단어' })[src.type] || '전체 단어';
   }
   function finishExam() {
     S.finished = true; kbdHint('');
@@ -2814,7 +3031,7 @@ window.VOCA_CLOUD = {
     }
     L.token++;
     try { window.speechSynthesis.cancel(); } catch (e) {}
-    S.active = false;
+    S.active = false; spkStop();
     $('studyScreen').classList.remove('open');
     if (!$('sheetOv').classList.contains('open')) document.body.classList.remove('no-scroll');
     go(curTab); clPing(true);
@@ -5010,6 +5227,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     spell: [['Enter', '확인 · 다음'], ['Esc', '나가기']],
     listen: [['Space', '재생 · 정지'], ['← →', '이전 · 다음'], ['Esc', '나가기']]
   };
+  KBD.lchoice = KBD.choice; KBD.mix = [['1~4', '고르기'], ['Enter', '확인 · 다음'], ['Esc', '나가기']]; KBD.scramble = [['Esc', '나가기']];
   KBD.rchoice = KBD.choice; KBD.dict = KBD.spell; KBD.test = [['1~4', '고르기'], ['Enter', '제출'], ['Esc', '나가기']]; KBD.cloze = KBD.choice;
   function kbdHint(mode) { const el = $('kbdHint'); if (el) el.innerHTML = (KBD[mode] || []).map(([k, t]) => `<span><kbd>${k}</kbd>${t}</span>`).join(''); }
   document.addEventListener('keydown', e => {
