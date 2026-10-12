@@ -213,6 +213,7 @@
   ACTIONS['acct-del'] = async () => {
     if (!await ask(`'${currentUser}' 계정과 모든 단어, 학습 기록이 삭제돼요.\n되돌릴 수 없어요. 계속할까요?`, { ok: '삭제', danger: true })) return;
     if (cloudMode) {
+      try { await Cloud.call('voca_class_forget'); } catch (e) {}
       try { await Cloud.remove(); } catch (e) { return say(e.code === 'auth/requires-recent-login' ? '보안을 위해 로그인한 직후에만 삭제할 수 있어요. 로그아웃하고 다시 로그인한 뒤 시도해 주세요.' : '삭제하지 못했어요: ' + (e.code || e.message)); }
     } else { const u = getUsers(); delete u[currentUser]; saveUsers(u); }
     try { LS.removeItem(KEY_DATA); LS.removeItem(KEY_CFG); } catch (e) {}
@@ -231,7 +232,7 @@
     if (!cloudMode || !window.Cloud || !currentUser || !Cloud.user()) return;
     const json = JSON.stringify({ categories, stats, cfg: { ttsRate: config.ttsRate, goal: config.goal, darkMode: config.darkMode, provider: config.provider, grade: config.grade, role: config.role || '', profile: config.profile || cleanProfile() } });
     if (json.length > 900000) toast('데이터가 서버 저장 한도(약 1MB)에 가까워요. 단어장을 줄이거나 백업해 두세요.');
-    try { await Cloud.save({ data: json, updated: +LS.getItem(KEY_DATA + ':ts') || Date.now() }); }
+    try { await Cloud.save({ data: json, updated: +LS.getItem(KEY_DATA + ':ts') || Date.now() }); clReport(); }
     catch (e) { toast('서버 저장에 실패했어요. 인터넷을 확인하세요. (' + (e.code || e.message) + ')'); }
   }
   function applyRemote(r) {

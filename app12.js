@@ -129,7 +129,7 @@
     ['exam-open', IC.trophy, 'i-coral', '실전 시험 미리 풀기', '학생이 보는 시험을 직접 확인해요']
   ];
   function teachToolsHtml() {
-    return `<div class="section-title"><span>수업 도구</span></div><div class="teach-grid">${TEACH.map(([k, ic, c, t, d]) => `<button class="teach-card" data-act="teach" data-next="${k}"><span class="mg-ico ${c}">${ic}</span><b>${t}</b><small>${d}</small></button>`).join('')}</div>`;
+    return `<div class="section-title"><span>수업 도구</span></div>${classEntryHtml() ? `<div class="tool-list cl-entry">${classEntryHtml()}</div>` : ''}<div class="teach-grid">${TEACH.map(([k, ic, c, t, d]) => `<button class="teach-card" data-act="teach" data-next="${k}"><span class="mg-ico ${c}">${ic}</span><b>${t}</b><small>${d}</small></button>`).join('')}</div>`;
   }
   ACTIONS.teach = el => {
     const next = el.dataset.next, books = categories.filter(c => c.words.length);
@@ -253,36 +253,4 @@
     toast(`'${nm}' 단어장에 ${cat.words.length}개를 담았어요.`);
     try { openBook(cat.id); } catch (e) { go('tabBooks'); }
   };
-
-  /* =========================================================
-   * 보안문자 · 약관 · 개인정보 처리방침
-   * ======================================================= */
-  let capText = '', authFails = 0;
-  const capRnd = n => { try { const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % n; } catch (e) { return Math.floor(Math.random() * n); } };
-  function drawCaptcha() {
-    const c = $('capCv'); if (!c) return;
-    const W = c.width = 160, H = c.height = 52, x = c.getContext('2d'); if (!x) return;
-    const set = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; capText = '';
-    for (let i = 0; i < 5; i++) capText += set[capRnd(set.length)];
-    x.fillStyle = '#eef1f5'; x.fillRect(0, 0, W, H);
-    for (let i = 0; i < 7; i++) { x.strokeStyle = `hsl(${capRnd(360)},40%,60%)`; x.lineWidth = 1 + capRnd(2); x.beginPath(); x.moveTo(capRnd(W), capRnd(H)); x.bezierCurveTo(capRnd(W), capRnd(H), capRnd(W), capRnd(H), capRnd(W), capRnd(H)); x.stroke(); }
-    for (let i = 0; i < capText.length; i++) {
-      x.save(); x.translate(20 + i * 28, 28 + capRnd(8) - 4); x.rotate((capRnd(60) - 30) / 100);
-      x.font = `800 ${26 + capRnd(6)}px sans-serif`; x.fillStyle = `hsl(${capRnd(360)},55%,28%)`; x.textAlign = 'center'; x.fillText(capText[i], 0, 0); x.restore();
-    }
-    for (let i = 0; i < 40; i++) { x.fillStyle = `rgba(60,60,60,${(capRnd(40) + 10) / 100})`; x.fillRect(capRnd(W), capRnd(H), 2, 2); }
-  }
-  function authExtraHtml(su) {
-    return `<div id="capBox" style="display:${su || authFails >= 3 ? 'block' : 'none'}"><div class="cap-row"><canvas id="capCv" width="160" height="52" aria-label="보안문자"></canvas><button type="button" class="btn btn-soft" data-act="cap-refresh">새로고침</button></div><input type="text" id="capIn" placeholder="위 문자를 입력하세요" maxlength="5" autocapitalize="characters" autocomplete="off" spellcheck="false"></div>${su ? `<label class="switch-row"><input type="checkbox" id="auTerms"><span>(필수) ${kidMode ? '보호자와 함께 ' : ''}<a class="lg-a" data-act="legal" data-k="terms">이용약관</a> 및 <a class="lg-a" data-act="legal" data-k="privacy">개인정보 처리방침</a>${kidMode ? '을 읽고 ' : '에 '}동의해요</span></label>` : ''}`;
-  }
-  function authGate() {
-    const su = authMode === 'signup';
-    if (su) { const t = $('auTerms'); if (!t || !t.checked) return '이용약관과 개인정보 처리방침에 동의해 주세요.'; }
-    if (su || authFails >= 3) {
-      const v = (($('capIn') && $('capIn').value) || '').trim().toUpperCase();
-      if (!capText || v !== capText) { drawCaptcha(); if ($('capIn')) $('capIn').value = ''; return '보안문자가 맞지 않아요. 새 문자로 다시 입력해 주세요.'; }
-    }
-    return '';
-  }
-  ACTIONS['cap-refresh'] = () => { drawCaptcha(); const i = $('capIn'); if (i) { i.value = ''; i.focus(); } };
 

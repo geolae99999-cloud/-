@@ -11,7 +11,7 @@
     try { r = await fetch(cfg.url.replace(/\/+$/, '') + '/rest/v1/rpc/' + fn, { method: 'POST', headers: hdr, body: JSON.stringify(args) }); }
     catch (e) { throw { code: 'network', message: String(e.message || e) }; }
     const t = await r.text(); let j = null; try { j = JSON.parse(t); } catch (e) {}
-    if (!r.ok) throw { code: 'server', message: (j && (j.message || j.hint)) || t.slice(0, 150) };
+    if (!r.ok) throw { code: r.status === 404 ? 'missing' : 'server', status: r.status, message: (j && (j.message || j.hint)) || t.slice(0, 150) };
     if (j && j.err) throw { code: j.err, message: j.err };
     return j;
   }
@@ -38,6 +38,7 @@
     async load() { const j = await rpc('voca_load', { p_token: getTok() }); return j && j.data ? { data: j.data, updated: Number(j.updated) } : null; },
     save: d => rpc('voca_save', { p_token: getTok(), p_data: d.data, p_updated: d.updated }),
     changePw: (o, n) => rpc('voca_change_pw', { p_token: getTok(), p_old: o, p_new: n }),
+    call: (fn, args) => rpc(fn, Object.assign({ p_token: getTok() }, args || {})),
     async remove() { await rpc('voca_delete', { p_token: getTok() }); setTok(null); cur = null; },
     async ai(prompt, task) {
       let r; const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 20000);

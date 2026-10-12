@@ -1,221 +1,261 @@
   /* =========================================================
-   * 이용약관 · 개인정보 처리방침
-   * 기준: 개인정보 보호법 제30조, 개인정보 처리방침 작성지침(2025.4.21), 공정위 표준약관 구조
+   * 우리 반 (반 만들기 · 초대 코드 · 과제 · 학생 현황 · 결과 제출)
    * ======================================================= */
-  // 공개되는 운영자 정보. 비어 있는 값은 문서에 '확인 중'으로 표시돼요.
-  const LEGAL_INFO = {
-    operator: '김주원',
-    email: 'vocaproe2@gmail.com',
-    dbRegion: '',
-    effective: '2026년 10월 12일'
+  const clOk = () => !!(cloudMode && window.Cloud && Cloud.call && currentUser);
+  const CL_ERR = {
+    no_class: '그 코드의 반을 찾지 못했어요. 코드를 다시 확인해 주세요.', own_class: '내가 만든 반이에요. 학생 계정으로 참여해 주세요.',
+    too_many: '더 만들거나 참여할 수 없어요. 쓰지 않는 반을 먼저 정리해 주세요.', full: '이 반은 인원이 꽉 찼어요(200명).',
+    no_assign: '과제를 찾지 못했어요. 선생님이 지웠을 수 있어요.', bad_input: '입력한 내용을 다시 확인해 주세요.',
+    auth: '로그인이 만료됐어요. 다시 로그인해 주세요.', missing: '우리 반 기능은 아직 준비 중이에요. 운영자가 서버 설정을 마치면 바로 쓸 수 있어요.',
+    network: '서버에 연결하지 못했어요. 인터넷 연결을 확인해 주세요.'
   };
-  const lgv = v => v || '확인 중';
-  function legalDocs() {
-    const I = LEGAL_INFO, mail = lgv(I.email), region = lgv(I.dbRegion);
-    return {
-      privacy: ['개인정보 처리방침', `${I.operator}(이하 "운영자")은 VocaPro(이하 "서비스")를 운영하면서 「개인정보 보호법」 제30조에 따라 이용자의 개인정보를 보호하고 관련 고충을 빠르게 처리하기 위해 다음과 같이 개인정보 처리방침을 공개합니다.`, [
-        ['제1조 개인정보의 처리 목적', `운영자는 다음 목적으로만 개인정보를 처리하며, 목적이 바뀌면 「개인정보 보호법」 제18조에 따라 별도 동의를 받는 등 필요한 조치를 합니다.
-- 회원 가입과 관리: 회원 식별, 로그인 유지, 비밀번호 무차별 대입 같은 부정 이용 방지
-- 학습 서비스 제공: 단어장·학습 기록·설정의 저장과 기기 간 동기화, 학년에 맞는 추천 단어 제공, 학교·이름을 넣은 시험지 등 학교 수업용 기능 제공
-- AI 기능 제공: AI 단어 완성과 번역 요청 처리, 회원별 하루 사용 한도 관리
-- 서비스 운영: 오류 확인과 대응`],
-        ['제2조 처리하는 개인정보 항목', `회원 가입 시 필수 항목
-- 아이디, 비밀번호, 학년(또는 선생님), 이름, 학교
-회원 가입 시 선택 항목
-- 학번(학생만)
-- 비밀번호는 되돌릴 수 없는 방식(bcrypt)으로 바꿔 저장하며 원래 비밀번호는 저장하지 않습니다.
-서비스 이용 중 만들어지는 정보
-- 이용자가 입력한 단어장(단어, 뜻, 발음, 예문, 메모 등), 학습 기록과 통계, 앱 설정
-- 로그인 세션 정보(토큰은 해시로 바꿔 저장), 가입·로그인 일시, 로그인 실패 횟수
-- AI 기능의 날짜별 사용 횟수
-자동으로 생성되는 정보
-- 서비스에 접속하는 과정에서 IP 주소, 브라우저 종류, 접속 일시가 호스팅·서버 업체의 접속 기록에 남을 수 있습니다.
-수집하지 않는 정보
-- 이메일, 전화번호, 주소, 위치 정보, 광고 식별자는 수집하지 않습니다.
-- 이름, 학교, 학번은 화면 인사, 시험지 머리글 등 이용자 본인의 앱 안에서만 쓰며 다른 이용자에게 공개하거나 제3자에게 제공하지 않습니다. 설정 > 내 정보에서 언제든 고치거나 지울 수 있습니다(이름은 별명으로 바꿀 수 있습니다).`],
-        ['제3조 개인정보의 처리 및 보유 기간', `- 계정 정보, 단어장, 학습 기록, 설정: 회원 탈퇴(계정 삭제) 시까지. 탈퇴하면 즉시 삭제합니다.
-- 로그인 세션 정보: 로그인 후 90일 또는 로그아웃할 때까지
-- AI 날짜별 사용 횟수: 30일
-- 접속 기록(IP 주소 등): 호스팅·서버 업체의 기록 보관 기간 동안. 운영자는 따로 보관하지 않습니다.
-서비스는 무료이며 결제 기능이 없어, 법령에 따라 별도로 보관해야 하는 정보는 없습니다.`],
-        ['제4조 개인정보의 제3자 제공', '운영자는 이용자의 개인정보를 제3자에게 제공하지 않습니다. 다만 이용자가 동의하거나 법률에 특별한 규정이 있는 경우(「개인정보 보호법」 제17조, 제18조)는 예외로 합니다.'],
-        ['제5조 개인정보 처리의 위탁', `운영자는 서비스 제공을 위해 다음과 같이 개인정보 처리 업무를 위탁합니다. 위탁 기간은 회원 탈퇴 또는 위탁 계약 종료 시까지입니다.
-- Supabase, Inc.: 계정과 학습 데이터 저장, 서버 기능 실행 (서버 위치: ${region})
-- Cloudflare, Inc.: 웹앱 배포와 호스팅 (미국)
-- Google LLC: AI 단어 완성과 번역 처리(Gemini API) (미국)
-운영자는 「개인정보 보호법」 제26조에 따라 수탁자가 개인정보를 안전하게 처리하는지 관리합니다.`],
-        ['제6조 개인정보의 국외 이전', `서비스 이용 과정에서 다음과 같이 개인정보가 국외로 이전됩니다. 모든 전송은 암호화된 통신(HTTPS)으로 이루어집니다.
-- Google LLC (미국, https://policies.google.com/privacy): AI 완성·번역을 누를 때 입력한 영어 단어나 문장을 보냅니다. 아이디 등 계정 정보는 보내지 않습니다. 목적은 AI 결과 생성이며, 보유 기간은 Google의 Gemini API 약관을 따릅니다.
-- Cloudflare, Inc. (미국, privacyquestions@cloudflare.com): 서비스에 접속할 때 IP 주소, 브라우저 정보가 전송됩니다. 목적은 웹앱 전송이며, 보유 기간은 Cloudflare의 기록 보관 기간을 따릅니다.
-- Translated srl, MyMemory (이탈리아, https://mymemory.translated.net): AI 번역을 쓸 수 없을 때 번역할 문장을 보냅니다. 목적은 번역 결과 생성입니다.
-- jsDelivr (Prospect One, 폴란드, https://www.jsdelivr.com/terms/privacy-policy-jsdelivr-net): 글꼴 파일을 받을 때 IP 주소가 전송됩니다.
-- Supabase, Inc. (서버 위치: ${region}): 서버 위치가 국외인 경우 제2조의 계정·학습 정보가 그 국가에 저장됩니다.
-이전을 원하지 않으면 AI 완성과 번역을 쓰지 않으면 됩니다. 내장 사전에 있는 단어는 외부로 보내지 않고 기기 안에서 채웁니다. 다만 접속 기록과 계정 정보 저장은 서비스 제공에 꼭 필요해 거부하면 서비스를 이용할 수 없습니다.
-이용자가 설정에서 직접 입력한 AI 키로 이용하는 경우, 입력한 단어와 문장은 이용자 기기에서 해당 AI 제공자(Google, OpenAI, xAI, Anthropic)로 바로 전송되며 운영자 서버를 거치지 않습니다. 이 키는 이용자 기기에만 저장합니다.`],
-        ['제7조 개인정보의 파기 절차 및 방법', `보유 기간이 끝나거나 처리 목적을 이루면 지체 없이 파기합니다.
-- 회원 탈퇴: 설정의 "계정과 데이터 삭제"를 누르면 서버의 계정과 학습 데이터를 즉시 삭제하며 복구할 수 없습니다.
-- 세션 정보와 AI 사용 횟수: 보유 기간이 지나면 자동으로 삭제합니다.
-- 전자 파일은 복구할 수 없는 방법으로 삭제하며, 종이 문서로는 개인정보를 보관하지 않습니다.
-- 이용자 기기에 저장된 정보는 앱의 로그아웃·삭제 기능이나 브라우저의 사이트 데이터 삭제로 지울 수 있습니다.`],
-        ['제8조 이용자와 법정대리인의 권리와 행사 방법', `이용자는 언제든지 자신의 개인정보에 대해 열람, 정정, 삭제, 처리정지, 전송을 요구할 수 있습니다.
-- 열람·전송: 설정의 "백업 파일 내려받기"(JSON)나 단어장 메뉴의 "CSV로 내보내기"로 직접 내려받을 수 있습니다.
-- 정정: 앱에서 단어장과 설정을 직접 고칠 수 있습니다.
-- 삭제·처리정지: 설정의 "계정과 데이터 삭제"로 바로 할 수 있습니다.
-- 그 밖의 요구는 이메일(${mail})로 보내 주시면 10일 이내에 조치하고 결과를 알려 드립니다.
-법정대리인이나 위임을 받은 사람을 통해서도 권리를 행사할 수 있으며, 이 경우 위임장을 함께 제출해야 합니다.`],
-        ['제9조 자동 수집 장치의 설치·운영 및 거부', `서비스는 쿠키를 사용하지 않습니다. 로그인 상태, 설정, 학습 데이터를 이용자 기기의 브라우저 저장소(localStorage)에 저장하며, 이는 서비스 제공에 꼭 필요합니다. 브라우저 설정의 사이트 데이터 삭제로 지울 수 있으며, 이 경우 로그아웃되고 아직 동기화되지 않은 데이터가 지워질 수 있습니다.
-광고, 행태정보 수집, 이용 분석 도구는 사용하지 않습니다.`],
-        ['제10조 개인정보의 안전성 확보 조치', `- 비밀번호는 bcrypt로 단방향 암호화하고, 로그인 세션 토큰은 해시로 저장하며 90일 뒤 만료합니다.
-- 모든 통신은 HTTPS로 암호화합니다.
-- 데이터베이스 표에 대한 직접 접근을 막고(RLS), 정해진 서버 함수로만 처리합니다.
-- 로그인을 5회 실패하면 10분간 잠그고, 가입과 반복 실패 시 보안문자를 확인합니다.
-- 서버 비밀키는 서버에만 보관하고 앱 코드에 넣지 않습니다.
-- 개인정보에 접근할 수 있는 사람을 운영자 1명으로 제한합니다.`],
-        ['제11조 만 14세 미만 아동의 개인정보', `만 14세 미만 이용자는 서버 계정을 만들지 않고 "이 기기에만 저장" 방식으로 이용합니다. 이 경우 단어장과 학습 기록은 아동의 기기에만 저장되며 운영자는 아동의 개인정보를 수집하지 않습니다. 서버 동기화와 서버 AI 기능은 제공하지 않으며, 내장 사전 등 나머지 학습 기능은 그대로 이용할 수 있습니다.`],
-        ['제12조 자동화된 결정', 'AI 단어 완성은 이용자가 요청한 단어의 뜻과 예문을 채워 주는 기능이며, 이용자의 권리나 의무에 영향을 주는 자동화된 결정(「개인정보 보호법」 제37조의2)은 하지 않습니다. 이용자의 개인정보를 AI 학습에 쓰지 않습니다.'],
-        ['제13조 개인정보 보호책임자', `개인정보 처리에 관한 업무와 고충 처리를 다음 책임자가 맡습니다.
-- 성명: ${I.operator}
-- 직책: 운영자(개발자)
-- 이메일: ${mail}
-1인 운영 서비스라 개인정보 열람 청구 접수와 처리도 같은 책임자가 맡습니다.`],
-        ['제14조 권익침해 구제 방법', `개인정보 침해에 대한 상담이나 분쟁 해결은 아래 기관에 신청할 수 있습니다.
-- 개인정보분쟁조정위원회: 국번 없이 1833-6972 (www.kopico.go.kr)
-- 개인정보침해신고센터: 국번 없이 118 (privacy.kisa.or.kr)
-- 대검찰청: 국번 없이 1301 (www.spo.go.kr)
-- 경찰청: 국번 없이 182 (ecrm.police.go.kr)`],
-        ['제15조 개인정보 처리방침의 변경', `이 방침을 바꿀 때는 시행 7일 전부터 앱 안에서 알리며, 이용자에게 불리하거나 중요한 변경은 30일 전부터 알립니다.
-- 2026년 10월 11일: 제정
-- 2026년 10월 11일: 법정 기재 항목 보완, 학년 정보·AI 기능·국외 이전 내용 반영
-- ${I.effective}: 수집 항목에 이름, 학교, 학번(선택)과 선생님 가입 추가`],
-        ['시행일', `이 방침은 ${I.effective}부터 시행합니다.`]]],
-      terms: ['이용약관', '', [
-        ['제1조 (목적)', `이 약관은 ${I.operator}(이하 "운영자")이 제공하는 영어 단어 학습 서비스 VocaPro(이하 "서비스")의 이용 조건과 절차, 운영자와 회원의 권리·의무를 정합니다.`],
-        ['제2조 (정의)', `- 서비스: 운영자가 웹과 앱(PWA)으로 제공하는 VocaPro와 관련 기능
-- 회원: 이 약관에 동의하고 계정을 만든 사람
-- 학습 데이터: 회원이 만든 단어장, 학습 기록, 설정
-- AI 기능: AI로 단어 정보를 채우거나 문장을 번역하는 기능`],
-        ['제3조 (약관의 게시와 변경)', `- 운영자는 이 약관을 가입 화면과 설정 화면에서 언제든 볼 수 있게 합니다.
-- 운영자는 관련 법령을 어기지 않는 범위에서 약관을 바꿀 수 있습니다. 바꿀 때는 적용일과 이유를 적어 적용일 7일 전부터 앱 안에서 알리며, 회원에게 불리한 변경은 30일 전부터 알립니다.
-- 알린 적용일까지 거부 의사를 밝히지 않으면 바뀐 약관에 동의한 것으로 본다는 점을 함께 알렸는데도 회원이 거부하지 않으면 동의한 것으로 봅니다. 동의하지 않는 회원은 탈퇴할 수 있습니다.`],
-        ['제4조 (회원 가입)', `- 아이디, 비밀번호, 학년(또는 선생님), 이름, 학교를 입력하고 이 약관과 개인정보 처리방침에 동의하면 가입됩니다.
-- 만 14세 미만은 서버 계정을 만들 수 없으며 "이 기기에만 저장" 방식으로 이용합니다.
-- 다른 사람의 정보를 도용하거나 서비스 운영을 방해할 목적으로 가입한 경우 가입을 거절하거나 취소할 수 있습니다.`],
-        ['제5조 (계정 관리)', '회원은 아이디와 비밀번호를 스스로 관리해야 하며 다른 사람이 쓰게 해서는 안 됩니다. 서비스는 이메일 같은 복구 수단을 받지 않으므로 비밀번호를 잊으면 계정을 되찾을 수 없습니다. 도용을 알게 되면 바로 비밀번호를 바꾸고 운영자에게 알려 주세요.'],
-        ['제6조 (서비스의 제공)', `서비스는 무료이며 다음 기능을 제공합니다.
-- 단어장 관리, 반복 학습, 퀴즈, 듣기, 학습 통계
-- 내장 사전, 학년별·수준별 추천 단어
-- AI 단어 완성과 번역(회원별 하루 사용 한도 적용)
-- 기기 간 동기화와 백업`],
-        ['제7조 (서비스의 변경과 중단)', '운영자는 운영상·기술상 필요하면 서비스 내용을 바꿀 수 있으며, 중요한 변경은 미리 알립니다. 설비 점검, 외부 서비스(호스팅, 데이터베이스, AI 제공자)의 장애, 천재지변 등으로 서비스가 일시 중단될 수 있습니다. 서비스를 끝낼 때는 30일 전에 알리고, 그 기간 동안 학습 데이터를 내려받을 수 있게 합니다.'],
-        ['제8조 (AI 기능)', `- AI 결과는 자동으로 만들어진 것이라 틀릴 수 있으니 학습에 쓰기 전에 확인해 주세요.
-- 하루 사용 한도를 넘으면 다음 날까지 서버 AI를 쓸 수 없습니다.
-- AI 완성과 번역에 다른 사람의 개인정보나 민감한 내용을 입력하지 마세요. 입력한 내용은 개인정보 처리방침에 적힌 AI 제공자에게 전송됩니다.
-- 회원이 직접 입력한 AI 키로 쓰는 경우 해당 AI 제공자의 약관이 적용되며, 그 사용 요금은 회원이 부담합니다.`],
-        ['제9조 (운영자의 의무)', '운영자는 관련 법령과 이 약관을 지키며 서비스를 안정적으로 제공하기 위해 노력합니다. 회원의 개인정보는 개인정보 처리방침에 따라 보호하며, 회원의 의견과 불만은 이메일로 받아 빠르게 처리합니다.'],
-        ['제10조 (회원의 의무)', `회원은 다음 행위를 해서는 안 됩니다.
-- 다른 사람의 계정 도용이나 비밀번호 무차별 대입
-- 프로그램 등을 이용한 과도한 자동 호출, AI 사용 한도 회피
-- 서비스의 정상 운영을 방해하거나 서버에 부정하게 접근하는 행위
-- 법령이나 공공질서에 어긋나는 내용을 저장·공유하는 행위`],
-        ['제11조 (이용 제한)', '회원이 제10조를 어기면 운영자는 경고, 일시 정지, 계정 삭제 순으로 이용을 제한할 수 있습니다. 다만 서비스 운영에 심각한 피해를 주는 경우 바로 제한할 수 있습니다. 회원은 이용 제한에 대해 이메일로 이의를 제기할 수 있습니다.'],
-        ['제12조 (회원 탈퇴)', '회원은 설정의 "계정과 데이터 삭제"로 언제든 탈퇴할 수 있습니다. 탈퇴하면 서버의 계정과 학습 데이터가 즉시 삭제되어 되돌릴 수 없으니, 필요하면 미리 백업 파일을 내려받아 두세요.'],
-        ['제13조 (저작권)', '서비스의 디자인, 프로그램, 내장 사전과 추천 단어 목록의 권리는 운영자에게 있습니다. 회원이 만든 학습 데이터는 회원의 것이며, 운영자는 서비스 제공 목적 외에는 쓰지 않습니다.'],
-        ['제14조 (책임의 제한)', '운영자는 천재지변, 외부 서비스 장애, 회원의 잘못으로 생긴 손해에는 책임을 지지 않습니다. 내장 사전과 AI 결과의 정확성, 학습 성과는 보장하지 않습니다. 다만 운영자의 고의나 중대한 과실로 생긴 손해는 관련 법령에 따라 책임을 집니다.'],
-        ['제15조 (회원에 대한 통지)', '운영자는 앱 안 공지로 회원에게 알립니다. 서비스는 회원의 연락처를 받지 않으므로 개별 통지가 필요한 경우에도 앱 안 알림으로 합니다.'],
-        ['제16조 (분쟁 해결과 준거법)', `서비스 이용과 관련한 분쟁은 먼저 이메일(${mail})로 협의해 해결합니다. 협의가 되지 않으면 대한민국 법을 적용하며, 관할 법원은 「민사소송법」에 따라 정합니다.`],
-        ['부칙', `이 약관은 ${I.effective}부터 시행합니다.`]]]
-    };
+  const clMsg = e => CL_ERR[e && e.code] || '잠시 후 다시 시도해 주세요.';
+  const CL_KIND = { test: '시험', study: '단어 학습' };
+  const clKey = () => 'vocapro_cls:' + currentUser;
+  const clCache = () => loadJson(clKey()) || { joined: 0, pending: 0 };
+  let CL = null, CLV = { id: null, tab: 'stu', open: null, data: null };
+  const clDate = s => { if (!s) return ''; const d = new Date(s); return isNaN(d) ? '' : d.toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' }); };
+  const clDue = due => { if (!due) return ''; const left = Math.round((new Date(due + 'T23:59:59').getTime() - Date.now()) / DAY); return left < 0 ? '마감 지남' : left === 0 ? '오늘 마감' : `${clDate(due)}까지`; };
+  const clLoading = t => `<div class="cl-load">${MASCOT('think')}<span>${t || '불러오는 중...'}</span></div>`;
+  function clFail(e, back) { $('sheetBody').innerHTML = `<div class="cl-load">${MASCOT('sleep')}<span>${esc(clMsg(e))}</span></div>${back ? `<button class="btn btn-soft btn-block" data-act="${back}">돌아가기</button>` : ''}`; }
+
+  function classEntryHtml() {
+    if (!clOk()) return '';
+    const c = clCache(), p = !isTeacher() && c.pending > 0;
+    const sub = isTeacher() ? '반 만들기, 과제 내기, 학생별 학습 현황' : c.joined ? (p ? `남은 과제 ${c.pending}개` : '과제와 결과를 확인해요') : '선생님께 받은 코드로 반에 참여해요';
+    return `<button class="mg-entry${p ? ' cl-hot' : ''}" data-act="class-open"><span class="mg-ico i-sun">${IC.users}</span><span class="mg-txt"><b>우리 반</b><small>${sub}</small></span>${p ? `<span class="cl-badge">${c.pending}</span>` : ''}<span class="mg-chev"></span></button>`;
   }
-  function legalHtml(t) {
-    let out = '', list = '';
-    const flush = () => { if (list) { out += `<ul>${list}</ul>`; list = ''; } };
-    String(t).split('\n').forEach(l => {
-      if (l.startsWith('- ')) list += `<li>${esc(l.slice(2))}</li>`;
-      else { flush(); if (l.trim()) out += `<p>${esc(l)}</p>`; }
-    });
-    flush(); return out;
+  function clSaveCache(r) {
+    const pending = (r.joined || []).reduce((s, c) => s + c.assignments.filter(a => !a.mine && !(a.due && clDue(a.due) === '마감 지남')).length, 0);
+    try { LS.setItem(clKey(), JSON.stringify({ joined: (r.joined || []).length, pending })); } catch (e) {}
   }
-  ACTIONS.legal = el => {
-    const d = legalDocs()[el.dataset.k]; if (!d || $('lgOv')) return;
-    const ov = document.createElement('div'); ov.className = 'ob lt lg'; ov.id = 'lgOv'; ov.style.zIndex = 700;
-    ov.innerHTML = `<button class="ob-skip" data-lg="x">닫기</button><div class="lg-body"><h2>${d[0]}</h2>${d[1] ? legalHtml(d[1]) : ''}${d[2].map(([h, t]) => `<h4>${esc(h)}</h4>${legalHtml(t)}`).join('')}</div>`;
-    ov.addEventListener('click', e => { if (e.target.closest('[data-lg]')) ov.remove(); });
-    document.body.appendChild(ov);
+
+  ACTIONS['class-open'] = async () => {
+    if (!clOk()) return say(kidMode ? '이 기기에만 저장하는 계정(만 14세 미만)은 반에 참여할 수 없어요.' : '우리 반은 로그인한 서버 계정에서만 쓸 수 있어요.');
+    openSheet('우리 반', clLoading());
+    try { CL = await Cloud.call('voca_class_mine'); } catch (e) { return clFail(e); }
+    clSaveCache(CL); clHome();
+    if (CL.joined.length) clReport(true);
   };
-  function legalLinksHtml() { return '<div class="legal-links"><a class="lg-a" data-act="legal" data-k="terms">이용약관</a> · <a class="lg-a" data-act="legal" data-k="privacy">개인정보 처리방침</a></div>'; }
-
-
-  function flowEntryHtml() { return `<button class="mg-entry" data-act="flow"><span class="mg-ico">${IC.repeat}</span><span class="mg-txt"><b>4단계 집중 학습</b><small>보기, 고르기, 쓰기, 시험으로 확실하게</small></span><span class="mg-chev"></span></button>`; }
-
-  /* =========================================================
-   * 키보드 단축키 (PC)
-   * ======================================================= */
-  const KBD = {
-    card: [['Space', '뒤집기'], ['←', '몰라요'], ['→', '알아요'], ['Esc', '나가기']],
-    choice: [['1~4', '고르기'], ['Esc', '나가기']],
-    spell: [['Enter', '확인 · 다음'], ['Esc', '나가기']],
-    listen: [['Space', '재생 · 정지'], ['← →', '이전 · 다음'], ['Esc', '나가기']]
+  function clHome() {
+    const r = CL || { owned: [], joined: [] }, teach = isTeacher();
+    let h = '';
+    if (teach || r.owned.length) {
+      h += `<div class="cl-sec"><h4 class="syn-h">내가 만든 반</h4>${r.owned.length ? `<div class="menu-list">${r.owned.map(c => `<button data-act="cl-class" data-id="${c.id}"><span class="cl-li"><b>${esc(c.name)}</b><small>학생 ${c.members}명 · 과제 ${c.assignments}개 · 코드 ${esc(c.code)}</small></span></button>`).join('')}</div>` : '<p class="muted cl-p">아직 만든 반이 없어요.</p>'}
+        <div class="cl-new"><input type="text" id="clName" maxlength="40" placeholder="반 이름 (예: 2학년 3반 영어)"><button class="btn btn-primary" data-act="cl-create">반 만들기</button></div></div>`;
+    }
+    if (!teach || r.joined.length) {
+      h += r.joined.map(c => `<div class="cl-sec card cl-cls"><div class="cl-head"><div><b>${esc(c.name)}</b><small>${esc([c.school, c.teacher && c.teacher + ' 선생님'].filter(Boolean).join(' · '))}</small></div><button class="btn btn-sm btn-soft" data-act="cl-leave" data-id="${c.id}">나가기</button></div>
+        ${c.assignments.length ? c.assignments.map(a => `<button class="cl-asg" data-act="cl-do" data-id="${a.id}"><span class="cl-li"><b>${esc(a.title)}</b><small>${CL_KIND[a.kind] || ''} · ${a.count}단어${a.due ? ' · ' + clDue(a.due) : ''}</small></span>${a.mine ? `<span class="cl-done">${a.mine.score}점</span>` : '<span class="cl-todo">시작</span>'}</button>`).join('') : '<p class="muted cl-p">아직 과제가 없어요.</p>'}</div>`).join('');
+      h += `<div class="cl-sec"><h4 class="syn-h">반 참여하기</h4><div class="cl-new"><input type="text" id="clCode" maxlength="6" placeholder="초대 코드 6자리" autocapitalize="characters" autocomplete="off"><button class="btn btn-primary" data-act="cl-join">참여</button></div>
+        <label class="cl-agree"><input type="checkbox" id="clAgree"> 이 반 선생님에게 내 이름${isTeacher() ? '' : ', 학번'}, 학습 요약(학습한 단어 수, 정답률, 연속 학습, 많이 틀린 단어, 최근 시험 점수), 과제 결과를 보여 주는 데 동의해요. 반에서 나가면 선생님 화면에서 바로 지워져요.</label></div>`;
+    }
+    $('sheetTitle').textContent = '우리 반';
+    $('sheetBody').innerHTML = `<div class="form-stack cl">${h}</div>`;
+  }
+  ACTIONS['cl-home'] = () => ACTIONS['class-open']();
+  ACTIONS['cl-create'] = async el => {
+    const name = (($('clName') || {}).value || '').trim(); if (!name) return toast('반 이름을 적어 주세요.');
+    const p = config.profile || {}; el.disabled = true;
+    try { const r = await Cloud.call('voca_class_create', { p_name: name, p_teacher: p.name || '', p_school: p.school || '' }); toast(`'${r.name}' 반을 만들었어요. 초대 코드는 ${r.code}예요.`); clDetail(r.id); }
+    catch (e) { el.disabled = false; say(clMsg(e)); }
   };
-  KBD.rchoice = KBD.choice; KBD.dict = KBD.spell; KBD.test = [['1~4', '고르기'], ['Enter', '제출'], ['Esc', '나가기']]; KBD.cloze = KBD.choice;
-  function kbdHint(mode) { const el = $('kbdHint'); if (el) el.innerHTML = (KBD[mode] || []).map(([k, t]) => `<span><kbd>${k}</kbd>${t}</span>`).join(''); }
-  document.addEventListener('keydown', e => {
-    if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
-    if (document.querySelector('.dlg-ov')) return;
-    const t = e.target, tag = t && t.tagName;
-    const typing = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || !!(t && t.isContentEditable);
-    const sheetOpen = $('sheetOv').classList.contains('open');
-    const study = $('studyScreen').classList.contains('open') && !sheetOpen && !$('flOv') && !$('ltOv') && !$('mgOv');
-    if (e.key === 'Escape') {
-      if ($('trOv')) return;
-      const lg = $('lgOv'); if (lg) { e.preventDefault(); lg.remove(); return; }
-      if ($('authScreen').style.display !== 'none' || $('obOv')) return;
-      for (const [id, sel] of [['flOv', '[data-fl="close"]'], ['ltOv', '[data-lt="close"]'], ['mgOv', '[data-mg="x"]']]) {
-        const ov = $(id); if (!ov) continue;
-        const b = ov.querySelector(sel); if (b) { e.preventDefault(); b.click(); }
-        return;
+  ACTIONS['cl-join'] = async el => {
+    const code = (($('clCode') || {}).value || '').trim().toUpperCase();
+    if (!/^[A-Z0-9]{6}$/.test(code)) return toast('초대 코드 6자리를 적어 주세요.');
+    if (!($('clAgree') || {}).checked) return toast('선생님에게 보여 주는 정보에 동의해야 참여할 수 있어요.');
+    const p = config.profile || {}; el.disabled = true;
+    try { const r = await Cloud.call('voca_class_join', { p_code: code, p_name: p.name || currentLabel || '', p_sno: isTeacher() ? '' : (p.sno || '') }); toast(`'${r.name}' 반에 참여했어요.`); await ACTIONS['class-open'](); }
+    catch (e) { el.disabled = false; say(clMsg(e)); }
+  };
+  ACTIONS['cl-leave'] = async el => {
+    if (!await ask('이 반에서 나갈까요?\n선생님 화면에서 내 학습 현황과 과제 결과가 지워져요.', { ok: '나가기', danger: true })) return;
+    try { await Cloud.call('voca_class_leave', { p_class: +el.dataset.id }); toast('반에서 나왔어요.'); ACTIONS['class-open'](); } catch (e) { say(clMsg(e)); }
+  };
+
+  /* ----- 선생님: 반 상세 ----- */
+  async function clDetail(id, keep) {
+    CLV.id = id; if (!keep) { CLV.tab = 'stu'; CLV.open = null; }
+    openSheet('우리 반', clLoading());
+    try { CLV.data = await Cloud.call('voca_class_detail', { p_class: id }); } catch (e) { return clFail(e, 'cl-home'); }
+    clDraw();
+  }
+  ACTIONS['cl-class'] = el => clDetail(+el.dataset.id);
+  ACTIONS['cl-tab'] = el => { CLV.tab = el.dataset.t; clDraw(); };
+  ACTIONS['cl-stu'] = el => { CLV.open = CLV.open === el.dataset.uid ? null : el.dataset.uid; clDraw(); };
+  function clWeakTop(lists, n) {
+    const m = new Map();
+    lists.forEach(l => (l || []).forEach(x => { const w = Array.isArray(x) ? x[0] : x; if (!w) return; const k = String(w).toLowerCase(); const o = m.get(k) || { w: String(w), mean: Array.isArray(x) ? x[1] || '' : '', c: 0 }; o.c++; m.set(k, o); }));
+    return [...m.values()].sort((a, b) => b.c - a.c).slice(0, n);
+  }
+  function clDraw() {
+    const d = CLV.data, c = d.class, mem = d.members, asg = d.assignments;
+    $('sheetTitle').textContent = c.name;
+    const head = `<div class="cl-code"><div><small>초대 코드</small><b>${esc(c.code)}</b></div><button class="btn btn-sm btn-soft" data-act="cl-copy" data-code="${esc(c.code)}">복사</button></div>
+      <p class="muted cl-p">학생은 홈의 '우리 반'에서 이 코드를 넣으면 들어와요. 만 14세 미만(이 기기에만 저장하는 계정)은 참여할 수 없어요.</p>
+      <div class="seg"><button class="${CLV.tab === 'stu' ? 'on' : ''}" data-act="cl-tab" data-t="stu">학생 ${mem.length}명</button><button class="${CLV.tab === 'asg' ? 'on' : ''}" data-act="cl-tab" data-t="asg">과제 ${asg.length}개</button></div>`;
+    let body = '';
+    if (CLV.tab === 'stu') {
+      const weak = clWeakTop(mem.map(m => (m.progress && m.progress.weak) || []), 10);
+      body = mem.length ? `${weak.length ? `<div class="cl-weak"><h4 class="syn-h">반에서 많이 틀린 단어</h4><div class="cl-chips">${weak.map(x => `<span>${esc(x.w)}${x.mean ? ` <small>${esc(x.mean)}</small>` : ''} <b>${x.c}명</b></span>`).join('')}</div></div>` : ''}
+        <div class="cl-table"><div class="cl-tr cl-th"><span>이름</span><span>최근 학습</span><span>7일 단어</span><span>정답률</span><span>과제</span></div>
+        ${mem.map(m => { const p = m.progress || {}; const open = CLV.open === m.uid; return `<button class="cl-tr${open ? ' on' : ''}" data-act="cl-stu" data-uid="${esc(m.uid)}"><span><b>${esc(m.name || '이름 없음')}</b>${m.sno ? `<small>${esc(m.sno)}</small>` : ''}</span><span>${p.last ? clDate(p.last) : '-'}</span><span>${p.n7 != null ? p.n7 : '-'}</span><span>${p.acc7 != null ? p.acc7 + '%' : '-'}</span><span>${m.done}/${asg.length}</span></button>${open ? clStuHtml(m) : ''}`; }).join('')}</div>`
+        : `<div class="cl-load">${MASCOT('happy')}<span>아직 들어온 학생이 없어요. 초대 코드를 칠판에 적어 주세요.</span></div>`;
+    } else {
+      body = `<button class="btn btn-primary btn-block" data-act="cl-anew">${IC.plus} 과제 내기</button>
+        ${asg.length ? `<div class="menu-list">${asg.map(a => `<button data-act="cl-ares" data-id="${a.id}"><span class="cl-li"><b>${esc(a.title)}</b><small>${CL_KIND[a.kind]} · ${a.count}단어${a.kind === 'test' ? ` · ${a.n}문제` : ''}${a.due ? ' · ' + clDue(a.due) : ''} · 제출 ${a.subs}/${mem.length}${a.avg != null ? ` · 평균 ${a.avg}점` : ''}</small></span></button>`).join('')}</div>` : '<p class="muted cl-p">아직 낸 과제가 없어요.</p>'}`;
+    }
+    $('sheetBody').innerHTML = `<div class="form-stack cl">${head}${body}<div class="row cl-foot"><button class="btn btn-soft" data-act="cl-home">반 목록</button><button class="btn btn-soft cl-danger" data-act="cl-delete">반 삭제</button></div></div>`;
+  }
+  function clStuHtml(m) {
+    const p = m.progress || {};
+    const tests = (p.tests || []).map(t => `<span>${esc(t[2] || '')} <b>${t[1]}점</b> <small>${clDate(t[0])}</small></span>`).join('');
+    return `<div class="cl-stu">${p.at ? `<div class="cl-kv"><span>전체 단어 <b>${p.total || 0}</b></span><span>마스터 <b>${p.mastered || 0}</b></span><span>연속 학습 <b>${p.streak || 0}일</b></span><span>오늘 <b>${p.today || 0}</b></span></div>
+      ${(p.weak || []).length ? `<h4 class="syn-h">많이 틀린 단어</h4><div class="cl-chips">${p.weak.map(x => `<span>${esc(x[0])} <small>${esc(x[1] || '')}</small> <b>${x[2]}회</b></span>`).join('')}</div>` : ''}
+      ${tests ? `<h4 class="syn-h">최근 시험</h4><div class="cl-chips">${tests}</div>` : ''}<p class="muted cl-p">${clDate(p.at)} 기준</p>` : '<p class="muted cl-p">아직 학습 기록이 올라오지 않았어요. 학생이 앱을 열면 올라와요.</p>'}
+      <button class="btn btn-sm btn-soft cl-danger" data-act="cl-kick" data-uid="${esc(m.uid)}" data-name="${esc(m.name)}">반에서 내보내기</button></div>`;
+  }
+  ACTIONS['cl-copy'] = async el => { try { await navigator.clipboard.writeText(el.dataset.code); toast('초대 코드를 복사했어요.'); } catch (e) { toast('코드: ' + el.dataset.code); } };
+  ACTIONS['cl-kick'] = async el => {
+    if (!await ask(`${el.dataset.name || '이 학생'} 학생을 반에서 내보낼까요?\n이 반의 과제 결과도 함께 지워져요.`, { ok: '내보내기', danger: true })) return;
+    try { await Cloud.call('voca_class_kick', { p_class: CLV.id, p_uid: el.dataset.uid }); CLV.open = null; clDetail(CLV.id, true); } catch (e) { say(clMsg(e)); }
+  };
+  ACTIONS['cl-delete'] = async () => {
+    if (!await ask(`'${CLV.data.class.name}' 반을 삭제할까요?\n학생 목록, 과제, 제출 결과가 모두 지워지고 되돌릴 수 없어요.`, { ok: '삭제', danger: true })) return;
+    try { await Cloud.call('voca_class_delete', { p_class: CLV.id }); toast('반을 삭제했어요.'); ACTIONS['class-open'](); } catch (e) { say(clMsg(e)); }
+  };
+
+  /* ----- 선생님: 과제 내기 · 결과 ----- */
+  ACTIONS['cl-anew'] = () => {
+    const books = categories.filter(c => c.words.length);
+    if (!books.length) return toast('먼저 단어장에 단어를 담아 주세요. 기초 · 중학교 · 고등학교 · 수능 단어에서 바로 담을 수 있어요.');
+    const due = new Date(Date.now() + 7 * DAY), dv = `${due.getFullYear()}-${String(due.getMonth() + 1).padStart(2, '0')}-${String(due.getDate()).padStart(2, '0')}`;
+    $('sheetTitle').textContent = '과제 내기';
+    $('sheetBody').innerHTML = `<div class="form-stack cl">
+      <label class="setting-label" for="caBook">단어장</label>
+      <select id="caBook">${books.map(c => `<option value="${esc(c.id)}"${c.id === currentCategoryId ? ' selected' : ''}>${esc(c.name)} (${c.words.length}개)</option>`).join('')}</select>
+      <label class="setting-label" for="caTitle">과제 이름 (비우면 단어장 이름)</label>
+      <input type="text" id="caTitle" maxlength="60" placeholder="예: Day 3 단어 시험">
+      <label class="setting-label">종류</label>
+      <div class="seg" id="caKind"><button class="on" data-act="pt-opt" data-g="caKind" data-v="test">시험 (점수 제출)</button><button data-act="pt-opt" data-g="caKind" data-v="study">단어 학습 (뜻 고르기)</button></div>
+      <label class="setting-label">시험 문제 수</label>
+      <div class="seg" id="caNum">${[10, 20, 30, 50].map(k => `<button class="${k === 20 ? 'on' : ''}" data-act="pt-opt" data-g="caNum" data-v="${k}">${k}문제</button>`).join('')}</div>
+      <label class="setting-label" for="caDue">마감일</label>
+      <input type="date" id="caDue" value="${dv}">
+      <p class="muted cl-p">학생은 단어장을 그대로 받아 풀고, 끝나면 점수와 틀린 단어가 자동으로 제출돼요. 여러 번 풀면 가장 높은 점수가 남아요.</p>
+      <div class="row"><button class="btn btn-soft" data-act="cl-back">취소</button><button class="btn btn-primary" data-act="cl-acreate">과제 내기</button></div></div>`;
+  };
+  ACTIONS['cl-back'] = () => clDetail(CLV.id, true);
+  ACTIONS['cl-acreate'] = async el => {
+    const cat = categories.find(c => c.id === ($('caBook') || {}).value); if (!cat) return;
+    const kind = (document.querySelector('#caKind .on') || { dataset: { v: 'test' } }).dataset.v, n = +(document.querySelector('#caNum .on') || { dataset: { v: 20 } }).dataset.v;
+    const words = cat.words.slice(0, 500).map(w => [w.word.slice(0, 80), (w.meaning || '').slice(0, 120)]);
+    el.disabled = true;
+    try {
+      await Cloud.call('voca_assign_create', { p_class: CLV.id, p_title: (($('caTitle') || {}).value || '').trim() || cat.name, p_kind: kind, p_n: n, p_due: ($('caDue') || {}).value || null, p_words: words });
+      toast(cat.words.length > 500 ? '과제를 냈어요. 앞의 500단어만 들어갔어요.' : '과제를 냈어요.'); CLV.tab = 'asg'; clDetail(CLV.id, true);
+    } catch (e) { el.disabled = false; say(clMsg(e)); }
+  };
+  ACTIONS['cl-ares'] = async el => {
+    const id = +el.dataset.id; openSheet('과제 결과', clLoading());
+    let r; try { r = await Cloud.call('voca_assign_results', { p_assign: id }); } catch (e) { return clFail(e, 'cl-back'); }
+    const a = r.assign, done = r.rows.filter(x => x.score != null), left = r.rows.filter(x => x.score == null);
+    const avg = done.length ? Math.round(done.reduce((s, x) => s + x.score, 0) / done.length) : null;
+    const weak = clWeakTop(done.map(x => x.wrong), 10);
+    $('sheetTitle').textContent = a.title;
+    $('sheetBody').innerHTML = `<div class="form-stack cl">
+      <div class="cl-kv"><span>${CL_KIND[a.kind]}</span><span>${a.count}단어</span>${a.due ? `<span>${clDue(a.due)}</span>` : ''}<span>제출 <b>${done.length}/${r.rows.length}</b></span>${avg != null ? `<span>평균 <b>${avg}점</b></span>` : ''}</div>
+      ${weak.length ? `<h4 class="syn-h">많이 틀린 단어</h4><div class="cl-chips">${weak.map(x => `<span>${esc(x.w)} <b>${x.c}명</b></span>`).join('')}</div>` : ''}
+      ${done.length ? `<div class="cl-table"><div class="cl-tr cl-th"><span>이름</span><span>점수</span><span>정답</span><span>시간</span><span>횟수</span></div>${done.sort((x, y) => y.score - x.score).map(x => `<div class="cl-tr"><span><b>${esc(x.name || '이름 없음')}</b>${x.sno ? `<small>${esc(x.sno)}</small>` : ''}</span><span><b>${x.score}</b></span><span>${x.ok}/${x.n}</span><span>${x.sec >= 60 ? Math.floor(x.sec / 60) + '분' : x.sec + '초'}</span><span>${x.tries}회</span></div>`).join('')}</div>` : '<p class="muted cl-p">아직 제출한 학생이 없어요.</p>'}
+      ${left.length ? `<h4 class="syn-h">아직 안 한 학생 ${left.length}명</h4><div class="cl-chips">${left.map(x => `<span>${esc(x.name || '이름 없음')}${x.sno ? ` <small>${esc(x.sno)}</small>` : ''}</span>`).join('')}</div>` : ''}
+      <div class="row cl-foot"><button class="btn btn-soft" data-act="cl-back">돌아가기</button><button class="btn btn-soft cl-danger" data-act="cl-adel" data-id="${a.id}">과제 삭제</button></div></div>`;
+  };
+  ACTIONS['cl-adel'] = async el => {
+    if (!await ask('이 과제를 삭제할까요?\n학생들의 제출 결과도 함께 지워져요.', { ok: '삭제', danger: true })) return;
+    try { await Cloud.call('voca_assign_delete', { p_assign: +el.dataset.id }); CLV.tab = 'asg'; clDetail(CLV.id, true); } catch (e) { say(clMsg(e)); }
+  };
+
+  /* ----- 학생: 과제 풀기 · 결과 제출 ----- */
+  ACTIONS['cl-do'] = async el => {
+    const id = +el.dataset.id; el.disabled = true;
+    let a; try { a = await Cloud.call('voca_assign_get', { p_assign: id }); } catch (e) { el.disabled = false; return say(clMsg(e)); }
+    const list = (Array.isArray(a.words) ? a.words : []).filter(x => Array.isArray(x) && x[0] && x[1]);
+    if (!list.length) { el.disabled = false; return say('과제에 단어가 없어요.'); }
+    const name = `${a.class} · ${a.title}`.slice(0, 60);
+    let cat = categories.find(c => c.name === name);
+    if (!cat) {
+      el.textContent = '단어장 준비 중...';
+      await dictPreload(list.map(x => x[0]));
+      cat = { id: 'c' + uid(), name, words: [] }; const seen = new Set();
+      for (const [w, m] of list) {
+        const k = String(w).toLowerCase(); if (seen.has(k)) continue; seen.add(k);
+        let full = null; try { full = await dictGet(w); } catch (e) {}
+        cat.words.push(sanitizeWord({ ...(full || {}), id: uid(), word: String(w), meaning: String(m) }));
       }
-      if (sheetOpen) { e.preventDefault(); closeSheet(); return; }
-      if (study) { e.preventDefault(); ACTIONS['exit-session'](); }
-      return;
+      categories.push(cat); syncStorage();
     }
-    if (typing || $('trOv') || $('lgOv')) return;
-    if (/^[1-4]$/.test(e.key)) {
-      const scope = $('flOv') || $('ltOv') || (study ? $('stBody') : null);
-      const b = scope && scope.querySelectorAll('.opt')[+e.key - 1];
-      if (b && !b.disabled) { e.preventDefault(); b.click(); }
-      return;
-    }
-    if (!study || !S.active || S.finished) return;
-    if (tag === 'BUTTON' && (e.key === ' ' || e.key === 'Enter')) return;
-    if (S.mode === 'card') {
-      if (e.key === ' ') { e.preventDefault(); const f = $('fc3d'); if (f && !S.locked) f.classList.toggle('is-flipped'); }
-      else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); flyCard(e.key === 'ArrowRight' ? 1 : -1); }
-    } else if (S.mode === 'listen') {
-      if (e.key === ' ') { e.preventDefault(); ACTIONS['l-toggle'](); }
-      else if (e.key === 'ArrowLeft') { e.preventDefault(); ACTIONS['l-prev'](); }
-      else if (e.key === 'ArrowRight') { e.preventDefault(); ACTIONS['l-next'](); }
-    }
-  });
+    closeSheet();
+    if (allWords().length < 4) return say('시험과 뜻 고르기는 전체 단어가 4개 이상 있어야 해요.');
+    if (a.kind === 'test') startSession('test', { type: 'cat', id: cat.id }, Math.min(a.n || 20, cat.words.length));
+    else startSession('choice', { type: 'cat', id: cat.id }, 0);
+    if (S.active) S.assign = { id: a.id, title: a.title };
+  };
+  async function clSubmit(asg, ok, n, sec, wrong) {
+    const box = document.createElement('div'); box.className = 'cl-sub'; box.textContent = `'${asg.title}' 결과를 선생님에게 보내는 중...`;
+    const res = document.querySelector('#stBody .result'); if (res) res.insertBefore(box, res.firstChild);
+    try {
+      const r = await Cloud.call('voca_assign_submit', { p_assign: asg.id, p_ok: ok, p_n: Math.max(1, n), p_sec: sec, p_wrong: wrong.slice(0, 100) });
+      box.classList.add('ok'); box.textContent = `과제를 제출했어요. 이번 ${r.score}점${r.tries > 1 ? `, 최고 ${r.best}점(${r.tries}번째)` : ''}`;
+      const c = clCache(); if (r.tries === 1 && c.pending > 0) { c.pending--; try { LS.setItem(clKey(), JSON.stringify(c)); } catch (e) {} }
+      clReport(true);
+    } catch (e) { box.classList.add('bad'); box.textContent = '제출하지 못했어요. ' + clMsg(e) + ' 과제를 다시 풀면 다시 제출돼요.'; }
+  }
+
+  /* ----- 학생: 학습 요약 올리기 ----- */
+  let clLastReport = 0;
+  async function clReport(force) {
+    if (!clOk() || isTeacher() && !force) return;
+    if (!clCache().joined) return;
+    if (!force && Date.now() - clLastReport < 180000) return;
+    clLastReport = Date.now();
+    const c = counts(); let n7 = 0, ok7 = 0, last = '';
+    for (let i = 0; i < 7; i++) { const d = stats.days[dayKey(addDays(startOfDay(), -i))]; if (d) { n7 += d.n || 0; ok7 += d.ok || 0; } }
+    Object.keys(stats.days).forEach(k => { if ((stats.days[k].n || 0) > 0 && k > last) last = k; });
+    const weak = allWords().filter(x => x.w.miss > 0).sort((a, b) => b.w.miss - a.w.miss).slice(0, 10).map(x => [x.w.word.slice(0, 60), (x.w.meaning || '').slice(0, 40), x.w.miss]);
+    const tests = (stats.tests || []).slice(-5).reverse().map(t => [t.d, Math.round(t.ok / t.n * 100), String(t.src || '').slice(0, 40)]);
+    const p = { total: c.total, mastered: c.mastered, due: c.due, streak: streak(), today: (stats.days[dayKey()] || { n: 0 }).n, n7, acc7: n7 ? Math.round(ok7 / n7 * 100) : null, last, weak, tests, at: Date.now() };
+    try { await Cloud.call('voca_class_report', { p_progress: p }); } catch (e) {}
+  }
 
   /* =========================================================
-   * 시작
+   * 보안문자 · 약관 · 개인정보 처리방침
    * ======================================================= */
-  if ('speechSynthesis' in window) { try { window.speechSynthesis.getVoices(); } catch (e) {} }
-  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
-  if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
-  let deferredInstall = null;
-  window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredInstall = e; });
-  ACTIONS.install = async () => {
-    if (!deferredInstall) return say('브라우저 메뉴에서 "홈 화면에 추가"를 눌러 설치할 수 있어요.\n아이폰은 공유 버튼, 홈 화면에 추가예요.');
-    deferredInstall.prompt(); try { await deferredInstall.userChoice; } catch (e) {} deferredInstall = null;
-  };
-  let lastErrAt = 0;
-  const softErr = () => { if (Date.now() - lastErrAt > 4000) { lastErrAt = Date.now(); try { toast('일시적인 문제가 생겼어요. 계속 반복되면 새로고침해 주세요.'); } catch (e) {} } };
-  window.addEventListener('error', e => { if (e && e.message && !/ResizeObserver/.test(e.message)) softErr(); });
-  window.addEventListener('unhandledrejection', e => { e.preventDefault && e.preventDefault(); softErr(); });
-  applyTheme();
-  let sess = null;
-  try { sess = LS.getItem(KEY_SESS) || sessionStorage.getItem(KEY_SESS); } catch (e) {}
-  let kidBoot = false; try { kidBoot = cloudAvail && LS.getItem(KEY_KID) === '1'; } catch (e) {}
-  if (kidBoot && sess && getUsers()[sess]) { setKidMode(true); enterApp(sess); }
-  else if (cloudMode) bootCloud(); else if (sess && getUsers()[sess]) enterApp(sess); else showAuth();
+  let capText = '', authFails = 0;
+  const capRnd = n => { try { const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % n; } catch (e) { return Math.floor(Math.random() * n); } };
+  function drawCaptcha() {
+    const c = $('capCv'); if (!c) return;
+    const W = c.width = 160, H = c.height = 52, x = c.getContext('2d'); if (!x) return;
+    const set = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; capText = '';
+    for (let i = 0; i < 5; i++) capText += set[capRnd(set.length)];
+    x.fillStyle = '#eef1f5'; x.fillRect(0, 0, W, H);
+    for (let i = 0; i < 7; i++) { x.strokeStyle = `hsl(${capRnd(360)},40%,60%)`; x.lineWidth = 1 + capRnd(2); x.beginPath(); x.moveTo(capRnd(W), capRnd(H)); x.bezierCurveTo(capRnd(W), capRnd(H), capRnd(W), capRnd(H), capRnd(W), capRnd(H)); x.stroke(); }
+    for (let i = 0; i < capText.length; i++) {
+      x.save(); x.translate(20 + i * 28, 28 + capRnd(8) - 4); x.rotate((capRnd(60) - 30) / 100);
+      x.font = `800 ${26 + capRnd(6)}px sans-serif`; x.fillStyle = `hsl(${capRnd(360)},55%,28%)`; x.textAlign = 'center'; x.fillText(capText[i], 0, 0); x.restore();
+    }
+    for (let i = 0; i < 40; i++) { x.fillStyle = `rgba(60,60,60,${(capRnd(40) + 10) / 100})`; x.fillRect(capRnd(W), capRnd(H), 2, 2); }
+  }
+  function authExtraHtml(su) {
+    return `<div id="capBox" style="display:${su || authFails >= 3 ? 'block' : 'none'}"><div class="cap-row"><canvas id="capCv" width="160" height="52" aria-label="보안문자"></canvas><button type="button" class="btn btn-soft" data-act="cap-refresh">새로고침</button></div><input type="text" id="capIn" placeholder="위 문자를 입력하세요" maxlength="5" autocapitalize="characters" autocomplete="off" spellcheck="false"></div>${su ? `<label class="switch-row"><input type="checkbox" id="auTerms"><span>(필수) ${kidMode ? '보호자와 함께 ' : ''}<a class="lg-a" data-act="legal" data-k="terms">이용약관</a> 및 <a class="lg-a" data-act="legal" data-k="privacy">개인정보 처리방침</a>${kidMode ? '을 읽고 ' : '에 '}동의해요</span></label>` : ''}`;
+  }
+  function authGate() {
+    const su = authMode === 'signup';
+    if (su) { const t = $('auTerms'); if (!t || !t.checked) return '이용약관과 개인정보 처리방침에 동의해 주세요.'; }
+    if (su || authFails >= 3) {
+      const v = (($('capIn') && $('capIn').value) || '').trim().toUpperCase();
+      if (!capText || v !== capText) { drawCaptcha(); if ($('capIn')) $('capIn').value = ''; return '보안문자가 맞지 않아요. 새 문자로 다시 입력해 주세요.'; }
+    }
+    return '';
+  }
+  ACTIONS['cap-refresh'] = () => { drawCaptcha(); const i = $('capIn'); if (i) { i.value = ''; i.focus(); } };
+

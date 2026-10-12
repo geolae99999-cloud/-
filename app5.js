@@ -336,6 +336,7 @@
           <button class="btn btn-primary" data-act="exit-session">마치기</button>
         </div>
       </div>`;
+    if (S.assign) clSubmit(S.assign, S.ok, first, Math.max(1, Math.round((Date.now() - S.t0) / 1000)), wrongs.map(it => it.w.word));
     if (pct >= 80 || goalHit) confetti();
   }
   /* ----- 실전 시험 결과 ----- */
@@ -371,6 +372,7 @@
           <button class="btn btn-primary" data-act="exit-session">마치기</button>
         </div>
       </div>`;
+    if (S.assign) clSubmit(S.assign, ok, n, sec, S.log.filter(x => !x.ok).map(x => x.w.word));
     if (pct >= 80) confetti();
   }
   ACTIONS['exam-open'] = el => {
