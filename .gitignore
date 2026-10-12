@@ -1,0 +1,8 @@
+test/site/
+test/site2/
+test/shots/
+dist/
+node_modules/
+__pycache__/
+*.pyc
+.wrangler/

@@ -1,0 +1,45 @@
+suffice	충분하다
+summon	소환하다
+supplement	보충하다
+surpass	능가하다
+susceptible	영향받기 쉬운
+suspend	중단하다
+sway	흔들다, 좌우하다
+synthesize	합성하다
+taboo	금기
+tactic	전술
+terminate	끝내다
+testify	증언하다
+threshold	문턱
+thrift	절약
+torment	고통
+tranquil	고요한
+transaction	거래
+transcend	초월하다
+transient	일시적인
+transparent	투명한
+trivial	사소한
+turmoil	혼란
+unanimously	만장일치로
+underlie	기저를 이루다
+undertake	착수하다
+uphold	지지하다
+upright	똑바른
+utter	말하다; 완전한
+vaccine	백신
+vanish	사라지다
+vanity	허영심
+verbal	언어의
+vibrant	활기찬
+vice	악덕
+vicious	악랄한
+vigorous	활발한
+virtue	미덕
+visual	시각의
+vocation	천직
+void	빈 공간
+wary	조심하는
+whereas	반면에
+wholesome	건전한
+withstand	견디다
+zeal	열의

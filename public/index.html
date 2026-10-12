@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' data: https://cdn.jsdelivr.net; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' https://*.supabase.co https://generativelanguage.googleapis.com https://api.openai.com https://api.x.ai https://api.anthropic.com https://api.mymemory.translated.net; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#f2f4f6">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon-192.png">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <meta name="apple-mobile-web-app-title" content="VocaPro">
+  <meta name="description" content="단어, 끝까지 외우다 — VocaPro 영단어 학습">
+  <title>VocaPro - 스마트 단어 마스터</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="app-header">
+    <div class="header-left">
+      <button class="round-btn" id="btnBackHome" data-act="back" style="display:none;" aria-label="뒤로">←</button>
+      <h1 class="brand" id="headTitle"><i class="brand-mark">V</i><span><b>Voca</b>Pro</span></h1>
+    </div>
+    <div class="header-right">
+      <button class="round-btn" data-act="dict-open" id="btnDict" aria-label="영어사전"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
+      <button class="round-btn" data-act="translator" id="btnTr" aria-label="번역"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg></button>
+      <button class="round-btn" data-act="theme" id="btnTheme" aria-label="테마 변경"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
+    </div>
+  </header>
+
+  <main class="view-pane active" id="tabHome"></main>
+
+  <main class="view-pane" id="tabBooks">
+    <h2 class="page-title">단어장</h2>
+    <div class="add-row">
+      <input type="text" id="inCatName" placeholder="새 단어장 이름 (예: Day 1, 수능 필수)" maxlength="40" data-enter="add-book">
+      <button class="btn btn-primary" data-act="add-book">만들기</button>
+    </div>
+    <div class="book-list" id="folderContainer"></div>
+  </main>
+
+  <main class="view-pane" id="paneBook"></main>
+  <main class="view-pane" id="tabStudy"></main>
+  <main class="view-pane" id="tabStats"></main>
+
+  <main class="view-pane" id="tabSettings">
+    <h2 class="page-title">설정</h2>
+
+    <div class="settings-card">
+      <div class="settings-title">학습 목표</div>
+      <div class="setting-item">
+        <span class="setting-label">학년 (추천 단어 기준)</span>
+        <select id="cfgGrade" data-change="grade"></select>
+      </div>
+      <div class="setting-item">
+        <span class="setting-label">하루 목표 (학습한 단어 수)</span>
+        <select id="cfgGoal" data-change="goal">
+          <option value="10">10개</option><option value="20">20개</option><option value="30">30개</option>
+          <option value="50">50개</option><option value="100">100개</option>
+        </select>
+      </div>
+      <div class="setting-item">
+        <span class="setting-label">발음 읽기 속도</span>
+        <select id="cfgTtsRate" data-change="tts-rate">
+          <option value="0.8">0.8x (천천히)</option><option value="0.9">0.9x (자연스럽게)</option><option value="1">1.0x (보통)</option>
+        </select>
+      </div>
+    </div>
+
+    <details class="settings-card adv">
+      <summary class="settings-title">AI 기능 (선택) · API 키</summary>
+      <div class="setting-item">
+        <span class="setting-label">AI 엔진</span>
+        <select id="cfgProvider" data-change="provider">
+          <option value="gemini">Google Gemini</option>
+          <option value="xai">xAI Grok</option>
+          <option value="openai">OpenAI ChatGPT</option>
+          <option value="anthropic">Anthropic Claude</option>
+        </select>
+      </div>
+      <div class="setting-item">
+        <span class="setting-label" id="cfgKeyLabel">API Key</span>
+        <input type="password" id="cfgKey" placeholder="API 키를 붙여넣어 주세요" autocomplete="off" autocapitalize="none" spellcheck="false">
+      </div>
+      <div class="setting-item">
+        <span class="setting-label">모델 (연결 테스트를 누르면 사용 가능한 모델이 채워져요)</span>
+        <select id="cfgModel"></select>
+      </div>
+      <div class="cfg-status" id="cfgStatus"></div>
+      <div class="setting-item" style="margin-top:12px;">
+        <button class="btn btn-primary btn-block" id="btnTestConn" data-act="test-conn">키 저장하고 연결 테스트</button>
+      </div>
+    </details>
+
+    <div class="settings-card">
+      <div class="settings-title">복습 알림</div>
+      <div class="setting-item">
+        <div class="rm-row"><label class="switch-row"><input type="checkbox" id="rmOn" data-change="rm"> 알림 받기</label><input type="time" id="rmTime" value="20:00" data-change="rm"></div>
+        <p class="muted" id="rmNote" style="margin:10px 0 0;font-size:.82rem;line-height:1.55;"></p>
+      </div>
+    </div>
+
+    <div class="settings-card">
+      <div class="settings-title">앱으로 설치</div>
+      <div class="setting-item">
+        <p class="muted" style="margin:0 0 10px;font-size:.85rem;line-height:1.55;">홈 화면에 추가하면 앱처럼 실행되고, 인터넷이 없어도 열려요.</p>
+        <button class="btn btn-primary btn-block" data-act="install">홈 화면에 설치</button>
+      </div>
+    </div>
+
+    <div class="settings-card">
+      <div class="settings-title">내 정보</div>
+      <div class="setting-item form-stack">
+        <input type="text" id="pfName" placeholder="이름" maxlength="20" aria-label="이름">
+        <input type="text" id="pfSchool" placeholder="학교" maxlength="30" aria-label="학교">
+        <input type="text" id="pfSno" placeholder="학번 (예: 20315)" inputmode="numeric" maxlength="12" aria-label="학번">
+        <button class="btn btn-soft btn-block" data-act="pf-save">내 정보 저장</button>
+      </div>
+    </div>
+
+    <div class="settings-card">
+      <div class="settings-title">계정</div>
+      <div class="setting-item">
+        <div id="acctName" class="muted" style="margin-bottom:10px;font-weight:600;"></div>
+        <button class="btn btn-soft btn-block" id="btnPw" data-act="pw-change" style="display:none;margin-bottom:8px;">비밀번호 변경</button>
+        <button class="btn btn-soft btn-block" data-act="logout">로그아웃</button>
+        <button class="btn btn-soft btn-block danger" data-act="acct-del" style="margin-top:8px;">계정과 데이터 삭제</button>
+      </div>
+    </div>
+
+    <div class="settings-card">
+      <div class="settings-title">백업 · 복원</div>
+      <div class="setting-item">
+        <button class="btn btn-soft btn-block" data-act="export-json">백업 파일 내려받기 (API 키 제외)</button>
+        <button class="btn btn-soft btn-block" data-act="import-json">백업 파일 불러오기</button>
+        <input type="file" id="importFile" style="display:none;" data-change="import-backup" accept=".json,application/json">
+      </div>
+    </div>
+
+    <div class="settings-card">
+      <div class="settings-title">데이터 관리</div>
+      <button class="btn btn-soft btn-block danger" data-act="reset-all">모든 단어와 학습 기록 지우기</button>
+    </div>
+    <input type="file" id="csvFile" style="display:none;" data-change="import-csv" accept=".csv,.tsv,.txt,text/csv,text/plain">
+  </main>
+
+  <!-- 학습 화면 -->
+  <div class="study-screen" id="studyScreen">
+    <div class="study-top">
+      <button class="x" data-act="exit-session" aria-label="학습 종료"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      <div class="prog"><i id="stProg"></i></div>
+      <span class="st-count" id="stCount"></span>
+    </div>
+    <div id="stBody"></div>
+    <div class="kbd-hint" id="kbdHint"></div>
+  </div>
+
+  <!-- 시트 -->
+  <div class="sheet-overlay" id="sheetOv" data-act="sheet-bg">
+    <div class="sheet" role="dialog" aria-modal="true">
+      <div class="sheet-grab"></div>
+      <div class="sheet-head"><b id="sheetTitle"></b><button data-act="sheet-close" aria-label="닫기"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+      <div id="sheetBody"></div>
+    </div>
+  </div>
+
+  <div class="auth" id="authScreen" style="display:none;"></div>
+
+  <div class="toast" id="toast" role="status"></div>
+
+  <nav class="bottom-nav" aria-label="메인 메뉴">
+    <div class="nav-brand"><i class="brand-mark">V</i><span>VocaPro</span></div>
+    <button class="nav-item active" data-act="tab" data-t="tabHome">
+      <svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>홈</span>
+    </button>
+    <button class="nav-item" data-act="tab" data-t="tabBooks">
+      <svg viewBox="0 0 24 24"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h11"/></svg><span>단어장</span>
+    </button>
+    <button class="nav-item" data-act="tab" data-t="tabStudy">
+      <svg viewBox="0 0 24 24"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg><span>학습</span>
+    </button>
+    <button class="nav-item" data-act="tab" data-t="tabStats">
+      <svg viewBox="0 0 24 24"><path d="M4 20V11M10 20V4M16 20v-6M22 20H2"/></svg><span>통계</span>
+    </button>
+    <button class="nav-item" data-act="tab" data-t="tabSettings">
+      <svg viewBox="0 0 24 24"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/></svg><span>설정</span>
+    </button>
+    <div class="nav-card" id="navCard"></div>
+  </nav>
+
+  <script src="config.js"></script>
+  <script src="cloud.js"></script>
+  <script src="app1.js"></script>
+  <script src="app2.js"></script>
+  <script src="app3.js"></script>
+  <script src="app4.js"></script>
+  <script src="app5.js"></script>
+  <script src="app6.js"></script>
+  <script src="app7.js"></script>
+  <script src="app8.js"></script>
+  <script src="app9.js"></script>
+  <script src="app10.js"></script>
+  <script src="app11.js"></script>
+  <script src="app12.js"></script>
+  <script src="app13.js"></script>
+  <script src="app14.js"></script>
+</body>
+</html>

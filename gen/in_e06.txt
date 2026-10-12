@@ -1,0 +1,380 @@
+temper	성질
+tension	긴장
+terrible	끔찍한
+territory	영토
+text	본문
+therapy	치료
+thrive	번성하다
+tissue	조직
+tolerance	관용
+toxic	유독한
+trace	흔적; 추적하다
+trait	특성
+transfer	옮기다
+translate	번역하다
+transport	수송하다
+tremendous	엄청난
+tribe	부족
+triumph	승리
+tropical	열대의
+unify	통합하다
+urban	도시의
+urge	촉구하다
+utmost	최대의
+vacant	비어 있는
+vague	막연한
+vehicle	차량
+venture	모험; 감행하다
+vertical	수직의
+via	~을 통해
+victim	희생자
+vital	필수적인
+vivid	생생한
+voluntary	자발적인
+wage	임금
+wander	돌아다니다
+welfare	복지
+whisper	속삭이다
+wisdom	지혜
+witness	목격자; 목격하다
+worship	숭배하다
+wrinkle	주름
+abstain	삼가다
+accelerate	가속하다
+accountable	책임이 있는
+acquaintance	아는 사람
+adhere	고수하다
+adjacent	인접한
+admission	입장, 인정
+aesthetic appreciation	미적 감상
+affirm	단언하다
+aggregate	합계; 모으다
+agony	고통
+allegation	주장, 혐의
+allergic	알레르기가 있는
+allude	암시하다
+ambivalent	양면적인
+amplify	증폭시키다
+analogy	유추, 비유
+anonymous	익명의
+antibiotic	항생제
+anxious	불안한
+applicable	적용할 수 있는
+apprentice	견습생
+aptitude	적성
+archaeology	고고학
+aristocrat	귀족
+arouse	불러일으키다
+array	배열
+aspiration	열망
+assertion	주장
+astound	경악시키다
+asymmetry	비대칭
+attest	증명하다
+audit	감사
+augment	늘리다
+avert	피하다
+backdrop	배경
+barren	척박한
+biased	편향된
+blunt	무딘, 직설적인
+breach	위반
+bureaucracy	관료제
+by-product	부산물
+calamity	재난
+camouflage	위장
+cardinal	가장 중요한
+censorship	검열
+certify	증명하다
+chaos	혼돈
+circulate	순환하다
+clumsy	서투른
+coexist	공존하다
+cohesion	결속
+coincidence	우연의 일치
+commend	칭찬하다
+commonplace	평범한
+compartment	칸
+compel	강요하다
+competent	유능한
+complement	보완하다
+comply	따르다
+comprehend	이해하다
+compulsory	의무적인
+concise	간결한
+confer	수여하다, 상의하다
+confidential	기밀의
+configuration	배치, 구성
+conjunction	결합
+connotation	함축
+conservation	보존
+console	위로하다
+conspicuous	눈에 띄는
+contagious	전염성의
+contemplate	숙고하다
+contradict	모순되다
+conversely	반대로
+convey	전달하다
+cordial	다정한
+correlation	상관관계
+counterfeit	위조의
+credibility	신뢰성
+creed	신념
+cumulative	누적되는
+cynical	냉소적인
+dazzle	눈부시게 하다
+debris	잔해
+decay	부패하다
+deceive	속이다
+decent	괜찮은, 품위 있는
+decipher	해독하다
+dedication	헌신
+default	기본값, 채무 불이행
+deficiency	결핍
+degenerate	퇴화하다
+delegate	대표; 위임하다
+delusion	망상
+denote	나타내다
+density	밀도
+dependent	의존하는
+deprive	빼앗다
+descend	내려가다
+designate	지정하다
+detach	분리하다
+detain	구금하다
+devastate	황폐화하다
+dictate	명령하다, 받아쓰게 하다
+diffuse	확산시키다
+digest	소화하다
+dilemma	딜레마
+diligent	부지런한
+discard	버리다
+disclose	폭로하다
+discourse	담화
+discreet	신중한
+disguise	변장하다
+disorder	무질서, 장애
+displace	대체하다, 쫓아내다
+disposable	일회용의
+dispute	논쟁
+disrupt	방해하다
+dissolve	녹이다, 해산하다
+distinction	구별, 탁월함
+distress	고통
+diversity	다양성
+doctrine	교리
+dominate	지배하다
+donor	기증자
+drawback	결점
+dwindle	줄어들다
+eccentric	괴짜의
+ecosystem	생태계
+elaborate on	~을 자세히 말하다
+elevate	높이다
+embody	구현하다
+eminent	저명한
+emit	방출하다
+enact	제정하다
+encompass	포함하다
+endow	부여하다
+enforce	시행하다
+enlighten	깨우치다
+enrich	풍요롭게 하다
+entail	수반하다
+entrepreneur	기업가
+envious	부러워하는
+epidemic	유행병
+equate	동일시하다
+erect	세우다
+escalate	확대되다
+ethnic	민족의
+evacuate	대피시키다
+exceptional	예외적인
+excess	과잉
+exclusive	독점적인
+execute	실행하다
+exempt	면제된
+exotic	이국적인
+expertise	전문 지식
+expire	만료되다
+exterminate	근절하다
+extinction	멸종
+extract	추출하다
+fabricate	꾸며 내다
+faculty	능력, 교수진
+fascinate	매혹하다
+feeble	연약한
+fierce	사나운
+flaw	결함
+forge	위조하다, 구축하다
+formulate	만들어 내다
+fortify	강화하다
+fraction	일부, 분수
+framework	틀
+fraud	사기
+friction	마찰
+fringe	주변부
+gauge	측정하다
+gigantic	거대한
+gratify	만족시키다
+gross	총계의
+hamper	방해하다
+haphazard	무계획적인
+hazard	위험
+hereditary	유전적인
+hierarchy	계층
+hinder	방해하다
+hollow	속이 빈
+hospitality	환대
+humiliate	굴욕감을 주다
+hybrid	혼합물
+hygiene	위생
+idle	게으른, 한가한
+illuminate	밝히다
+imitate	모방하다
+immense	막대한
+imminent	임박한
+impulse	충동
+inclined	~하는 경향이 있는
+incompatible	양립할 수 없는
+inconsistent	일관성 없는
+incur	초래하다
+indifferent	무관심한
+induce	유도하다
+indulge	탐닉하다
+inequality	불평등
+inferior	열등한
+influential	영향력 있는
+ingredient	재료
+inhabit	거주하다
+initiate	시작하다
+insight into	~에 대한 통찰
+integrity	진실성
+interfere with	~을 방해하다
+intermediate	중간의
+intimate	친밀한
+intimidate	겁주다
+intriguing	흥미로운
+invaluable	매우 귀중한
+irrigation	관개
+irritable	짜증을 잘 내는
+lament	한탄하다
+latent	잠재적인
+legacy	유산
+lethal	치명적인
+liable	~하기 쉬운, 책임이 있는
+linger	오래 남다
+literal	문자 그대로의
+lofty	고상한
+longevity	장수
+lucrative	수익성이 좋은
+magnify	확대하다
+malfunction	오작동
+mandatory	의무적인
+manifest	나타내다
+meditate	명상하다
+menace	위협
+metabolism	신진대사
+metaphor	은유
+meticulously	꼼꼼하게
+migration	이주
+mimic	흉내 내다
+misconception	오해
+mobilize	동원하다
+momentum	추진력
+monopoly	독점
+mundane	평범한
+mutation	돌연변이
+narrative	이야기
+negligible	무시해도 될
+nocturnal	야행성의
+norm	규범
+notable	주목할 만한
+notorious	악명 높은
+novice	초보자
+nurture	양육하다
+oblivious	의식하지 못하는
+obsess	사로잡다
+omit	생략하다
+optimism	낙관주의
+orbit	궤도
+ordeal	시련
+outbreak	발생
+outlet	배출구, 매장
+output	산출
+overestimate	과대평가하다
+overt	명백한
+overturn	뒤집다
+pandemic	세계적 유행병
+patron	후원자
+peculiar	독특한
+penetrate	관통하다
+perish	소멸하다
+peripheral	주변의
+permeate	스며들다
+perpetual	영구적인
+pertinent	적절한
+pervasive	만연한
+plagiarism	표절
+plight	곤경
+ponder	숙고하다
+postpone	연기하다
+posture	자세
+predator	포식자
+predecessor	전임자
+predisposition	성향
+prerequisite	전제 조건
+prescription	처방
+prevalent	널리 퍼진
+probe	조사하다
+proficiency	숙달
+prolong	연장하다
+propel	추진하다
+prosecute	기소하다
+provision	공급, 조항
+proximity	근접
+punctuate	중단시키다
+quest	탐구
+rebellion	반란
+recede	물러나다
+recipient	수령인
+reckless	무모한
+recur	재발하다
+refrain	삼가다
+rehabilitate	재활시키다
+reign	통치
+relentless	끈질긴
+relieve	완화하다
+reminiscent	연상시키는
+renowned	유명한
+replicate	복제하다
+repress	억누르다
+reproach	비난하다
+resent	분개하다
+reservoir	저수지
+residue	잔여물
+retrieve	되찾다
+retrospect	회상
+revenge	복수
+rigorous	엄격한
+sanction	제재
+scrutiny	면밀한 조사
+segregate	분리하다
+sentiment	정서
+serene	고요한
+setback	좌절
+shrink	줄어들다
+simultaneous	동시의
+skeptic	회의론자
+soothe	달래다
+sovereign	주권의
+sparse	드문드문한
+spectrum	범위
+steer	조종하다
+stereotype	고정관념
+stimulus	자극
+stringent	엄중한
+subsidy	보조금
+substance	물질
+subtract	빼다
+succession	연속, 계승

@@ -1,0 +1,600 @@
+m1	fun	재미
+m1	ice	얼음
+m1	air	공기
+m1	diary	일기
+m1	dessert	디저트
+m1	dinosaur	공룡
+m1	gym	체육관
+m1	hometown	고향
+m1	alone	혼자
+m1	above	~위에
+m1	below	~아래에
+m1	able	~할 수 있는
+m1	adventure	모험
+m1	actor	배우
+m1	chef	요리사
+m1	customer	손님
+m1	visitor	방문객
+m1	hurry	서두르다
+m1	bake	굽다
+m1	boil	끓이다
+m1	mix	섞다
+m1	pour	붓다
+m1	fill	채우다
+m1	drop	떨어뜨리다
+m1	pull	당기다
+m1	push	밀다
+m1	hold	잡다, 개최하다
+m1	bite	물다
+m1	hide	숨다, 숨기다
+m1	arrive	도착하다
+m1	borrow	빌리다
+m1	lend	빌려주다
+m1	join	가입하다
+m1	cheer	응원하다
+m1	celebrate	축하하다
+m1	collect	모으다
+m1	return	돌아오다
+m1	shout	소리치다
+m1	relax	휴식을 취하다
+m1	share	나누다, 공유하다
+m1	famous	유명한
+m1	popular	인기 있는
+m1	lucky	운이 좋은
+m1	curious	호기심이 많은
+m1	crowded	붐비는
+m1	dangerous	위험한
+m1	amazing	놀라운
+m1	exciting	흥미진진한
+m1	fantastic	환상적인
+m1	excellent	훌륭한
+m1	fresh	신선한
+m1	simple	간단한
+m1	polite	예의 바른
+m1	rude	무례한
+m1	clever	영리한
+m1	silly	어리석은
+m1	kindness	친절
+m1	friendship	우정
+m1	joke	농담
+m1	joy	기쁨
+m1	habit	습관
+m1	mistake	실수
+m1	secret	비밀
+m1	goal	목표
+m1	chance	기회
+m1	exam	시험
+m1	example	예
+m1	reason	이유
+m1	result	결과
+m1	fact	사실
+m1	traffic	교통
+m1	journey	여행
+m1	abroad	해외로
+m1	foreign	외국의
+m1	local	지역의
+m1	business	사업
+m1	energy	에너지
+m1	information	정보
+m1	experience	경험
+m1	interest	관심, 흥미
+m1	skill	기술
+m1	survey	설문 조사
+m1	suddenly	갑자기
+m1	during	~동안
+m1	especially	특히
+m1	prepare	준비하다
+m1	practice	연습하다
+m1	protect	보호하다
+m1	receive	받다
+m1	solve	해결하다
+m1	spend	(돈·시간을) 쓰다
+m1	invent	발명하다
+m1	discover	발견하다
+m1	imagine	상상하다
+m1	express	표현하다
+m1	describe	묘사하다
+m1	continue	계속하다
+m1	important	중요한
+m1	comfortable	편안한
+m1	environment	환경
+m2	add	더하다
+m2	action	행동
+m2	follow	따라가다
+m2	fail	실패하다
+m2	own	자신의; 소유하다
+m2	order	주문; 명령하다
+m2	lie	거짓말; 눕다
+m2	calm	침착한
+m2	perfect	완벽한
+m2	possible	가능한
+m2	impossible	불가능한
+m2	common	흔한, 공통의
+m2	serious	심각한, 진지한
+m2	public	공공의
+m2	type	유형
+m2	form	형태; 형성하다
+m2	allow	허락하다
+m2	accept	받아들이다
+m2	appear	나타나다
+m2	disappear	사라지다
+m2	attend	참석하다
+m2	award	상; 수여하다
+m2	compare	비교하다
+m2	complete	완성하다
+m2	condition	상태, 조건
+m2	contact	연락; 연락하다
+m2	control	통제하다
+m2	create	창조하다
+m2	deliver	배달하다
+m2	design	디자인; 설계하다
+m2	develop	발달시키다, 개발하다
+m2	discuss	토론하다
+m2	effort	노력
+m2	improve	향상시키다
+m2	include	포함하다
+m2	knowledge	지식
+m2	manage	관리하다
+m2	offer	제안하다
+m2	repeat	반복하다
+m2	success	성공
+m2	support	지지하다
+m2	trust	신뢰; 믿다
+m2	achieve	성취하다
+m2	ancient	고대의
+m2	century	세기
+m2	courage	용기
+m2	custom	관습
+m2	diet	식단
+m2	emergency	비상사태
+m2	enemy	적
+m2	fear	두려움
+m2	harvest	수확
+m2	human	인간
+m2	law	법
+m2	memory	기억
+m2	nation	국가
+m2	peace	평화
+m2	war	전쟁
+m2	planet	행성
+m2	soldier	군인
+m2	symbol	상징
+m2	treasure	보물
+m2	victory	승리
+m2	wealth	부, 재산
+m2	instrument	악기, 도구
+m2	opinion	의견
+m2	article	기사
+m2	audience	청중
+m2	behavior	행동
+m2	emotion	감정
+m2	climate	기후
+m2	citizen	시민
+m2	community	공동체
+m2	direction	방향
+m2	amount	양
+m2	average	평균; 평균의
+m2	absent	결석한
+m2	actually	실제로
+m2	apologize	사과하다
+m2	announce	발표하다
+m2	anniversary	기념일
+m2	argue	논쟁하다
+m2	attack	공격; 공격하다
+m2	breathe	숨 쉬다
+m2	donate	기부하다
+m2	encourage	격려하다
+m2	escape	탈출하다
+m2	expect	기대하다
+m2	explore	탐험하다
+m2	increase	증가하다
+m2	decrease	감소하다
+m2	destroy	파괴하다
+m2	introduce	소개하다
+m2	necessary	필요한
+m2	normal	보통의
+m2	familiar	친숙한
+m2	fair	공정한
+m2	equal	동등한
+m2	recent	최근의
+m2	realize	깨닫다
+m3	several	몇몇의
+m3	similar	비슷한
+m3	focus	집중하다; 초점
+m3	expert	전문가
+m3	career	경력, 직업
+m3	device	장치
+m3	connect	연결하다
+m3	ceremony	의식, 식
+m3	technology	기술
+m3	solution	해결책
+m3	source	원천
+m3	structure	구조
+m3	suffer	고통받다
+m3	rare	드문
+m3	cancel	취소하다
+m3	crime	범죄
+m3	disaster	재난
+m3	decorate	장식하다
+m3	athlete	운동선수
+m3	ancestor	조상
+m3	oxygen	산소
+m3	flavor	맛
+m3	routine	일과
+m3	desire	욕구
+m3	regret	후회하다
+m3	react	반응하다
+m3	combine	결합하다
+m3	calculate	계산하다
+m3	grateful	감사하는
+m3	curiosity	호기심
+m3	passion	열정
+m3	income	수입
+m3	install	설치하다
+m3	translate	번역하다
+m3	transport	수송하다
+m3	destination	목적지
+m3	despite	~에도 불구하고
+m3	ability	능력
+m3	challenge	도전
+m3	cause	원인; 일으키다
+m3	balance	균형
+m3	benefit	이익
+m3	positive	긍정적인
+m3	negative	부정적인
+m3	opportunity	기회
+m3	patient	참을성 있는; 환자
+m3	physical	신체의
+m3	pressure	압력
+m3	private	사적인
+m3	process	과정
+m3	produce	생산하다
+m3	purpose	목적
+m3	reduce	줄이다
+m3	refuse	거절하다
+m3	region	지역
+m3	relationship	관계
+m3	remove	제거하다
+m3	rely	의지하다
+m3	ignore	무시하다
+m3	impress	깊은 인상을 주다
+m3	independent	독립적인
+m3	influence	영향; 영향을 주다
+m3	injure	부상을 입히다
+m3	insist	주장하다
+m3	judge	판단하다; 판사
+m3	lack	부족; 부족하다
+m3	major	주요한
+m3	material	재료
+m3	measure	측정하다
+m3	method	방법
+m3	mention	언급하다
+m3	generation	세대
+m3	global	세계적인
+m3	government	정부
+m3	gradually	점차
+m3	exist	존재하다
+m3	factor	요인
+m3	adapt	적응하다
+m3	admire	존경하다, 감탄하다
+m3	affect	영향을 미치다
+m3	afford	여유가 있다
+m3	aim	목표; 목표로 하다
+m3	apply	지원하다, 적용하다
+m3	arrange	정리하다, 준비하다
+m3	attract	끌다
+m3	aware	알고 있는
+m3	blame	비난하다
+m3	budget	예산
+m3	concentrate	집중하다
+m3	confident	자신 있는
+m3	consider	고려하다
+m3	contain	포함하다
+m3	convenient	편리한
+m3	damage	손상; 손상시키다
+m3	debate	토론
+m3	depend	의존하다
+m3	disappoint	실망시키다
+m3	communicate	의사소통하다
+m3	compete	경쟁하다
+m3	complain	불평하다
+h1	available	이용 가능한
+h1	economy	경제
+h1	victim	희생자
+h1	wisdom	지혜
+h1	defend	방어하다
+h1	inspire	영감을 주다
+h1	observe	관찰하다
+h1	overcome	극복하다
+h1	recognize	알아보다
+h1	respond	응답하다
+h1	previous	이전의
+h1	profit	이익
+h1	progress	진전
+h1	propose	제안하다
+h1	origin	기원
+h1	personality	성격
+h1	feature	특징
+h1	impact	영향
+h1	individual	개인; 개인의
+h1	evidence	증거
+h1	attitude	태도
+h1	atmosphere	대기, 분위기
+h1	conflict	갈등
+h1	conclusion	결론
+h1	crisis	위기
+h1	criticize	비판하다
+h1	determine	결정하다
+h1	identify	확인하다
+h1	flexible	유연한
+h1	frequently	자주
+h1	demand	수요; 요구하다
+h1	delay	지연; 미루다
+h1	deny	부인하다
+h1	admit	인정하다
+h1	adopt	채택하다, 입양하다
+h1	approach	접근하다; 접근법
+h1	alternative	대안; 대안의
+h1	analyze	분석하다
+h1	annual	매년의
+h1	anxiety	불안
+h1	severe	심한
+h1	obstacle	장애물
+h1	habitat	서식지
+h1	extinct	멸종된
+h1	function	기능
+h1	element	요소
+h1	establish	설립하다
+h1	expense	비용
+h1	exhibit	전시하다
+h1	former	이전의
+h1	concern	걱정; 관련되다
+h1	context	맥락
+h1	critical	비판적인, 중대한
+h1	identity	정체성
+h1	intelligence	지능
+h1	instinct	본능
+h1	literature	문학
+h1	policy	정책
+h1	poverty	가난
+h1	strategy	전략
+h1	technique	기술
+h1	rural	시골의
+h1	urban	도시의
+h1	represent	나타내다, 대표하다
+h1	reflect	반영하다, 반사하다
+h1	abandon	버리다
+h1	absorb	흡수하다
+h1	accurate	정확한
+h1	acquire	습득하다
+h1	adjust	조정하다
+h1	advance	발전; 나아가다
+h1	approve	승인하다
+h1	assist	돕다
+h1	assume	가정하다
+h1	automatic	자동의
+h1	capable	~할 수 있는
+h1	capture	포착하다
+h1	category	범주
+h1	claim	주장하다
+h1	colleague	동료
+h1	consequence	결과
+h1	construct	건설하다
+h1	consume	소비하다
+h1	contribute	기여하다
+h1	cooperate	협력하다
+h1	define	정의하다
+h1	detect	감지하다
+h1	diverse	다양한
+h1	efficient	효율적인
+h1	essential	필수적인
+h1	estimate	추정하다
+h1	evaluate	평가하다
+h1	expand	확장하다
+h1	extend	연장하다
+h1	extreme	극단적인
+h1	generate	발생시키다
+h1	immediate	즉각적인
+h1	involve	포함하다, 관련시키다
+h1	maintain	유지하다
+h1	crucial	중대한
+h2	brief	짧은
+h2	enormous	거대한
+h2	temporary	일시적인
+h2	significant	중요한, 상당한
+h2	artificial	인공의
+h2	outcome	결과
+h2	reveal	드러내다
+h2	absolute	절대적인
+h2	accomplish	성취하다
+h2	agriculture	농업
+h2	appeal	호소하다; 매력
+h2	barrier	장벽
+h2	burden	부담
+h2	democracy	민주주의
+h2	heritage	유산
+h2	moral	도덕적인
+h2	nutrition	영양
+h2	philosophy	철학
+h2	psychology	심리학
+h2	participant	참가자
+h2	permanent	영구적인
+h2	sensitive	민감한
+h2	status	지위
+h2	sympathy	동정
+h2	territory	영토
+h2	welfare	복지
+h2	release	풀어 주다, 발표하다
+h2	resist	저항하다
+h2	reputation	평판
+h2	sacrifice	희생
+h2	recall	기억해 내다
+h2	oppose	반대하다
+h2	interact	상호 작용하다
+h2	inherit	물려받다
+h2	immune	면역의
+h2	internal	내부의
+h2	external	외부의
+h2	fatal	치명적인
+h2	vital	필수적인
+h2	vivid	생생한
+h2	tremendous	엄청난
+h2	trait	특성
+h2	voluntary	자발적인
+h2	mechanism	메커니즘, 작용 원리
+h2	obligation	의무
+h2	emission	배출
+h2	empathy	공감
+h2	encounter	마주치다
+h2	endure	견디다
+h2	engage	참여하다
+h2	evident	분명한
+h2	expose	노출시키다
+h2	impose	부과하다
+h2	regulate	규제하다
+h2	distribute	분배하다
+h2	distinguish	구별하다
+h2	considerable	상당한
+h2	conscious	의식하는
+h2	compromise	타협하다
+h2	commitment	헌신
+h2	capacity	수용력
+h2	cope	대처하다
+h2	arise	생기다
+h2	alter	바꾸다
+h2	acknowledge	인정하다
+h2	academic	학업의
+h2	authority	권위, 당국
+h2	boundary	경계
+h2	commercial	상업의; 광고
+h2	currency	통화
+h2	contrast	대조
+h2	conserve	보존하다
+h2	convince	설득하다
+h2	commit	저지르다, 전념하다
+h2	accuse	고발하다, 비난하다
+h2	bias	편견
+h2	decline	감소하다, 거절하다
+h2	eliminate	제거하다
+h2	emerge	나타나다
+h2	emphasize	강조하다
+h2	enable	가능하게 하다
+h2	evolve	진화하다
+h2	exceed	초과하다
+h2	genuine	진짜의
+h2	guarantee	보장하다
+h2	hesitate	망설이다
+h2	indicate	나타내다
+h2	initial	처음의
+h2	innovation	혁신
+h2	insight	통찰력
+h2	intend	의도하다
+h2	interpret	해석하다
+h2	investigate	조사하다
+h2	mature	성숙한
+h2	maximum	최대; 최대의
+h2	modify	수정하다
+h2	motivate	동기를 부여하다
+h2	abstract	추상적인
+h2	fundamental	근본적인
+h2	inevitable	피할 수 없는
+h3	aspect	측면
+h3	ambition	야망
+h3	appropriate	적절한
+h3	adequate	적절한, 충분한
+h3	apparent	명백한
+h3	abundant	풍부한
+h3	accompany	동반하다
+h3	accumulate	축적하다
+h3	adolescent	청소년
+h3	aggressive	공격적인
+h3	anticipate	예상하다
+h3	assess	평가하다
+h3	attribute	~의 탓으로 돌리다; 속성
+h3	beneficial	유익한
+h3	circumstance	상황
+h3	collapse	붕괴하다
+h3	component	구성 요소
+h3	concrete	구체적인
+h3	confront	직면하다
+h3	consistent	일관된
+h3	contemporary	현대의
+h3	controversy	논란
+h3	conventional	관습적인
+h3	demonstrate	입증하다
+h3	derive	끌어내다, 유래하다
+h3	diminish	줄어들다
+h3	discrimination	차별
+h3	distinct	뚜렷한
+h3	domestic	국내의, 가정의
+h3	dominant	지배적인
+h3	embrace	받아들이다
+h3	enhance	높이다, 향상시키다
+h3	ensure	보장하다
+h3	ethical	윤리적인
+h3	exaggerate	과장하다
+h3	explicit	명시적인
+h3	facilitate	용이하게 하다
+h3	flourish	번성하다
+h3	foster	육성하다
+h3	hypothesis	가설
+h3	imply	암시하다
+h3	incentive	장려책
+h3	inherent	고유한
+h3	integrate	통합하다
+h3	interfere	간섭하다
+h3	manipulate	조작하다
+h3	mutual	상호의
+h3	neglect	소홀히 하다
+h3	negotiate	협상하다
+h3	notion	개념
+h3	numerous	많은
+h3	objective	객관적인; 목표
+h3	overlook	간과하다
+h3	perspective	관점
+h3	phenomenon	현상
+h3	plausible	그럴듯한
+h3	prejudice	편견
+h3	preserve	보존하다
+h3	principle	원리
+h3	profound	심오한
+h3	prominent	두드러진
+h3	rational	합리적인
+h3	reinforce	강화하다
+h3	relevant	관련 있는
+h3	reluctant	꺼리는
+h3	resemble	닮다
+h3	restore	복원하다
+h3	restrict	제한하다
+h3	scarce	부족한
+h3	sophisticated	정교한
+h3	subjective	주관적인
+h3	substantial	상당한
+h3	subtle	미묘한
+h3	sufficient	충분한
+h3	sustain	지속시키다
+h3	transform	변형시키다
+h3	undermine	약화시키다
+h3	unprecedented	전례 없는
+h3	adversity	역경
+h3	aesthetic	미적인
+h3	autonomy	자율성
+h3	catastrophe	재앙
+h3	cognitive	인지의
+h3	conform	순응하다
+h3	consensus	합의
+h3	deteriorate	악화되다
+h3	empirical	경험적인
+h3	evoke	불러일으키다
+h3	exert	발휘하다
+h3	feasible	실현 가능한
+h3	implicit	암묵적인
+h3	indigenous	토착의
+h3	infer	추론하다
+h3	innate	타고난
+h3	intuitive	직관적인
+h3	alleviate	완화하다
+h3	mitigate	완화하다
+h3	pragmatic	실용적인
+h3	reciprocal	상호의
+h3	compliance	준수

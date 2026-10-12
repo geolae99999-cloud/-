@@ -1,0 +1,5 @@
+# Cloudflare Pages 는 저장소 루트를 그대로 배포해요. 사이트 파일은 public/ 에만 있고,
+# 아래 규칙으로 주소 /xxx 를 public/xxx 로 보여 줘요. 그래서 src/, tools/, supabase/ 같은
+# 개발 파일은 사이트 주소로 받을 수 없어요(404).
+/index.html  /  301
+/*  /public/:splat  200

@@ -1,0 +1,12 @@
+let handler: any; (globalThis as any).uses = 0; let ai = 0;
+(globalThis as any).Deno = { env: { get: (k: string) => ({ SUPABASE_URL: 'x', SUPABASE_SERVICE_ROLE_KEY: 'y', GEMINI_API_KEY: 'k' } as any)[k] }, serve: (h: any) => { handler = h; } };
+(globalThis as any).fetch = async (_u: string, init: any) => { ai++; const p = JSON.parse(init.body).contents[0].parts[0].text;
+  const one = (w: string) => ({ word: w, meaning: '뜻 ' + w, phonetic: '/p/', koreanPron: '발', example: 'Ex ' + w, exampleKo: '예 ' + w, synonyms: 's' });
+  const obj = p.includes('"items"') ? { items: ['apple', 'pear'].map(one) } : one('apple');
+  return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify(obj) }] } }] }), { status: 200 }); };
+await import('./index.ts');
+const call = async (b: any) => { const r = await handler(new Request('http://x', { method: 'POST', body: JSON.stringify(b) })); return [r.status, (await r.text()).slice(0, 90)]; };
+console.log(await call({ token: 't', task: 'word', word: 'Apple' }), 'ai', ai, 'uses', (globalThis as any).uses);
+console.log(await call({ token: 't', task: 'word', word: 'apple' }), 'ai', ai, 'uses', (globalThis as any).uses);
+console.log(await call({ token: 't', task: 'batch', words: ['apple', 'pear'] }), 'ai', ai);
+console.log(await call({ token: 't', task: 'batch', words: ['pear', 'apple'] }), 'ai', ai, 'uses', (globalThis as any).uses);

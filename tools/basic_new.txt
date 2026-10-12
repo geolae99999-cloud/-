@@ -1,0 +1,191 @@
+a:하나의 (관사)
+an:하나의 (관사, 모음 앞)
+the:그 (정관사)
+I:나는
+you:너, 당신
+he:그는
+she:그녀는
+it:그것
+we:우리는
+they:그들은
+me:나를
+him:그를
+her:그녀를; 그녀의
+us:우리를
+them:그들을
+my:나의
+your:너의
+his:그의
+its:그것의
+our:우리의
+their:그들의
+this:이것; 이
+that:저것; 저
+these:이것들
+those:저것들
+what:무엇
+who:누구
+where:어디
+when:언제
+why:왜
+how:어떻게
+which:어느 것
+not:~아니다
+and:그리고
+or:또는
+but:그러나
+if:만약 ~라면
+so:그래서; 아주
+because:~ 때문에
+with:~와 함께
+without:~ 없이
+for:~을 위해
+from:~로부터
+to:~에게, ~로
+of:~의
+in:~ 안에
+on:~ 위에
+at:~에
+by:~에 의해, ~ 옆에
+up:위로
+down:아래로
+out:밖으로
+over:~ 위에, 넘어
+about:~에 대해
+into:~ 안으로
+after:~ 후에
+before:~ 전에
+again:다시
+also:또한
+only:오직
+very:매우
+too:너무; ~도
+much:많은 (셀 수 없는)
+many:많은 (셀 수 있는)
+more:더 많은
+most:가장 많은
+some:약간의
+any:어떤
+all:모든
+other:다른
+same:같은
+different:다른
+thirteen:13, 열셋
+fourteen:14, 열넷
+fifteen:15, 열다섯
+sixteen:16, 열여섯
+seventeen:17, 열일곱
+eighteen:18, 열여덟
+nineteen:19, 열아홉
+thirty:30, 서른
+forty:40, 마흔
+fifty:50, 쉰
+sixty:60, 예순
+seventy:70, 일흔
+eighty:80, 여든
+ninety:90, 아흔
+thousand:천, 1,000
+million:백만
+purple:보라색
+gray:회색
+autumn:가을
+day:날, 낮
+afternoon:오후
+evening:저녁
+mother:어머니
+father:아버지
+children:아이들 (child의 복수)
+grandmother:할머니
+grandfather:할아버지
+man:남자
+woman:여자
+teeth:이빨들 (tooth의 복수)
+neck:목
+shoulder:어깨
+feet:발들 (foot의 복수)
+knee:무릎
+back:등; 뒤로
+heart:심장, 마음
+stomach:배, 위
+pear:배 (과일)
+tea:차
+coffee:커피
+food:음식
+snack:간식
+butterfly:나비
+home:집, 가정
+bedroom:침실
+sofa:소파
+lamp:전등
+clock:시계 (벽시계)
+television:텔레비전
+cup:컵
+plate:접시
+spoon:숟가락
+fork:포크
+knife:칼
+classroom:교실
+student:학생
+road:도로
+shop:가게
+church:교회
+hotel:호텔
+station:역
+airport:공항
+office:사무실
+plane:비행기
+boat:배, 보트
+bicycle:자전거
+sky:하늘
+warm:따뜻한
+cool:시원한; 멋진
+coat:외투
+shoes:신발
+socks:양말
+glove:장갑
+be:~이다, 있다
+do:하다
+hear:듣다, 들리다
+say:말하다
+tell:말해 주다
+talk:이야기하다
+speak:말하다
+ask:묻다, 부탁하다
+take:가져가다, 잡다
+give:주다
+get:얻다, 받다
+put:놓다
+use:사용하다
+find:찾다
+buy:사다
+sell:팔다
+fly:날다
+ride:타다
+drive:운전하다
+begin:시작하다
+call:부르다, 전화하다
+live:살다
+stay:머무르다
+wash:씻다
+clean:깨끗한; 청소하다
+little:작은; 조금
+high:높은
+low:낮은
+nice:좋은, 친절한
+thirsty:목마른
+hard:딱딱한, 어려운; 열심히
+soft:부드러운
+wrong:틀린
+ugly:못생긴
+closed:닫힌
+early:이른; 일찍
+late:늦은; 늦게
+now:지금
+then:그때, 그러고 나서
+always:항상
+usually:보통
+often:자주
+sometimes:가끔
+never:결코 ~ 않다
+just:방금, 단지
+well:잘; 글쎄

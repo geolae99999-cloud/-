@@ -1,0 +1,380 @@
+appoint	임명하다
+architecture	건축
+arise	생기다
+arrest	체포하다
+aspire	열망하다
+assemble	조립하다, 모이다
+assign	배정하다
+astonish	깜짝 놀라게 하다
+astronomy	천문학
+athlete	운동선수
+auditory	청각의
+authorize	권한을 주다
+available	이용 가능한
+await	기다리다
+bacteria	세균
+ban	금지하다
+bankrupt	파산한
+barrier	장벽
+beneath	~아래에
+betray	배신하다
+bind	묶다
+biology	생물학
+bless	축복하다
+bloom	꽃이 피다
+bold	대담한
+bond	유대
+boost	북돋우다
+breed	번식하다
+broadcast	방송하다
+burden	부담
+calculate	계산하다
+canal	운하
+cancel	취소하다
+capacity	수용력
+carbon	탄소
+cast	던지다, 배역
+casual	평상시의
+caution	주의
+chamber	방, 회의실
+charity	자선
+chronic	만성의
+civil	시민의
+classify	분류하다
+cling	달라붙다
+clue	단서
+collaborate	협력하다
+combine	결합하다
+comment	논평
+commitment	헌신
+companion	동반자
+compose	구성하다, 작곡하다
+compound	혼합물
+compromise	타협하다
+conceal	숨기다
+concern	걱정; 관련되다
+confess	고백하다
+confine	제한하다
+confusion	혼란
+congress	의회
+conquer	정복하다
+conscious	의식하는
+consent	동의
+considerable	상당한
+consult	상담하다
+contaminate	오염시키다
+content	내용; 만족하는
+context	맥락
+contract	계약
+cope	대처하다
+core	핵심
+corporate	기업의
+courteous	공손한
+craft	공예
+creature	생물
+crew	승무원
+crime	범죄
+critical	비판적인, 중대한
+cruel	잔인한
+curiosity	호기심
+cycle	순환
+declare	선언하다
+decorate	장식하다
+dedicate	바치다
+defeat	패배시키다
+defend	방어하다
+deficient	부족한
+delicate	섬세한
+democracy	민주주의
+dense	빽빽한
+departure	출발
+deposit	예금, 퇴적물
+depress	우울하게 하다
+desire	욕구
+despair	절망
+desperate	절박한
+despite	~에도 불구하고
+destination	목적지
+devote	바치다
+diagnose	진단하다
+dialogue	대화
+dimension	차원
+disaster	재난
+dismiss	해고하다, 묵살하다
+distinguish	구별하다
+distract	산만하게 하다
+distribute	분배하다
+disturb	방해하다
+divine	신성한
+dose	복용량
+draft	초안
+drain	배수하다
+dramatic	극적인
+drought	가뭄
+dull	지루한, 둔한
+dwell	살다
+ecology	생태학
+economy	경제
+edit	편집하다
+elect	선출하다
+element	요소
+embarrass	당황하게 하다
+emission	배출
+empathy	공감
+employ	고용하다
+encounter	마주치다
+endangered	멸종 위기의
+endure	견디다
+engage	참여하다
+enroll	등록하다
+entertain	즐겁게 하다
+enthusiasm	열정
+entitle	자격을 주다
+entry	입장
+era	시대
+establish	설립하다
+evident	분명한
+exhaust	지치게 하다
+exhibit	전시하다
+expense	비용
+expose	노출시키다
+external	외부의
+extinct	멸종된
+fabric	직물
+faith	믿음
+fatal	치명적인
+fatigue	피로
+favor	호의
+federal	연방의
+fertile	비옥한
+finance	재정
+firm	회사; 확고한
+fiscal	재정의
+flavor	맛
+forbid	금지하다
+formal	공식적인
+former	이전의
+fossil	화석
+frequent	잦은
+frustrate	좌절시키다
+fulfill	이행하다
+function	기능
+fund	기금
+gender	성별
+gene	유전자
+grant	허락하다; 보조금
+grateful	감사하는
+gravity	중력
+grief	슬픔
+guilty	유죄의
+habitat	서식지
+halt	멈추다
+handicap	장애
+harsh	가혹한
+heritage	유산
+highlight	강조하다
+horizon	수평선
+humble	겸손한
+identity	정체성
+illusion	환상
+immigrant	이민자
+immune	면역의
+impose	부과하다
+inborn	타고난
+incident	사건
+income	수입
+infant	유아
+infection	감염
+inherit	물려받다
+injury	부상
+innocent	무죄의
+inquire	묻다
+inspire	영감을 주다
+install	설치하다
+instinct	본능
+institute	기관
+insult	모욕하다
+insurance	보험
+intellectual	지적인
+intelligence	지능
+interact	상호 작용하다
+internal	내부의
+interrupt	방해하다
+intervene	개입하다
+invade	침입하다
+ironic	역설적인
+irritate	짜증 나게 하다
+journal	저널, 일기
+keen	열망하는
+landscape	풍경
+launch	시작하다, 발사하다
+layer	층
+leak	새다
+lecture	강의
+liberal	자유주의의
+liberty	자유
+linguistic	언어의
+literacy	읽고 쓰는 능력
+literature	문학
+logic	논리
+loyal	충성스러운
+luxury	사치
+mainstream	주류
+mammal	포유류
+margin	여백, 차이
+massive	거대한
+mechanism	메커니즘
+medieval	중세의
+mercy	자비
+mere	단지 ~에 불과한
+messy	지저분한
+military	군대의
+miserable	비참한
+mission	임무
+mobile	이동하는
+mode	방식
+modest	겸손한
+molecule	분자
+moral	도덕적인
+mortal	죽을 운명의
+multiply	곱하다, 증가하다
+muscle	근육
+myth	신화
+naive	순진한
+nationality	국적
+nerve	신경
+nourish	영양분을 주다
+nuclear	핵의
+nutrition	영양
+obey	따르다
+obligation	의무
+observe	관찰하다
+obstacle	장애물
+odd	이상한, 홀수의
+offend	기분 상하게 하다
+operation	수술, 작동
+oppose	반대하다
+organic	유기농의
+origin	기원
+outline	개요
+overall	전반적인
+overcome	극복하다
+overwhelm	압도하다
+oxygen	산소
+panic	공황
+participant	참가자
+particle	입자
+passion	열정
+peer	또래
+penalty	벌금, 처벌
+pension	연금
+permanent	영구적인
+personality	성격
+pesticide	살충제
+philosophy	철학
+pioneer	개척자
+policy	정책
+polish	닦다
+portion	부분
+poverty	가난
+precious	귀중한
+pregnant	임신한
+presence	존재
+prestige	명성
+previous	이전의
+prey	먹이
+pride	자부심
+privilege	특권
+profit	이익
+progress	진전
+property	재산
+propose	제안하다
+prosper	번영하다
+psychology	심리학
+punctual	시간을 엄수하는
+qualify	자격을 얻다
+quantity	양
+rare	드문
+raw material	원료
+react	반응하다
+rebel	반란군; 반항하다
+recall	기억해 내다
+recognize	알아보다
+recruit	모집하다
+refer	언급하다, 참조하다
+reflect	반영하다, 반사하다
+reform	개혁
+regard	여기다
+register	등록하다
+regret	후회하다
+regulate	규제하다
+release	풀어 주다, 발표하다
+religion	종교
+reluctantly	마지못해
+remedy	치료법
+remote	먼, 원격의
+rental	임대
+represent	나타내다, 대표하다
+reproduce	번식하다
+reputation	평판
+resist	저항하다
+respond	응답하다
+restless	들썩이는
+retire	은퇴하다
+revenue	수입
+reverse	뒤집다
+revolution	혁명
+rhythm	리듬
+ritual	의식
+rival	경쟁자
+routine	일과
+rural	시골의
+sacrifice	희생
+satellite	위성
+scale	규모, 비늘
+scatter	흩어지다
+scholar	학자
+scheme	계획
+secure	안전한
+seize	붙잡다
+sensitive	민감한
+separate	분리하다
+severe	심한
+shallow	얕은
+shelter	피난처
+shift	바뀌다; 교대
+shortage	부족
+sibling	형제자매
+signal	신호
+slavery	노예 제도
+slight	약간의
+soar	치솟다
+solar	태양의
+solid	고체의, 단단한
+span	기간
+spare	여분의; 아끼다
+spectator	관중
+sphere	구, 영역
+stability	안정
+statistics	통계
+status	지위
+steady	꾸준한
+stem	줄기; 비롯되다
+strategy	전략
+strict	엄격한
+strive	애쓰다
+submit	제출하다
+suburb	교외
+succeed	성공하다, 뒤를 잇다
+suitable	적합한
+summary	요약
+superior	우수한
+surgery	수술
+surplus	잉여
+suspect	의심하다
+swallow	삼키다
+sympathy	동정
+tackle	다루다
+tame	길들이다
+technique	기술
+telescope	망원경

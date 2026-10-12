@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""VocaPro 빌드: 마스터 VocaPro.html -> 분할본(dist/)"""
+"""VocaPro 빌드: 마스터 VocaPro.html -> 분할본(public/)  사용: python3 tools/build.py src/VocaPro.html public"""
 import re, sys, os, hashlib, json
 src, out = sys.argv[1], sys.argv[2]
 LIMIT = 30000
@@ -32,8 +32,19 @@ tags = '  <script src="config.js"></script>\n  <script src="cloud.js"></script>\
 html = s[:style.start()] + '\n  <link rel="stylesheet" href="style.css">\n' + s[style.end():]
 scripts = list(re.finditer(r'\n  <script>\n(.*?)\n\s*</script>', html, re.S))
 html = html[:scripts[0].start()] + '\n' + tags.rstrip('\n') + html[scripts[-1].end():]
+# 보안 정책(CSP): src/csp.txt 를 index.html 에 넣어요. 인라인 스크립트와 onclick="..." 는 막혀요.
+csp_path = os.path.join(os.path.dirname(os.path.abspath(src)), 'csp.txt')
+if os.path.exists(csp_path):
+    csp = ' '.join(l.strip() for l in open(csp_path, encoding='utf-8') if l.strip())
+    assert '"' not in csp
+    html = html.replace('<meta charset="UTF-8">', '<meta charset="UTF-8">\n  <meta http-equiv="Content-Security-Policy" content="' + csp + '">', 1)
+    assert 'Content-Security-Policy' in html
+    for n in ['index.html'] + names:
+        t = html if n == 'index.html' else open(os.path.join(out, n), encoding='utf-8').read()
+        m = re.search(r'\son(click|change|input|keydown|keyup|submit|load|error|focus|blur)=', t)
+        assert not m, n + ' 에 인라인 이벤트(' + m.group(0).strip() + ')가 있어요. data-act / data-change / data-input / data-enter 를 쓰세요.'
 w('index.html', html)
-core = ['./', 'index.html', 'style.css', 'config.js', 'cloud.js'] + names + ['manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png']
+core = ['./', 'style.css', 'config.js', 'cloud.js'] + names + ['manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png']
 ver = hashlib.sha1(''.join(open(os.path.join(out, f), encoding='utf-8').read() for f in ['index.html', 'style.css', 'cloud.js'] + names).encode()).hexdigest()[:10]
 sw = open(os.path.join(os.path.dirname(__file__), 'sw.template.js'), encoding='utf-8').read()
 w('sw.js', sw.replace('__VERSION__', ver).replace('__CORE__', json.dumps(core)))

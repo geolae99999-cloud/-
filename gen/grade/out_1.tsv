@@ -1,0 +1,600 @@
+e1	hello	안녕(만날 때)
+e1	bye	잘 가
+e1	yes	네, 응
+e1	no	아니요
+e1	mom	엄마
+e1	dad	아빠
+e1	baby	아기
+e1	boy	소년
+e1	girl	소녀
+e1	one	하나, 1
+e1	two	둘, 2
+e1	three	셋, 3
+e1	four	넷, 4
+e1	five	다섯, 5
+e1	six	여섯, 6
+e1	seven	일곱, 7
+e1	eight	여덟, 8
+e1	nine	아홉, 9
+e1	ten	열, 10
+e1	red	빨간색
+e1	blue	파란색
+e1	yellow	노란색
+e1	green	초록색
+e1	pink	분홍색
+e1	black	검은색
+e1	white	흰색
+e1	brown	갈색
+e1	cat	고양이
+e1	dog	개
+e1	pig	돼지
+e1	cow	소
+e1	duck	오리
+e1	bird	새
+e1	fish	물고기
+e1	lion	사자
+e1	tiger	호랑이
+e1	bear	곰
+e1	monkey	원숭이
+e1	rabbit	토끼
+e1	horse	말
+e1	frog	개구리
+e1	ant	개미
+e1	bee	벌
+e1	apple	사과
+e1	banana	바나나
+e1	egg	달걀
+e1	milk	우유
+e1	water	물
+e1	juice	주스
+e1	bread	빵
+e1	cake	케이크
+e1	candy	사탕
+e1	pizza	피자
+e1	grape	포도
+e1	orange	오렌지
+e1	lemon	레몬
+e1	rice	밥, 쌀
+e1	eye	눈
+e1	ear	귀
+e1	nose	코
+e1	mouth	입
+e1	hand	손
+e1	foot	발
+e1	head	머리
+e1	arm	팔
+e1	leg	다리
+e1	face	얼굴
+e1	sun	해, 태양
+e1	moon	달
+e1	star	별
+e1	tree	나무
+e1	flower	꽃
+e1	ball	공
+e1	doll	인형
+e1	toy	장난감
+e1	book	책
+e1	pen	펜
+e1	bag	가방
+e1	hat	모자
+e1	box	상자
+e1	car	자동차
+e1	bus	버스
+e1	big	큰
+e1	small	작은
+e1	happy	행복한
+e1	sad	슬픈
+e1	hot	뜨거운, 더운
+e1	cold	차가운, 추운
+e1	go	가다
+e1	run	달리다
+e1	walk	걷다
+e1	jump	뛰다
+e1	swim	수영하다
+e1	sing	노래하다
+e1	dance	춤추다
+e1	eat	먹다
+e1	drink	마시다
+e1	sleep	자다
+e1	sit	앉다
+e1	stand	서다
+e2	come	오다
+e2	look	보다
+e2	like	좋아하다
+e2	love	사랑하다
+e2	play	놀다
+e2	friend	친구
+e2	teacher	선생님
+e2	school	학교
+e2	house	집
+e2	room	방
+e2	bed	침대
+e2	door	문
+e2	window	창문
+e2	desk	책상
+e2	chair	의자
+e2	table	탁자
+e2	pencil	연필
+e2	cup	컵
+e2	shoe	신발
+e2	sock	양말
+e2	cap	야구 모자
+e2	bike	자전거
+e2	ship	배
+e2	brother	형, 오빠, 남동생
+e2	sister	언니, 누나, 여동생
+e2	family	가족
+e2	grandma	할머니
+e2	grandpa	할아버지
+e2	name	이름
+e2	chicken	닭
+e2	sheep	양
+e2	goat	염소
+e2	mouse	쥐
+e2	snake	뱀
+e2	turtle	거북
+e2	whale	고래
+e2	elephant	코끼리
+e2	giraffe	기린
+e2	zebra	얼룩말
+e2	butterfly	나비
+e2	melon	멜론
+e2	peach	복숭아
+e2	corn	옥수수
+e2	carrot	당근
+e2	potato	감자
+e2	tomato	토마토
+e2	onion	양파
+e2	strawberry	딸기
+e2	watermelon	수박
+e2	cookie	쿠키
+e2	sandwich	샌드위치
+e2	soup	수프
+e2	salad	샐러드
+e2	breakfast	아침 식사
+e2	lunch	점심 식사
+e2	dinner	저녁 식사
+e2	rain	비
+e2	snow	눈(내리는 눈)
+e2	sunny	맑은
+e2	cloudy	흐린
+e2	rainy	비 오는
+e2	windy	바람 부는
+e2	spring	봄
+e2	summer	여름
+e2	fall	가을; 떨어지다
+e2	winter	겨울
+e2	morning	아침
+e2	night	밤
+e2	today	오늘
+e2	tall	키가 큰
+e2	short	짧은, 키가 작은
+e2	long	긴
+e2	fast	빠른
+e2	slow	느린
+e2	old	늙은, 오래된
+e2	young	어린, 젊은
+e2	new	새로운
+e2	good	좋은
+e2	bad	나쁜
+e2	pretty	예쁜
+e2	cute	귀여운
+e2	hungry	배고픈
+e2	tired	피곤한
+e2	read	읽다
+e2	write	쓰다
+e2	draw	그리다
+e2	open	열다
+e2	close	닫다
+e2	listen	듣다
+e2	help	돕다
+e2	cook	요리하다; 요리사
+e2	wash	씻다
+e2	fly	날다
+e2	ride	타다
+e2	park	공원
+e2	zoo	동물원
+e2	farm	농장
+e2	kitchen	부엌
+e2	bathroom	욕실
+e2	garden	정원
+e3	mother	어머니
+e3	father	아버지
+e3	man	남자
+e3	woman	여자
+e3	student	학생
+e3	classroom	교실
+e3	home	집, 가정
+e3	bedroom	침실
+e3	sofa	소파
+e3	lamp	전등
+e3	clock	시계(벽시계)
+e3	spoon	숟가락
+e3	fork	포크
+e3	plate	접시
+e3	color	색깔
+e3	purple	보라색
+e3	gray	회색
+e3	shape	모양
+e3	circle	원
+e3	square	정사각형
+e3	triangle	삼각형
+e3	number	숫자
+e3	eleven	열하나, 11
+e3	twelve	열둘, 12
+e3	twenty	스물, 20
+e3	hundred	백, 100
+e3	hair	머리카락
+e3	finger	손가락
+e3	tooth	이, 치아
+e3	body	몸
+e3	sky	하늘
+e3	cloud	구름
+e3	wind	바람
+e3	warm	따뜻한
+e3	cool	시원한; 멋진
+e3	weather	날씨
+e3	sick	아픈
+e3	fine	괜찮은
+e3	thirsty	목마른
+e3	coat	외투
+e3	shirt	셔츠
+e3	pants	바지
+e3	skirt	치마
+e3	dress	원피스
+e3	jacket	재킷
+e3	glasses	안경
+e3	gloves	장갑
+e3	umbrella	우산
+e3	eraser	지우개
+e3	ruler	자
+e3	scissors	가위
+e3	glue	풀
+e3	notebook	공책
+e3	paper	종이
+e3	picture	그림, 사진
+e3	song	노래
+e3	music	음악
+e3	art	미술
+e3	math	수학
+e3	science	과학
+e3	English	영어
+e3	Korean	한국어; 한국의
+e3	week	주, 일주일
+e3	Monday	월요일
+e3	Tuesday	화요일
+e3	Wednesday	수요일
+e3	Thursday	목요일
+e3	Friday	금요일
+e3	Saturday	토요일
+e3	Sunday	일요일
+e3	weekend	주말
+e3	time	시간
+e3	hour	시간(60분)
+e3	minute	분
+e3	have	가지다
+e3	want	원하다
+e3	make	만들다
+e3	know	알다
+e3	see	보다
+e3	hear	듣다, 들리다
+e3	say	말하다
+e3	talk	이야기하다
+e3	ask	묻다, 부탁하다
+e3	give	주다
+e3	take	가져가다, 잡다
+e3	put	놓다
+e3	find	찾다
+e3	buy	사다
+e3	here	여기
+e3	there	거기
+e3	under	~아래에
+e3	behind	~뒤에
+e3	near	가까운
+e3	far	먼
+e3	left	왼쪽
+e3	right	오른쪽; 옳은
+e3	river	강
+e3	sea	바다
+e3	mountain	산
+e3	train	기차
+e4	airplane	비행기
+e4	taxi	택시
+e4	subway	지하철
+e4	boat	배, 보트
+e4	road	도로
+e4	street	거리
+e4	bridge	다리(건너는 다리)
+e4	city	도시
+e4	town	마을
+e4	shop	가게
+e4	store	가게
+e4	hospital	병원
+e4	library	도서관
+e4	restaurant	식당
+e4	bakery	빵집
+e4	market	시장
+e4	bank	은행
+e4	museum	박물관
+e4	station	역
+e4	airport	공항
+e4	doctor	의사
+e4	nurse	간호사
+e4	farmer	농부
+e4	police officer	경찰관
+e4	soccer	축구
+e4	baseball	야구
+e4	basketball	농구
+e4	tennis	테니스
+e4	game	게임, 경기
+e4	team	팀
+e4	player	선수
+e4	win	이기다
+e4	lose	지다, 잃어버리다
+e4	hobby	취미
+e4	movie	영화
+e4	camera	카메라
+e4	piano	피아노
+e4	guitar	기타
+e4	violin	바이올린
+e4	drum	북, 드럼
+e4	camping	캠핑
+e4	fishing	낚시
+e4	hiking	등산
+e4	birthday	생일
+e4	party	파티
+e4	gift	선물
+e4	present	선물; 현재의
+e4	holiday	휴일
+e4	vacation	방학, 휴가
+e4	trip	여행
+e4	travel	여행하다
+e4	visit	방문하다
+e4	invite	초대하다
+e4	meet	만나다
+e4	wait	기다리다
+e4	start	시작하다
+e4	finish	끝내다
+e4	stop	멈추다
+e4	learn	배우다
+e4	study	공부하다
+e4	teach	가르치다
+e4	think	생각하다
+e4	feel	느끼다
+e4	need	필요하다
+e4	homework	숙제
+e4	test	시험
+e4	question	질문
+e4	answer	대답; 대답하다
+e4	word	단어
+e4	letter	글자, 편지
+e4	story	이야기
+e4	money	돈
+e4	coin	동전
+e4	price	가격
+e4	cheap	값싼
+e4	expensive	비싼
+e4	easy	쉬운
+e4	difficult	어려운
+e4	busy	바쁜
+e4	free	자유로운, 무료의
+e4	kind	친절한; 종류
+e4	funny	재미있는
+e4	smart	똑똑한
+e4	brave	용감한
+e4	lazy	게으른
+e4	quiet	조용한
+e4	loud	시끄러운
+e4	strong	강한
+e4	weak	약한
+e4	heavy	무거운
+e4	light	가벼운; 빛
+e4	dark	어두운
+e4	bright	밝은
+e4	dirty	더러운
+e4	clean	깨끗한; 청소하다
+e4	wet	젖은
+e4	dry	마른
+e4	beautiful	아름다운
+e4	wonderful	멋진
+e4	great	훌륭한
+e5	day	날, 낮
+e5	afternoon	오후
+e5	evening	저녁
+e5	first	첫 번째의
+e5	second	두 번째의; 초
+e5	third	세 번째의
+e5	tea	차
+e5	food	음식
+e5	snack	간식
+e5	fruit	과일
+e5	vegetable	채소
+e5	meat	고기
+e5	sugar	설탕
+e5	salt	소금
+e5	cheese	치즈
+e5	butter	버터
+e5	noodle	국수
+e5	sweet	달콤한
+e5	salty	짠
+e5	spicy	매운
+e5	sour	신
+e5	delicious	맛있는
+e5	neck	목
+e5	shoulder	어깨
+e5	knee	무릎
+e5	back	등; 뒤로
+e5	stomach	배, 위
+e5	heart	심장, 마음
+e5	headache	두통
+e5	stomachache	복통
+e5	fever	열
+e5	cough	기침
+e5	medicine	약
+e5	dentist	치과의사
+e5	hurt	다치게 하다, 아프다
+e5	rest	휴식; 쉬다
+e5	computer	컴퓨터
+e5	phone	전화기
+e5	television	텔레비전
+e5	beach	해변
+e5	island	섬
+e5	forest	숲
+e5	lake	호수
+e5	ocean	대양
+e5	nature	자연
+e5	animal	동물
+e5	insect	곤충
+e5	plant	식물; 심다
+e5	map	지도
+e5	place	장소
+e5	way	길, 방법
+e5	corner	모퉁이
+e5	post office	우체국
+e5	north	북쪽
+e5	south	남쪽
+e5	east	동쪽
+e5	west	서쪽
+e5	job	직업, 일
+e5	work	일하다; 일
+e5	singer	가수
+e5	pilot	조종사
+e5	artist	예술가
+e5	writer	작가
+e5	scientist	과학자
+e5	firefighter	소방관
+e5	engineer	기술자
+e5	dream	꿈; 꿈꾸다
+e5	future	미래
+e5	tell	말해 주다
+e5	speak	말하다
+e5	call	부르다, 전화하다
+e5	live	살다
+e5	stay	머무르다
+e5	leave	떠나다
+e5	wake	깨다
+e5	drive	운전하다
+e5	sell	팔다
+e5	use	사용하다
+e5	always	항상
+e5	usually	보통
+e5	often	자주
+e5	sometimes	가끔
+e5	never	결코 ~ 않다
+e5	early	이른; 일찍
+e5	late	늦은; 늦게
+e5	cry	울다
+e5	laugh	웃다
+e5	smile	미소; 미소 짓다
+e5	angry	화난
+e5	afraid	두려워하는
+e5	excited	신이 난
+e5	bored	지루해하는
+e5	surprised	놀란
+e5	enjoy	즐기다
+e5	worry	걱정하다
+e5	remember	기억하다
+e5	forget	잊다
+e5	try	시도하다
+e5	hope	바라다
+e5	healthy	건강한
+e6	month	달, 월
+e6	year	해, 연도
+e6	January	1월
+e6	February	2월
+e6	March	3월
+e6	April	4월
+e6	May	5월
+e6	June	6월
+e6	July	7월
+e6	August	8월
+e6	September	9월
+e6	October	10월
+e6	November	11월
+e6	December	12월
+e6	season	계절
+e6	tomorrow	내일
+e6	yesterday	어제
+e6	tonight	오늘 밤
+e6	soon	곧
+e6	later	나중에
+e6	ago	~전에
+e6	already	이미
+e6	still	아직, 여전히
+e6	grade	학년, 성적
+e6	subject	과목
+e6	lesson	수업, 교훈
+e6	classmate	반 친구
+e6	uniform	교복, 제복
+e6	middle school	중학교
+e6	elementary	초등의
+e6	cousin	사촌
+e6	uncle	삼촌
+e6	aunt	이모, 고모
+e6	son	아들
+e6	daughter	딸
+e6	parent	부모
+e6	neighbor	이웃
+e6	guest	손님
+e6	king	왕
+e6	queen	여왕
+e6	prince	왕자
+e6	princess	공주
+e6	castle	성
+e6	village	마을
+e6	building	건물
+e6	floor	층, 바닥
+e6	wall	벽
+e6	stairs	계단
+e6	elevator	엘리베이터
+e6	key	열쇠
+e6	country	나라
+e6	world	세계
+e6	earth	지구
+e6	culture	문화
+e6	history	역사
+e6	language	언어
+e6	festival	축제
+e6	contest	대회
+e6	prize	상
+e6	club	동아리
+e6	member	회원
+e6	leader	지도자
+e6	rule	규칙
+e6	safe	안전한
+e6	danger	위험
+e6	accident	사고
+e6	trash	쓰레기
+e6	recycle	재활용하다
+e6	save	구하다, 아끼다
+e6	health	건강
+e6	exercise	운동; 운동하다
+e6	choose	고르다
+e6	decide	결정하다
+e6	agree	동의하다
+e6	believe	믿다
+e6	understand	이해하다
+e6	explain	설명하다
+e6	bring	가져오다
+e6	send	보내다
+e6	carry	나르다
+e6	build	짓다
+e6	fix	고치다
+e6	change	바꾸다; 변화
+e6	become	~이 되다
+e6	nervous	긴장한
+e6	proud	자랑스러운
+e6	lonely	외로운
+e6	honest	정직한
+e6	careful	조심하는
+e6	enough	충분한
+e6	almost	거의
+e6	between	~사이에
+e6	through	~을 통해
+e6	across	건너편에
+e6	along	~을 따라
+e6	maybe	아마도
+e6	probably	아마
+e6	instead	대신에
+e6	tradition	전통
+e6	temperature	온도

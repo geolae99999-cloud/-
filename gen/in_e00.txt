@@ -1,0 +1,380 @@
+apple	사과
+banana	바나나
+cat	고양이
+dog	개
+egg	달걀
+fish	물고기
+bird	새
+cow	소
+pig	돼지
+duck	오리
+lion	사자
+tiger	호랑이
+bear	곰
+monkey	원숭이
+rabbit	토끼
+horse	말
+frog	개구리
+ant	개미
+bee	벌
+milk	우유
+water	물
+juice	주스
+bread	빵
+rice	밥, 쌀
+cake	케이크
+candy	사탕
+pizza	피자
+grape	포도
+orange	오렌지
+lemon	레몬
+melon	멜론
+red	빨간색
+blue	파란색
+yellow	노란색
+green	초록색
+pink	분홍색
+black	검은색
+white	흰색
+brown	갈색
+one	하나, 1
+two	둘, 2
+three	셋, 3
+four	넷, 4
+five	다섯, 5
+six	여섯, 6
+seven	일곱, 7
+eight	여덟, 8
+nine	아홉, 9
+ten	열, 10
+mom	엄마
+dad	아빠
+baby	아기
+boy	소년
+girl	소녀
+friend	친구
+teacher	선생님
+book	책
+pen	펜
+pencil	연필
+bag	가방
+desk	책상
+chair	의자
+door	문
+window	창문
+ball	공
+doll	인형
+car	자동차
+bus	버스
+bike	자전거
+ship	배
+hat	모자
+cap	야구 모자
+shoe	신발
+sock	양말
+eye	눈
+ear	귀
+nose	코
+mouth	입
+hand	손
+foot	발
+head	머리
+sun	해, 태양
+moon	달
+star	별
+tree	나무
+flower	꽃
+rain	비
+snow	눈(내리는 눈)
+big	큰
+small	작은
+happy	행복한
+sad	슬픈
+hot	뜨거운, 더운
+cold	차가운, 추운
+yes	네, 응
+no	아니요
+hello	안녕(만날 때)
+bye	잘 가
+toy	장난감
+box	상자
+house	집
+room	방
+bed	침대
+table	탁자
+kitchen	부엌
+bathroom	욕실
+garden	정원
+school	학교
+class	수업, 반
+park	공원
+zoo	동물원
+farm	농장
+store	가게
+hospital	병원
+library	도서관
+grandma	할머니
+grandpa	할아버지
+sister	언니, 누나, 여동생
+brother	형, 오빠, 남동생
+family	가족
+name	이름
+doctor	의사
+cook	요리사; 요리하다
+farmer	농부
+nurse	간호사
+police officer	경찰관
+chicken	닭
+sheep	양
+goat	염소
+elephant	코끼리
+giraffe	기린
+zebra	얼룩말
+snake	뱀
+turtle	거북
+mouse	쥐
+whale	고래
+carrot	당근
+potato	감자
+tomato	토마토
+onion	양파
+corn	옥수수
+strawberry	딸기
+peach	복숭아
+watermelon	수박
+cookie	쿠키
+sandwich	샌드위치
+salad	샐러드
+soup	수프
+breakfast	아침 식사
+lunch	점심 식사
+dinner	저녁 식사
+eat	먹다
+drink	마시다
+run	달리다
+walk	걷다
+jump	뛰다
+swim	수영하다
+sing	노래하다
+dance	춤추다
+sleep	자다
+read	읽다
+write	쓰다
+draw	그리다
+open	열다
+close	닫다
+sit	앉다
+stand	서다
+go	가다
+come	오다
+look	보다
+listen	듣다
+like	좋아하다
+love	사랑하다
+play	놀다
+help	돕다
+tall	키가 큰
+short	짧은, 키가 작은
+long	긴
+fast	빠른
+slow	느린
+old	늙은, 오래된
+young	어린, 젊은
+new	새로운
+good	좋은
+bad	나쁜
+pretty	예쁜
+cute	귀여운
+hungry	배고픈
+tired	피곤한
+sunny	맑은
+cloudy	흐린
+rainy	비 오는
+windy	바람 부는
+spring	봄
+summer	여름
+fall	가을; 떨어지다
+winter	겨울
+morning	아침
+night	밤
+today	오늘
+week	주, 일주일
+Monday	월요일
+Tuesday	화요일
+Wednesday	수요일
+Thursday	목요일
+Friday	금요일
+Saturday	토요일
+Sunday	일요일
+weekend	주말
+time	시간
+hour	시간(60분)
+minute	분
+eleven	열하나, 11
+twelve	열둘, 12
+twenty	스물, 20
+hundred	백, 100
+first	첫 번째의
+second	두 번째의; 초
+third	세 번째의
+color	색깔
+shape	모양
+circle	원
+square	정사각형
+triangle	삼각형
+number	숫자
+picture	그림, 사진
+music	음악
+song	노래
+art	미술
+math	수학
+science	과학
+English	영어
+Korean	한국어; 한국의
+homework	숙제
+test	시험
+question	질문
+answer	대답; 대답하다
+word	단어
+letter	글자, 편지
+story	이야기
+paper	종이
+eraser	지우개
+ruler	자
+scissors	가위
+glue	풀
+notebook	공책
+computer	컴퓨터
+phone	전화기
+watch	손목시계; 보다
+umbrella	우산
+jacket	재킷
+shirt	셔츠
+pants	바지
+skirt	치마
+dress	원피스
+glasses	안경
+gloves	장갑
+face	얼굴
+hair	머리카락
+arm	팔
+leg	다리
+finger	손가락
+tooth	이, 치아
+body	몸
+sick	아픈
+fine	괜찮은
+headache	두통
+fever	열
+weather	날씨
+cloud	구름
+wind	바람
+river	강
+mountain	산
+sea	바다
+beach	해변
+island	섬
+forest	숲
+lake	호수
+city	도시
+town	마을
+street	거리
+bridge	다리(건너는 다리)
+train	기차
+airplane	비행기
+taxi	택시
+subway	지하철
+left	왼쪽
+right	오른쪽; 옳은
+here	여기
+there	거기
+near	가까운
+far	먼
+under	~아래에
+next to	~옆에
+behind	~뒤에
+want	원하다
+have	가지다
+make	만들다
+know	알다
+see	보다
+hobby	취미
+soccer	축구
+baseball	야구
+basketball	농구
+tennis	테니스
+game	게임, 경기
+team	팀
+player	선수
+win	이기다
+lose	지다, 잃어버리다
+practice	연습하다
+movie	영화
+camera	카메라
+guitar	기타
+piano	피아노
+violin	바이올린
+drum	북, 드럼
+cooking	요리
+reading	독서
+camping	캠핑
+fishing	낚시
+hiking	등산
+travel	여행하다
+trip	여행
+vacation	방학, 휴가
+holiday	휴일
+birthday	생일
+party	파티
+present	선물; 현재의
+gift	선물
+invite	초대하다
+visit	방문하다
+meet	만나다
+wait	기다리다
+start	시작하다
+finish	끝내다
+stop	멈추다
+try	시도하다
+learn	배우다
+study	공부하다
+teach	가르치다
+forget	잊다
+remember	기억하다
+think	생각하다
+feel	느끼다
+need	필요하다
+hope	바라다
+plan	계획; 계획하다
+idea	생각, 아이디어
+problem	문제
+way	길, 방법
+place	장소
+map	지도
+south	남쪽
+north	북쪽
+east	동쪽
+west	서쪽
+corner	모퉁이
+museum	박물관
+bank	은행
+post office	우체국
+restaurant	식당
+bakery	빵집
+market	시장
+money	돈
+price	가격
+cheap	값싼
+expensive	비싼
+coin	동전
+sale	판매, 할인
+size	크기
+large	큰
+heavy	무거운
+light	가벼운; 빛
+easy	쉬운
+difficult	어려운
+busy	바쁜
+free	자유로운, 무료의
+ready	준비된
+careful	조심하는

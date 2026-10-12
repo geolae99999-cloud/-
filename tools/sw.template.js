@@ -15,7 +15,7 @@ self.addEventListener('fetch', e => {
   e.respondWith(fetch(req).then(res => {
     if (res && res.ok && res.type === 'basic') { const copy = res.clone(); caches.open(CACHE).then(c => c.put(req, copy)).catch(() => {}); }
     return res;
-  }).catch(() => caches.match(req).then(r => r || (req.mode === 'navigate' ? caches.match('index.html') : Response.error()))));
+  }).catch(() => caches.match(req).then(r => r || (req.mode === 'navigate' ? caches.match('./') : Response.error()))));
 });
 self.addEventListener('notificationclick', e => {
   e.notification.close();

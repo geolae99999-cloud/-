@@ -1,0 +1,12 @@
+# 모든 응답에 붙는 보안 헤더. 주 CSP는 index.html 의 meta(src/csp.txt)에 있고, 여기서는 meta로 못 거는 것만 더해요.
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), geolocation=(), payment=(), usb=(), microphone=(self)
+  Strict-Transport-Security: max-age=31536000
+  Cross-Origin-Opener-Policy: same-origin
+  Content-Security-Policy: frame-ancestors 'none'; object-src 'none'; base-uri 'self'
+
+/sw.js
+  Cache-Control: no-cache

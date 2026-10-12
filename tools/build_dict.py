@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""gen/out_*.tsv -> dist/dict/<a-z>.json  (사용: python3 tools/build_dict.py gen dist)"""
+"""gen/out_*.tsv -> public/dict/<a-z>.json  (사용: python3 tools/build_dict.py gen public)"""
 import sys, os, glob, json, re
 sys.path.insert(0, os.path.dirname(__file__))
 from ipa import ipa

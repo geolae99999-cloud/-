@@ -1,0 +1,380 @@
+generation	세대
+global	세계적인
+government	정부
+gradually	점차
+identify	확인하다
+ignore	무시하다
+impress	깊은 인상을 주다
+increase	증가하다
+independent	독립적인
+influence	영향; 영향을 주다
+injure	부상을 입히다
+insist	주장하다
+instrument	악기, 도구
+judge	판단하다; 판사
+lack	부족; 부족하다
+major	주요한
+material	재료
+measure	측정하다
+method	방법
+mention	언급하다
+negative	부정적인
+opinion	의견
+opportunity	기회
+patient	참을성 있는; 환자
+perform	공연하다, 수행하다
+physical	신체의
+positive	긍정적인
+pressure	압력
+private	사적인
+process	과정
+produce	생산하다
+purpose	목적
+realize	깨닫다
+recent	최근의
+reduce	줄이다
+refuse	거절하다
+region	지역
+relationship	관계
+rely	의지하다
+remove	제거하다
+abandon	버리다
+absorb	흡수하다
+abstract	추상적인
+academic	학업의
+accurate	정확한
+accuse	고발하다
+acquire	습득하다
+adjust	조정하다
+admit	인정하다
+adopt	채택하다, 입양하다
+advance	발전; 나아가다
+alternative	대안; 대안의
+analyze	분석하다
+annual	매년의
+anxiety	불안
+approach	접근하다; 접근법
+approve	승인하다
+assist	돕다
+assume	가정하다
+atmosphere	대기, 분위기
+attitude	태도
+authority	권위, 당국
+automatic	자동의
+bias	편견
+boundary	경계
+capable	~할 수 있는
+capture	포착하다
+career	경력, 직업
+category	범주
+ceremony	의식, 식
+claim	주장하다
+colleague	동료
+commercial	상업의; 광고
+commit	저지르다, 전념하다
+communicate	의사소통하다
+compete	경쟁하다
+complain	불평하다
+complex	복잡한
+conclusion	결론
+conduct	수행하다
+conflict	갈등
+connect	연결하다
+consequence	결과
+conserve	보존하다
+construct	건설하다
+consume	소비하다
+contrast	대조
+contribute	기여하다
+convince	설득하다
+cooperate	협력하다
+crucial	중대한
+currency	통화
+decline	감소하다, 거절하다
+define	정의하다
+delay	지연; 미루다
+demand	수요; 요구하다
+deny	부인하다
+deserve	~할 자격이 있다
+detect	감지하다
+device	장치
+diverse	다양한
+efficient	효율적인
+eliminate	제거하다
+emerge	나타나다
+emphasize	강조하다
+enable	가능하게 하다
+essential	필수적인
+estimate	추정하다
+evaluate	평가하다
+evidence	증거
+evolve	진화하다
+exceed	초과하다
+expand	확장하다
+expert	전문가
+extend	연장하다
+extreme	극단적인
+feature	특징
+focus	집중하다; 초점
+fundamental	근본적인
+generate	발생시키다
+genuine	진짜의
+guarantee	보장하다
+hesitate	망설이다
+immediate	즉각적인
+impact	영향
+indicate	나타내다
+individual	개인; 개인의
+inevitable	피할 수 없는
+initial	처음의
+innovation	혁신
+insight	통찰력
+intend	의도하다
+interpret	해석하다
+investigate	조사하다
+involve	포함하다, 관련시키다
+maintain	유지하다
+mature	성숙한
+maximum	최대; 최대의
+modify	수정하다
+motivate	동기를 부여하다
+abundant	풍부한
+accommodate	수용하다
+accompany	동반하다
+accumulate	축적하다
+adequate	적절한
+adolescent	청소년
+advocate	옹호하다
+aggressive	공격적인
+allocate	할당하다
+ambiguous	모호한
+ambition	야망
+anticipate	예상하다
+apparent	명백한
+appropriate	적절한
+arbitrary	임의의
+artificial	인공의
+aspect	측면
+assess	평가하다
+asset	자산
+associate	연관 짓다
+assure	보장하다
+attain	달성하다
+attribute	~의 탓으로 돌리다; 속성
+authentic	진짜의
+beneficial	유익한
+breakthrough	돌파구
+brief	짧은
+cease	중단하다
+circumstance	상황
+cite	인용하다
+clarify	명확히 하다
+coherent	일관성 있는
+collapse	붕괴하다
+commodity	상품
+compatible	양립할 수 있는
+compensate	보상하다
+component	구성 요소
+comprehensive	포괄적인
+comprise	구성하다
+conceive	상상하다, 착상하다
+concrete	구체적인
+confront	직면하다
+consistent	일관된
+constitute	구성하다
+constraint	제약
+contemporary	현대의
+controversy	논란
+conventional	관습적인
+correspond	일치하다
+counterpart	상대, 대응물
+credible	믿을 수 있는
+criteria	기준
+cultivate	재배하다, 기르다
+deficit	적자, 부족
+deliberate	고의의
+demonstrate	입증하다
+derive	끌어내다
+diminish	줄어들다
+discipline	훈련, 규율
+discrimination	차별
+dispose	처리하다
+distinct	뚜렷한
+distort	왜곡하다
+domestic	국내의, 가정의
+dominant	지배적인
+drastic	급격한
+durable	내구성 있는
+dynamic	역동적인
+elaborate	정교한; 자세히 설명하다
+eligible	자격이 있는
+embrace	받아들이다
+enhance	높이다
+enormous	거대한
+ensure	보장하다
+equivalent	동등한
+erode	침식하다
+ethical	윤리적인
+exaggerate	과장하다
+exclude	제외하다
+explicit	명시적인
+exploit	이용하다, 착취하다
+facilitate	용이하게 하다
+flourish	번성하다
+fluctuate	변동하다
+foster	육성하다
+fragile	깨지기 쉬운
+grasp	파악하다
+hostile	적대적인
+hypothesis	가설
+identical	동일한
+ideology	이념
+ignorant	무지한
+imply	암시하다
+incentive	장려책
+incorporate	포함하다
+inherent	고유한
+inhibit	억제하다
+integrate	통합하다
+intense	강렬한
+interfere	간섭하다
+legitimate	합법적인
+manipulate	조작하다
+marginal	미미한
+mediate	중재하다
+merit	장점
+migrate	이주하다
+minimize	최소화하다
+moderate	적당한
+monotonous	단조로운
+mutual	상호의
+navigate	길을 찾다, 항해하다
+neglect	소홀히 하다
+negotiate	협상하다
+neutral	중립의
+notion	개념
+novel	새로운; 소설
+numerous	많은
+objective	객관적인; 목표
+obscure	모호한
+offset	상쇄하다
+ongoing	진행 중인
+optimal	최적의
+outcome	결과
+outweigh	~보다 중요하다
+overlook	간과하다
+paradox	역설
+parallel	평행한, 유사한
+passive	수동적인
+persist	지속하다
+perspective	관점
+phenomenon	현상
+plausible	그럴듯한
+portray	묘사하다
+pose	제기하다
+precede	앞서다
+prejudice	편견
+preliminary	예비의
+prescribe	처방하다
+preserve	보존하다
+presume	추정하다
+prevail	우세하다
+principle	원리
+proceed	진행하다
+profound	심오한
+prohibit	금지하다
+prominent	두드러진
+prompt	촉발하다; 즉각적인
+proportion	비율
+prospect	전망
+provoke	유발하다
+radical	급진적인
+random	무작위의
+rational	합리적인
+recover	회복하다
+refine	정제하다
+reinforce	강화하다
+reject	거절하다
+relevant	관련 있는
+reluctant	꺼리는
+remarkable	놀라운
+resemble	닮다
+reside	거주하다
+resolve	해결하다
+restore	복원하다
+restrict	제한하다
+retain	유지하다
+reveal	드러내다
+revise	수정하다
+rigid	엄격한
+scarce	부족한
+scope	범위
+sequence	순서
+significant	중요한
+simulate	모의 실험하다
+skeptical	회의적인
+sophisticated	정교한
+specify	명시하다
+speculate	추측하다
+stable	안정된
+stimulate	자극하다
+subjective	주관적인
+subsequent	그 이후의
+substantial	상당한
+substitute	대체하다
+subtle	미묘한
+sufficient	충분한
+superficial	피상적인
+suppress	억압하다
+sustain	지속시키다
+symptom	증상
+tangible	유형의, 실체적인
+tedious	지루한
+temporary	일시적인
+tolerate	참다
+transform	변형시키다
+transmit	전송하다
+trigger	촉발하다
+undergo	겪다
+undermine	약화시키다
+unprecedented	전례 없는
+aberration	일탈
+abolish	폐지하다
+accentuate	강조하다
+acclaim	찬사; 칭송하다
+adamant	단호한
+adversity	역경
+aesthetic	미적인
+affluent	부유한
+alienate	소외시키다
+alleviate	완화하다
+altruistic	이타적인
+anecdote	일화
+apathy	무관심
+articulate	분명히 표현하다
+ascribe	~의 탓으로 돌리다
+assimilate	동화시키다
+attenuate	약화시키다
+autonomy	자율성
+benevolent	자비로운
+candid	솔직한
+catastrophe	재앙
+coerce	강요하다
+cognitive	인지의
+coincide	동시에 일어나다
+complacent	자기만족적인
+compliance	준수
+concede	인정하다
+condemn	비난하다
+conform	순응하다
+conscientious	양심적인
+consensus	합의
+contempt	경멸
+contend	주장하다, 다투다
+converge	모이다, 수렴하다
+corrupt	부패한
+counterintuitive	직관에 어긋나는
+curtail	축소하다
+deduce	추론하다
+defy	무시하다, 반항하다
+degrade	저하시키다

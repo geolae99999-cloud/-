@@ -1,0 +1,380 @@
+due	~하기로 되어 있는
+dust	먼지
+duty	의무
+eager	열망하는
+earn	벌다
+edge	가장자리
+elderly	나이 든
+else	그 밖의
+emergency	비상사태
+enemy	적
+engine	엔진
+enter	들어가다
+entire	전체의
+envelope	봉투
+error	오류
+exact	정확한
+excellent	훌륭한
+exchange	교환하다
+exciting	흥미진진한
+excuse	변명; 용서하다
+exit	출구
+fairy	요정
+fall asleep	잠들다
+fame	명성
+fantastic	환상적인
+fashion	유행
+fear	두려움
+feed	먹이를 주다
+fellow	동료
+female	여성의
+fence	울타리
+field	들판, 분야
+fight	싸우다
+figure	인물, 숫자
+fill	채우다
+final	마지막의
+flag	깃발
+flat	평평한
+float	뜨다
+flood	홍수
+flour	밀가루
+fold	접다
+fool	바보
+force	힘; 강요하다
+fortune	행운, 재산
+frame	틀
+freeze	얼다
+fresh	신선한
+friendship	우정
+frighten	겁주다
+fuel	연료
+fun	재미
+fur	털
+gain	얻다
+garage	차고
+gentle	온화한
+giant	거인
+global warming	지구 온난화
+glow	빛나다
+god	신
+grab	움켜잡다
+grain	곡물
+grass	풀
+greet	인사하다
+ground	땅
+guard	경비원; 지키다
+guide	안내하다
+gym	체육관
+hall	홀, 복도
+handle	다루다; 손잡이
+hang	걸다
+harm	해; 해치다
+harvest	수확
+heat	열
+heaven	천국
+height	높이, 키
+hire	고용하다
+hold	잡다, 개최하다
+hole	구멍
+hometown	고향
+honor	명예
+horror	공포
+host	주최자
+huge	거대한
+human	인간
+humor	유머
+hunt	사냥하다
+hurry	서두르다
+ice	얼음
+ill	아픈
+image	이미지
+impossible	불가능한
+indeed	정말로
+indoor	실내의
+inform	알리다
+ink	잉크
+inner	내부의
+instead of	~대신에
+introduce	소개하다
+invention	발명
+iron	철, 다리미
+item	물품
+jar	병, 단지
+jewel	보석
+joke	농담
+joy	기쁨
+jungle	정글
+junk food	정크 푸드
+keep	유지하다
+kindness	친절
+kingdom	왕국
+knock	두드리다
+label	상표
+ladder	사다리
+land	땅; 착륙하다
+lately	최근에
+law	법
+lay	놓다, 낳다
+lead	이끌다
+leaf	잎
+least	가장 적은
+level	수준
+lift	들어 올리다
+liquid	액체
+loss	손실
+male	남성의
+manner	방식, 예의
+mark	표시하다
+mask	가면
+mass	덩어리, 대중
+master	주인; 숙달하다
+match	경기; 어울리다
+meal	식사
+mean	의미하다; 못된
+memory	기억
+mental	정신의
+metal	금속
+middle	중간
+mind	마음; 꺼리다
+miss	놓치다, 그리워하다
+mix	섞다
+model	모형, 모델
+moment	순간
+monster	괴물
+mood	기분
+moreover	게다가
+motion	움직임
+mystery	수수께끼
+narrow	좁은
+nation	국가
+native	토박이의
+neat	깔끔한
+necessary	필요한
+neither	어느 것도 ~아닌
+net	그물
+nod	끄덕이다
+none	아무도 ~않다
+normal	보통의
+note	메모; 주목하다
+notice	알아차리다; 공지
+official	공식적인
+operate	작동하다, 수술하다
+opposite	반대의
+organize	조직하다
+original	원래의
+otherwise	그렇지 않으면
+outdoor	야외의
+owner	주인
+pack	싸다; 꾸러미
+pain	고통
+pale	창백한
+pass	지나가다, 통과하다
+passenger	승객
+path	길
+pattern	무늬, 양식
+pay	지불하다
+peace	평화
+per	~당
+period	기간
+pick	고르다, 따다
+pile	더미
+pity	동정, 유감
+planet	행성
+pleasure	기쁨
+plenty	많음
+pocket	주머니
+poem	시
+point	점; 가리키다
+poison	독
+pole	막대기, 극
+polite	예의 바른
+pop	터지다
+position	위치
+post	게시하다
+pour	붓다
+power	힘
+praise	칭찬하다
+pray	기도하다
+press	누르다
+pretend	~인 척하다
+print	인쇄하다
+prison	감옥
+program	프로그램
+prove	증명하다
+pull	당기다
+punish	벌주다
+push	밀다
+puzzle	퍼즐
+quarter	4분의 1
+quick	빠른
+quit	그만두다
+race	경주, 인종
+raise	올리다, 기르다
+range	범위
+rapid	빠른
+rate	비율
+raw	날것의
+reach	도달하다
+real	진짜의
+recipe	요리법
+record	기록하다
+relative	친척
+remain	남다
+remind	상기시키다
+rent	빌리다; 집세
+repair	수리하다
+reply	대답하다
+request	요청하다
+rescue	구조하다
+reserve	예약하다
+review	복습하다, 검토하다
+reward	보상
+riddle	수수께끼
+rise	오르다
+risk	위험
+roll	구르다
+rough	거친
+round	둥근
+row	줄
+rub	문지르다
+rude	무례한
+ruin	망치다
+rush	서두르다
+sail	항해하다
+sample	견본
+sand	모래
+scene	장면
+scream	비명 지르다
+search	찾다
+secretary	비서
+seed	씨앗
+seek	찾다
+seem	~처럼 보이다
+select	선택하다
+sense	감각
+sentence	문장
+set	놓다; 세트
+several	몇몇의
+shade	그늘
+shake	흔들다
+sharp	날카로운
+shelf	선반
+shine	빛나다
+shock	충격
+shoot	쏘다
+shore	해안
+sight	시력, 광경
+sign	표지판; 서명하다
+silent	조용한
+silly	어리석은
+similar	비슷한
+simple	간단한
+sink	가라앉다
+skin	피부
+slip	미끄러지다
+smooth	매끄러운
+soil	흙
+soldier	군인
+solution	해결책
+somewhere	어딘가에
+soul	영혼
+source	원천
+spirit	정신
+spread	퍼지다
+stage	무대, 단계
+steal	훔치다
+step	걸음, 단계
+stick	막대기; 붙이다
+stone	돌
+storm	폭풍
+stress	스트레스
+stretch	늘이다
+structure	구조
+style	방식
+suffer	고통받다
+suit	정장; 어울리다
+supply	공급하다
+sure	확실한
+surround	둘러싸다
+swing	흔들다
+symbol	상징
+system	체계
+tail	꼬리
+tale	이야기
+talent	재능
+target	목표
+task	과제
+tear	눈물; 찢다
+technology	기술
+thief	도둑
+thin	얇은, 마른
+thought	생각
+thus	따라서
+tie	묶다
+tip	끝, 조언
+title	제목
+tool	도구
+top	꼭대기
+total	전체의
+touch	만지다
+tour	여행
+trade	무역
+trap	덫
+treasure	보물
+treat	대하다, 치료하다
+trick	속임수
+trouble	문제, 곤란
+truth	진실
+tune	곡조
+twice	두 번
+unless	~하지 않으면
+upset	속상한
+urgent	긴급한
+victory	승리
+view	경치, 견해
+violent	폭력적인
+visitor	방문객
+vote	투표하다
+wallet	지갑
+war	전쟁
+warn	경고하다
+wave	파도; 흔들다
+wealth	부
+weapon	무기
+weigh	무게가 나가다
+whole	전체의
+wide	넓은
+wild	야생의
+wing	날개
+wipe	닦다
+wire	철사
+wish	바라다
+within	~이내에
+wood	나무, 목재
+worth	~의 가치가 있는
+wound	상처
+wrap	싸다
+yell	소리치다
+youth	젊음
+absolute	절대적인
+abuse	남용; 학대하다
+accessible	접근 가능한
+accomplish	성취하다
+accordingly	그에 따라
+acknowledge	인정하다
+adequately	적절히
+administer	관리하다
+adverse	불리한
+affection	애정
+agriculture	농업
+alert	경계하는
+align	정렬하다
+alter	바꾸다
+amateur	아마추어
+amaze	놀라게 하다
+ancestor	조상
+anthropology	인류학
+appeal	호소하다; 매력
+applause	박수
+appliance	가전제품

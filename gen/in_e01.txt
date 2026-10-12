@@ -1,0 +1,380 @@
+kind	친절한; 종류
+honest	정직한
+brave	용감한
+funny	재미있는
+smart	똑똑한
+lazy	게으른
+quiet	조용한
+loud	시끄러운
+strong	강한
+weak	약한
+full	가득 찬, 배부른
+empty	비어 있는
+dirty	더러운
+wet	젖은
+dry	마른
+dark	어두운
+bright	밝은
+beautiful	아름다운
+wonderful	멋진
+great	훌륭한
+vegetable	채소
+fruit	과일
+meat	고기
+beef	소고기
+pork	돼지고기
+noodle	국수
+sugar	설탕
+salt	소금
+butter	버터
+cheese	치즈
+delicious	맛있는
+sweet	달콤한
+salty	짠
+spicy	매운
+sour	신
+bitter	쓴
+taste	맛; 맛이 나다
+smell	냄새; 냄새 맡다
+sound	소리
+voice	목소리
+noise	소음
+health	건강
+healthy	건강한
+exercise	운동; 운동하다
+medicine	약
+dentist	치과의사
+stomachache	복통
+cough	기침
+hurt	다치게 하다, 아프다
+rest	휴식; 쉬다
+job	직업, 일
+work	일하다; 일
+pilot	조종사
+scientist	과학자
+artist	예술가
+singer	가수
+writer	작가
+engineer	기술자
+firefighter	소방관
+future	미래
+dream	꿈; 꿈꾸다
+grow	자라다
+become	~이 되다
+change	바꾸다; 변화
+move	움직이다, 이사하다
+build	짓다
+break	깨다; 휴식
+fix	고치다
+carry	나르다
+bring	가져오다
+send	보내다
+show	보여 주다
+choose	고르다
+decide	결정하다
+agree	동의하다
+believe	믿다
+understand	이해하다
+explain	설명하다
+enjoy	즐기다
+worry	걱정하다
+cry	울다
+laugh	웃다
+smile	미소; 미소 짓다
+angry	화난
+afraid	두려워하는
+excited	신이 난
+bored	지루해하는
+surprised	놀란
+nervous	긴장한
+proud	자랑스러운
+lonely	외로운
+sorry	미안한
+welcome	환영하다
+nature	자연
+earth	지구
+world	세계
+country	나라
+culture	문화
+history	역사
+language	언어
+festival	축제
+event	행사
+contest	대회
+prize	상
+club	동아리
+member	회원
+leader	지도자
+captain	주장, 선장
+rule	규칙
+safe	안전한
+danger	위험
+accident	사고
+fire	불, 화재
+trash	쓰레기
+recycle	재활용하다
+save	구하다, 아끼다
+waste	낭비하다; 쓰레기
+plant	식물; 심다
+animal	동물
+insect	곤충
+already	이미
+still	아직, 여전히
+yet	아직
+soon	곧
+ago	~전에
+later	나중에
+tonight	오늘 밤
+tomorrow	내일
+yesterday	어제
+past	과거; 지난
+month	달, 월
+year	해, 연도
+January	1월
+February	2월
+March	3월
+April	4월
+May	5월
+June	6월
+July	7월
+August	8월
+September	9월
+October	10월
+November	11월
+December	12월
+season	계절
+temperature	온도
+middle school	중학교
+elementary	초등의
+grade	학년, 성적
+subject	과목
+lesson	수업, 교훈
+report	보고서
+project	과제, 프로젝트
+graduate	졸업하다
+uniform	교복, 제복
+classmate	반 친구
+neighbor	이웃
+guest	손님
+stranger	낯선 사람
+people	사람들
+person	사람
+child	아이
+adult	어른
+parent	부모
+cousin	사촌
+uncle	삼촌
+aunt	이모, 고모
+daughter	딸
+son	아들
+husband	남편
+wife	아내
+marry	결혼하다
+age	나이
+tradition	전통
+character	등장인물, 성격
+hero	영웅
+king	왕
+queen	여왕
+prince	왕자
+princess	공주
+castle	성
+village	마을
+palace	궁전
+temple	절, 신전
+tower	탑
+building	건물
+floor	층, 바닥
+wall	벽
+roof	지붕
+stairs	계단
+elevator	엘리베이터
+gate	문, 출입구
+board	판, 칠판
+screen	화면
+button	버튼, 단추
+key	열쇠
+lock	잠그다; 자물쇠
+cross	건너다
+turn	돌다; 차례
+straight	곧장, 똑바로
+across	건너편에
+along	~을 따라
+between	~사이에
+through	~을 통해
+around	~주위에
+inside	안에
+outside	밖에
+instead	대신에
+maybe	아마도
+probably	아마
+enough	충분한
+almost	거의
+every	모든
+each	각각의
+both	둘 다
+half	절반
+pair	한 쌍
+piece	조각
+bottle	병
+glass	유리, 유리잔
+abroad	해외로
+accept	받아들이다
+achieve	성취하다
+action	행동
+add	더하다
+allow	허락하다
+amazing	놀라운
+appear	나타나다
+arrive	도착하다
+attend	참석하다
+award	상; 수여하다
+borrow	빌리다
+lend	빌려주다
+business	사업
+calm	침착한
+celebrate	축하하다
+chance	기회
+cheer	응원하다
+collect	모으다
+comfortable	편안한
+common	흔한, 공통의
+compare	비교하다
+complete	완성하다
+condition	상태, 조건
+contact	연락; 연락하다
+continue	계속하다
+control	통제하다
+create	창조하다
+crowded	붐비는
+curious	호기심이 많은
+dangerous	위험한
+deliver	배달하다
+describe	묘사하다
+design	디자인; 설계하다
+develop	발달시키다
+disappear	사라지다
+discover	발견하다
+discuss	토론하다
+during	~동안
+effort	노력
+energy	에너지
+environment	환경
+especially	특히
+exam	시험
+example	예
+experience	경험
+express	표현하다
+fact	사실
+fail	실패하다
+famous	유명한
+follow	따라가다
+foreign	외국의
+form	형태; 형성하다
+goal	목표
+habit	습관
+hide	숨기다
+imagine	상상하다
+important	중요한
+improve	향상시키다
+include	포함하다
+information	정보
+interest	관심, 흥미
+invent	발명하다
+join	가입하다
+journey	여행
+knowledge	지식
+lie	거짓말; 눕다
+local	지역의
+lucky	운이 좋은
+manage	관리하다
+mistake	실수
+offer	제안하다
+order	주문; 명령하다
+own	자신의; 소유하다
+perfect	완벽한
+popular	인기 있는
+possible	가능한
+prepare	준비하다
+protect	보호하다
+public	공공의
+reason	이유
+receive	받다
+relax	휴식을 취하다
+repeat	반복하다
+result	결과
+return	돌아오다
+secret	비밀
+serious	심각한, 진지한
+share	나누다, 공유하다
+shout	소리치다
+skill	기술
+solve	해결하다
+spend	(돈·시간을) 쓰다
+success	성공
+suddenly	갑자기
+support	지지하다
+survey	설문 조사
+traffic	교통
+trust	신뢰; 믿다
+type	유형
+ability	능력
+absent	결석한
+actually	실제로
+adapt	적응하다
+admire	감탄하다
+affect	영향을 미치다
+afford	여유가 있다
+aim	목표; 목표로 하다
+amount	양
+announce	발표하다
+anniversary	기념일
+apologize	사과하다
+apply	지원하다, 적용하다
+argue	논쟁하다
+arrange	정리하다, 준비하다
+article	기사
+attack	공격; 공격하다
+attract	끌다
+audience	청중
+average	평균; 평균의
+aware	알고 있는
+balance	균형
+behavior	행동
+benefit	이익
+blame	비난하다
+breathe	숨 쉬다
+budget	예산
+cause	원인; 일으키다
+challenge	도전
+citizen	시민
+climate	기후
+community	공동체
+concentrate	집중하다
+confident	자신 있는
+consider	고려하다
+contain	포함하다
+convenient	편리한
+crisis	위기
+criticize	비판하다
+damage	손상; 손상시키다
+debate	토론
+decrease	감소하다
+depend	의존하다
+destroy	파괴하다
+determine	결정하다
+direction	방향
+disappoint	실망시키다
+donate	기부하다
+emotion	감정
+encourage	격려하다
+equal	동등한
+escape	탈출하다
+exist	존재하다
+expect	기대하다
+explore	탐험하다
+factor	요인
+fair	공정한
+familiar	친숙한
+flexible	유연한
+frequently	자주
