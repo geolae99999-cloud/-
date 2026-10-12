@@ -1147,6 +1147,29 @@
     .cl-sub { margin: 0 0 12px; padding: 11px 14px; border-radius: 13px; background: var(--surface-2); color: var(--muted); font-size: .86rem; font-weight: 700; text-align: center; }
     .cl-sub.ok { background: var(--mint-soft); color: var(--mint); } .cl-sub.bad { background: var(--coral-soft); color: var(--coral); }
     @media (max-width: 420px) { .cl-tr { grid-template-columns: minmax(0, 1.4fr) repeat(4, minmax(0, 1fr)); font-size: .78rem; padding: 10px 8px; } }
+    /* ----- 우리 반 실시간 ----- */
+    .lv-open { gap: 8px; }
+    .lv-dot, .lv-name i { width: 9px; height: 9px; border-radius: 50%; background: #22c55e; display: inline-block; flex: none; box-shadow: 0 0 0 0 rgba(34,197,94,.5); animation: lvPulse 1.6s infinite; }
+    @keyframes lvPulse { 70% { box-shadow: 0 0 0 7px rgba(34,197,94,0); } 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); } }
+    .lv { overflow-y: auto; gap: 14px; }
+    .lv-top { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+    .lv-title { flex: 1; min-width: 160px; display: flex; flex-direction: column; } .lv-title small { color: var(--muted); font-weight: 700; font-size: .85rem; } .lv-title b { font-size: 1.45rem; font-weight: 900; letter-spacing: -.03em; }
+    .lv-nums { display: flex; gap: 8px; } .lv-nums span { background: var(--surface); border-radius: 14px; padding: 8px 14px; display: flex; flex-direction: column; align-items: center; font-size: .76rem; color: var(--muted); font-weight: 700; } .lv-nums b { font-size: 1.3rem; color: var(--ink); }
+    .lv-nums span:first-child b { color: #16a34a; } .lv-nums span:nth-child(2) b { color: var(--blue); }
+    .lv-code { background: var(--blue-soft); border-radius: 14px; padding: 6px 14px; display: flex; flex-direction: column; } .lv-code small { font-size: .72rem; color: var(--muted); font-weight: 700; } .lv-code b { color: var(--blue); letter-spacing: .15em; font-size: 1.15rem; font-weight: 900; }
+    .lv-feed { display: flex; flex-wrap: wrap; gap: 6px; } .lv-feed span { background: var(--mint-soft); color: var(--mint); border-radius: 99px; padding: 6px 12px; font-size: .82rem; font-weight: 700; } .lv-feed small { opacity: .7; }
+    .lv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; }
+    .lv-card { background: var(--surface); border-radius: 18px; padding: 14px; display: flex; flex-direction: column; gap: 6px; border: 2px solid transparent; transition: border-color .3s; }
+    .lv-card.k-study { border-color: var(--blue); } .lv-card.k-off { opacity: .55; }
+    .lv-card.k-away .lv-name i { background: #f59e0b; animation: none; } .lv-card.k-off .lv-name i { background: var(--line); animation: none; } .lv-card.k-on .lv-name i { animation: none; }
+    .lv-card.arrive { animation: lvIn .6s ease; border-color: #22c55e; }
+    @keyframes lvIn { 0% { transform: scale(.85); opacity: 0; } 60% { transform: scale(1.04); opacity: 1; } 100% { transform: none; } }
+    .lv-name { display: flex; align-items: center; gap: 7px; } .lv-name b { font-weight: 800; font-size: 1rem; } .lv-name small { color: var(--muted); font-size: .78rem; margin-left: auto; }
+    .lv-act { font-size: .84rem; font-weight: 700; color: var(--ink-2); line-height: 1.4; min-height: 2.4em; }
+    .lv-bar { height: 7px; border-radius: 99px; background: var(--surface-2); overflow: hidden; } .lv-bar div { height: 100%; background: var(--blue); border-radius: 99px; transition: width .4s; }
+    .lv-ok { display: flex; gap: 10px; font-size: .78rem; font-weight: 800; } .lv-ok .ok { color: var(--mint); } .lv-ok .no { color: var(--coral); }
+    .lv-today { font-size: .76rem; color: var(--muted); font-weight: 700; }
+    .lv-foot { text-align: center; color: var(--muted); font-size: .78rem; padding-bottom: 8px; }
   </style>
 </head>
 <body>
@@ -2402,6 +2425,7 @@ window.VOCA_CLOUD = {
     document.body.classList.add('no-scroll');
     kbdHint(mode);
     if (mode === 'listen') startListen(); else renderQuestion();
+    setTimeout(() => clPing(true), 0);
   }
 
   function renderQuestion() {
@@ -2431,7 +2455,7 @@ window.VOCA_CLOUD = {
       if (!S.wrong.has(w.id)) S.wrong.set(w.id, item);
       if (!item.retry && S.mode !== 'test') S.queue.push({ w, catId: item.catId, retry: true });
     }
-    syncStorage();
+    syncStorage(); clPing();
   }
   function nextQuestion() { S.idx++; renderQuestion(); }
 
@@ -2720,6 +2744,7 @@ window.VOCA_CLOUD = {
         </div>
       </div>`;
     if (S.assign) clSubmit(S.assign, S.ok, first, Math.max(1, Math.round((Date.now() - S.t0) / 1000)), wrongs.map(it => it.w.word));
+    clPing(true);
     if (pct >= 80 || goalHit) confetti();
   }
   /* ----- 실전 시험 결과 ----- */
@@ -2756,6 +2781,7 @@ window.VOCA_CLOUD = {
         </div>
       </div>`;
     if (S.assign) clSubmit(S.assign, ok, n, sec, S.log.filter(x => !x.ok).map(x => x.w.word));
+    clPing(true);
     if (pct >= 80) confetti();
   }
   ACTIONS['exam-open'] = el => {
@@ -2791,7 +2817,7 @@ window.VOCA_CLOUD = {
     S.active = false;
     $('studyScreen').classList.remove('open');
     if (!$('sheetOv').classList.contains('open')) document.body.classList.remove('no-scroll');
-    go(curTab);
+    go(curTab); clPing(true);
   }
   ACTIONS['exit-session'] = () => exitSession(false);
 
@@ -4523,7 +4549,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
       h += r.joined.map(c => `<div class="cl-sec card cl-cls"><div class="cl-head"><div><b>${esc(c.name)}</b><small>${esc([c.school, c.teacher && c.teacher + ' 선생님'].filter(Boolean).join(' · '))}</small></div><button class="btn btn-sm btn-soft" data-act="cl-leave" data-id="${c.id}">나가기</button></div>
         ${c.assignments.length ? c.assignments.map(a => `<button class="cl-asg" data-act="cl-do" data-id="${a.id}"><span class="cl-li"><b>${esc(a.title)}</b><small>${CL_KIND[a.kind] || ''} · ${a.count}단어${a.due ? ' · ' + clDue(a.due) : ''}</small></span>${a.mine ? `<span class="cl-done">${a.mine.score}점</span>` : '<span class="cl-todo">시작</span>'}</button>`).join('') : '<p class="muted cl-p">아직 과제가 없어요.</p>'}</div>`).join('');
       h += `<div class="cl-sec"><h4 class="syn-h">반 참여하기</h4><div class="cl-new"><input type="text" id="clCode" maxlength="6" placeholder="초대 코드 6자리" autocapitalize="characters" autocomplete="off"><button class="btn btn-primary" data-act="cl-join">참여</button></div>
-        <label class="cl-agree"><input type="checkbox" id="clAgree"> 이 반 선생님에게 내 이름${isTeacher() ? '' : ', 학번'}, 학습 요약(학습한 단어 수, 정답률, 연속 학습, 많이 틀린 단어, 최근 시험 점수), 과제 결과를 보여 주는 데 동의해요. 반에서 나가면 선생님 화면에서 바로 지워져요.</label></div>`;
+        <label class="cl-agree"><input type="checkbox" id="clAgree"> 이 반 선생님에게 내 이름${isTeacher() ? '' : ', 학번'}, 학습 요약(학습한 단어 수, 정답률, 연속 학습, 많이 틀린 단어, 최근 시험 점수), 과제 결과, 앱을 켜 두는 동안의 접속 상태와 지금 하는 학습을 보여 주는 데 동의해요. 반에서 나가면 선생님 화면에서 바로 지워져요.</label></div>`;
     }
     $('sheetTitle').textContent = '우리 반';
     $('sheetBody').innerHTML = `<div class="form-stack cl">${h}</div>`;
@@ -4567,6 +4593,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     const d = CLV.data, c = d.class, mem = d.members, asg = d.assignments;
     $('sheetTitle').textContent = c.name;
     const head = `<div class="cl-code"><div><small>초대 코드</small><b>${esc(c.code)}</b></div><button class="btn btn-sm btn-soft" data-act="cl-copy" data-code="${esc(c.code)}">복사</button></div>
+      <button class="btn btn-primary btn-block lv-open" data-act="cl-live"><i class="lv-dot"></i>실시간 보기 (누가 들어와서 무엇을 하는지)</button>
       <p class="muted cl-p">학생은 홈의 '우리 반'에서 이 코드를 넣으면 들어와요. 만 14세 미만(이 기기에만 저장하는 계정)은 참여할 수 없어요.</p>
       <div class="seg"><button class="${CLV.tab === 'stu' ? 'on' : ''}" data-act="cl-tab" data-t="stu">학생 ${mem.length}명</button><button class="${CLV.tab === 'asg' ? 'on' : ''}" data-act="cl-tab" data-t="asg">과제 ${asg.length}개</button></div>`;
     let body = '';
@@ -4703,6 +4730,84 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
   }
 
   /* =========================================================
+   * 우리 반 실시간 (학생 접속·학습 상태 -> 선생님 실시간 화면)
+   * ======================================================= */
+  let clPingAt = 0, clPingOff = false;
+  function clLiveState() {
+    const t = (stats.days[dayKey()] || { n: 0 }).n;
+    if (document.visibilityState === 'hidden') return { s: 'away', t };
+    if (S && S.active) {
+      const base = { m: S.mode, i: Math.min(S.idx, S.total), n: S.total, ok: S.ok, no: S.no, src: String(srcLabel(S.src) || '').slice(0, 40), a: S.assign ? String(S.assign.title).slice(0, 60) : '' };
+      return Object.assign({ s: S.finished ? 'done' : 'study', t }, base);
+    }
+    return { s: 'app', t };
+  }
+  async function clPing(force) {
+    if (clPingOff || !clOk() || isTeacher() || !clCache().joined) return;
+    const now = Date.now(); if (!force && now - clPingAt < 5000) return; clPingAt = now;
+    try { await Cloud.call('voca_class_ping', { p_live: clLiveState() }); }
+    catch (e) { if (e && e.code === 'missing') clPingOff = true; }
+  }
+  setInterval(() => { if (document.visibilityState !== 'hidden') clPing(true); }, 15000);
+  document.addEventListener('visibilitychange', () => clPing(true));
+
+  let LV = null;
+  const LV_MODE = m => (MODES[m] && MODES[m].name) || '학습';
+  function lvStatus(m) {
+    const l = m.live || {}, ago = m.ago;
+    if (ago == null) return { k: 'off', t: '아직 접속 기록 없음' };
+    if (ago > 60 || l.s === 'away') return { k: ago > 60 ? 'off' : 'away', t: ago > 3600 ? (ago > 86400 ? `${Math.floor(ago / 86400)}일 전 접속` : `${Math.floor(ago / 3600)}시간 전 접속`) : ago > 60 ? `${Math.floor(ago / 60)}분 전 접속` : '잠시 다른 화면' };
+    if (l.s === 'study') return { k: 'study', t: `${l.a ? l.a + ' · ' : ''}${LV_MODE(l.m)} ${l.i}/${l.n}`, p: l.n ? l.i / l.n : 0, ok: l.ok, no: l.no };
+    if (l.s === 'done') { const f = (l.ok || 0) + (l.no || 0); return { k: 'on', t: `${l.a ? l.a + ' · ' : ''}${LV_MODE(l.m)} 끝냄${f ? ` · 정답 ${Math.round((l.ok || 0) / f * 100)}%` : ''}` }; }
+    return { k: 'on', t: '앱을 보고 있어요' };
+  }
+  ACTIONS['cl-live'] = async () => {
+    const id = CLV.id; if (!id) return;
+    closeSheet();
+    const ov = document.createElement('div'); ov.id = 'lvOv'; ov.className = 'pv lv'; document.body.appendChild(ov); document.body.classList.add('no-scroll');
+    LV = { id, seen: new Map(), feed: [], timer: null, first: true };
+    ov.innerHTML = `<div class="cl-load">${MASCOT('think')}<span>학생들을 불러오는 중...</span></div>`;
+    await lvTick();
+    LV && (LV.timer = setInterval(lvTick, 5000));
+  };
+  function lvClose() { if (!LV) return; clearInterval(LV.timer); LV = null; const o = $('lvOv'); if (o) o.remove(); document.body.classList.remove('no-scroll'); }
+  ACTIONS['lv-close'] = () => { const id = CLV.id; lvClose(); if (id) clDetail(id, true); };
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('lvOv') && !document.querySelector('.dlg-ov')) { e.stopImmediatePropagation(); ACTIONS['lv-close'](); } }, true);
+  async function lvTick() {
+    if (!LV) return; const lv = LV;
+    let r; try { r = await Cloud.call('voca_class_live', { p_class: lv.id }); }
+    catch (e) {
+      if (LV !== lv) return;
+      const o = $('lvOv'); if (o && (lv.first || e.code === 'missing')) { clearInterval(lv.timer); o.innerHTML = `<div class="lv-top"><b>실시간 보기</b><button class="icon-btn" data-act="lv-close" aria-label="닫기">${IC.x}</button></div><div class="cl-load">${MASCOT('sleep')}<span>${esc(e.code === 'missing' ? '실시간 보기는 서버 설정(supabase_update_v7.sql)을 마치면 쓸 수 있어요.' : clMsg(e))}</span></div>`; }
+      return;
+    }
+    if (LV !== lv) return;
+    const list = r.members.map(m => Object.assign(m, { st: lvStatus(m) }));
+    list.forEach(m => {
+      const was = lv.seen.get(m.uid), on = m.st.k === 'on' || m.st.k === 'study';
+      if (!lv.first && on && was !== true) { m.arrive = true; lv.feed.unshift([Date.now(), `${m.name || '학생'} 학생이 들어왔어요`]); }
+      if (!lv.first && m.st.k === 'study' && m.live.i === 0 && m.live.n) { const k = 'start:' + m.uid + ':' + m.live.a + m.live.m; if (!lv.seen.has(k)) { lv.seen.set(k, 1); lv.feed.unshift([Date.now(), `${m.name || '학생'} 학생 '${m.live.a || LV_MODE(m.live.m)}' 시작`]); } }
+      lv.seen.set(m.uid, on);
+    });
+    lv.feed = lv.feed.slice(0, 6); lv.first = false;
+    const on = list.filter(m => m.st.k === 'on' || m.st.k === 'study').length, study = list.filter(m => m.st.k === 'study').length;
+    const order = { study: 0, on: 1, away: 2, off: 3 };
+    list.sort((a, b) => order[a.st.k] - order[b.st.k] || String(a.sno).localeCompare(String(b.sno)) || String(a.name).localeCompare(String(b.name)));
+    const c = r.class, o = $('lvOv'); if (!o) return;
+    o.innerHTML = `<div class="lv-top"><div class="lv-title"><small>${esc(c.school || '')}</small><b>${esc(c.name)} 실시간</b></div>
+        <div class="lv-nums"><span><b>${on}</b>접속</span><span><b>${study}</b>공부 중</span><span><b>${list.length}</b>전체</span></div>
+        <div class="lv-code"><small>초대 코드</small><b>${esc(c.code)}</b></div>
+        <button class="icon-btn" data-act="lv-close" aria-label="닫기">${IC.x}</button></div>
+      ${lv.feed.length ? `<div class="lv-feed">${lv.feed.map(([t, s]) => `<span>${esc(s)} <small>${new Date(t).toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit' })}</small></span>`).join('')}</div>` : ''}
+      ${list.length ? `<div class="lv-grid">${list.map(m => `<div class="lv-card k-${m.st.k}${m.arrive ? ' arrive' : ''}"><div class="lv-name"><i></i><b>${esc(m.name || '이름 없음')}</b><small>${esc(m.sno || '')}</small></div>
+          <div class="lv-act">${esc(m.st.t)}</div>
+          ${m.st.k === 'study' ? `<div class="lv-bar"><div style="width:${Math.round(m.st.p * 100)}%"></div></div><div class="lv-ok"><span class="ok">맞음 ${m.st.ok || 0}</span><span class="no">틀림 ${m.st.no || 0}</span></div>` : ''}
+          <div class="lv-today">오늘 ${Math.max(m.today || 0, (m.live && m.live.t) || 0)}단어</div></div>`).join('')}</div>`
+        : `<div class="cl-load">${MASCOT('happy')}<span>아직 들어온 학생이 없어요. 초대 코드 <b>${esc(c.code)}</b>를 칠판에 적어 주세요.</span></div>`}
+      <div class="lv-foot">5초마다 새로 고쳐요. 학생 앱이 열려 있으면 '접속'으로 보여요.</div>`;
+  }
+
+  /* =========================================================
    * 보안문자 · 약관 · 개인정보 처리방침
    * ======================================================= */
   let capText = '', authFails = 0;
@@ -4765,7 +4870,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
 - 이용자가 입력한 단어장(단어, 뜻, 발음, 예문, 메모 등), 학습 기록과 통계, 앱 설정
 - 로그인 세션 정보(토큰은 해시로 바꿔 저장), 가입·로그인 일시, 로그인 실패 횟수
 - AI 기능의 날짜별 사용 횟수
-- 우리 반을 쓰는 경우: 반 이름, 초대 코드, 과제(제목, 단어 목록, 마감일), 반에 참여할 때의 이름과 학번, 학습 요약(학습한 단어 수, 정답률, 연속 학습일, 많이 틀린 단어, 최근 시험 점수), 과제 결과(점수, 정답 수, 걸린 시간, 틀린 단어, 푼 횟수)
+- 우리 반을 쓰는 경우: 반 이름, 초대 코드, 과제(제목, 단어 목록, 마감일), 반에 참여할 때의 이름과 학번, 학습 요약(학습한 단어 수, 정답률, 연속 학습일, 많이 틀린 단어, 최근 시험 점수), 과제 결과(점수, 정답 수, 걸린 시간, 틀린 단어, 푼 횟수), 앱이 열려 있는 동안의 접속 상태와 지금 하는 학습(학습 방법, 진행한 문제 수, 맞은·틀린 수, 마지막 접속 시각)
 자동으로 생성되는 정보
 - 서비스에 접속하는 과정에서 IP 주소, 브라우저 종류, 접속 일시가 호스팅·서버 업체의 접속 기록에 남을 수 있습니다.
 수집하지 않는 정보
@@ -4781,7 +4886,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
 이용자가 초대 코드로 반에 참여하면서 동의한 경우에는 다음과 같이 제공합니다.
 - 받는 자: 이용자가 참여한 반을 만든 선생님(회원)
 - 목적: 수업 중 학습 지도와 과제 확인
-- 항목: 이름, 학번, 학습 요약(학습한 단어 수, 정답률, 연속 학습일, 많이 틀린 단어, 최근 시험 점수), 과제 결과
+- 항목: 이름, 학번, 학습 요약(학습한 단어 수, 정답률, 연속 학습일, 많이 틀린 단어, 최근 시험 점수), 과제 결과, 실시간 접속 상태와 지금 하는 학습
 - 보유 기간: 이용자가 반에서 나가거나, 선생님이 내보내거나 반을 삭제할 때까지
 - 동의를 거부할 수 있으며, 거부하면 반에 참여할 수 없을 뿐 다른 기능은 그대로 이용할 수 있습니다.`],
         ['제5조 개인정보 처리의 위탁', `운영자는 서비스 제공을 위해 다음과 같이 개인정보 처리 업무를 위탁합니다. 위탁 기간은 회원 탈퇴 또는 위탁 계약 종료 시까지입니다.
@@ -4833,7 +4938,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
 - 2026년 10월 11일: 제정
 - 2026년 10월 11일: 법정 기재 항목 보완, 학년 정보·AI 기능·국외 이전 내용 반영
 - ${I.effective}: 수집 항목에 이름, 학교, 학번(선택)과 선생님 가입 추가
-- ${I.effective}: 우리 반 기능 추가(반에 참여할 때 동의를 받아 그 반 선생님에게 제공하는 정보, 보유 기간)`],
+- ${I.effective}: 우리 반 기능 추가(반에 참여할 때 동의를 받아 그 반 선생님에게 제공하는 정보, 보유 기간), 실시간 접속 상태 표시`],
         ['시행일', `이 방침은 ${I.effective}부터 시행합니다.`]]],
       terms: ['이용약관', '', [
         ['제1조 (목적)', `이 약관은 ${I.operator}(이하 "운영자")이 제공하는 영어 단어 학습 서비스 VocaPro(이하 "서비스")의 이용 조건과 절차, 운영자와 회원의 권리·의무를 정합니다.`],

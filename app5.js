@@ -19,6 +19,7 @@
     document.body.classList.add('no-scroll');
     kbdHint(mode);
     if (mode === 'listen') startListen(); else renderQuestion();
+    setTimeout(() => clPing(true), 0);
   }
 
   function renderQuestion() {
@@ -48,7 +49,7 @@
       if (!S.wrong.has(w.id)) S.wrong.set(w.id, item);
       if (!item.retry && S.mode !== 'test') S.queue.push({ w, catId: item.catId, retry: true });
     }
-    syncStorage();
+    syncStorage(); clPing();
   }
   function nextQuestion() { S.idx++; renderQuestion(); }
 
@@ -337,6 +338,7 @@
         </div>
       </div>`;
     if (S.assign) clSubmit(S.assign, S.ok, first, Math.max(1, Math.round((Date.now() - S.t0) / 1000)), wrongs.map(it => it.w.word));
+    clPing(true);
     if (pct >= 80 || goalHit) confetti();
   }
   /* ----- 실전 시험 결과 ----- */
@@ -373,6 +375,7 @@
         </div>
       </div>`;
     if (S.assign) clSubmit(S.assign, ok, n, sec, S.log.filter(x => !x.ok).map(x => x.w.word));
+    clPing(true);
     if (pct >= 80) confetti();
   }
   ACTIONS['exam-open'] = el => {
@@ -408,7 +411,7 @@
     S.active = false;
     $('studyScreen').classList.remove('open');
     if (!$('sheetOv').classList.contains('open')) document.body.classList.remove('no-scroll');
-    go(curTab);
+    go(curTab); clPing(true);
   }
   ACTIONS['exit-session'] = () => exitSession(false);
 

@@ -1,4 +1,36 @@
   /* =========================================================
+   * 보안문자 · 약관 · 개인정보 처리방침
+   * ======================================================= */
+  let capText = '', authFails = 0;
+  const capRnd = n => { try { const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % n; } catch (e) { return Math.floor(Math.random() * n); } };
+  function drawCaptcha() {
+    const c = $('capCv'); if (!c) return;
+    const W = c.width = 160, H = c.height = 52, x = c.getContext('2d'); if (!x) return;
+    const set = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; capText = '';
+    for (let i = 0; i < 5; i++) capText += set[capRnd(set.length)];
+    x.fillStyle = '#eef1f5'; x.fillRect(0, 0, W, H);
+    for (let i = 0; i < 7; i++) { x.strokeStyle = `hsl(${capRnd(360)},40%,60%)`; x.lineWidth = 1 + capRnd(2); x.beginPath(); x.moveTo(capRnd(W), capRnd(H)); x.bezierCurveTo(capRnd(W), capRnd(H), capRnd(W), capRnd(H), capRnd(W), capRnd(H)); x.stroke(); }
+    for (let i = 0; i < capText.length; i++) {
+      x.save(); x.translate(20 + i * 28, 28 + capRnd(8) - 4); x.rotate((capRnd(60) - 30) / 100);
+      x.font = `800 ${26 + capRnd(6)}px sans-serif`; x.fillStyle = `hsl(${capRnd(360)},55%,28%)`; x.textAlign = 'center'; x.fillText(capText[i], 0, 0); x.restore();
+    }
+    for (let i = 0; i < 40; i++) { x.fillStyle = `rgba(60,60,60,${(capRnd(40) + 10) / 100})`; x.fillRect(capRnd(W), capRnd(H), 2, 2); }
+  }
+  function authExtraHtml(su) {
+    return `<div id="capBox" style="display:${su || authFails >= 3 ? 'block' : 'none'}"><div class="cap-row"><canvas id="capCv" width="160" height="52" aria-label="보안문자"></canvas><button type="button" class="btn btn-soft" data-act="cap-refresh">새로고침</button></div><input type="text" id="capIn" placeholder="위 문자를 입력하세요" maxlength="5" autocapitalize="characters" autocomplete="off" spellcheck="false"></div>${su ? `<label class="switch-row"><input type="checkbox" id="auTerms"><span>(필수) ${kidMode ? '보호자와 함께 ' : ''}<a class="lg-a" data-act="legal" data-k="terms">이용약관</a> 및 <a class="lg-a" data-act="legal" data-k="privacy">개인정보 처리방침</a>${kidMode ? '을 읽고 ' : '에 '}동의해요</span></label>` : ''}`;
+  }
+  function authGate() {
+    const su = authMode === 'signup';
+    if (su) { const t = $('auTerms'); if (!t || !t.checked) return '이용약관과 개인정보 처리방침에 동의해 주세요.'; }
+    if (su || authFails >= 3) {
+      const v = (($('capIn') && $('capIn').value) || '').trim().toUpperCase();
+      if (!capText || v !== capText) { drawCaptcha(); if ($('capIn')) $('capIn').value = ''; return '보안문자가 맞지 않아요. 새 문자로 다시 입력해 주세요.'; }
+    }
+    return '';
+  }
+  ACTIONS['cap-refresh'] = () => { drawCaptcha(); const i = $('capIn'); if (i) { i.value = ''; i.focus(); } };
+
+  /* =========================================================
    * 이용약관 · 개인정보 처리방침
    * 기준: 개인정보 보호법 제30조, 개인정보 처리방침 작성지침(2025.4.21), 공정위 표준약관 구조
    * ======================================================= */
@@ -29,7 +61,7 @@
 - 이용자가 입력한 단어장(단어, 뜻, 발음, 예문, 메모 등), 학습 기록과 통계, 앱 설정
 - 로그인 세션 정보(토큰은 해시로 바꿔 저장), 가입·로그인 일시, 로그인 실패 횟수
 - AI 기능의 날짜별 사용 횟수
-- 우리 반을 쓰는 경우: 반 이름, 초대 코드, 과제(제목, 단어 목록, 마감일), 반에 참여할 때의 이름과 학번, 학습 요약(학습한 단어 수, 정답률, 연속 학습일, 많이 틀린 단어, 최근 시험 점수), 과제 결과(점수, 정답 수, 걸린 시간, 틀린 단어, 푼 횟수)
+- 우리 반을 쓰는 경우: 반 이름, 초대 코드, 과제(제목, 단어 목록, 마감일), 반에 참여할 때의 이름과 학번, 학습 요약(학습한 단어 수, 정답률, 연속 학습일, 많이 틀린 단어, 최근 시험 점수), 과제 결과(점수, 정답 수, 걸린 시간, 틀린 단어, 푼 횟수), 앱이 열려 있는 동안의 접속 상태와 지금 하는 학습(학습 방법, 진행한 문제 수, 맞은·틀린 수, 마지막 접속 시각)
 자동으로 생성되는 정보
 - 서비스에 접속하는 과정에서 IP 주소, 브라우저 종류, 접속 일시가 호스팅·서버 업체의 접속 기록에 남을 수 있습니다.
 수집하지 않는 정보
@@ -45,7 +77,7 @@
 이용자가 초대 코드로 반에 참여하면서 동의한 경우에는 다음과 같이 제공합니다.
 - 받는 자: 이용자가 참여한 반을 만든 선생님(회원)
 - 목적: 수업 중 학습 지도와 과제 확인
-- 항목: 이름, 학번, 학습 요약(학습한 단어 수, 정답률, 연속 학습일, 많이 틀린 단어, 최근 시험 점수), 과제 결과
+- 항목: 이름, 학번, 학습 요약(학습한 단어 수, 정답률, 연속 학습일, 많이 틀린 단어, 최근 시험 점수), 과제 결과, 실시간 접속 상태와 지금 하는 학습
 - 보유 기간: 이용자가 반에서 나가거나, 선생님이 내보내거나 반을 삭제할 때까지
 - 동의를 거부할 수 있으며, 거부하면 반에 참여할 수 없을 뿐 다른 기능은 그대로 이용할 수 있습니다.`],
         ['제5조 개인정보 처리의 위탁', `운영자는 서비스 제공을 위해 다음과 같이 개인정보 처리 업무를 위탁합니다. 위탁 기간은 회원 탈퇴 또는 위탁 계약 종료 시까지입니다.
@@ -97,7 +129,7 @@
 - 2026년 10월 11일: 제정
 - 2026년 10월 11일: 법정 기재 항목 보완, 학년 정보·AI 기능·국외 이전 내용 반영
 - ${I.effective}: 수집 항목에 이름, 학교, 학번(선택)과 선생님 가입 추가
-- ${I.effective}: 우리 반 기능 추가(반에 참여할 때 동의를 받아 그 반 선생님에게 제공하는 정보, 보유 기간)`],
+- ${I.effective}: 우리 반 기능 추가(반에 참여할 때 동의를 받아 그 반 선생님에게 제공하는 정보, 보유 기간), 실시간 접속 상태 표시`],
         ['시행일', `이 방침은 ${I.effective}부터 시행합니다.`]]],
       terms: ['이용약관', '', [
         ['제1조 (목적)', `이 약관은 ${I.operator}(이하 "운영자")이 제공하는 영어 단어 학습 서비스 VocaPro(이하 "서비스")의 이용 조건과 절차, 운영자와 회원의 권리·의무를 정합니다.`],

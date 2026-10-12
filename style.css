@@ -1131,3 +1131,26 @@
     .cl-sub { margin: 0 0 12px; padding: 11px 14px; border-radius: 13px; background: var(--surface-2); color: var(--muted); font-size: .86rem; font-weight: 700; text-align: center; }
     .cl-sub.ok { background: var(--mint-soft); color: var(--mint); } .cl-sub.bad { background: var(--coral-soft); color: var(--coral); }
     @media (max-width: 420px) { .cl-tr { grid-template-columns: minmax(0, 1.4fr) repeat(4, minmax(0, 1fr)); font-size: .78rem; padding: 10px 8px; } }
+    /* ----- 우리 반 실시간 ----- */
+    .lv-open { gap: 8px; }
+    .lv-dot, .lv-name i { width: 9px; height: 9px; border-radius: 50%; background: #22c55e; display: inline-block; flex: none; box-shadow: 0 0 0 0 rgba(34,197,94,.5); animation: lvPulse 1.6s infinite; }
+    @keyframes lvPulse { 70% { box-shadow: 0 0 0 7px rgba(34,197,94,0); } 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); } }
+    .lv { overflow-y: auto; gap: 14px; }
+    .lv-top { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+    .lv-title { flex: 1; min-width: 160px; display: flex; flex-direction: column; } .lv-title small { color: var(--muted); font-weight: 700; font-size: .85rem; } .lv-title b { font-size: 1.45rem; font-weight: 900; letter-spacing: -.03em; }
+    .lv-nums { display: flex; gap: 8px; } .lv-nums span { background: var(--surface); border-radius: 14px; padding: 8px 14px; display: flex; flex-direction: column; align-items: center; font-size: .76rem; color: var(--muted); font-weight: 700; } .lv-nums b { font-size: 1.3rem; color: var(--ink); }
+    .lv-nums span:first-child b { color: #16a34a; } .lv-nums span:nth-child(2) b { color: var(--blue); }
+    .lv-code { background: var(--blue-soft); border-radius: 14px; padding: 6px 14px; display: flex; flex-direction: column; } .lv-code small { font-size: .72rem; color: var(--muted); font-weight: 700; } .lv-code b { color: var(--blue); letter-spacing: .15em; font-size: 1.15rem; font-weight: 900; }
+    .lv-feed { display: flex; flex-wrap: wrap; gap: 6px; } .lv-feed span { background: var(--mint-soft); color: var(--mint); border-radius: 99px; padding: 6px 12px; font-size: .82rem; font-weight: 700; } .lv-feed small { opacity: .7; }
+    .lv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; }
+    .lv-card { background: var(--surface); border-radius: 18px; padding: 14px; display: flex; flex-direction: column; gap: 6px; border: 2px solid transparent; transition: border-color .3s; }
+    .lv-card.k-study { border-color: var(--blue); } .lv-card.k-off { opacity: .55; }
+    .lv-card.k-away .lv-name i { background: #f59e0b; animation: none; } .lv-card.k-off .lv-name i { background: var(--line); animation: none; } .lv-card.k-on .lv-name i { animation: none; }
+    .lv-card.arrive { animation: lvIn .6s ease; border-color: #22c55e; }
+    @keyframes lvIn { 0% { transform: scale(.85); opacity: 0; } 60% { transform: scale(1.04); opacity: 1; } 100% { transform: none; } }
+    .lv-name { display: flex; align-items: center; gap: 7px; } .lv-name b { font-weight: 800; font-size: 1rem; } .lv-name small { color: var(--muted); font-size: .78rem; margin-left: auto; }
+    .lv-act { font-size: .84rem; font-weight: 700; color: var(--ink-2); line-height: 1.4; min-height: 2.4em; }
+    .lv-bar { height: 7px; border-radius: 99px; background: var(--surface-2); overflow: hidden; } .lv-bar div { height: 100%; background: var(--blue); border-radius: 99px; transition: width .4s; }
+    .lv-ok { display: flex; gap: 10px; font-size: .78rem; font-weight: 800; } .lv-ok .ok { color: var(--mint); } .lv-ok .no { color: var(--coral); }
+    .lv-today { font-size: .76rem; color: var(--muted); font-weight: 700; }
+    .lv-foot { text-align: center; color: var(--muted); font-size: .78rem; padding-bottom: 8px; }
