@@ -17,11 +17,12 @@ for f in sorted(glob.glob(os.path.join(gen, 'out_*_p*.tsv'))):
     if '\t' not in l and l.count('@') in (4, 5): l = l.replace('@', '\t')
     a = [x.strip() for x in l.split('\t')]
     if len(a) == 5: a.append('')
-    if len(a) != 6 or not WORD.match(a[0]) or not a[1] or not a[3]: bad += 1; continue
+    if len(a) != 6 or not WORD.match(a[0]) or not a[1] or (not a[3] and ' ' not in a[0].strip()): bad += 1; continue
     w, m, kp, ex, exk, syn = a
     k = w.lower()
     if k in fixed: w, m = fixed[k]
     if k in D: continue
+    if ' ' in w: D[k] = [w, m, '', '', ex, exk, syn]; continue
     ph = ipa(w) or {'stomachache': '/ˈstʌməkˌeɪk/', 'counterintuitive': '/ˌkaʊntərɪnˈtuɪtɪv/'}.get(k, '')
     if not ph: noipa.append(w)
     D[k] = [w, m, ph, kp, ex, exk, syn]

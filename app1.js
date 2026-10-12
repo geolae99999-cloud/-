@@ -186,7 +186,8 @@
         }
       }
     }
-    return { days };
+    const tests = Array.isArray(s && s.tests) ? s.tests.filter(t => t && +t.d > 0 && +t.n > 0).slice(-30).map(t => ({ d: +t.d, n: Math.floor(+t.n), ok: Math.max(0, Math.floor(+t.ok) || 0), sec: Math.max(0, Math.floor(+t.sec) || 0), src: String(t.src || '').slice(0, 40) })) : [];
+    return tests.length ? { days, tests } : { days };
   }
   const defaultCats = () => [
     { id: 'cat_today', name: '오늘 (Day 1)', words: [] },

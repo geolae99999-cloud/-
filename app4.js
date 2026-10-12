@@ -7,7 +7,8 @@
     rchoice: { name: '단어 고르기', ico: IC.repeat, desc: '뜻을 보고 단어 맞히기' },
     spell:   { name: '스펠링', ico: IC.keyboard, desc: '뜻을 보고 직접 쓰기' },
     dict:    { name: '듣고 쓰기', ico: IC.headphones, desc: '발음을 듣고 타이핑' },
-    listen:  { name: '듣기 모드', ico: IC.speaker, desc: '자동으로 이어 듣기' }
+    listen:  { name: '듣기 모드', ico: IC.speaker, desc: '자동으로 이어 듣기' },
+    test:    { name: '실전 시험', ico: IC.trophy, desc: '섞인 문제를 풀고 점수 받기' }
   };
   const studyPrefs = { src: 'due', count: SESSION_DEFAULT };
   const parseSrc = s => (s && s.startsWith('cat:')) ? { type: 'cat', id: s.slice(4) } : { type: s || 'all' };
@@ -55,11 +56,13 @@
     if (!MODES[mode]) return;
     const items = override ? override : poolFor(src);
     if (!items.length) return toast(EMPTY_MSG[src.type] || '학습할 단어가 없어요.');
-    if ((mode === 'choice' || mode === 'rchoice') && allWords().length < 4) return toast('4지선다는 전체 단어가 4개 이상 있어야 해요.');
+    if ((mode === 'choice' || mode === 'rchoice' || mode === 'test') && allWords().length < 4) return toast(mode === 'test' ? '시험은 전체 단어가 4개 이상 있어야 해요.' : '4지선다는 전체 단어가 4개 이상 있어야 해요.');
     let q = shuffled(items.map(x => ({ w: x.w, catId: x.catId })));
+    if (mode === 'test') q.forEach((x, i) => { const sp = /^[a-z][a-z'-]{0,13}$/i.test(x.w.word); x.t = ['choice', 'rchoice', sp ? 'spell' : 'choice'][i % 3]; });
+    if (mode === 'test') q = shuffled(q);
     if (count > 0) q = q.slice(0, count);
     const dpool = poolFor(src).map(x => x.w);
-    S = { active: true, finished: false, mode, src, count, queue: q, total: q.length, idx: 0, ok: 0, no: 0, wrong: new Map(), locked: false, answered: false, options: [], dpool: dpool.length >= 4 ? dpool : allWords().map(x => x.w), startN: (stats.days[dayKey()] || { n: 0 }).n };
+    S = { active: true, finished: false, mode, src, count, queue: q, total: q.length, idx: 0, ok: 0, no: 0, wrong: new Map(), locked: false, answered: false, options: [], dpool: dpool.length >= 4 ? dpool : allWords().map(x => x.w), startN: (stats.days[dayKey()] || { n: 0 }).n, t0: Date.now(), log: [] };
     $('studyScreen').classList.add('open');
     document.body.classList.add('no-scroll');
     kbdHint(mode);
@@ -72,10 +75,12 @@
     $('stProg').style.width = (S.idx / S.queue.length * 100) + '%';
     $('stCount').textContent = `${S.idx + 1}/${S.queue.length}`;
     const item = S.queue[S.idx];
-    if (S.mode === 'card') renderCard(item);
-    else if (S.mode === 'choice') renderChoice(item, false);
-    else if (S.mode === 'rchoice') renderChoice(item, true);
-    else renderTyping(item, S.mode === 'dict');
+    const md = S.mode === 'test' ? item.t : S.mode;
+    if (md === 'card') renderCard(item);
+    else if (md === 'choice') renderChoice(item, false);
+    else if (md === 'rchoice') renderChoice(item, true);
+    else renderTyping(item, md === 'dict');
+    if (S.mode === 'test') { const qc = $('stBody').querySelector('.q-card'); if (qc) qc.insertAdjacentHTML('afterbegin', `<div class="exam-no">문제 ${S.idx + 1}</div>`); }
     $('stBody').scrollTop = 0;
   }
   const pronText = w => `${w.phonetic} ${w.koreanPron ? `[${w.koreanPron}]` : ''}`.trim();
@@ -87,7 +92,7 @@
     if (!item.retry) { ok ? S.ok++ : S.no++; }
     if (!ok) {
       if (!S.wrong.has(w.id)) S.wrong.set(w.id, item);
-      if (!item.retry) S.queue.push({ w, catId: item.catId, retry: true });
+      if (!item.retry && S.mode !== 'test') S.queue.push({ w, catId: item.catId, retry: true });
     }
     syncStorage();
   }
@@ -203,6 +208,13 @@
     const item = S.queue[S.idx];
     const chosen = S.options[parseInt(el.dataset.i, 10)];
     const ok = chosen.id === item.w.id;
+    if (S.mode === 'test') {
+      el.classList.add('picked'); $('stBody').querySelectorAll('.opt').forEach(b => { b.disabled = true; });
+      S.log.push({ w: item.w, t: item.t, ok, your: item.t === 'rchoice' ? chosen.word : chosen.meaning });
+      recordResult(item, ok); const my = S.idx;
+      setTimeout(() => { if (S.active && S.idx === my) nextQuestion(); }, 280);
+      return;
+    }
     const btns = [...$('stBody').querySelectorAll('.opt')];
     btns.forEach(b => { b.disabled = true; });
     el.classList.add(ok ? 'correct' : 'wrong');
@@ -260,17 +272,24 @@
     if (S.answered) return nextQuestion();
     const typed = $('typeInput').value;
     if (!typed.trim()) return toast('답을 입력해 주세요.');
+    if (S.mode === 'test') return examType(typed);
     showTypeResult(norm(typed) === norm(S.queue[S.idx].w.word), typed);
   };
-  ACTIONS['type-skip'] = () => { if (S.active && !S.answered) showTypeResult(false, ''); };
+  ACTIONS['type-skip'] = () => { if (!S.active || S.answered) return; if (S.mode === 'test') return examType(''); showTypeResult(false, ''); };
+  function examType(typed) {
+    const item = S.queue[S.idx], ok = !!typed && norm(typed) === norm(item.w.word);
+    S.answered = true; S.log.push({ w: item.w, t: item.t, ok, your: typed.trim() });
+    recordResult(item, ok); nextQuestion();
+  }
   document.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && S.active && (S.mode === 'spell' || S.mode === 'dict') && !S.finished) {
+    if (e.key === 'Enter' && S.active && (S.mode === 'spell' || S.mode === 'dict' || (S.mode === 'test' && $('typeInput'))) && !S.finished) {
       if (e.target.id === 'typeInput' || S.answered) { e.preventDefault(); ACTIONS['type-submit'](); }
     }
   });
 
   /* ----- 결과 ----- */
   function finishSession() {
+    if (S.mode === 'test') return finishExam();
     S.finished = true;
     kbdHint('');
     try { window.speechSynthesis.cancel(); } catch (e) {}
@@ -300,6 +319,59 @@
       </div>`;
     if (pct >= 80 || goalHit) confetti();
   }
+  /* ----- 실전 시험 결과 ----- */
+  const EXAM_T = { choice: '뜻 고르기', rchoice: '단어 고르기', spell: '철자 쓰기' };
+  const examGrade = p => p >= 90 ? ['A', '아주 뛰어나요'] : p >= 80 ? ['B', '잘했어요'] : p >= 70 ? ['C', '조금만 더'] : p >= 60 ? ['D', '복습이 필요해요'] : ['E', '다시 도전해요'];
+  const mmss = sec => `${Math.floor(sec / 60)}분 ${String(sec % 60).padStart(2, '0')}초`;
+  function srcLabel(src) {
+    if (src.type === 'cat') { const c = categories.find(x => x.id === src.id); return c ? c.name : '단어장'; }
+    return ({ due: '오늘 복습', new: '새 단어', wrong: '오답노트', star: '즐겨찾기', all: '전체 단어' })[src.type] || '전체 단어';
+  }
+  function finishExam() {
+    S.finished = true; kbdHint('');
+    try { window.speechSynthesis.cancel(); } catch (e) {}
+    $('stProg').style.width = '100%'; $('stCount').textContent = '';
+    const n = S.log.length, ok = S.log.filter(x => x.ok).length, pct = n ? Math.round(ok / n * 100) : 0;
+    const sec = Math.max(1, Math.round((Date.now() - S.t0) / 1000)), [g, gt] = examGrade(pct);
+    const prev = (stats.tests || []).filter(t => t.src === srcLabel(S.src)).slice(-1)[0];
+    stats.tests = (stats.tests || []).concat({ d: Date.now(), n, ok, sec, src: srcLabel(S.src) }).slice(-30); syncStorage();
+    const by = Object.keys(EXAM_T).map(t => { const l = S.log.filter(x => x.t === t); return l.length ? `<div><b>${l.filter(x => x.ok).length}/${l.length}</b><span>${EXAM_T[t]}</span></div>` : ''; }).join('');
+    const diff = prev ? pct - Math.round(prev.ok / prev.n * 100) : null;
+    S.wrong = new Map(S.log.filter(x => !x.ok).map(x => [x.w.id, { w: x.w }]));
+    $('stBody').innerHTML = `
+      <div class="result exam-result">
+        <div class="exam-badge g-${g}"><b>${g}</b><span>${gt}</span></div>
+        <div class="score">${pct}<small>점</small></div>
+        <div class="muted" style="margin-top:-4px;">${esc(srcLabel(S.src))} · ${n}문제 중 ${ok}개 정답${diff !== null ? ` · 지난번보다 ${diff >= 0 ? diff + '점 올랐어요' : -diff + '점 내려갔어요'}` : ''}</div>
+        <div class="result-stats"><div><b>${mmss(sec)}</b><span>걸린 시간</span></div>${by}</div>
+        <div class="card result-box exam-review"><b style="font-size:.95rem;">문제 다시 보기</b>
+          ${S.log.map((x, i) => `<div class="ex-row ${x.ok ? 'ok' : 'bad'}"><span class="ex-n">${i + 1}</span><span class="ex-ic">${x.ok ? IC.tick : IC.x}</span><div class="ex-t"><b>${esc(x.w.word)}</b><span>${esc(x.w.meaning)}</span>${x.ok ? '' : `<small>내 답: ${esc(x.your || '(모름)')}</small>`}</div><button class="w-speak" data-act="speak" data-text="${esc(x.w.word)}" aria-label="발음 듣기">${IC.speaker}</button></div>`).join('')}
+        </div>
+        <div class="row" style="margin-top:6px;">
+          ${ok < n ? '<button class="btn btn-soft" data-act="retry-wrong">틀린 문제 다시</button>' : '<button class="btn btn-soft" data-act="again">다시 시험 보기</button>'}
+          <button class="btn btn-primary" data-act="exit-session">마치기</button>
+        </div>
+      </div>`;
+    if (pct >= 80) confetti();
+  }
+  ACTIONS['exam-open'] = el => {
+    const pre = el && el.dataset && el.dataset.src || (currentCategoryId ? 'cat:' + currentCategoryId : 'all');
+    const c = counts(), opts = [['all', '전체 단어', c.total], ['wrong', '오답노트', c.miss], ['star', '즐겨찾기', c.star]].concat(categories.map(b => ['cat:' + b.id, b.name, b.words.length]));
+    const recent = (stats.tests || []).slice(-3).reverse();
+    openSheet('실전 시험', `<div class="form-stack">
+      <p class="muted" style="margin:0;font-size:.86rem;line-height:1.6;">뜻 고르기, 단어 고르기, 철자 쓰기가 섞여 나와요. 정답은 시험이 끝난 뒤에 한꺼번에 보여줘요.</p>
+      <label class="setting-label" for="exSrc">시험 범위</label>
+      <select id="exSrc">${opts.map(([k, nm, n]) => `<option value="${esc(k)}"${k === pre ? ' selected' : ''}${n ? '' : ' disabled'}>${esc(nm)} (${n}개)</option>`).join('')}</select>
+      <label class="setting-label">문제 수</label>
+      <div class="seg" id="exNum">${[10, 20, 30, 50].map(k => `<button class="${k === 20 ? 'on' : ''}" data-act="pt-opt" data-g="exNum" data-v="${k}">${k}문제</button>`).join('')}</div>
+      <button class="btn btn-primary btn-block" data-act="exam-go">${IC.trophy} 시험 시작</button>
+      ${recent.length ? `<div class="exam-hist"><h4 class="syn-h">최근 시험</h4>${recent.map(t => `<div class="eh-row"><span>${esc(t.src)}</span><small>${new Date(t.d).toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' })}</small><b>${Math.round(t.ok / t.n * 100)}점</b></div>`).join('')}</div>` : ''}
+    </div>`);
+  };
+  ACTIONS['exam-go'] = () => {
+    const src = parseSrc(($('exSrc') || {}).value || 'all'), b = document.querySelector('#exNum .on'), n = b ? +b.dataset.v : 20;
+    closeSheet(); startSession('test', src, n);
+  };
   ACTIONS['retry-wrong'] = () => {
     const items = [...S.wrong.values()].map(i => ({ w: i.w, catId: i.catId }));
     startSession(S.mode, S.src, 0, items);
@@ -382,92 +454,4 @@
   };
   ACTIONS['l-next'] = () => { if (L.i < L.items.length - 1) { L.i++; listenRestart(); } };
   ACTIONS['l-prev'] = () => { if (L.i > 0) { L.i--; listenRestart(); } };
-
-  /* =========================================================
-   * 통계
-   * ======================================================= */
-  function renderStats() {
-    const days = stats.days, goal = config.goal || 20, c = counts();
-    let totalN = 0, totalOk = 0;
-    Object.keys(days).forEach(k => { totalN += days[k].n; totalOk += days[k].ok; });
-    const acc = totalN ? Math.round(totalOk / totalN * 100) : 0;
-
-    const labels = ['일', '월', '화', '수', '목', '금', '토'];
-    const week = [];
-    for (let i = 6; i >= 0; i--) { const t = addDays(startOfDay(), -i); week.push({ t, n: (days[dayKey(t)] || { n: 0 }).n, today: i === 0 }); }
-    const maxN = Math.max(goal, ...week.map(x => x.n), 1);
-    const bars = week.map(x => `<div class="bar-col ${x.today ? 'today' : ''}">${x.n || ''}<i style="height:${Math.max(4, Math.round(x.n / maxN * 100))}%"></i>${labels[new Date(x.t).getDay()]}</div>`).join('');
-
-    const dow = new Date().getDay();
-    const gridStart = addDays(startOfDay(), -(28 + dow));
-    let heat = labels.map(l => `<div class="heat-h">${l}</div>`).join('');
-    for (let i = 0; i < 35; i++) {
-      const t = addDays(gridStart, i);
-      if (t > startOfDay()) { heat += '<div class="cell future"></div>'; continue; }
-      const n = (days[dayKey(t)] || { n: 0 }).n;
-      const lv = n === 0 ? 0 : n < 5 ? 1 : n < 15 ? 2 : n < 30 ? 3 : 4;
-      heat += `<div class="cell l${lv} ${t === startOfDay() ? 'is-today' : ''}" title="${dayKey(t)} · ${n}개"></div>`;
-    }
-
-    const tot = Math.max(1, c.total);
-    const top = allWords().map(x => x.w).filter(w => w.wrong > 0).sort((a, b) => b.wrong - a.wrong).slice(0, 5);
-
-    $('tabStats').innerHTML = `
-      <h2 class="page-title">학습 통계</h2>
-      <div class="stat-tiles">
-        <div class="stat-tile"><b>${streak()}일</b><span>연속 학습</span></div>
-        <div class="stat-tile"><b>${bestStreak()}일</b><span>최고 기록</span></div>
-        <div class="stat-tile"><b>${acc}%</b><span>전체 정답률</span></div>
-      </div>
-      <div class="card" style="margin-bottom:12px;">
-        <b>최근 7일</b>
-        <div class="bars">${bars}</div>
-        <div class="goal-line">하루 목표 ${goal}개 · 총 ${totalN}번 학습했어요</div>
-      </div>
-      <div class="card" style="margin-bottom:12px;">
-        <b>단어 레벨</b>
-        <div class="stack">
-          <i style="width:${c.mastered / tot * 100}%;background:var(--mint)"></i>
-          <i style="width:${c.learning / tot * 100}%;background:var(--blue)"></i>
-          <i style="width:${c.newW / tot * 100}%;background:var(--line)"></i>
-        </div>
-        <div class="legend"><span style="--c:var(--mint)">마스터 ${c.mastered}</span><span style="--c:var(--blue)">학습 중 ${c.learning}</span><span style="--c:var(--line)">새 단어 ${c.newW}</span></div>
-      </div>
-      <div class="card" style="margin-bottom:12px;">
-        <b>최근 5주 학습 달력</b>
-        <div class="heat">${heat}</div>
-      </div>
-      <div class="card">
-        <b>자주 틀리는 단어</b>
-        ${top.length ? top.map(w => `<div class="miss-item"><b>${esc(w.word)}</b><span>${esc(w.meaning)}</span><span class="badge b-bad" style="flex:none;">${w.wrong}회</span></div>`).join('') : emptyHtml('아직 틀린 단어가 없어요', '', 'happy')}
-      </div>`;
-  }
-
-  /* =========================================================
-   * TTS
-   * ======================================================= */
-  function voiceFor(lang) {
-    try {
-      const vs = window.speechSynthesis.getVoices(), L2 = lang.toLowerCase(), n = v => (v.lang || '').toLowerCase().replace('_', '-');
-      const exact = vs.filter(v => n(v) === L2);
-      if (L2 === 'en-us') return exact.find(v => /samantha|google us|aria|jenny|ava|allison|zira|natural|siri/i.test(v.name)) || exact[0] || null;
-      return exact[0] || vs.find(v => n(v).startsWith(L2.slice(0, 2))) || null;
-    } catch (e) { return null; }
-  }
-  function speak(text, lang) {
-    return new Promise(res => {
-      if (!('speechSynthesis' in window) || !text) return res();
-      try { window.speechSynthesis.cancel(); } catch (e) {}
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = lang || 'en-US';
-      u.rate = parseFloat(config.ttsRate) || 0.9;
-      const v = voiceFor(u.lang); if (v) u.voice = v;
-      let done = false;
-      const fin = () => { if (!done) { done = true; res(); } };
-      u.onend = fin; u.onerror = fin;
-      setTimeout(fin, 6000 + text.length * 160);
-      window.speechSynthesis.speak(u);
-    });
-  }
-  function playAudio(text) { speak(text, 'en-US'); }
 

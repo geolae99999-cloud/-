@@ -1,4 +1,98 @@
   /* =========================================================
+   * 통계
+   * ======================================================= */
+  function renderStats() {
+    const days = stats.days, goal = config.goal || 20, c = counts();
+    let totalN = 0, totalOk = 0;
+    Object.keys(days).forEach(k => { totalN += days[k].n; totalOk += days[k].ok; });
+    const acc = totalN ? Math.round(totalOk / totalN * 100) : 0;
+
+    const labels = ['일', '월', '화', '수', '목', '금', '토'];
+    const week = [];
+    for (let i = 6; i >= 0; i--) { const t = addDays(startOfDay(), -i); week.push({ t, n: (days[dayKey(t)] || { n: 0 }).n, today: i === 0 }); }
+    const maxN = Math.max(goal, ...week.map(x => x.n), 1);
+    const bars = week.map(x => `<div class="bar-col ${x.today ? 'today' : ''}">${x.n || ''}<i style="height:${Math.max(4, Math.round(x.n / maxN * 100))}%"></i>${labels[new Date(x.t).getDay()]}</div>`).join('');
+
+    const dow = new Date().getDay();
+    const gridStart = addDays(startOfDay(), -(28 + dow));
+    let heat = labels.map(l => `<div class="heat-h">${l}</div>`).join('');
+    for (let i = 0; i < 35; i++) {
+      const t = addDays(gridStart, i);
+      if (t > startOfDay()) { heat += '<div class="cell future"></div>'; continue; }
+      const n = (days[dayKey(t)] || { n: 0 }).n;
+      const lv = n === 0 ? 0 : n < 5 ? 1 : n < 15 ? 2 : n < 30 ? 3 : 4;
+      heat += `<div class="cell l${lv} ${t === startOfDay() ? 'is-today' : ''}" title="${dayKey(t)} · ${n}개"></div>`;
+    }
+
+    const tot = Math.max(1, c.total);
+    const top = allWords().map(x => x.w).filter(w => w.wrong > 0).sort((a, b) => b.wrong - a.wrong).slice(0, 5);
+
+    const tests = (stats.tests || []).slice(-8);
+    $('tabStats').innerHTML = `
+      <h2 class="page-title">학습 통계</h2>
+      <div class="stat-tiles">
+        <div class="stat-tile"><b>${streak()}일</b><span>연속 학습</span></div>
+        <div class="stat-tile"><b>${bestStreak()}일</b><span>최고 기록</span></div>
+        <div class="stat-tile"><b>${acc}%</b><span>전체 정답률</span></div>
+      </div>
+      <div class="card" style="margin-bottom:12px;">
+        <b>최근 7일</b>
+        <div class="bars">${bars}</div>
+        <div class="goal-line">하루 목표 ${goal}개 · 총 ${totalN}번 학습했어요</div>
+      </div>
+      <div class="card" style="margin-bottom:12px;">
+        <b>단어 레벨</b>
+        <div class="stack">
+          <i style="width:${c.mastered / tot * 100}%;background:var(--mint)"></i>
+          <i style="width:${c.learning / tot * 100}%;background:var(--blue)"></i>
+          <i style="width:${c.newW / tot * 100}%;background:var(--line)"></i>
+        </div>
+        <div class="legend"><span style="--c:var(--mint)">마스터 ${c.mastered}</span><span style="--c:var(--blue)">학습 중 ${c.learning}</span><span style="--c:var(--line)">새 단어 ${c.newW}</span></div>
+      </div>
+      <div class="card" style="margin-bottom:12px;">
+        <b>최근 5주 학습 달력</b>
+        <div class="heat">${heat}</div>
+      </div>
+      <div class="card" style="margin-bottom:12px;">
+        <div class="card-head"><b>실전 시험 점수</b><button class="link-btn" data-act="exam-open">시험 보기</button></div>
+        ${tests.length ? `<div class="tbars">${tests.map(t => { const p = Math.round(t.ok / t.n * 100); return `<div class="tbar" title="${esc(t.src)}"><em>${p}</em><i style="height:${Math.max(4, p)}%" class="${p >= 80 ? 'hi' : p >= 60 ? 'mid' : 'lo'}"></i><small>${new Date(t.d).getMonth() + 1}/${new Date(t.d).getDate()}</small></div>`; }).join('')}</div>
+        <div class="goal-line">최근 ${tests.length}번 평균 ${Math.round(tests.reduce((a, t) => a + t.ok / t.n * 100, 0) / tests.length)}점</div>` : emptyHtml('아직 본 시험이 없어요', '실전 시험으로 실력을 확인해 보세요.', 'think')}
+      </div>
+      <div class="card">
+        <b>자주 틀리는 단어</b>
+        ${top.length ? top.map(w => `<div class="miss-item"><b>${esc(w.word)}</b><span>${esc(w.meaning)}</span><span class="badge b-bad" style="flex:none;">${w.wrong}회</span></div>`).join('') : emptyHtml('아직 틀린 단어가 없어요', '', 'happy')}
+      </div>`;
+  }
+
+  /* =========================================================
+   * TTS
+   * ======================================================= */
+  function voiceFor(lang) {
+    try {
+      const vs = window.speechSynthesis.getVoices(), L2 = lang.toLowerCase(), n = v => (v.lang || '').toLowerCase().replace('_', '-');
+      const exact = vs.filter(v => n(v) === L2);
+      if (L2 === 'en-us') return exact.find(v => /samantha|google us|aria|jenny|ava|allison|zira|natural|siri/i.test(v.name)) || exact[0] || null;
+      return exact[0] || vs.find(v => n(v).startsWith(L2.slice(0, 2))) || null;
+    } catch (e) { return null; }
+  }
+  function speak(text, lang) {
+    return new Promise(res => {
+      if (!('speechSynthesis' in window) || !text) return res();
+      try { window.speechSynthesis.cancel(); } catch (e) {}
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = lang || 'en-US';
+      u.rate = parseFloat(config.ttsRate) || 0.9;
+      const v = voiceFor(u.lang); if (v) u.voice = v;
+      let done = false;
+      const fin = () => { if (!done) { done = true; res(); } };
+      u.onend = fin; u.onerror = fin;
+      setTimeout(fin, 6000 + text.length * 160);
+      window.speechSynthesis.speak(u);
+    });
+  }
+  function playAudio(text) { speak(text, 'en-US'); }
+
+  /* =========================================================
    * AI 연동 (모델 자동 조회)
    * ======================================================= */
   const PROVIDERS = {
@@ -235,6 +329,11 @@
       a = null;
     }
     if (Array.isArray(a)) return dictObj(a);
+    if (w.includes(' ')) {
+      const [h, ...rest] = w.split(' '), r = await dictRaw(h), heads = (typeof r === 'string' ? [r.split(':')[0]] : []).concat(baseCandidates(h));
+      for (const b of heads) { const p = await dictRaw(b + ' ' + rest.join(' ')); if (Array.isArray(p)) { const o = dictObj(p); o.base = b + ' ' + rest.join(' '); return o; } }
+      return null;
+    }
     for (const base of baseCandidates(w)) {
       const b = await dictRaw(base);
       if (Array.isArray(b)) { const o = dictObj(b); o.base = base; o.phonetic = ''; o.koreanPron = ''; return o; }
@@ -320,116 +419,4 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     cat.words.unshift(sanitizeWord({ id: uid(), word: synData.word, meaning: synData.meaning, phonetic: synData.phonetic, koreanPron: synData.koreanPron, example: synData.example || '', exampleKo: synData.exampleKo || '', synonyms: synData.synonyms || '' }));
     syncStorage(); closeSheet(); renderBookDynamic(); toast(`'${synData.word}' 을(를) 추가했어요.`);
   };
-
-  /* =========================================================
-   * 설정
-   * ======================================================= */
-  function setStatus(type, msg) { const el = $('cfgStatus'); el.className = 'cfg-status ' + type; el.textContent = msg; }
-  function renderModelSelect() {
-    const p = $('cfgProvider').value;
-    const list = config.modelLists[p] || [], selected = config.models[p] || '';
-    const all = selected && !list.includes(selected) ? [selected, ...list] : list;
-    $('cfgModel').innerHTML = '<option value="">자동 선택 (권장)</option>' + all.map(m => `<option value="${esc(m)}">${esc(m)}</option>`).join('');
-    $('cfgModel').value = selected;
-  }
-  function loadSettingsUI() {
-    if (!$('creditFoot')) $('tabSettings').insertAdjacentHTML('beforeend', '<div class="foot-credit" id="creditFoot">VocaPro · 개발자 김주원</div>');
-    rmUI();
-    if (!$('lgLinks') && $('creditFoot')) $('creditFoot').insertAdjacentHTML('beforebegin', legalLinksHtml().replace('class="legal-links"', 'class="legal-links" id="lgLinks"'));
-    if (!$('btnLt')) { const g = $('cfgGoal'); if (g && g.parentNode) g.insertAdjacentHTML('afterend', '<button class="btn btn-soft btn-block" id="btnLt" data-act="level-test" style="margin-top:8px;">레벨 테스트로 목표 추천받기</button>'); }
-    const bp = $('btnPw'); if (bp) bp.style.display = cloudMode ? '' : 'none';
-    const an = $('acctName'); if (an) an.textContent = '현재 계정: ' + (currentLabel || currentUser || '');
-    $('cfgProvider').value = config.provider;
-    $('cfgTtsRate').value = String(config.ttsRate);
-    $('cfgGoal').value = String(config.goal);
-    $('cfgGrade').innerHTML = `<option value="">선택 안 함</option>${gradeOptions(config.grade)}`;
-    onProviderChange(config.provider, true);
-    $('cfgStatus').className = 'cfg-status';
-  }
-  function onProviderChange(p, silent) {
-    if (!silent) config.provider = p;
-    $('cfgKeyLabel').textContent = `${PROVIDERS[p].label} API Key`;
-    $('cfgKey').placeholder = PROVIDERS[p].hint;
-    $('cfgKey').value = config.keys[p] || '';
-    renderModelSelect();
-    if (!silent) { $('cfgStatus').className = 'cfg-status'; syncStorage(); }
-  }
-  $('cfgModel').addEventListener('change', e => { config.models[$('cfgProvider').value] = e.target.value; syncStorage(); });
-
-  async function testConnection() {
-    const p = $('cfgProvider').value, btn = $('btnTestConn');
-    config.provider = p;
-    try {
-      const key = cleanKey($('cfgKey').value);
-      if (!key) return setStatus('err', 'API 키를 입력해 주세요.');
-      config.keys[p] = key; $('cfgKey').value = key; syncStorage();
-      btn.disabled = true;
-      setStatus('info', '모델 목록을 불러오는 중...');
-      let list;
-      try { list = await listModels(p, key); }
-      catch (e) { if ([401, 403].includes(e.status) || e.status === 0) throw e; list = []; }
-      const usedFallback = !list.length;
-      if (usedFallback) list = FALLBACK_MODELS[p];
-      config.modelLists[p] = list;
-      if (config.models[p] && !list.includes(config.models[p]) && !usedFallback) config.models[p] = '';
-      syncStorage(); renderModelSelect();
-
-      setStatus('info', `모델 ${list.length}개를 확인했어요. 실제 호출을 테스트하는 중...`);
-      const tried = [];
-      const order = [config.models[p], ...list].filter(Boolean).filter((m, i, a) => a.indexOf(m) === i).slice(0, 4);
-      for (const model of order) {
-        try {
-          await requestModel(p, key, model, buildPrompt('test', false));
-          config.models[p] = model; syncStorage(); renderModelSelect();
-          setStatus('ok', `연결에 성공했어요.\n사용 모델: ${model}\n사용 가능한 모델 ${list.length}개를 위 목록에 불러왔어요.`);
-          return;
-        } catch (e) {
-          tried.push(`• ${model}: ${e.message.slice(0, 120)}`);
-          if ([401, 403, 429].includes(e.status)) throw e;
-        }
-      }
-      throw new ApiError('시도한 모델이 모두 실패했어요.\n' + tried.join('\n'), 400);
-    } catch (e) {
-      setStatus('err', friendlyError(p, e instanceof ApiError ? e : new ApiError(e.message, 0)));
-    } finally { btn.disabled = false; }
-  }
-
-  /* ----- 백업 ----- */
-  ACTIONS['export-json'] = () => {
-    const data = { app: 'VocaPro', version: 12, settings: { ttsRate: config.ttsRate, darkMode: config.darkMode, goal: config.goal, grade: config.grade }, categories, stats };
-    download(`VocaPro_${dayKey()}.json`, JSON.stringify(data, null, 2), 'application/json');
-    toast('백업 파일을 내려받았어요. API 키는 포함되지 않아요.');
-  };
-  ACTIONS['import-json'] = () => $('importFile').click();
-  function importBackup(e) {
-    const f = e.target.files[0]; if (!f) return;
-    const r = new FileReader();
-    r.onload = async ev => {
-      try {
-        const res = JSON.parse(ev.target.result);
-        const cats = sanitizeCategories(res.categories);
-        if (!cats) throw new Error('형식 오류');
-        if (!await ask(`현재 데이터를 지우고 단어장 ${cats.length}개를 복원할까요?`, { ok: '복원', danger: true })) { e.target.value = ''; return; }
-        categories = cats;
-        if (res.stats) stats = sanitizeStats(res.stats);
-        if (res.settings) {
-          if (res.settings.ttsRate) config.ttsRate = parseFloat(res.settings.ttsRate) || config.ttsRate;
-          if (res.settings.goal) config.goal = parseInt(res.settings.goal, 10) || config.goal;
-          if (typeof res.settings.darkMode === 'boolean') config.darkMode = res.settings.darkMode;
-          if (GRADE_NAMES[res.settings.grade]) config.grade = res.settings.grade;
-        }
-        currentCategoryId = null; viewOrder = null; openDrawers.clear();
-        applyTheme(); syncStorage(); loadSettingsUI(); toast('복원했어요.');
-      } catch (err) { say('올바른 VocaPro 백업 파일이 아니에요.'); }
-      e.target.value = '';
-    };
-    r.readAsText(f);
-  }
-  ACTIONS['reset-all'] = async () => {
-    if (!await ask('모든 단어장, 단어, 학습 기록이 사라져요. 계속할까요?', { ok: '계속', danger: true })) return;
-    if (!await ask('정말 지울까요? 되돌릴 수 없어요.', { ok: '지우기', danger: true })) return;
-    categories = defaultCats(); stats = { days: {} };
-    syncStorage(); toast('초기화했어요.');
-  };
-
 

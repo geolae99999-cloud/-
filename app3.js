@@ -361,7 +361,9 @@
   ACTIONS['book-menu'] = () => {
     openSheet('단어장 관리', `<div class="menu-list">
       <button data-act="book-fill">비어 있는 발음·예문 채우기</button>
+      <button data-act="exam-open">이 단어장으로 실전 시험 보기</button>
       <button data-act="book-print">단어 시험지 만들기 (인쇄, PDF)</button>
+      <button data-act="book-share">링크로 공유하기</button>
       <button data-act="book-rename">이름 바꾸기</button>
       <button data-act="csv-export">CSV로 내보내기</button>
       <button data-act="csv-import">CSV 가져오기 (엑셀, Quizlet 등)</button>

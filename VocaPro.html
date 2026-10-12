@@ -343,6 +343,41 @@
     .result-box { text-align: left; margin: 14px 0; }
     .wrong-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: .9rem; }
     .wrong-item:last-child { border-bottom: none; }
+    /* 실전 시험 */
+    .exam-no { display: inline-block; margin-bottom: 8px; padding: 3px 10px; border-radius: 99px; background: var(--blue-soft); color: var(--blue-ink); font-size: .74rem; font-weight: 800; }
+    .opt.picked { background: var(--blue-soft); border-color: var(--blue); }
+    .opt.picked .opt-n { background: var(--blue); color: #fff; }
+    .exam-badge { width: 112px; height: 112px; margin: 6px auto 10px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff; box-shadow: var(--pop); }
+    .exam-badge b { font-size: 3rem; font-weight: 900; line-height: 1; letter-spacing: -.04em; }
+    .exam-badge span { font-size: .74rem; font-weight: 700; opacity: .92; margin-top: 4px; }
+    .exam-badge.g-A { background: linear-gradient(140deg, #4f9bff, #1b64da); } .exam-badge.g-B { background: linear-gradient(140deg, #2fd08d, #03a061); }
+    .exam-badge.g-C { background: linear-gradient(140deg, #ffbb3d, #f08a00); } .exam-badge.g-D, .exam-badge.g-E { background: linear-gradient(140deg, #ff7a85, #e2303f); }
+    .result .score small { font-size: 1.2rem; font-weight: 800; margin-left: 2px; }
+    .exam-review { text-align: left; }
+    .ex-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+    .ex-row:last-child { border-bottom: none; }
+    .ex-n { width: 22px; font-size: .78rem; font-weight: 800; color: var(--muted); text-align: right; }
+    .ex-ic { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; flex: none; }
+    .ex-ic .ic { width: 14px; height: 14px; }
+    .ex-row.ok .ex-ic { background: var(--mint-soft); color: var(--mint); } .ex-row.bad .ex-ic { background: var(--coral-soft); color: var(--coral); }
+    .ex-t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+    .ex-t b { font-size: 1rem; font-weight: 800; } .ex-t span { font-size: .86rem; color: var(--ink-2); } .ex-t small { font-size: .78rem; color: var(--coral); font-weight: 600; }
+    .exam-hist { margin-top: 4px; }
+    .eh-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: .88rem; }
+    .card-head { display: flex; align-items: center; justify-content: space-between; }
+    .tbars { display: flex; align-items: flex-end; gap: 8px; height: 132px; margin-top: 14px; }
+    .tbar { flex: 0 1 48px; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px; min-width: 0; }
+    .tbar i { width: 100%; max-width: 30px; border-radius: 8px 8px 4px 4px; background: var(--blue); }
+    .tbar i.hi { background: var(--mint); } .tbar i.lo { background: var(--coral); }
+    .tbar em { font-style: normal; font-size: .72rem; font-weight: 800; color: var(--ink-2); }
+    .tbar small { font-size: .68rem; color: var(--muted); }
+    .share-card { display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: 18px; background: var(--surface-2); }
+    .share-card div { display: flex; flex-direction: column; gap: 2px; min-width: 0; } .share-card small { color: var(--muted); font-size: .8rem; }
+    #shareUrl { font-size: .8rem; color: var(--ink-2); }
+    .share-prev { border: 1px solid var(--line); border-radius: 16px; padding: 4px 14px; }
+    .share-prev div { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: .9rem; }
+    .share-prev div:last-child { border-bottom: none; } .share-prev span { color: var(--ink-2); }
+    .eh-row span { flex: 1; font-weight: 700; } .eh-row small { color: var(--muted); } .eh-row b { color: var(--blue); min-width: 44px; text-align: right; }
     .wrong-item b { font-size: 1.02rem; font-weight: 800; }
     .wrong-item span { flex: 1; color: var(--muted); }
     .player { display: flex; justify-content: center; align-items: center; gap: 18px; margin: 8px 0; }
@@ -849,6 +884,8 @@
     .result-stats div { background: var(--surface); border-radius: 18px; padding: 12px 6px; display: flex; flex-direction: column; gap: 2px; }
     .result-stats b { font-size: 1.15rem; font-weight: 800; letter-spacing: -.03em; }
     .result-stats span { font-size: .74rem; color: var(--muted); font-weight: 600; }
+    .exam-result .result-stats { grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); }
+    .exam-result .result-stats b { font-size: 1.02rem; }
     .result-stats .hit { background: var(--sun-soft); }
     .result-stats .hit b, .result-stats .hit span { color: var(--fire); }
     .mg-tile { border: 2px solid var(--line) !important; box-shadow: 0 3px 0 var(--sh-line); }
@@ -892,7 +929,9 @@
       .nav-card small { font-size: .78rem; color: var(--ink-2); font-weight: 600; }
 
       .home-grid { display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr); column-gap: 22px; align-items: start;
-        grid-template-areas: "hello hello" "hero streak" "hero quick" "tools books"; }
+        grid-template-areas: "hello hello" "hero streak" "quick quick" "tools books"; }
+      .h-quick .tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .h-streak .wotd { margin-top: 14px; }
       .h-hello { grid-area: hello; } .h-hero { grid-area: hero; align-self: stretch; } .h-streak { grid-area: streak; }
       .h-quick { grid-area: quick; } .h-tools { grid-area: tools; } .h-books { grid-area: books; }
       .h-hero .hero { height: 100%; display: flex; flex-direction: column; padding: 28px 26px 24px; }
@@ -917,6 +956,7 @@
       #tabStats.active { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: start; }
       #tabStats .page-title, #tabStats .stat-tiles { grid-column: 1 / -1; margin-bottom: 0; }
       #tabStats .card { margin: 0 !important; }
+      #tabStats .card:last-child { grid-column: 1 / -1; }
       #tabStats .heat { max-width: 420px; margin-left: auto; margin-right: auto; }
       #tabSettings.active { columns: 2; column-gap: 16px; }
       #tabSettings .page-title { column-span: all; }
@@ -1001,13 +1041,13 @@
     /* 넓은 PC (1600px 이상): 화면 전체를 3단으로 써요 */
     @media (min-width: 1600px) {
       .home-grid { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) minmax(0, 1fr); column-gap: 26px;
-        grid-template-areas: "hello hello hello" "hero streak books" "hero quick books" "tools tools books"; }
+        grid-template-areas: "hello hello hello" "hero streak books" "quick quick books" "tools tools books"; }
       .h-books { align-self: start; }
       .h-books .section-title:first-child, .h-books > .section-title { margin-top: 0; }
       .h-tools .tool-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 14px; }
       #tabStats.active { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       #tabStats .card:has(.heat) { grid-column: 3; grid-row: span 2; }
-      #tabStats .card:last-child { grid-column: 1 / 3; }
+      #tabStats .card:last-child { grid-column: auto; }
       #tabSettings.active { columns: 3; }
       .study-top { max-width: 960px; }
       #stBody { padding-left: calc(50% - 440px); padding-right: calc(50% - 440px); }
@@ -1448,7 +1488,8 @@ window.VOCA_CLOUD = {
         }
       }
     }
-    return { days };
+    const tests = Array.isArray(s && s.tests) ? s.tests.filter(t => t && +t.d > 0 && +t.n > 0).slice(-30).map(t => ({ d: +t.d, n: Math.floor(+t.n), ok: Math.max(0, Math.floor(+t.ok) || 0), sec: Math.max(0, Math.floor(+t.sec) || 0), src: String(t.src || '').slice(0, 40) })) : [];
+    return tests.length ? { days, tests } : { days };
   }
   const defaultCats = () => [
     { id: 'cat_today', name: '오늘 (Day 1)', words: [] },
@@ -1672,7 +1713,7 @@ window.VOCA_CLOUD = {
       </div></div>
 
       <div class="h-tools"><div class="section-title"><span>학습 도구</span></div>
-      <div class="tool-list">${flowEntryHtml()}<button class="mg-entry" data-act="match"><span class="mg-ico i-grape">${IC.cards}</span><span class="mg-txt"><b>짝 맞추기</b><small>영어와 뜻을 빠르게 연결해요</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="dict-open"><span class="mg-ico i-teal">${IC.search}</span><span class="mg-txt"><b>영어사전</b><small>뜻, 예문, 비슷한 단어를 바로 찾아요</small></span><span class="mg-chev"></span></button>${recEntryHtml()}${packEntryHtml()}${ltEntryHtml()}</div></div>
+      <div class="tool-list">${flowEntryHtml()}<button class="mg-entry" data-act="match"><span class="mg-ico i-grape">${IC.cards}</span><span class="mg-txt"><b>짝 맞추기</b><small>영어와 뜻을 빠르게 연결해요</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="exam-open"><span class="mg-ico i-coral">${IC.trophy}</span><span class="mg-txt"><b>실전 시험</b><small>섞인 문제를 풀고 점수와 등급을 받아요</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="dict-open"><span class="mg-ico i-teal">${IC.search}</span><span class="mg-txt"><b>영어사전</b><small>뜻, 예문, 비슷한 단어를 바로 찾아요</small></span><span class="mg-chev"></span></button>${recEntryHtml()}${packEntryHtml()}${ltEntryHtml()}</div></div>
 
       <div class="h-books"><div class="section-title"><span>내 단어장</span><button data-act="tab" data-t="tabBooks">전체 보기</button></div>
       <div class="book-list">${books || emptyHtml('아직 단어장이 없어요', '단어장 탭에서 새로 만들어 보세요.')}</div></div>
@@ -2046,7 +2087,9 @@ window.VOCA_CLOUD = {
   ACTIONS['book-menu'] = () => {
     openSheet('단어장 관리', `<div class="menu-list">
       <button data-act="book-fill">비어 있는 발음·예문 채우기</button>
+      <button data-act="exam-open">이 단어장으로 실전 시험 보기</button>
       <button data-act="book-print">단어 시험지 만들기 (인쇄, PDF)</button>
+      <button data-act="book-share">링크로 공유하기</button>
       <button data-act="book-rename">이름 바꾸기</button>
       <button data-act="csv-export">CSV로 내보내기</button>
       <button data-act="csv-import">CSV 가져오기 (엑셀, Quizlet 등)</button>
@@ -2175,7 +2218,8 @@ window.VOCA_CLOUD = {
     rchoice: { name: '단어 고르기', ico: IC.repeat, desc: '뜻을 보고 단어 맞히기' },
     spell:   { name: '스펠링', ico: IC.keyboard, desc: '뜻을 보고 직접 쓰기' },
     dict:    { name: '듣고 쓰기', ico: IC.headphones, desc: '발음을 듣고 타이핑' },
-    listen:  { name: '듣기 모드', ico: IC.speaker, desc: '자동으로 이어 듣기' }
+    listen:  { name: '듣기 모드', ico: IC.speaker, desc: '자동으로 이어 듣기' },
+    test:    { name: '실전 시험', ico: IC.trophy, desc: '섞인 문제를 풀고 점수 받기' }
   };
   const studyPrefs = { src: 'due', count: SESSION_DEFAULT };
   const parseSrc = s => (s && s.startsWith('cat:')) ? { type: 'cat', id: s.slice(4) } : { type: s || 'all' };
@@ -2223,11 +2267,13 @@ window.VOCA_CLOUD = {
     if (!MODES[mode]) return;
     const items = override ? override : poolFor(src);
     if (!items.length) return toast(EMPTY_MSG[src.type] || '학습할 단어가 없어요.');
-    if ((mode === 'choice' || mode === 'rchoice') && allWords().length < 4) return toast('4지선다는 전체 단어가 4개 이상 있어야 해요.');
+    if ((mode === 'choice' || mode === 'rchoice' || mode === 'test') && allWords().length < 4) return toast(mode === 'test' ? '시험은 전체 단어가 4개 이상 있어야 해요.' : '4지선다는 전체 단어가 4개 이상 있어야 해요.');
     let q = shuffled(items.map(x => ({ w: x.w, catId: x.catId })));
+    if (mode === 'test') q.forEach((x, i) => { const sp = /^[a-z][a-z'-]{0,13}$/i.test(x.w.word); x.t = ['choice', 'rchoice', sp ? 'spell' : 'choice'][i % 3]; });
+    if (mode === 'test') q = shuffled(q);
     if (count > 0) q = q.slice(0, count);
     const dpool = poolFor(src).map(x => x.w);
-    S = { active: true, finished: false, mode, src, count, queue: q, total: q.length, idx: 0, ok: 0, no: 0, wrong: new Map(), locked: false, answered: false, options: [], dpool: dpool.length >= 4 ? dpool : allWords().map(x => x.w), startN: (stats.days[dayKey()] || { n: 0 }).n };
+    S = { active: true, finished: false, mode, src, count, queue: q, total: q.length, idx: 0, ok: 0, no: 0, wrong: new Map(), locked: false, answered: false, options: [], dpool: dpool.length >= 4 ? dpool : allWords().map(x => x.w), startN: (stats.days[dayKey()] || { n: 0 }).n, t0: Date.now(), log: [] };
     $('studyScreen').classList.add('open');
     document.body.classList.add('no-scroll');
     kbdHint(mode);
@@ -2240,10 +2286,12 @@ window.VOCA_CLOUD = {
     $('stProg').style.width = (S.idx / S.queue.length * 100) + '%';
     $('stCount').textContent = `${S.idx + 1}/${S.queue.length}`;
     const item = S.queue[S.idx];
-    if (S.mode === 'card') renderCard(item);
-    else if (S.mode === 'choice') renderChoice(item, false);
-    else if (S.mode === 'rchoice') renderChoice(item, true);
-    else renderTyping(item, S.mode === 'dict');
+    const md = S.mode === 'test' ? item.t : S.mode;
+    if (md === 'card') renderCard(item);
+    else if (md === 'choice') renderChoice(item, false);
+    else if (md === 'rchoice') renderChoice(item, true);
+    else renderTyping(item, md === 'dict');
+    if (S.mode === 'test') { const qc = $('stBody').querySelector('.q-card'); if (qc) qc.insertAdjacentHTML('afterbegin', `<div class="exam-no">문제 ${S.idx + 1}</div>`); }
     $('stBody').scrollTop = 0;
   }
   const pronText = w => `${w.phonetic} ${w.koreanPron ? `[${w.koreanPron}]` : ''}`.trim();
@@ -2255,7 +2303,7 @@ window.VOCA_CLOUD = {
     if (!item.retry) { ok ? S.ok++ : S.no++; }
     if (!ok) {
       if (!S.wrong.has(w.id)) S.wrong.set(w.id, item);
-      if (!item.retry) S.queue.push({ w, catId: item.catId, retry: true });
+      if (!item.retry && S.mode !== 'test') S.queue.push({ w, catId: item.catId, retry: true });
     }
     syncStorage();
   }
@@ -2371,6 +2419,13 @@ window.VOCA_CLOUD = {
     const item = S.queue[S.idx];
     const chosen = S.options[parseInt(el.dataset.i, 10)];
     const ok = chosen.id === item.w.id;
+    if (S.mode === 'test') {
+      el.classList.add('picked'); $('stBody').querySelectorAll('.opt').forEach(b => { b.disabled = true; });
+      S.log.push({ w: item.w, t: item.t, ok, your: item.t === 'rchoice' ? chosen.word : chosen.meaning });
+      recordResult(item, ok); const my = S.idx;
+      setTimeout(() => { if (S.active && S.idx === my) nextQuestion(); }, 280);
+      return;
+    }
     const btns = [...$('stBody').querySelectorAll('.opt')];
     btns.forEach(b => { b.disabled = true; });
     el.classList.add(ok ? 'correct' : 'wrong');
@@ -2428,17 +2483,24 @@ window.VOCA_CLOUD = {
     if (S.answered) return nextQuestion();
     const typed = $('typeInput').value;
     if (!typed.trim()) return toast('답을 입력해 주세요.');
+    if (S.mode === 'test') return examType(typed);
     showTypeResult(norm(typed) === norm(S.queue[S.idx].w.word), typed);
   };
-  ACTIONS['type-skip'] = () => { if (S.active && !S.answered) showTypeResult(false, ''); };
+  ACTIONS['type-skip'] = () => { if (!S.active || S.answered) return; if (S.mode === 'test') return examType(''); showTypeResult(false, ''); };
+  function examType(typed) {
+    const item = S.queue[S.idx], ok = !!typed && norm(typed) === norm(item.w.word);
+    S.answered = true; S.log.push({ w: item.w, t: item.t, ok, your: typed.trim() });
+    recordResult(item, ok); nextQuestion();
+  }
   document.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && S.active && (S.mode === 'spell' || S.mode === 'dict') && !S.finished) {
+    if (e.key === 'Enter' && S.active && (S.mode === 'spell' || S.mode === 'dict' || (S.mode === 'test' && $('typeInput'))) && !S.finished) {
       if (e.target.id === 'typeInput' || S.answered) { e.preventDefault(); ACTIONS['type-submit'](); }
     }
   });
 
   /* ----- 결과 ----- */
   function finishSession() {
+    if (S.mode === 'test') return finishExam();
     S.finished = true;
     kbdHint('');
     try { window.speechSynthesis.cancel(); } catch (e) {}
@@ -2468,6 +2530,59 @@ window.VOCA_CLOUD = {
       </div>`;
     if (pct >= 80 || goalHit) confetti();
   }
+  /* ----- 실전 시험 결과 ----- */
+  const EXAM_T = { choice: '뜻 고르기', rchoice: '단어 고르기', spell: '철자 쓰기' };
+  const examGrade = p => p >= 90 ? ['A', '아주 뛰어나요'] : p >= 80 ? ['B', '잘했어요'] : p >= 70 ? ['C', '조금만 더'] : p >= 60 ? ['D', '복습이 필요해요'] : ['E', '다시 도전해요'];
+  const mmss = sec => `${Math.floor(sec / 60)}분 ${String(sec % 60).padStart(2, '0')}초`;
+  function srcLabel(src) {
+    if (src.type === 'cat') { const c = categories.find(x => x.id === src.id); return c ? c.name : '단어장'; }
+    return ({ due: '오늘 복습', new: '새 단어', wrong: '오답노트', star: '즐겨찾기', all: '전체 단어' })[src.type] || '전체 단어';
+  }
+  function finishExam() {
+    S.finished = true; kbdHint('');
+    try { window.speechSynthesis.cancel(); } catch (e) {}
+    $('stProg').style.width = '100%'; $('stCount').textContent = '';
+    const n = S.log.length, ok = S.log.filter(x => x.ok).length, pct = n ? Math.round(ok / n * 100) : 0;
+    const sec = Math.max(1, Math.round((Date.now() - S.t0) / 1000)), [g, gt] = examGrade(pct);
+    const prev = (stats.tests || []).filter(t => t.src === srcLabel(S.src)).slice(-1)[0];
+    stats.tests = (stats.tests || []).concat({ d: Date.now(), n, ok, sec, src: srcLabel(S.src) }).slice(-30); syncStorage();
+    const by = Object.keys(EXAM_T).map(t => { const l = S.log.filter(x => x.t === t); return l.length ? `<div><b>${l.filter(x => x.ok).length}/${l.length}</b><span>${EXAM_T[t]}</span></div>` : ''; }).join('');
+    const diff = prev ? pct - Math.round(prev.ok / prev.n * 100) : null;
+    S.wrong = new Map(S.log.filter(x => !x.ok).map(x => [x.w.id, { w: x.w }]));
+    $('stBody').innerHTML = `
+      <div class="result exam-result">
+        <div class="exam-badge g-${g}"><b>${g}</b><span>${gt}</span></div>
+        <div class="score">${pct}<small>점</small></div>
+        <div class="muted" style="margin-top:-4px;">${esc(srcLabel(S.src))} · ${n}문제 중 ${ok}개 정답${diff !== null ? ` · 지난번보다 ${diff >= 0 ? diff + '점 올랐어요' : -diff + '점 내려갔어요'}` : ''}</div>
+        <div class="result-stats"><div><b>${mmss(sec)}</b><span>걸린 시간</span></div>${by}</div>
+        <div class="card result-box exam-review"><b style="font-size:.95rem;">문제 다시 보기</b>
+          ${S.log.map((x, i) => `<div class="ex-row ${x.ok ? 'ok' : 'bad'}"><span class="ex-n">${i + 1}</span><span class="ex-ic">${x.ok ? IC.tick : IC.x}</span><div class="ex-t"><b>${esc(x.w.word)}</b><span>${esc(x.w.meaning)}</span>${x.ok ? '' : `<small>내 답: ${esc(x.your || '(모름)')}</small>`}</div><button class="w-speak" data-act="speak" data-text="${esc(x.w.word)}" aria-label="발음 듣기">${IC.speaker}</button></div>`).join('')}
+        </div>
+        <div class="row" style="margin-top:6px;">
+          ${ok < n ? '<button class="btn btn-soft" data-act="retry-wrong">틀린 문제 다시</button>' : '<button class="btn btn-soft" data-act="again">다시 시험 보기</button>'}
+          <button class="btn btn-primary" data-act="exit-session">마치기</button>
+        </div>
+      </div>`;
+    if (pct >= 80) confetti();
+  }
+  ACTIONS['exam-open'] = el => {
+    const pre = el && el.dataset && el.dataset.src || (currentCategoryId ? 'cat:' + currentCategoryId : 'all');
+    const c = counts(), opts = [['all', '전체 단어', c.total], ['wrong', '오답노트', c.miss], ['star', '즐겨찾기', c.star]].concat(categories.map(b => ['cat:' + b.id, b.name, b.words.length]));
+    const recent = (stats.tests || []).slice(-3).reverse();
+    openSheet('실전 시험', `<div class="form-stack">
+      <p class="muted" style="margin:0;font-size:.86rem;line-height:1.6;">뜻 고르기, 단어 고르기, 철자 쓰기가 섞여 나와요. 정답은 시험이 끝난 뒤에 한꺼번에 보여줘요.</p>
+      <label class="setting-label" for="exSrc">시험 범위</label>
+      <select id="exSrc">${opts.map(([k, nm, n]) => `<option value="${esc(k)}"${k === pre ? ' selected' : ''}${n ? '' : ' disabled'}>${esc(nm)} (${n}개)</option>`).join('')}</select>
+      <label class="setting-label">문제 수</label>
+      <div class="seg" id="exNum">${[10, 20, 30, 50].map(k => `<button class="${k === 20 ? 'on' : ''}" data-act="pt-opt" data-g="exNum" data-v="${k}">${k}문제</button>`).join('')}</div>
+      <button class="btn btn-primary btn-block" data-act="exam-go">${IC.trophy} 시험 시작</button>
+      ${recent.length ? `<div class="exam-hist"><h4 class="syn-h">최근 시험</h4>${recent.map(t => `<div class="eh-row"><span>${esc(t.src)}</span><small>${new Date(t.d).toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' })}</small><b>${Math.round(t.ok / t.n * 100)}점</b></div>`).join('')}</div>` : ''}
+    </div>`);
+  };
+  ACTIONS['exam-go'] = () => {
+    const src = parseSrc(($('exSrc') || {}).value || 'all'), b = document.querySelector('#exNum .on'), n = b ? +b.dataset.v : 20;
+    closeSheet(); startSession('test', src, n);
+  };
   ACTIONS['retry-wrong'] = () => {
     const items = [...S.wrong.values()].map(i => ({ w: i.w, catId: i.catId }));
     startSession(S.mode, S.src, 0, items);
@@ -2580,6 +2695,7 @@ window.VOCA_CLOUD = {
     const tot = Math.max(1, c.total);
     const top = allWords().map(x => x.w).filter(w => w.wrong > 0).sort((a, b) => b.wrong - a.wrong).slice(0, 5);
 
+    const tests = (stats.tests || []).slice(-8);
     $('tabStats').innerHTML = `
       <h2 class="page-title">학습 통계</h2>
       <div class="stat-tiles">
@@ -2604,6 +2720,11 @@ window.VOCA_CLOUD = {
       <div class="card" style="margin-bottom:12px;">
         <b>최근 5주 학습 달력</b>
         <div class="heat">${heat}</div>
+      </div>
+      <div class="card" style="margin-bottom:12px;">
+        <div class="card-head"><b>실전 시험 점수</b><button class="link-btn" data-act="exam-open">시험 보기</button></div>
+        ${tests.length ? `<div class="tbars">${tests.map(t => { const p = Math.round(t.ok / t.n * 100); return `<div class="tbar" title="${esc(t.src)}"><em>${p}</em><i style="height:${Math.max(4, p)}%" class="${p >= 80 ? 'hi' : p >= 60 ? 'mid' : 'lo'}"></i><small>${new Date(t.d).getMonth() + 1}/${new Date(t.d).getDate()}</small></div>`; }).join('')}</div>
+        <div class="goal-line">최근 ${tests.length}번 평균 ${Math.round(tests.reduce((a, t) => a + t.ok / t.n * 100, 0) / tests.length)}점</div>` : emptyHtml('아직 본 시험이 없어요', '실전 시험으로 실력을 확인해 보세요.', 'think')}
       </div>
       <div class="card">
         <b>자주 틀리는 단어</b>
@@ -2876,6 +2997,11 @@ window.VOCA_CLOUD = {
       a = null;
     }
     if (Array.isArray(a)) return dictObj(a);
+    if (w.includes(' ')) {
+      const [h, ...rest] = w.split(' '), r = await dictRaw(h), heads = (typeof r === 'string' ? [r.split(':')[0]] : []).concat(baseCandidates(h));
+      for (const b of heads) { const p = await dictRaw(b + ' ' + rest.join(' ')); if (Array.isArray(p)) { const o = dictObj(p); o.base = b + ' ' + rest.join(' '); return o; } }
+      return null;
+    }
     for (const base of baseCandidates(w)) {
       const b = await dictRaw(base);
       if (Array.isArray(b)) { const o = dictObj(b); o.base = base; o.phonetic = ''; o.koreanPron = ''; return o; }
@@ -3384,7 +3510,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     let applied = false;
     if (remote && remote.updated > (+LS.getItem(KEY_DATA + ':ts') || 0)) { try { applyRemote(remote); applied = true; } catch (e) { toast('서버 데이터를 읽지 못했어요.'); } }
     if (pendingGrade) { config.grade = pendingGrade; pendingGrade = ''; applied = false; }
-    recShown = false; applyTheme(); if (!applied) syncStorage(); go('tabHome'); showOnboarding(); rmCheck();
+    recShown = false; applyTheme(); if (!applied) syncStorage(); go('tabHome'); showOnboarding(); rmCheck(); setTimeout(shareCheck, 700);
   }
   ACTIONS.logout = async () => {
     if (cloudTimer) await cloudPush();
@@ -3844,7 +3970,9 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     const c = dictLetter(q), shard = c ? await dictShard(c) : {};
     const hit = await dictGet(q);
     if (seq !== dictSeq || !$('dictOut')) return;
-    const sug = Object.keys(shard).filter(k => k !== q && k.startsWith(q) && Array.isArray(shard[k])).slice(0, 8);
+    const keys = Object.keys(shard), stem = hit && hit.base ? hit.base : q;
+    const sug = keys.filter(k => k !== q && k.startsWith(q) && !k.includes(' ') && Array.isArray(shard[k])).slice(0, 8);
+    const phr = q.includes(' ') ? keys.filter(k => k !== q && k.startsWith(q) && Array.isArray(shard[k])).slice(0, 12) : keys.filter(k => k.startsWith(stem + ' ') && Array.isArray(shard[k])).sort((x, y) => (/ (a|b|one's|oneself|sb|sth)( |$)/.test(x) - / (a|b|one's|oneself|sb|sth)( |$)/.test(y)) || x.length - y.length).slice(0, 12);
     dictView = hit ? { ...hit, word: raw.replace(/\s+/g, ' ') } : null;
     let h = '';
     if (hit) {
@@ -3859,9 +3987,10 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
         ${syns.length ? `<h4 class="syn-h">비슷한 단어</h4><div class="syn-chips">${syns.map(x => `<button class="syn" data-act="dict-go" data-word="${esc(x)}">${esc(x)}</button>`).join('')}</div>` : ''}
         <div class="dict-add"><select id="dictBook" aria-label="담을 단어장">${books}<option value="__new">새 단어장: 사전에서 담은 단어</option></select><button class="btn btn-primary" data-act="dict-add">담기</button></div>
       </div>`;
-    } else if (!sug.length) {
+    } else if (!sug.length && !phr.length) {
       h += `<div class="dict-none"><b>'${esc(raw)}'은(는) 내장 사전에 없어요.</b>${aiReady() ? '<button class="btn btn-soft" data-act="dict-ai">AI로 뜻 찾기</button>' : '<span class="muted">철자를 확인해 보세요.</span>'}</div>`;
     }
+    if (phr.length) h += `<div class="dict-sug"><h4 class="syn-h">${q.includes(' ') ? '이어지는 숙어' : esc(stem) + ' 관련 숙어'}</h4>${phr.map(k => `<button class="dict-row" data-act="dict-go" data-word="${esc(k)}"><b>${esc(shard[k][0])}</b><span>${esc(shard[k][1])}</span></button>`).join('')}</div>`;
     if (sug.length) h += `<div class="dict-sug"><h4 class="syn-h">${hit ? '이런 단어도 있어요' : '혹시 이 단어인가요?'}</h4>${sug.map(k => `<button class="dict-row" data-act="dict-go" data-word="${esc(k)}"><b>${esc(shard[k][0])}</b><span>${esc(shard[k][1])}</span></button>`).join('')}</div>`;
     out.innerHTML = h;
   }
@@ -3938,6 +4067,82 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     const done = () => { document.body.classList.remove('printing'); window.removeEventListener('afterprint', done); };
     window.addEventListener('afterprint', done);
     setTimeout(() => { try { window.print(); } catch (e) { toast('이 기기에서는 인쇄를 열 수 없어요.'); } setTimeout(done, 1500); }, 80);
+  };
+
+  /* =========================================================
+   * 단어장 공유 (링크 하나로 반 친구, 선생님과 나눠요)
+   * ======================================================= */
+  const b64u = u8 => { let s = ''; for (let i = 0; i < u8.length; i += 8192) s += String.fromCharCode.apply(null, u8.subarray(i, i + 8192)); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
+  const unb64u = t => { const s = atob(t.replace(/-/g, '+').replace(/_/g, '/')); const u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return u; };
+  async function zipBytes(u8, inflate) {
+    const cs = inflate ? new DecompressionStream('deflate-raw') : new CompressionStream('deflate-raw');
+    return new Uint8Array(await new Response(new Blob([u8]).stream().pipeThrough(cs)).arrayBuffer());
+  }
+  async function shareEncode(cat) {
+    const raw = new TextEncoder().encode(JSON.stringify({ n: cat.name, w: cat.words.map(w => [w.word, w.meaning]) }));
+    if (typeof CompressionStream === 'function') { try { return 'z' + b64u(await zipBytes(raw)); } catch (e) {} }
+    return 'j' + b64u(raw);
+  }
+  async function shareDecode(code) {
+    const t = String(code || ''), body = unb64u(t.slice(1));
+    const raw = t[0] === 'z' ? await zipBytes(body, true) : body;
+    const o = JSON.parse(new TextDecoder().decode(raw));
+    const words = (Array.isArray(o.w) ? o.w : []).filter(a => Array.isArray(a) && a[0] && a[1]).slice(0, 2000).map(a => [String(a[0]).slice(0, 80), String(a[1]).slice(0, 200)]);
+    if (!words.length) throw new Error('empty');
+    return { name: String(o.n || '공유받은 단어장').slice(0, 40), words };
+  }
+  ACTIONS['book-share'] = async () => {
+    const cat = curCat(); if (!cat) return;
+    if (!cat.words.length) return toast('단어를 먼저 담아 주세요.');
+    const url = location.origin + location.pathname + '#s=' + await shareEncode(cat);
+    openSheet('단어장 공유', `<div class="form-stack">
+      <div class="share-card"><span class="mg-ico i-mint">${IC.book}</span><div><b>${esc(cat.name)}</b><small>단어 ${cat.words.length}개 · 받는 사람도 VocaPro에서 바로 공부할 수 있어요</small></div></div>
+      <input id="shareUrl" readonly value="${esc(url)}" onclick="this.select()">
+      <div class="row"><button class="btn btn-soft" data-act="share-copy">링크 복사</button>${navigator.share ? '<button class="btn btn-primary" data-act="share-send">보내기</button>' : ''}</div>
+      <p class="muted" style="font-size:.78rem;line-height:1.6;margin:0;">링크 안에 단어와 뜻이 들어 있어요. 서버에 따로 저장되지 않고, 학습 기록은 함께 보내지 않아요.${url.length > 8000 ? ' 단어가 많아서 링크가 길어요. 메신저에 따라 잘릴 수 있으니 CSV 내보내기도 함께 써 보세요.' : ''}</p></div>`);
+  };
+  ACTIONS['share-copy'] = async () => { const i = $('shareUrl'); if (!i) return; try { await navigator.clipboard.writeText(i.value); toast('링크를 복사했어요.'); } catch (e) { i.select(); toast('링크를 길게 눌러 복사해 주세요.'); } };
+  ACTIONS['share-send'] = async () => { const i = $('shareUrl'), cat = curCat(); if (!i) return; try { await navigator.share({ title: 'VocaPro 단어장', text: `${cat ? cat.name : '단어장'} (VocaPro)`, url: i.value }); } catch (e) {} };
+
+  // 공유 링크로 들어오면: 로그인 뒤에 담을지 물어봐요
+  const SHARE_KEY = 'vocapro_share_in';
+  (function shareCapture() {
+    try {
+      const m = location.hash.match(/^#s=([A-Za-z0-9_-]+)$/); if (!m) return;
+      sessionStorage.setItem(SHARE_KEY, m[1]); history.replaceState(null, '', location.pathname + location.search);
+    } catch (e) {}
+  })();
+  let shareWait = 0;
+  function shareCheck() {
+    let code = ''; try { code = sessionStorage.getItem(SHARE_KEY) || ''; } catch (e) {}
+    if (!code || !currentUser) return;
+    clearTimeout(shareWait);
+    if ($('obOv') || $('ltOv') || document.querySelector('#recOv.show') || $('sheetOv').classList.contains('open') || S.active) { shareWait = setTimeout(shareCheck, 800); return; }
+    shareDecode(code).then(d => {
+      shareIn = d;
+      openSheet('공유받은 단어장', `<div class="form-stack">
+        <div class="share-card"><span class="mg-ico i-mint">${IC.book}</span><div><b>${esc(d.name)}</b><small>단어 ${d.words.length}개</small></div></div>
+        <div class="share-prev">${d.words.slice(0, 8).map(([w, m]) => `<div><b>${esc(w)}</b><span>${esc(m)}</span></div>`).join('')}${d.words.length > 8 ? `<div class="muted">외 ${d.words.length - 8}개</div>` : ''}</div>
+        <button class="btn btn-primary btn-block" data-act="share-take">내 단어장으로 담기</button>
+        <button class="btn btn-soft btn-block" data-act="share-skip">담지 않기</button></div>`);
+    }).catch(() => { try { sessionStorage.removeItem(SHARE_KEY); } catch (e) {} toast('공유 링크를 읽지 못했어요. 링크가 잘리지 않았는지 확인해 주세요.'); });
+  }
+  let shareIn = null;
+  ACTIONS['share-skip'] = () => { try { sessionStorage.removeItem(SHARE_KEY); } catch (e) {} shareIn = null; closeSheet(); };
+  ACTIONS['share-take'] = async el => {
+    const d = shareIn; if (!d) return; el.disabled = true; el.textContent = '담는 중...';
+    try { sessionStorage.removeItem(SHARE_KEY); } catch (e) {}
+    await dictPreload(d.words.map(a => a[0]));
+    let nm = d.name, k = 2; while (categories.some(c => c.name === nm)) nm = `${d.name} (${k++})`;
+    const cat = { id: 'c' + uid(), name: nm, words: [] }, seen = new Set();
+    for (const [w, m] of d.words) {
+      if (seen.has(w.toLowerCase())) continue; seen.add(w.toLowerCase());
+      let full = null; try { full = await dictGet(w); } catch (e) {}
+      cat.words.push(sanitizeWord({ ...(full || {}), id: uid(), word: w, meaning: m }));
+    }
+    categories.push(cat); syncStorage(); shareIn = null; closeSheet();
+    toast(`'${nm}' 단어장에 ${cat.words.length}개를 담았어요.`);
+    try { openBook(cat.id); } catch (e) { go('tabBooks'); }
   };
 
   /* =========================================================
@@ -4126,7 +4331,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     spell: [['Enter', '확인 · 다음'], ['Esc', '나가기']],
     listen: [['Space', '재생 · 정지'], ['← →', '이전 · 다음'], ['Esc', '나가기']]
   };
-  KBD.rchoice = KBD.choice; KBD.dict = KBD.spell;
+  KBD.rchoice = KBD.choice; KBD.dict = KBD.spell; KBD.test = [['1~4', '고르기'], ['Enter', '제출'], ['Esc', '나가기']];
   function kbdHint(mode) { const el = $('kbdHint'); if (el) el.innerHTML = (KBD[mode] || []).map(([k, t]) => `<span><kbd>${k}</kbd>${t}</span>`).join(''); }
   document.addEventListener('keydown', e => {
     if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
