@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>VocaPro 프로필 · 배너</title>
+<!-- tools/media/render.js 가 각 .art 를 PNG로 찍어 public/media/ 에 저장해요. -->
+<style>
+  @font-face { font-family: P; src: url(__FONT__) format('woff2'); font-weight: 100 900; }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: #ccc; font-family: P, Pretendard, 'Apple SD Gothic Neo', sans-serif; color: #191f28; letter-spacing: -0.02em; padding: 20px; display: flex; flex-direction: column; gap: 20px; align-items: flex-start; }
+  .art { position: relative; overflow: hidden; }
+  .blue { background: linear-gradient(135deg, #4593fc 0%, #3182f6 45%, #1b64da 100%); color: #fff; }
+  .ring { position: absolute; border-radius: 50%; border: 3px solid rgba(255,255,255,.16); }
+  .dot { position: absolute; border-radius: 50%; background: rgba(255,255,255,.12); }
+  .mascot { display: block; width: 100%; height: 100%; overflow: visible; color: #191f28; }
+  .logo { display: flex; align-items: center; gap: 16px; font-weight: 800; }
+  .logo i { font-style: normal; background: #fff; color: #3182f6; display: flex; align-items: center; justify-content: center; font-weight: 900; }
+  .chip { display: inline-flex; align-items: center; padding: 0 20px; border-radius: 999px; background: rgba(255,255,255,.16); color: #fff; font-weight: 700; border: 1.5px solid rgba(255,255,255,.28); }
+  .card { position: absolute; background: #fff; color: #191f28; border-radius: 28px; box-shadow: 0 24px 60px rgba(0,0,0,.18); }
+  .card small { display: block; color: #8b95a1; font-weight: 600; }
+  .card b { display: block; font-weight: 800; letter-spacing: -0.03em; }
+  .card span { display: block; color: #3182f6; font-weight: 700; }
+</style>
+</head>
+<body>
+
+<!-- 프로필 (SNS·유튜브·앱 소개용 정사각형, 원형으로 잘려도 보이게 가운데 정렬) -->
+<div class="art blue" id="profile" style="width:1024px;height:1024px">
+  <div class="ring" style="width:820px;height:820px;left:102px;top:102px"></div>
+  <div class="dot" style="width:160px;height:160px;left:120px;top:180px"></div>
+  <div class="dot" style="width:90px;height:90px;right:150px;top:250px"></div>
+  <div style="position:absolute;left:142px;top:142px;width:740px;height:740px;border-radius:50%;background:#fff;box-shadow:0 30px 80px rgba(0,0,0,.18)"></div>
+  <div style="position:absolute;left:272px;top:190px;width:480px;height:480px">__MASCOT_HAPPY__</div>
+  <div class="logo" style="position:absolute;left:0;right:0;top:668px;justify-content:center;font-size:78px;color:#191f28"><span><b style="color:#3182f6">Voca</b>Pro</span></div>
+</div>
+
+<!-- 공유 미리보기 (카카오톡·문자·SNS 링크 미리보기 og:image, 1200x630) -->
+<div class="art blue" id="og" style="width:1200px;height:630px">
+  <div class="ring" style="width:900px;height:900px;left:620px;top:-200px"></div>
+  <div class="ring" style="width:520px;height:520px;left:-200px;top:330px"></div>
+  <div style="position:absolute;left:84px;top:86px;width:600px">
+    <div class="logo" style="font-size:40px"><i style="width:58px;height:58px;border-radius:17px;font-size:32px">V</i><span><b>Voca</b>Pro</span></div>
+    <div style="font-size:72px;font-weight:800;line-height:1.14;letter-spacing:-0.04em;margin-top:40px">단어,<br>끝까지 외우다</div>
+    <div style="font-size:28px;font-weight:500;opacity:.88;margin-top:22px">학교 수업용 AI 영어 단어장</div>
+    <div style="display:flex;gap:10px;margin-top:34px;font-size:22px"><span class="chip" style="height:46px">사전 39,219개</span><span class="chip" style="height:46px">10가지 학습</span><span class="chip" style="height:46px">우리 반</span></div>
+  </div>
+  <div class="card" style="left:760px;top:150px;width:340px;padding:30px 30px 28px;transform:rotate(4deg)">
+    <small style="font-size:18px">오늘의 단어</small>
+    <b style="font-size:48px;margin-top:8px">consistent</b>
+    <span style="font-size:20px;margin-top:4px;color:#8b95a1;font-weight:500">/kənˈsɪstənt/</span>
+    <span style="font-size:26px;margin-top:14px">형 일관된, 꾸준한</span>
+  </div>
+  <div style="position:absolute;left:700px;top:350px;width:230px;height:230px;border-radius:50%;background:#fff;box-shadow:0 20px 50px rgba(0,0,0,.16)"></div>
+  <div style="position:absolute;left:730px;top:370px;width:170px;height:170px">__MASCOT_CHEER__</div>
+</div>
+
+<!-- 가로 배너 (블로그·유튜브·SNS 머리글, 1500x500) -->
+<div class="art blue" id="wide" style="width:1500px;height:500px">
+  <div class="ring" style="width:800px;height:800px;left:-180px;top:-420px"></div>
+  <div class="ring" style="width:700px;height:700px;right:-160px;top:120px"></div>
+  <div style="position:absolute;left:120px;top:60px;width:380px;height:380px;border-radius:50%;background:#fff;box-shadow:0 24px 60px rgba(0,0,0,.18)"></div>
+  <div style="position:absolute;left:170px;top:95px;width:280px;height:280px">__MASCOT_HAPPY__</div>
+  <div style="position:absolute;left:540px;top:120px">
+    <div class="logo" style="font-size:44px"><i style="width:62px;height:62px;border-radius:18px;font-size:34px">V</i><span><b>Voca</b>Pro</span></div>
+    <div style="font-size:64px;font-weight:800;letter-spacing:-0.04em;margin-top:26px">단어, 끝까지 외우다</div>
+    <div style="font-size:26px;font-weight:500;opacity:.88;margin-top:16px">AI 영어 단어장 · hijujuwon.kro.kr</div>
+  </div>
+</div>
+
+</body>
+</html>

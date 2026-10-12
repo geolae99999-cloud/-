@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>VocaPro 광고 영상 (15초)</title>
+<!-- tools/media/render.js 가 이 페이지를 프레임마다 seek(t) 해서 찍은 뒤 mp4로 묶어요. 브라우저로 열면 그대로 재생돼요. -->
+<style>
+  @font-face { font-family: P; src: url(__FONT__) format('woff2'); font-weight: 100 900; }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { width: 1280px; height: 720px; overflow: hidden; background: #f2f4f6; font-family: P, Pretendard, 'Apple SD Gothic Neo', sans-serif; color: #191f28; letter-spacing: -0.02em; }
+  .stage { position: absolute; inset: 0; overflow: hidden; }
+  .scene { position: absolute; inset: 0; opacity: 0; }
+  .abs { position: absolute; }
+  .blue { background: linear-gradient(135deg, #4593fc 0%, #3182f6 45%, #1b64da 100%); color: #fff; }
+  .disc { border-radius: 50%; background: #fff; box-shadow: 0 24px 60px rgba(0,0,0,.18); }
+  .ring { position: absolute; border-radius: 50%; border: 2px solid rgba(255,255,255,.18); }
+  .mascot { display: block; width: 100%; height: 100%; overflow: visible; color: #191f28; }
+  h1 { font-weight: 800; font-size: 76px; line-height: 1.12; letter-spacing: -0.04em; }
+  h2 { font-weight: 800; font-size: 54px; line-height: 1.18; letter-spacing: -0.035em; }
+  .sub { font-size: 26px; font-weight: 500; color: #4e5968; line-height: 1.5; }
+  .blue .sub { color: rgba(255,255,255,.85); }
+  .logo { display: flex; align-items: center; gap: 14px; font-weight: 800; font-size: 40px; }
+  .logo i { font-style: normal; width: 56px; height: 56px; border-radius: 16px; background: #fff; color: #3182f6; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 900; }
+  .logo b { font-weight: 800; }
+  .phone { width: 330px; height: 600px; border-radius: 46px; background: #191f28; padding: 12px; box-shadow: 0 30px 80px rgba(25,31,40,.25); }
+  .screen { width: 100%; height: 100%; border-radius: 36px; background: #f2f4f6; overflow: hidden; padding: 54px 18px 18px; position: relative; }
+  .notch { position: absolute; top: 12px; left: 50%; width: 96px; height: 26px; margin-left: -48px; border-radius: 14px; background: #191f28; }
+  .card { background: #fff; border-radius: 22px; padding: 18px; box-shadow: 0 2px 10px rgba(0,0,0,.04); }
+  .lbl { font-size: 13px; color: #8b95a1; font-weight: 600; margin-bottom: 6px; }
+  .inp { height: 50px; border-radius: 14px; background: #f2f4f6; display: flex; align-items: center; padding: 0 14px; font-size: 21px; font-weight: 700; }
+  .caret { display: inline-block; width: 2px; height: 24px; background: #3182f6; margin-left: 2px; }
+  .btn { height: 48px; border-radius: 14px; background: #3182f6; color: #fff; font-weight: 700; font-size: 17px; display: flex; align-items: center; justify-content: center; }
+  .field { margin-top: 12px; }
+  .val { font-size: 19px; font-weight: 700; }
+  .val.s { font-size: 16px; font-weight: 500; color: #4e5968; line-height: 1.45; }
+  .chip { display: inline-flex; align-items: center; height: 34px; padding: 0 14px; border-radius: 17px; background: #e8f3ff; color: #1b64da; font-weight: 700; font-size: 15px; }
+  .tile { width: 250px; height: 132px; border-radius: 26px; background: #fff; padding: 22px; box-shadow: 0 8px 24px rgba(25,31,40,.06); }
+  .tile .ico { width: 44px; height: 44px; border-radius: 13px; display: flex; align-items: center; justify-content: center; }
+  .tile .ico svg { width: 24px; height: 24px; }
+  .tile b { display: block; font-size: 24px; font-weight: 800; margin-top: 14px; }
+  .stat { width: 330px; height: 250px; border-radius: 30px; background: #fff; padding: 34px 30px; box-shadow: 0 10px 30px rgba(25,31,40,.07); }
+  .stat .num { font-size: 64px; font-weight: 800; color: #3182f6; letter-spacing: -0.04em; }
+  .stat .t { font-size: 24px; font-weight: 700; margin-top: 10px; }
+  .stat .d { font-size: 18px; color: #8b95a1; margin-top: 6px; line-height: 1.4; }
+  .cta { height: 76px; padding: 0 44px; border-radius: 22px; background: #fff; color: #1b64da; font-weight: 800; font-size: 30px; display: inline-flex; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,.15); }
+  .url { font-size: 28px; font-weight: 700; color: rgba(255,255,255,.9); letter-spacing: 0; }
+  .flip { width: 300px; height: 190px; perspective: 900px; }
+  .flip > div { position: absolute; inset: 0; border-radius: 26px; background: #fff; box-shadow: 0 10px 30px rgba(25,31,40,.10); display: flex; flex-direction: column; align-items: center; justify-content: center; backface-visibility: hidden; }
+  .flip .f b { font-size: 42px; font-weight: 800; }
+  .flip .f small { font-size: 18px; color: #8b95a1; margin-top: 6px; }
+  .flip .k { transform: rotateY(180deg); background: #3182f6; color: #fff; }
+  .flip .k b { font-size: 38px; font-weight: 800; }
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+
+  <!-- 1. 오프닝 -->
+  <section class="scene blue" id="s1">
+    <div class="ring" style="width:900px;height:900px;left:-260px;top:-420px"></div>
+    <div class="ring" style="width:620px;height:620px;right:-200px;bottom:-330px"></div>
+    <div class="abs disc" id="s1m" style="left:530px;top:90px;width:220px;height:220px"><div style="position:absolute;left:30px;top:26px;width:160px;height:160px">__MASCOT_HAPPY__</div></div>
+    <h1 class="abs" id="s1t" style="left:0;right:0;top:360px;text-align:center">단어, 끝까지 외우다</h1>
+    <div class="abs logo" id="s1l" style="left:0;right:0;top:480px;justify-content:center"><i>V</i><span><b>Voca</b>Pro</span></div>
+    <p class="abs sub" id="s1s" style="left:0;right:0;top:568px;text-align:center">학교 수업용 AI 영어 단어장</p>
+  </section>
+
+  <!-- 2. AI 자동 채우기 -->
+  <section class="scene" id="s2">
+    <div class="abs" style="left:110px;top:200px;width:560px">
+      <span class="chip" id="s2c">AI 자동 완성</span>
+      <h2 id="s2t" style="margin-top:22px">모르는 단어,<br>넣기만 하세요</h2>
+      <p class="sub" id="s2s" style="margin-top:20px">뜻, 발음, 예문까지 한 번에 채워 줘요.<br>내장 사전 39,219개라 기다릴 필요 없어요.</p>
+    </div>
+    <div class="abs phone" id="s2p" style="left:800px;top:60px"><div class="screen"><div class="notch"></div>
+      <div class="card">
+        <div class="lbl">영어 단어</div>
+        <div class="inp"><span id="s2w"></span><span class="caret" id="s2k"></span></div>
+        <div class="btn" id="s2b" style="margin-top:12px">AI 완성</div>
+        <div class="field" id="f1"><div class="lbl">뜻</div><div class="val">형 일관된, 꾸준한</div></div>
+        <div class="field" id="f2"><div class="lbl">발음</div><div class="val">/kənˈsɪstənt/ [컨시스턴트]</div></div>
+        <div class="field" id="f3"><div class="lbl">예문</div><div class="val s">Be consistent every day.<br>매일 꾸준히 하세요.</div></div>
+        <div class="field" id="f4"><div class="lbl">비슷한 말</div><div class="val s">steady, constant</div></div>
+      </div>
+    </div></div>
+  </section>
+
+  <!-- 3. 학습 방법 -->
+  <section class="scene" id="s3">
+    <h2 class="abs" id="s3t" style="left:0;right:0;top:64px;text-align:center">10가지 방법으로, 지루하지 않게</h2>
+    <div id="tiles"></div>
+  </section>
+
+  <!-- 4. 선생님과 함께 -->
+  <section class="scene" id="s4">
+    <h2 class="abs" id="s4t" style="left:0;right:0;top:80px;text-align:center">혼자도, 우리 반과 함께도</h2>
+    <div class="abs stat" id="st1" style="left:90px;top:250px"><div class="num" id="n1">0</div><div class="t">내장 사전 단어</div><div class="d">숙어와 변화형까지</div></div>
+    <div class="abs stat" id="st2" style="left:475px;top:250px"><div class="num" id="n2">0</div><div class="t">학년별 추천 단어</div><div class="d">초1부터 고3, 수능까지</div></div>
+    <div class="abs stat" id="st3" style="left:860px;top:250px"><div class="num" style="font-size:52px;line-height:77px">우리 반</div><div class="t">과제와 실시간 현황</div><div class="d">선생님이 한눈에 확인</div></div>
+  </section>
+
+  <!-- 5. 엔딩 -->
+  <section class="scene blue" id="s5">
+    <div class="ring" style="width:1000px;height:1000px;left:140px;top:-140px"></div>
+    <div class="abs disc" id="s5m" style="left:150px;top:180px;width:340px;height:340px"><div style="position:absolute;left:50px;top:44px;width:240px;height:240px">__MASCOT_CHEER__</div></div>
+    <div class="abs" style="left:560px;top:170px">
+      <div class="logo" id="s5l" style="font-size:64px"><i style="width:84px;height:84px;font-size:48px;border-radius:24px">V</i><span><b>Voca</b>Pro</span></div>
+      <p class="sub" id="s5s" style="margin-top:20px;font-size:30px">오늘 단어, 오늘 끝내요</p>
+      <div id="s5c" style="margin-top:40px"><span class="cta">무료로 시작하기</span></div>
+      <p class="url" id="s5u" style="margin-top:26px">hijujuwon.kro.kr</p>
+    </div>
+  </section>
+</div>
+
+<script>
+  const DUR = 15;
+  const TILES = [
+    ['플래시카드', '#e8f3ff', '#3182f6', '<rect x="3" y="7" width="14" height="12" rx="2"/><path d="M7 3h12a2 2 0 0 1 2 2v10"/>'],
+    ['뜻 고르기', '#e5f8ee', '#03b26c', '<circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.7 2.7L16 9.5"/>'],
+    ['듣고 고르기', '#ffeeee', '#f04452', '<path d="M3 14v-2a9 9 0 0 1 18 0v2"/><rect x="3" y="14" width="4" height="6" rx="1.5"/><rect x="17" y="14" width="4" height="6" rx="1.5"/>'],
+    ['철자 퍼즐', '#f3eeff', '#8b5cf6', '<rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/><path d="M13 7h4a4 4 0 0 1 4 4M11 17H7a4 4 0 0 1-4-4"/>'],
+    ['스펠링', '#fff3e0', '#fe9800', '<rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/>'],
+    ['말하기', '#e0f7fa', '#0aa5b4', '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>'],
+    ['실전 시험', '#e8f3ff', '#1b64da', '<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/>'],
+    ['단어 비', '#fff0f6', '#e64980', '<path d="M7 4v6M12 2v8M17 4v6"/><path d="M4 14h16l-2 6H6z"/>'],
+  ];
+  document.getElementById('tiles').innerHTML = TILES.map(([n, bg, fg, d], i) => {
+    const x = 70 + (i % 4) * 290, y = 210 + Math.floor(i / 4) * 170;
+    return `<div class="abs tile" id="t${i}" style="left:${x}px;top:${y}px"><div class="ico" style="background:${bg};color:${fg}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg></div><b>${n}</b></div>`;
+  }).join('');
+  document.getElementById('tiles').insertAdjacentHTML('beforeend', '');
+
+  const $ = id => document.getElementById(id);
+  const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+  const prog = (t, a, b) => clamp((t - a) / (b - a));
+  const easeOut = p => 1 - Math.pow(1 - p, 3);
+  const easeInOut = p => p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+  const back = p => { const c = 1.70158, c3 = c + 1; return 1 + c3 * Math.pow(p - 1, 3) + c * Math.pow(p - 1, 2); };
+  // 등장: a초부터 d초 동안 아래에서 올라오며 나타남
+  const rise = (el, t, a, d = .5, dy = 30) => { const p = easeOut(prog(t, a, a + d)); el.style.opacity = p; el.style.transform = `translateY(${(1 - p) * dy}px)`; };
+  const pop = (el, t, a, d = .55) => { const p = prog(t, a, a + d); el.style.opacity = clamp(p * 3); el.style.transform = `scale(${p ? back(p) : 0})`; };
+  // 장면 표시: a~b 사이, 앞뒤로 0.35초 넘김
+  const scene = (el, t, a, b, enter = 'fade') => {
+    const fi = a === 0 ? 1 : easeInOut(prog(t, a, a + .35)), fo = 1 - easeInOut(prog(t, b - .35, b));
+    const o = Math.min(fi, fo); el.style.opacity = t < a || t > b ? 0 : o;
+    el.style.transform = enter === 'slide' ? `translateX(${(1 - fi) * 80 - (1 - fo) * 80}px)` : `scale(${1.04 - .04 * fi})`;
+  };
+
+  function seek(t) {
+    // 1. 0 ~ 3.2
+    scene($('s1'), t, 0, 3.2);
+    pop($('s1m'), t, .1, .7);
+    if (t > .8) $('s1m').style.transform += ` translateY(${Math.sin((t - .8) * 4) * 6}px)`;
+    rise($('s1t'), t, .55); rise($('s1l'), t, .95); rise($('s1s'), t, 1.25);
+    // 2. 3.2 ~ 7.0
+    scene($('s2'), t, 3.2, 7.0, 'slide');
+    rise($('s2c'), t, 3.4); rise($('s2t'), t, 3.55); rise($('s2s'), t, 3.8);
+    { const p = easeOut(prog(t, 3.35, 4.0)); $('s2p').style.transform = `translateY(${(1 - p) * 140}px) rotate(${(1 - p) * 4}deg)`; $('s2p').style.opacity = p; }
+    const word = 'consistent', n = Math.floor(clamp((t - 4.1) / .055, 0, word.length));
+    $('s2w').textContent = word.slice(0, n);
+    $('s2k').style.opacity = t < 4.95 ? (Math.floor(t * 3) % 2 ? 1 : .2) : 0;
+    { const press = prog(t, 4.75, 4.95); $('s2b').style.transform = `scale(${1 - Math.sin(press * Math.PI) * .06})`; $('s2b').textContent = t > 4.95 && t < 5.25 ? '조회 중' : 'AI 완성'; }
+    ['f1', 'f2', 'f3', 'f4'].forEach((id, i) => rise($(id), t, 5.25 + i * .18, .4, 16));
+    // 3. 7.0 ~ 10.4
+    scene($('s3'), t, 7.0, 10.4, 'slide');
+    rise($('s3t'), t, 7.15);
+    TILES.forEach((_, i) => pop($('t' + i), t, 7.45 + i * .11, .5));
+    { const k = Math.floor(clamp((t - 8.9) / .22, -1, 7)); TILES.forEach((_, i) => { const on = i === k; $('t' + i).style.boxShadow = on ? '0 0 0 3px #3182f6, 0 14px 30px rgba(49,130,246,.25)' : ''; }); }
+    // 4. 10.4 ~ 13.0
+    scene($('s4'), t, 10.4, 13.0, 'slide');
+    rise($('s4t'), t, 10.55);
+    ['st1', 'st2', 'st3'].forEach((id, i) => rise($(id), t, 10.75 + i * .15, .5, 40));
+    const cnt = (to, a) => Math.round(to * easeOut(prog(t, a, a + 1.1))).toLocaleString('en-US');
+    $('n1').textContent = cnt(39219, 10.9); $('n2').textContent = cnt(1200, 11.05);
+    // 5. 13.0 ~ 15
+    scene($('s5'), t, 13.0, 15.6);
+    pop($('s5m'), t, 13.2, .7);
+    if (t > 13.9) $('s5m').style.transform += ` translateY(${Math.sin((t - 13.9) * 4) * 6}px) rotate(${Math.sin((t - 13.9) * 3) * 3}deg)`;
+    rise($('s5l'), t, 13.4); rise($('s5s'), t, 13.6); rise($('s5u'), t, 13.95);
+    { rise($('s5c'), t, 13.8); if (t > 14.3) $('s5c').style.transform = `scale(${1 + Math.sin((t - 14.3) * 6) * .025})`; }
+  }
+  window.seek = seek; window.DUR = DUR;
+  // 브라우저로 직접 열면 반복 재생
+  if (!/render/.test(location.hash)) { const t0 = performance.now(); const loop = () => { seek(((performance.now() - t0) / 1000) % DUR); requestAnimationFrame(loop); }; loop(); } else seek(0);
+</script>
+</body>
+</html>

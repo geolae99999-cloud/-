@@ -1,4 +1,112 @@
   /* =========================================================
+   * 레벨 테스트 · 맞춤 시작
+   * ======================================================= */
+  const LT_BANK = [
+    [["apple","사과"],["friend","친구"],["happy","행복한"],["school","학교"],["water","물"],["family","가족"],["morning","아침"],["travel","여행하다"],["bright","밝은"],["borrow","빌리다"]],
+    [["improve","향상시키다"],["decide","결정하다"],["expensive","비싼"],["ordinary","평범한"],["advice","조언"],["habit","습관"],["support","지지하다"],["prepare","준비하다"],["environment","환경"],["communicate","의사소통하다"]],
+    [["reluctant","꺼리는"],["ambiguous","모호한"],["inevitable","피할 수 없는"],["authentic","진짜의"],["enhance","높이다"],["restrict","제한하다"],["acquire","습득하다"],["tolerate","참아내다"],["controversy","논란"],["prosperity","번영"]],
+    [["ubiquitous","어디에나 있는"],["ephemeral","덧없는"],["pragmatic","실용적인"],["meticulous","꼼꼼한"],["scrutinize","면밀히 조사하다"],["alleviate","덜어주다"],["exacerbate","악화시키다"],["indigenous","토착의"],["ostensible","표면상의"],["scarce","드문, 부족한"]]
+  ];
+  const LT_LV = [
+    { name: '입문', goal: 10, desc: '기초 단어부터 차근차근 시작해요.' },
+    { name: '초급', goal: 10, desc: '일상 단어는 익숙해요. 핵심 단어를 늘려가요.' },
+    { name: '중급', goal: 20, desc: '탄탄한 기본기가 있어요. 꾸준히 확장해요.' },
+    { name: '상급', goal: 30, desc: '어려운 단어도 잘 알고 있어요. 고난도에 도전해요.' },
+    { name: '최상급', goal: 50, desc: '최상위 수준이에요. 고난도 단어로 완성해요.' }
+  ];
+  const ltKey = () => 'vocapro_level:' + currentUser;
+  let LT = null;
+  function ltBuild() {
+    const qs = [];
+    LT_BANK.forEach((pool, lv) => {
+      shuffled(pool.slice()).slice(0, 3).forEach(([w, m]) => {
+        const wrong = shuffled(pool.filter(x => x[1] !== m)).slice(0, 3).map(x => x[1]);
+        qs.push({ lv, w, m, opts: shuffled([m, ...wrong]) });
+      });
+    });
+    return qs;
+  }
+  function ltOpen(intro) {
+    if ($('ltOv')) return;
+    LT = { qs: ltBuild(), i: 0, ok: [0, 0, 0, 0], locked: false };
+    const ov = document.createElement('div'); ov.className = 'ob lt'; ov.id = 'ltOv'; document.body.appendChild(ov);
+    ltIntro(ov, intro);
+  }
+  function ltIntro(ov, intro) {
+    ov.innerHTML = `<button class="ob-skip" data-lt="close">${intro ? '나중에 할게요' : '닫기'}</button>
+      <div class="ob-body"><div class="ob-art">${MASCOT('think')}</div><h2>내 영어 수준 알아보기</h2>
+      <p>12문제, 약 2분이면 끝나요.<br>결과에 맞춰 하루 목표와 시작 단어를 추천해 드려요.</p></div>
+      <div class="ob-foot"><button class="btn btn-primary btn-block" data-lt="start">테스트 시작</button></div>`;
+  }
+  function ltDraw() {
+    const ov = $('ltOv'); if (!ov || !LT) return;
+    if (LT.i >= LT.qs.length) return ltResult();
+    const q = LT.qs[LT.i];
+    ov.innerHTML = `<button class="ob-skip" data-lt="close">그만하기</button>
+      <div class="lt-bar"><i style="width:${Math.round(LT.i / LT.qs.length * 100)}%"></i></div>
+      <div class="ob-body lt-q"><div class="muted" style="font-weight:700;margin-bottom:10px;">${LT.i + 1} / ${LT.qs.length}</div>
+      <h2 style="font-size:2.1rem;">${esc(q.w)}</h2><p style="margin-bottom:22px;">이 단어의 뜻은?</p>
+      <div class="opts" style="width:100%;">${q.opts.map((o, k) => `<button class="opt" data-lt="opt" data-v="${esc(o)}"><span class="opt-n">${k + 1}</span><span>${esc(o)}</span></button>`).join('')}</div></div>
+      <div class="ob-foot"><button class="btn btn-soft btn-block" data-lt="opt" data-v="">잘 모르겠어요</button></div>`;
+    LT.locked = false;
+  }
+  function ltAnswer(v) {
+    if (!LT || LT.locked) return; LT.locked = true;
+    const q = LT.qs[LT.i];
+    if (v === q.m) LT.ok[q.lv]++;
+    const ov = $('ltOv');
+    ov.querySelectorAll('.opt').forEach(b => { if (b.dataset.v === q.m) b.classList.add('correct'); else if (b.dataset.v === v) b.classList.add('wrong'); });
+    setTimeout(() => { if (LT) { LT.i++; ltDraw(); } }, v === q.m ? 450 : 900);
+  }
+  function ltLevel() { let r = 0; for (let l = 0; l < 4; l++) { if (LT.ok[l] >= 2) r++; else break; } return r; }
+  function ltResult() {
+    const ov = $('ltOv'); if (!ov) return;
+    const r = ltLevel(), info = LT_LV[r], total = LT.ok.reduce((a, b) => a + b, 0);
+    LT.r = r;
+    try { LS.setItem(ltKey(), JSON.stringify({ lv: r, score: total, at: Date.now() })); } catch (e) {}
+    ov.innerHTML = `<div class="ob-body"><div class="ob-art">${MASCOT('cheer')}</div>
+      <div class="muted" style="font-weight:700;">내 수준은</div><h2 style="font-size:2.4rem;">${info.name}</h2>
+      <p>${info.desc}<br>12문제 중 <b>${total}</b>문제를 맞혔어요.</p>
+      <div class="card" style="width:100%;margin-top:22px;text-align:left;"><b>추천 하루 목표 ${info.goal}개</b><div class="muted" style="font-size:.85rem;margin-top:4px;">'${info.name} 시작 단어' 단어장 ${LT_BANK[Math.min(r, 3)].length}개도 만들어 드려요.</div></div></div>
+      <div class="ob-foot"><button class="btn btn-primary btn-block" data-lt="apply">추천대로 시작하기</button>
+      <button class="btn btn-soft btn-block" data-lt="goal" style="margin-top:8px;">목표만 적용하기</button></div>`;
+  }
+  function ltApply(withBook) {
+    if (!LT || LT.r === undefined) return;
+    const info = LT_LV[LT.r]; config.goal = info.goal;
+    let id = null;
+    if (withBook) {
+      const nm = info.name + ' 시작 단어';
+      let cat = categories.find(c => c.name === nm);
+      if (!cat) {
+        cat = { id: 'c' + uid(), name: nm, words: LT_BANK[Math.min(LT.r, 3)].map(([w, m]) => sanitizeWord({ id: uid(), word: w, meaning: m })) };
+        categories.push(cat);
+      }
+      id = cat.id;
+    }
+    syncStorage(); const ov = $('ltOv'); if (ov) ov.remove(); LT = null;
+    try { go(curTab); } catch (e) {}
+    toast(withBook ? '추천 단어장을 만들었어요.' : '하루 목표를 ' + info.goal + '개로 바꿨어요.');
+    if (id) { try { ACTIONS.start({ dataset: { mode: 'card', src: 'cat:' + id } }); } catch (e) {} }
+  }
+  document.addEventListener('click', e => {
+    const b = e.target.closest && e.target.closest('#ltOv [data-lt]'); if (!b) return;
+    const a = b.dataset.lt;
+    if (a === 'close') { const ov = $('ltOv'); if (ov) ov.remove(); LT = null; }
+    else if (a === 'start') ltDraw();
+    else if (a === 'opt') ltAnswer(b.dataset.v);
+    else if (a === 'apply') ltApply(true);
+    else if (a === 'goal') ltApply(false);
+  });
+  ACTIONS['level-test'] = () => ltOpen(false);
+  function ltEntryHtml() {
+    let s = null; try { s = JSON.parse(LS.getItem(ltKey()) || 'null'); } catch (e) {}
+    const t = s && LT_LV[s.lv] ? '내 수준: ' + LT_LV[s.lv].name + ' · 다시 테스트' : '내 영어 수준 알아보기';
+    const sub = s ? '실력이 늘었다면 다시 측정해 보세요' : '12문제로 하루 목표와 시작 단어를 추천받아요';
+    return `<button class="mg-entry" data-act="level-test"><span class="mg-ico i-coral">${IC.sprout}</span><span class="mg-txt"><b>${esc(t)}</b><small>${sub}</small></span><span class="mg-chev"></span></button>`;
+  }
+
+  /* =========================================================
    * 4단계 집중 학습 (카드 → 뜻 고르기 → 따라 쓰기 → 시험)
    * ======================================================= */
   const FL_STEPS = ['카드 보기', '뜻 고르기', '따라 쓰기', '마무리 시험'];
@@ -94,16 +202,3 @@
     e6: "month:달, 월|year:해, 연도|January:1월|February:2월|March:3월|April:4월|May:5월|June:6월|July:7월|August:8월|September:9월|October:10월|November:11월|December:12월|season:계절|tomorrow:내일|yesterday:어제|tonight:오늘 밤|soon:곧|later:나중에|ago:~전에|already:이미|still:아직, 여전히|grade:학년, 성적|subject:과목|lesson:수업, 교훈|classmate:반 친구|uniform:교복, 제복|middle school:중학교|elementary:초등의|cousin:사촌|uncle:삼촌|aunt:이모, 고모|son:아들|daughter:딸|parent:부모|neighbor:이웃|guest:손님|king:왕|queen:여왕|prince:왕자|princess:공주|castle:성|village:마을|building:건물|floor:층, 바닥|wall:벽|stairs:계단|elevator:엘리베이터|key:열쇠|country:나라|world:세계|earth:지구|culture:문화|history:역사|language:언어|festival:축제|contest:대회|prize:상|club:동아리|member:회원|leader:지도자|rule:규칙|safe:안전한|danger:위험|accident:사고|trash:쓰레기|recycle:재활용하다|save:구하다, 아끼다|health:건강|exercise:운동; 운동하다|choose:고르다|decide:결정하다|agree:동의하다|believe:믿다|understand:이해하다|explain:설명하다|bring:가져오다|send:보내다|carry:나르다|build:짓다|fix:고치다|change:바꾸다; 변화|become:~이 되다|nervous:긴장한|proud:자랑스러운|lonely:외로운|honest:정직한|careful:조심하는|enough:충분한|almost:거의|between:~사이에|through:~을 통해|across:건너편에|along:~을 따라|maybe:아마도|probably:아마|instead:대신에|tradition:전통|temperature:온도"
   };
 
-  /* =========================================================
-   * 학년별 추천 단어 데이터 (중·고등)
-   * ======================================================= */
-  const GW_MH = {
-    m1: "fun:재미|ice:얼음|air:공기|diary:일기|dessert:디저트|dinosaur:공룡|gym:체육관|hometown:고향|alone:혼자|above:~위에|below:~아래에|able:~할 수 있는|adventure:모험|actor:배우|chef:요리사|customer:손님|visitor:방문객|hurry:서두르다|bake:굽다|boil:끓이다|mix:섞다|pour:붓다|fill:채우다|drop:떨어뜨리다|pull:당기다|push:밀다|hold:잡다, 개최하다|bite:물다|hide:숨다, 숨기다|arrive:도착하다|borrow:빌리다|lend:빌려주다|join:가입하다|cheer:응원하다|celebrate:축하하다|collect:모으다|return:돌아오다|shout:소리치다|relax:휴식을 취하다|share:나누다, 공유하다|famous:유명한|popular:인기 있는|lucky:운이 좋은|curious:호기심이 많은|crowded:붐비는|dangerous:위험한|amazing:놀라운|exciting:흥미진진한|fantastic:환상적인|excellent:훌륭한|fresh:신선한|simple:간단한|polite:예의 바른|rude:무례한|clever:영리한|silly:어리석은|kindness:친절|friendship:우정|joke:농담|joy:기쁨|habit:습관|mistake:실수|secret:비밀|goal:목표|chance:기회|exam:시험|example:예|reason:이유|result:결과|fact:사실|traffic:교통|journey:여행|abroad:해외로|foreign:외국의|local:지역의|business:사업|energy:에너지|information:정보|experience:경험|interest:관심, 흥미|skill:기술|survey:설문 조사|suddenly:갑자기|during:~동안|especially:특히|prepare:준비하다|practice:연습하다|protect:보호하다|receive:받다|solve:해결하다|spend:(돈·시간을) 쓰다|invent:발명하다|discover:발견하다|imagine:상상하다|express:표현하다|describe:묘사하다|continue:계속하다|important:중요한|comfortable:편안한|environment:환경",
-    m2: "add:더하다|action:행동|follow:따라가다|fail:실패하다|own:자신의; 소유하다|order:주문; 명령하다|lie:거짓말; 눕다|calm:침착한|perfect:완벽한|possible:가능한|impossible:불가능한|common:흔한, 공통의|serious:심각한, 진지한|public:공공의|type:유형|form:형태; 형성하다|allow:허락하다|accept:받아들이다|appear:나타나다|disappear:사라지다|attend:참석하다|award:상; 수여하다|compare:비교하다|complete:완성하다|condition:상태, 조건|contact:연락; 연락하다|control:통제하다|create:창조하다|deliver:배달하다|design:디자인; 설계하다|develop:발달시키다, 개발하다|discuss:토론하다|effort:노력|improve:향상시키다|include:포함하다|knowledge:지식|manage:관리하다|offer:제안하다|repeat:반복하다|success:성공|support:지지하다|trust:신뢰; 믿다|achieve:성취하다|ancient:고대의|century:세기|courage:용기|custom:관습|diet:식단|emergency:비상사태|enemy:적|fear:두려움|harvest:수확|human:인간|law:법|memory:기억|nation:국가|peace:평화|war:전쟁|planet:행성|soldier:군인|symbol:상징|treasure:보물|victory:승리|wealth:부, 재산|instrument:악기, 도구|opinion:의견|article:기사|audience:청중|behavior:행동|emotion:감정|climate:기후|citizen:시민|community:공동체|direction:방향|amount:양|average:평균; 평균의|absent:결석한|actually:실제로|apologize:사과하다|announce:발표하다|anniversary:기념일|argue:논쟁하다|attack:공격; 공격하다|breathe:숨 쉬다|donate:기부하다|encourage:격려하다|escape:탈출하다|expect:기대하다|explore:탐험하다|increase:증가하다|decrease:감소하다|destroy:파괴하다|introduce:소개하다|necessary:필요한|normal:보통의|familiar:친숙한|fair:공정한|equal:동등한|recent:최근의|realize:깨닫다",
-    m3: "several:몇몇의|similar:비슷한|focus:집중하다; 초점|expert:전문가|career:경력, 직업|device:장치|connect:연결하다|ceremony:의식, 식|technology:기술|solution:해결책|source:원천|structure:구조|suffer:고통받다|rare:드문|cancel:취소하다|crime:범죄|disaster:재난|decorate:장식하다|athlete:운동선수|ancestor:조상|oxygen:산소|flavor:맛|routine:일과|desire:욕구|regret:후회하다|react:반응하다|combine:결합하다|calculate:계산하다|grateful:감사하는|curiosity:호기심|passion:열정|income:수입|install:설치하다|translate:번역하다|transport:수송하다|destination:목적지|despite:~에도 불구하고|ability:능력|challenge:도전|cause:원인; 일으키다|balance:균형|benefit:이익|positive:긍정적인|negative:부정적인|opportunity:기회|patient:참을성 있는; 환자|physical:신체의|pressure:압력|private:사적인|process:과정|produce:생산하다|purpose:목적|reduce:줄이다|refuse:거절하다|region:지역|relationship:관계|remove:제거하다|rely:의지하다|ignore:무시하다|impress:깊은 인상을 주다|independent:독립적인|influence:영향; 영향을 주다|injure:부상을 입히다|insist:주장하다|judge:판단하다; 판사|lack:부족; 부족하다|major:주요한|material:재료|measure:측정하다|method:방법|mention:언급하다|generation:세대|global:세계적인|government:정부|gradually:점차|exist:존재하다|factor:요인|adapt:적응하다|admire:존경하다, 감탄하다|affect:영향을 미치다|afford:여유가 있다|aim:목표; 목표로 하다|apply:지원하다, 적용하다|arrange:정리하다, 준비하다|attract:끌다|aware:알고 있는|blame:비난하다|budget:예산|concentrate:집중하다|confident:자신 있는|consider:고려하다|contain:포함하다|convenient:편리한|damage:손상; 손상시키다|debate:토론|depend:의존하다|disappoint:실망시키다|communicate:의사소통하다|compete:경쟁하다|complain:불평하다",
-    h1: "available:이용 가능한|economy:경제|victim:희생자|wisdom:지혜|defend:방어하다|inspire:영감을 주다|observe:관찰하다|overcome:극복하다|recognize:알아보다|respond:응답하다|previous:이전의|profit:이익|progress:진전|propose:제안하다|origin:기원|personality:성격|feature:특징|impact:영향|individual:개인; 개인의|evidence:증거|attitude:태도|atmosphere:대기, 분위기|conflict:갈등|conclusion:결론|crisis:위기|criticize:비판하다|determine:결정하다|identify:확인하다|flexible:유연한|frequently:자주|demand:수요; 요구하다|delay:지연; 미루다|deny:부인하다|admit:인정하다|adopt:채택하다, 입양하다|approach:접근하다; 접근법|alternative:대안; 대안의|analyze:분석하다|annual:매년의|anxiety:불안|severe:심한|obstacle:장애물|habitat:서식지|extinct:멸종된|function:기능|element:요소|establish:설립하다|expense:비용|exhibit:전시하다|former:이전의|concern:걱정; 관련되다|context:맥락|critical:비판적인, 중대한|identity:정체성|intelligence:지능|instinct:본능|literature:문학|policy:정책|poverty:가난|strategy:전략|technique:기술|rural:시골의|urban:도시의|represent:나타내다, 대표하다|reflect:반영하다, 반사하다|abandon:버리다|absorb:흡수하다|accurate:정확한|acquire:습득하다|adjust:조정하다|advance:발전; 나아가다|approve:승인하다|assist:돕다|assume:가정하다|automatic:자동의|capable:~할 수 있는|capture:포착하다|category:범주|claim:주장하다|colleague:동료|consequence:결과|construct:건설하다|consume:소비하다|contribute:기여하다|cooperate:협력하다|define:정의하다|detect:감지하다|diverse:다양한|efficient:효율적인|essential:필수적인|estimate:추정하다|evaluate:평가하다|expand:확장하다|extend:연장하다|extreme:극단적인|generate:발생시키다|immediate:즉각적인|involve:포함하다, 관련시키다|maintain:유지하다|crucial:중대한",
-    h2: "brief:짧은|enormous:거대한|temporary:일시적인|significant:중요한, 상당한|artificial:인공의|outcome:결과|reveal:드러내다|absolute:절대적인|accomplish:성취하다|agriculture:농업|appeal:호소하다; 매력|barrier:장벽|burden:부담|democracy:민주주의|heritage:유산|moral:도덕적인|nutrition:영양|philosophy:철학|psychology:심리학|participant:참가자|permanent:영구적인|sensitive:민감한|status:지위|sympathy:동정|territory:영토|welfare:복지|release:풀어 주다, 발표하다|resist:저항하다|reputation:평판|sacrifice:희생|recall:기억해 내다|oppose:반대하다|interact:상호 작용하다|inherit:물려받다|immune:면역의|internal:내부의|external:외부의|fatal:치명적인|vital:필수적인|vivid:생생한|tremendous:엄청난|trait:특성|voluntary:자발적인|mechanism:메커니즘, 작용 원리|obligation:의무|emission:배출|empathy:공감|encounter:마주치다|endure:견디다|engage:참여하다|evident:분명한|expose:노출시키다|impose:부과하다|regulate:규제하다|distribute:분배하다|distinguish:구별하다|considerable:상당한|conscious:의식하는|compromise:타협하다|commitment:헌신|capacity:수용력|cope:대처하다|arise:생기다|alter:바꾸다|acknowledge:인정하다|academic:학업의|authority:권위, 당국|boundary:경계|commercial:상업의; 광고|currency:통화|contrast:대조|conserve:보존하다|convince:설득하다|commit:저지르다, 전념하다|accuse:고발하다, 비난하다|bias:편견|decline:감소하다, 거절하다|eliminate:제거하다|emerge:나타나다|emphasize:강조하다|enable:가능하게 하다|evolve:진화하다|exceed:초과하다|genuine:진짜의|guarantee:보장하다|hesitate:망설이다|indicate:나타내다|initial:처음의|innovation:혁신|insight:통찰력|intend:의도하다|interpret:해석하다|investigate:조사하다|mature:성숙한|maximum:최대; 최대의|modify:수정하다|motivate:동기를 부여하다|abstract:추상적인|fundamental:근본적인|inevitable:피할 수 없는",
-    h3: "aspect:측면|ambition:야망|appropriate:적절한|adequate:적절한, 충분한|apparent:명백한|abundant:풍부한|accompany:동반하다|accumulate:축적하다|adolescent:청소년|aggressive:공격적인|anticipate:예상하다|assess:평가하다|attribute:~의 탓으로 돌리다; 속성|beneficial:유익한|circumstance:상황|collapse:붕괴하다|component:구성 요소|concrete:구체적인|confront:직면하다|consistent:일관된|contemporary:현대의|controversy:논란|conventional:관습적인|demonstrate:입증하다|derive:끌어내다, 유래하다|diminish:줄어들다|discrimination:차별|distinct:뚜렷한|domestic:국내의, 가정의|dominant:지배적인|embrace:받아들이다|enhance:높이다, 향상시키다|ensure:보장하다|ethical:윤리적인|exaggerate:과장하다|explicit:명시적인|facilitate:용이하게 하다|flourish:번성하다|foster:육성하다|hypothesis:가설|imply:암시하다|incentive:장려책|inherent:고유한|integrate:통합하다|interfere:간섭하다|manipulate:조작하다|mutual:상호의|neglect:소홀히 하다|negotiate:협상하다|notion:개념|numerous:많은|objective:객관적인; 목표|overlook:간과하다|perspective:관점|phenomenon:현상|plausible:그럴듯한|prejudice:편견|preserve:보존하다|principle:원리|profound:심오한|prominent:두드러진|rational:합리적인|reinforce:강화하다|relevant:관련 있는|reluctant:꺼리는|resemble:닮다|restore:복원하다|restrict:제한하다|scarce:부족한|sophisticated:정교한|subjective:주관적인|substantial:상당한|subtle:미묘한|sufficient:충분한|sustain:지속시키다|transform:변형시키다|undermine:약화시키다|unprecedented:전례 없는|adversity:역경|aesthetic:미적인|autonomy:자율성|catastrophe:재앙|cognitive:인지의|conform:순응하다|consensus:합의|deteriorate:악화되다|empirical:경험적인|evoke:불러일으키다|exert:발휘하다|feasible:실현 가능한|implicit:암묵적인|indigenous:토착의|infer:추론하다|innate:타고난|intuitive:직관적인|alleviate:완화하다|mitigate:완화하다|pragmatic:실용적인|reciprocal:상호의|compliance:준수"
-  };
-
-  const GW_PACK = {};

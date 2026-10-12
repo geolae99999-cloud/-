@@ -37,7 +37,7 @@
   let authMode = 'login', pendingGrade = '', pendingProfile = null, ageOk = false;
   function renderAuth() {
     const su = authMode === 'signup';
-    $('authScreen').innerHTML = `<div class="auth-box">
+    $('authScreen').innerHTML = `<div class="auth-layout">${landingHtml()}<div class="auth-box">
       <div class="auth-hero">${MASCOT('happy')}</div>
       <div class="page-title" style="text-align:center;margin-bottom:6px;"><b>Voca</b>Pro</div>
       <p class="muted" style="text-align:center;margin:0 0 18px;">${su ? '새 계정을 만들어요' : '로그인하고 이어서 외워요'}</p>
@@ -57,9 +57,47 @@
         <button class="btn btn-primary btn-block" id="auGo" data-act="auth-go">${su ? '가입하고 시작' : '로그인'}</button>
         ${cloudAvail ? `<button class="link-btn kid-link" data-act="auth-age" data-k="${kidMode ? 0 : 1}">${kidMode ? '만 14세 이상 계정으로 돌아가기' : (su ? '' : '이 기기의 어린이 계정(만 14세 미만)으로 로그인')}</button>` : ''}
         <p class="muted" style="font-size:.74rem;line-height:1.6;margin:4px 0 0;">${cloudMode ? '같은 아이디로 로그인하면 어느 기기에서든 단어장과 학습 기록이 이어져요. 비밀번호를 잊으면 복구할 수 없어요. API 키는 보안을 위해 기기마다 따로 입력해요.' : '계정은 이 기기의 브라우저에만 저장돼요. 다른 기기와 동기화되지 않고, 비밀번호를 잊으면 복구할 수 없으니 백업 파일을 받아 두세요.'}</p>
-      </div></div>`;
+        <a class="link-btn lp-mobile-cta" href="#lpIntro">VocaPro가 처음이라면, 소개 영상 보기</a>
+      </div></div></div>`;
     setTimeout(drawCaptcha, 0);
+    landingVideo();
   }
+  /* 첫 화면 소개: 광고 영상(media/ad.mp4)과 핵심 기능. PC에서는 왼쪽, 휴대폰에서는 로그인 아래에 보여요. */
+  const LP_SRC = '<source src="media/ad.webm" type="video/webm"><source src="media/ad.mp4" type="video/mp4">';
+  const LP_FEATS = [
+    ['sparkles', '자동 완성', '단어만 넣으면 뜻·발음·예문까지'],
+    ['cards', '10가지 학습', '카드, 퀴즈, 말하기, 게임'],
+    ['repeat', '간격 반복', '잊을 때쯤 다시 복습'],
+    ['users', '우리 반', '과제와 실시간 현황']
+  ];
+  function landingHtml() {
+    return `<section class="lp" id="lpIntro" aria-label="VocaPro 소개">
+      <div class="lp-brand"><img src="media/profile.png" alt="" width="36" height="36"><span><b>Voca</b>Pro</span></div>
+      <h1 class="lp-h">단어,<br><em>끝까지</em> 외우다</h1>
+      <p class="lp-sub">학교 수업용 AI 영어 단어장이에요. 내장 사전으로 뜻이 바로 채워지고, 매일 조금씩 복습해서 끝까지 외우게 도와줘요.</p>
+      <div class="lp-video"><video id="lpVid" poster="media/ad-poster.jpg" muted loop playsinline preload="metadata" aria-label="VocaPro 소개 영상">${LP_SRC}</video></div>
+      <ul class="lp-feats">${LP_FEATS.map(([ic, t, d]) => `<li>${IC[ic] || ''}<b>${t}</b><small>${d}</small></li>`).join('')}</ul>
+      <p class="lp-foot">문의 vocaproe2@gmail.com</p>
+    </section>`;
+  }
+  // 움직임 줄이기 설정이면 자동 재생하지 않고 첫 장면만 보여 줘요. 화면에 보일 때만 재생해요.
+  function landingVideo() {
+    const v = $('lpVid'); if (!v) return;
+    const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    v.controls = reduce;
+    if (reduce || !('IntersectionObserver' in window)) return;
+    const io = new IntersectionObserver(es => es.forEach(e => { if (!v.isConnected) return io.disconnect(); if (e.isIntersecting) { const p = v.play(); if (p && p.catch) p.catch(() => { v.controls = true; }); } else v.pause(); }), { threshold: .35 });
+    io.observe(v);
+  }
+  // 어디서든 소개 영상 열기 (설정의 소개 카드)
+  ACTIONS['about-video'] = () => {
+    const ov = document.createElement('div'); ov.className = 'vid-ov'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-label', 'VocaPro 소개 영상');
+    ov.innerHTML = `<button class="icon-btn" data-act="about-video-close" aria-label="닫기">${IC.x}</button><video poster="media/ad-poster.jpg" controls autoplay playsinline>${LP_SRC}</video>`;
+    ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
+    document.body.appendChild(ov);
+  };
+  ACTIONS['about-video-close'] = () => { const o = document.querySelector('.vid-ov'); if (o) o.remove(); };
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.querySelector('.vid-ov')) { e.stopImmediatePropagation(); ACTIONS['about-video-close'](); } }, true);
   function showAuth() {
     authMode = cloudMode ? 'login' : (Object.keys(getUsers()).length ? 'login' : 'signup');
     renderAuth();
@@ -274,112 +312,4 @@
   document.addEventListener('keydown', e => {
     if (e.key === 'Enter' && e.target.closest && e.target.closest('#authScreen')) { e.preventDefault(); ACTIONS['auth-go'](); }
   });
-
-  /* =========================================================
-   * 레벨 테스트 · 맞춤 시작
-   * ======================================================= */
-  const LT_BANK = [
-    [["apple","사과"],["friend","친구"],["happy","행복한"],["school","학교"],["water","물"],["family","가족"],["morning","아침"],["travel","여행하다"],["bright","밝은"],["borrow","빌리다"]],
-    [["improve","향상시키다"],["decide","결정하다"],["expensive","비싼"],["ordinary","평범한"],["advice","조언"],["habit","습관"],["support","지지하다"],["prepare","준비하다"],["environment","환경"],["communicate","의사소통하다"]],
-    [["reluctant","꺼리는"],["ambiguous","모호한"],["inevitable","피할 수 없는"],["authentic","진짜의"],["enhance","높이다"],["restrict","제한하다"],["acquire","습득하다"],["tolerate","참아내다"],["controversy","논란"],["prosperity","번영"]],
-    [["ubiquitous","어디에나 있는"],["ephemeral","덧없는"],["pragmatic","실용적인"],["meticulous","꼼꼼한"],["scrutinize","면밀히 조사하다"],["alleviate","덜어주다"],["exacerbate","악화시키다"],["indigenous","토착의"],["ostensible","표면상의"],["scarce","드문, 부족한"]]
-  ];
-  const LT_LV = [
-    { name: '입문', goal: 10, desc: '기초 단어부터 차근차근 시작해요.' },
-    { name: '초급', goal: 10, desc: '일상 단어는 익숙해요. 핵심 단어를 늘려가요.' },
-    { name: '중급', goal: 20, desc: '탄탄한 기본기가 있어요. 꾸준히 확장해요.' },
-    { name: '상급', goal: 30, desc: '어려운 단어도 잘 알고 있어요. 고난도에 도전해요.' },
-    { name: '최상급', goal: 50, desc: '최상위 수준이에요. 고난도 단어로 완성해요.' }
-  ];
-  const ltKey = () => 'vocapro_level:' + currentUser;
-  let LT = null;
-  function ltBuild() {
-    const qs = [];
-    LT_BANK.forEach((pool, lv) => {
-      shuffled(pool.slice()).slice(0, 3).forEach(([w, m]) => {
-        const wrong = shuffled(pool.filter(x => x[1] !== m)).slice(0, 3).map(x => x[1]);
-        qs.push({ lv, w, m, opts: shuffled([m, ...wrong]) });
-      });
-    });
-    return qs;
-  }
-  function ltOpen(intro) {
-    if ($('ltOv')) return;
-    LT = { qs: ltBuild(), i: 0, ok: [0, 0, 0, 0], locked: false };
-    const ov = document.createElement('div'); ov.className = 'ob lt'; ov.id = 'ltOv'; document.body.appendChild(ov);
-    ltIntro(ov, intro);
-  }
-  function ltIntro(ov, intro) {
-    ov.innerHTML = `<button class="ob-skip" data-lt="close">${intro ? '나중에 할게요' : '닫기'}</button>
-      <div class="ob-body"><div class="ob-art">${MASCOT('think')}</div><h2>내 영어 수준 알아보기</h2>
-      <p>12문제, 약 2분이면 끝나요.<br>결과에 맞춰 하루 목표와 시작 단어를 추천해 드려요.</p></div>
-      <div class="ob-foot"><button class="btn btn-primary btn-block" data-lt="start">테스트 시작</button></div>`;
-  }
-  function ltDraw() {
-    const ov = $('ltOv'); if (!ov || !LT) return;
-    if (LT.i >= LT.qs.length) return ltResult();
-    const q = LT.qs[LT.i];
-    ov.innerHTML = `<button class="ob-skip" data-lt="close">그만하기</button>
-      <div class="lt-bar"><i style="width:${Math.round(LT.i / LT.qs.length * 100)}%"></i></div>
-      <div class="ob-body lt-q"><div class="muted" style="font-weight:700;margin-bottom:10px;">${LT.i + 1} / ${LT.qs.length}</div>
-      <h2 style="font-size:2.1rem;">${esc(q.w)}</h2><p style="margin-bottom:22px;">이 단어의 뜻은?</p>
-      <div class="opts" style="width:100%;">${q.opts.map((o, k) => `<button class="opt" data-lt="opt" data-v="${esc(o)}"><span class="opt-n">${k + 1}</span><span>${esc(o)}</span></button>`).join('')}</div></div>
-      <div class="ob-foot"><button class="btn btn-soft btn-block" data-lt="opt" data-v="">잘 모르겠어요</button></div>`;
-    LT.locked = false;
-  }
-  function ltAnswer(v) {
-    if (!LT || LT.locked) return; LT.locked = true;
-    const q = LT.qs[LT.i];
-    if (v === q.m) LT.ok[q.lv]++;
-    const ov = $('ltOv');
-    ov.querySelectorAll('.opt').forEach(b => { if (b.dataset.v === q.m) b.classList.add('correct'); else if (b.dataset.v === v) b.classList.add('wrong'); });
-    setTimeout(() => { if (LT) { LT.i++; ltDraw(); } }, v === q.m ? 450 : 900);
-  }
-  function ltLevel() { let r = 0; for (let l = 0; l < 4; l++) { if (LT.ok[l] >= 2) r++; else break; } return r; }
-  function ltResult() {
-    const ov = $('ltOv'); if (!ov) return;
-    const r = ltLevel(), info = LT_LV[r], total = LT.ok.reduce((a, b) => a + b, 0);
-    LT.r = r;
-    try { LS.setItem(ltKey(), JSON.stringify({ lv: r, score: total, at: Date.now() })); } catch (e) {}
-    ov.innerHTML = `<div class="ob-body"><div class="ob-art">${MASCOT('cheer')}</div>
-      <div class="muted" style="font-weight:700;">내 수준은</div><h2 style="font-size:2.4rem;">${info.name}</h2>
-      <p>${info.desc}<br>12문제 중 <b>${total}</b>문제를 맞혔어요.</p>
-      <div class="card" style="width:100%;margin-top:22px;text-align:left;"><b>추천 하루 목표 ${info.goal}개</b><div class="muted" style="font-size:.85rem;margin-top:4px;">'${info.name} 시작 단어' 단어장 ${LT_BANK[Math.min(r, 3)].length}개도 만들어 드려요.</div></div></div>
-      <div class="ob-foot"><button class="btn btn-primary btn-block" data-lt="apply">추천대로 시작하기</button>
-      <button class="btn btn-soft btn-block" data-lt="goal" style="margin-top:8px;">목표만 적용하기</button></div>`;
-  }
-  function ltApply(withBook) {
-    if (!LT || LT.r === undefined) return;
-    const info = LT_LV[LT.r]; config.goal = info.goal;
-    let id = null;
-    if (withBook) {
-      const nm = info.name + ' 시작 단어';
-      let cat = categories.find(c => c.name === nm);
-      if (!cat) {
-        cat = { id: 'c' + uid(), name: nm, words: LT_BANK[Math.min(LT.r, 3)].map(([w, m]) => sanitizeWord({ id: uid(), word: w, meaning: m })) };
-        categories.push(cat);
-      }
-      id = cat.id;
-    }
-    syncStorage(); const ov = $('ltOv'); if (ov) ov.remove(); LT = null;
-    try { go(curTab); } catch (e) {}
-    toast(withBook ? '추천 단어장을 만들었어요.' : '하루 목표를 ' + info.goal + '개로 바꿨어요.');
-    if (id) { try { ACTIONS.start({ dataset: { mode: 'card', src: 'cat:' + id } }); } catch (e) {} }
-  }
-  document.addEventListener('click', e => {
-    const b = e.target.closest && e.target.closest('#ltOv [data-lt]'); if (!b) return;
-    const a = b.dataset.lt;
-    if (a === 'close') { const ov = $('ltOv'); if (ov) ov.remove(); LT = null; }
-    else if (a === 'start') ltDraw();
-    else if (a === 'opt') ltAnswer(b.dataset.v);
-    else if (a === 'apply') ltApply(true);
-    else if (a === 'goal') ltApply(false);
-  });
-  ACTIONS['level-test'] = () => ltOpen(false);
-  function ltEntryHtml() {
-    let s = null; try { s = JSON.parse(LS.getItem(ltKey()) || 'null'); } catch (e) {}
-    const t = s && LT_LV[s.lv] ? '내 수준: ' + LT_LV[s.lv].name + ' · 다시 테스트' : '내 영어 수준 알아보기';
-    const sub = s ? '실력이 늘었다면 다시 측정해 보세요' : '12문제로 하루 목표와 시작 단어를 추천받아요';
-    return `<button class="mg-entry" data-act="level-test"><span class="mg-ico i-coral">${IC.sprout}</span><span class="mg-txt"><b>${esc(t)}</b><small>${sub}</small></span><span class="mg-chev"></span></button>`;
-  }
 

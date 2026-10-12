@@ -15,6 +15,8 @@
 | `supabase/sql/` | 서버 SQL (v5~v8). SQL Editor에서 순서대로 한 번씩 실행 |
 | `supabase/functions/ai/index.ts` | Edge Function `ai` |
 | `supabase/cache/` | (미적용) 공유 AI 캐시 |
+| `public/media/` | 광고 영상(`ad.mp4`, `ad.webm`, `ad-poster.jpg`), 프로필(`profile.png`, `profile-1024.png`), 배너(`og.jpg` 공유 미리보기, `wide.jpg` 가로 배너) |
+| `tools/media/` | 위 영상과 이미지의 원본(`ad.html`, `banners.html`)과 만드는 스크립트 `render.js` |
 | `docs/` | 변경 내역 |
 | `_redirects`, `_headers` | Cloudflare Pages 설정. 주소 `/xxx`를 `public/xxx`로 보여 주고, 그 밖의 파일은 404. 보안 헤더. |
 
@@ -25,6 +27,7 @@ python3 tools/build.py src/VocaPro.html public      # app*.js, index.html, sw.js
 python3 tools/build_dict.py gen public              # 사전을 바꿨을 때만
 for f in public/*.js; do node --check $f; done
 sh test/prep.sh && node test/smoke.js               # pack, kid, cloud, flip, design, feat, wide, teach, klass 도 같은 방식
+node tools/media/render.js                          # 광고 영상·배너를 고쳤을 때만 (ffmpeg 필요)
 git push origin main                                # Cloudflare Pages가 자동 배포
 ```
 
