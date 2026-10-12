@@ -575,6 +575,7 @@
     .grade-btn { border: 1.5px solid var(--line); background: var(--surface); border-radius: 14px; padding: 14px 6px; display: flex; flex-direction: column; align-items: center; gap: 1px; }
     .grade-btn b { font-size: 1.15rem; font-weight: 900; }
     .grade-btn small { font-size: .72rem; color: var(--muted); font-weight: 700; }
+    .hello-school { font-size: .8rem; color: var(--muted); font-weight: 600; margin-top: 2px; }
     .grade-btn.wide { grid-column: 1 / -1; flex-direction: row; justify-content: center; gap: 10px; }
     .grade-btn.on { background: var(--ink); border-color: var(--ink); color: var(--bg); }
     .grade-btn.on small { color: color-mix(in srgb, var(--bg) 70%, transparent); }
@@ -1197,6 +1198,16 @@
     </div>
 
     <div class="settings-card">
+      <div class="settings-title">내 정보</div>
+      <div class="setting-item form-stack">
+        <input type="text" id="pfName" placeholder="이름" maxlength="20" aria-label="이름">
+        <input type="text" id="pfSchool" placeholder="학교" maxlength="30" aria-label="학교">
+        <input type="text" id="pfSno" placeholder="학번 (선택)" inputmode="numeric" maxlength="12" aria-label="학번">
+        <button class="btn btn-soft btn-block" data-act="pf-save">내 정보 저장</button>
+      </div>
+    </div>
+
+    <div class="settings-card">
       <div class="settings-title">계정</div>
       <div class="setting-item">
         <div id="acctName" class="muted" style="margin-bottom:10px;font-weight:600;"></div>
@@ -1537,6 +1548,7 @@ window.VOCA_CLOUD = {
     { id: 'cat_review', name: '누적 복습', words: [] }
   ];
 
+  const cleanProfile = p => ({ name: String((p && p.name) || '').trim().slice(0, 20), school: String((p && p.school) || '').trim().slice(0, 30), sno: String((p && p.sno) || '').trim().slice(0, 12) });
   function loadConfig() {
     const cfg = JSON.parse(JSON.stringify(DEFAULT_CFG));
     const saved = loadJson(KEY_CFG);
@@ -1547,6 +1559,7 @@ window.VOCA_CLOUD = {
       cfg.darkMode = !!saved.darkMode;
       cfg.grade = GRADE_NAMES[saved.grade] ? saved.grade : '';
       cfg.role = saved.role === 'teacher' ? 'teacher' : '';
+      cfg.profile = cleanProfile(saved.profile);
       for (const p of Object.keys(cfg.keys)) {
         if (saved.keys && saved.keys[p]) cfg.keys[p] = saved.keys[p];
         if (saved.models && saved.models[p]) cfg.models[p] = saved.models[p];
@@ -1725,7 +1738,7 @@ window.VOCA_CLOUD = {
 
     $('tabHome').innerHTML = `
       <div class="home-grid">
-      <div class="h-hello"><div class="hello"><div class="hello-who">${MASCOT(today.n >= goal ? 'cheer' : 'happy')}<div><div class="hello-sub">${hello}</div><div class="hello-name">${esc(currentLabel || currentUser || '')}${isTeacher() ? ' 선생님' : '님'}</div></div></div>
+      <div class="h-hello"><div class="hello"><div class="hello-who">${MASCOT(today.n >= goal ? 'cheer' : 'happy')}<div><div class="hello-sub">${hello}</div><div class="hello-name">${esc(myName())}${isTeacher() ? ' 선생님' : '님'}</div>${schoolLine() ? `<div class="hello-school">${esc(schoolLine())}</div>` : ''}</div></div>
         <button class="grade-chip" data-act="grade-pick">${isTeacher() ? '선생님' : gname ? esc(gname) : '학년 설정'}</button></div></div>
       <div class="h-hero"><section class="hero">
         <div class="hero-top">
@@ -3246,6 +3259,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     if (!$('btnLt')) { const g = $('cfgGoal'); if (g && g.parentNode) g.insertAdjacentHTML('afterend', '<button class="btn btn-soft btn-block" id="btnLt" data-act="level-test" style="margin-top:8px;">레벨 테스트로 목표 추천받기</button>'); }
     const bp = $('btnPw'); if (bp) bp.style.display = cloudMode ? '' : 'none';
     const an = $('acctName'); if (an) an.textContent = '현재 계정: ' + (currentLabel || currentUser || '');
+    { const p = config.profile || cleanProfile(); $('pfName').value = p.name; $('pfSchool').value = p.school; $('pfSno').value = p.sno; $('pfSno').style.display = isTeacher() ? 'none' : ''; }
     $('cfgProvider').value = config.provider;
     $('cfgTtsRate').value = String(config.ttsRate);
     $('cfgGoal').value = String(config.goal);
@@ -3543,7 +3557,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     for (let r = 0; r < 2000; r++) for (let i = 0; i < t.length; i++) h = ((h * 33) ^ t.charCodeAt(i)) >>> 0;
     return String(h);
   }
-  let authMode = 'login', pendingGrade = '', ageOk = false;
+  let authMode = 'login', pendingGrade = '', pendingProfile = null, ageOk = false;
   function renderAuth() {
     const su = authMode === 'signup';
     $('authScreen').innerHTML = `<div class="auth-box">
@@ -3556,7 +3570,10 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
       <div class="form-stack">
         <input type="text" id="auId" placeholder="아이디 (2~20자)" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="20">
         <input type="password" id="auPw" placeholder="비밀번호 (${cloudMode ? 6 : 4}자 이상)" autocomplete="${su ? 'new-password' : 'current-password'}">
-        ${su ? `<input type="password" id="auPw2" placeholder="비밀번호 확인" autocomplete="new-password"><select id="auGrade" aria-label="학년 또는 선생님"><option value="">학년 또는 선생님을 골라 주세요</option>${roleOptions('')}</select>` : ''}
+        ${su ? `<input type="password" id="auPw2" placeholder="비밀번호 확인" autocomplete="new-password"><select id="auGrade" aria-label="학년 또는 선생님" onchange="authRoleChange()"><option value="">학년 또는 선생님을 골라 주세요</option>${roleOptions('')}</select>
+        <input type="text" id="auName" placeholder="이름" autocomplete="name" maxlength="20">
+        <input type="text" id="auSchool" placeholder="학교 (예: 한빛중학교)" autocomplete="organization" maxlength="30">
+        <input type="text" id="auSno" placeholder="학번 (선택, 예: 20315)" inputmode="numeric" maxlength="12">` : ''}
         ${authExtraHtml(su)}
         <label class="switch-row"><input type="checkbox" id="auKeep" checked> 로그인 유지</label>
         <div id="auMsg" style="display:none;color:var(--coral);font-weight:600;font-size:.85rem;"></div>
@@ -3572,7 +3589,18 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     $('authScreen').style.display = 'flex';
     setTimeout(() => { const f = $('auId'); if (f) f.focus(); }, 100);
   }
+  ACTIONS['pf-save'] = () => {
+    const nm = $('pfName').value.trim(), sc = $('pfSchool').value.trim(), sn = isTeacher() ? '' : $('pfSno').value.trim();
+    if (!nm) return toast('이름을 입력해 주세요.');
+    if (sn && !/^[0-9A-Za-z-]{1,12}$/.test(sn)) return toast('학번은 숫자로 입력해 주세요.');
+    config.profile = cleanProfile({ name: nm, school: sc, sno: sn }); syncStorage(); toast('내 정보를 저장했어요.');
+  };
   ACTIONS['auth-mode'] = el => { authMode = el.dataset.m; renderAuth(); };
+  function authRoleChange() {
+    const g = $('auGrade'), sn = $('auSno'), sc = $('auSchool'); if (!g || !sn) return;
+    const t = g.value === 'teacher'; sn.style.display = t ? 'none' : ''; if (t) sn.value = '';
+    if (sc) sc.placeholder = t ? '근무하는 학교 (예: 한빛중학교)' : '학교 (예: 한빛중학교)';
+  }
   ACTIONS['auth-age'] = el => {
     const kid = el.dataset.k === '1';
     if (kid) { setKidMode(true); if (!Object.keys(getUsers()).length) authMode = 'signup'; }
@@ -3587,7 +3615,12 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
       if (authMode !== 'signup' && !/보안문자|동의/.test(m)) { authFails++; if (authFails >= 3) { const cb = $('capBox'); if (cb) cb.style.display = 'block'; drawCaptcha(); } }
     };
     { const g = authGate(); if (g) return fail(g); }
-    if (authMode === 'signup') { const gr = $('auGrade') && $('auGrade').value; if (!GRADE_NAMES[gr] && gr !== 'teacher') return fail('학년이나 선생님을 골라 주세요. 학년에 맞는 단어를 추천해 드려요.'); pendingGrade = gr; } else pendingGrade = '';
+    if (authMode === 'signup') { const gr = $('auGrade') && $('auGrade').value; if (!GRADE_NAMES[gr] && gr !== 'teacher') return fail('학년이나 선생님을 골라 주세요. 학년에 맞는 단어를 추천해 드려요.');
+      const nm = $('auName').value.trim(), sc = $('auSchool').value.trim(), sn = gr === 'teacher' ? '' : $('auSno').value.trim();
+      if (!nm) return fail('이름을 입력해 주세요.');
+      if (!sc) return fail('학교 이름을 입력해 주세요.');
+      if (sn && !/^[0-9A-Za-z-]{1,12}$/.test(sn)) return fail('학번은 숫자로 입력해 주세요. (예: 20315)');
+      pendingGrade = gr; pendingProfile = cleanProfile({ name: nm, school: sc, sno: sn }); } else { pendingGrade = ''; pendingProfile = null; }
     if (cloudMode) {
       const email = $('auId').value.trim(), pw0 = $('auPw').value, keep0 = $('auKeep').checked, su0 = authMode === 'signup';
       if (!/^[\w가-힣-]{2,20}$/.test(email)) return fail('아이디는 2~20자의 한글, 영문, 숫자, _, - 만 쓸 수 있어요.');
@@ -3650,6 +3683,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     let applied = false;
     if (remote && remote.updated > (+LS.getItem(KEY_DATA + ':ts') || 0)) { try { applyRemote(remote); applied = true; } catch (e) { toast('서버 데이터를 읽지 못했어요.'); } }
     if (pendingGrade) { if (pendingGrade === 'teacher') { config.role = 'teacher'; config.grade = ''; } else { config.role = ''; config.grade = pendingGrade; } pendingGrade = ''; applied = false; }
+    if (pendingProfile) { config.profile = pendingProfile; pendingProfile = null; applied = false; }
     recShown = false; applyTheme(); if (!applied) syncStorage(); go('tabHome'); showOnboarding(); rmCheck(); setTimeout(shareCheck, 700);
   }
   ACTIONS.logout = async () => {
@@ -3681,7 +3715,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
   async function cloudPush() {
     clearTimeout(cloudTimer); cloudTimer = null;
     if (!cloudMode || !window.Cloud || !currentUser || !Cloud.user()) return;
-    const json = JSON.stringify({ categories, stats, cfg: { ttsRate: config.ttsRate, goal: config.goal, darkMode: config.darkMode, provider: config.provider, grade: config.grade, role: config.role || '' } });
+    const json = JSON.stringify({ categories, stats, cfg: { ttsRate: config.ttsRate, goal: config.goal, darkMode: config.darkMode, provider: config.provider, grade: config.grade, role: config.role || '', profile: config.profile || cleanProfile() } });
     if (json.length > 900000) toast('데이터가 서버 저장 한도(약 1MB)에 가까워요. 단어장을 줄이거나 백업해 두세요.');
     try { await Cloud.save({ data: json, updated: +LS.getItem(KEY_DATA + ':ts') || Date.now() }); }
     catch (e) { toast('서버 저장에 실패했어요. 인터넷을 확인하세요. (' + (e.code || e.message) + ')'); }
@@ -3694,6 +3728,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
       config.darkMode = !!d.cfg.darkMode; if (PROVIDERS[d.cfg.provider]) config.provider = d.cfg.provider;
       if (GRADE_NAMES[d.cfg.grade]) config.grade = d.cfg.grade;
       if (d.cfg.role !== undefined) config.role = d.cfg.role === 'teacher' ? 'teacher' : '';
+      if (d.cfg.profile) config.profile = cleanProfile(d.cfg.profile);
     }
     LS.setItem(KEY_DATA, JSON.stringify({ categories, stats })); LS.setItem(KEY_CFG, JSON.stringify(config)); LS.setItem(KEY_DATA + ':ts', String(r.updated));
     applyTheme();
@@ -3974,6 +4009,8 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
   const gradeOptions = sel => GRADES.map(([k]) => `<option value="${k}"${k === sel ? ' selected' : ''}>${gradeFull(k)}</option>`).join('');
   const roleOptions = sel => [['초등학생', 'e'], ['중학생', 'm'], ['고등학생', 'h']].map(([lb, p]) => `<optgroup label="${lb}">${GRADES.filter(([k]) => k[0] === p).map(([k]) => `<option value="${k}"${k === sel ? ' selected' : ''}>${gradeFull(k)}</option>`).join('')}</optgroup>`).join('') + `<optgroup label="선생님"><option value="teacher"${sel === 'teacher' ? ' selected' : ''}>선생님 (교사)</option></optgroup>`;
   const isTeacher = () => config.role === 'teacher';
+  const myName = () => (config.profile && config.profile.name) || currentLabel || currentUser || '';
+  const schoolLine = () => { const p = config.profile || {}; return [p.school, !isTeacher() && p.sno ? '학번 ' + p.sno : ''].filter(Boolean).join(' · '); };
   const gwCache = {};
   function gradeWords(k) {
     if (!gwCache[k]) {
@@ -4201,7 +4238,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     ws = ws.slice(0, num);
     const qs = ws.map((w, i) => ({ w, ask: type === 'x' ? (i % 2 ? 'w' : 'm') : type }));
     const row = (q, i, key) => `<li><span class="pt-q">${esc(q.ask === 'm' ? q.w.word : q.w.meaning)}</span><span class="pt-a">${key ? esc(q.ask === 'm' ? q.w.meaning : q.w.word) : ''}</span></li>`;
-    const head = `<div class="pt-head"><h1>${esc(cat.name)}</h1><div class="pt-meta"><span>이름 ________________</span><span>날짜 ____________</span><span>점수 ______ / ${qs.length}</span></div><p class="pt-guide">${type === 'm' ? '영어 단어의 뜻을 쓰세요.' : type === 'w' ? '우리말 뜻에 맞는 영어 단어를 쓰세요.' : '영어 단어는 뜻을, 우리말은 영어 단어를 쓰세요.'}</p></div>`;
+    const head = `<div class="pt-head"><h1>${esc(cat.name)}</h1><div class="pt-meta">${config.profile && config.profile.school ? `<span>${esc(config.profile.school)}</span>` : ''}<span>학번 __________</span><span>이름 ________________</span><span>날짜 ____________</span><span>점수 ______ / ${qs.length}</span></div><p class="pt-guide">${type === 'm' ? '영어 단어의 뜻을 쓰세요.' : type === 'w' ? '우리말 뜻에 맞는 영어 단어를 쓰세요.' : '영어 단어는 뜻을, 우리말은 영어 단어를 쓰세요.'}</p></div>`;
     let el = $('printArea'); if (!el) { el = document.createElement('div'); el.id = 'printArea'; document.body.appendChild(el); }
     el.innerHTML = `${head}<ol class="pt-list">${qs.map((q, i) => row(q, i, false)).join('')}</ol>` +
       ($('ptKey') && $('ptKey').checked ? `<div class="pt-key"><div class="pt-head"><h1>${esc(cat.name)} · 정답</h1></div><ol class="pt-list key">${qs.map((q, i) => row(q, i, true)).join('')}</ol></div>` : '') +
@@ -4389,7 +4426,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     operator: '김주원',
     email: 'vocaproe2@gmail.com',
     dbRegion: '',
-    effective: '2026년 10월 11일'
+    effective: '2026년 10월 12일'
   };
   const lgv = v => v || '확인 중';
   function legalDocs() {
@@ -4398,11 +4435,13 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
       privacy: ['개인정보 처리방침', `${I.operator}(이하 "운영자")은 VocaPro(이하 "서비스")를 운영하면서 「개인정보 보호법」 제30조에 따라 이용자의 개인정보를 보호하고 관련 고충을 빠르게 처리하기 위해 다음과 같이 개인정보 처리방침을 공개합니다.`, [
         ['제1조 개인정보의 처리 목적', `운영자는 다음 목적으로만 개인정보를 처리하며, 목적이 바뀌면 「개인정보 보호법」 제18조에 따라 별도 동의를 받는 등 필요한 조치를 합니다.
 - 회원 가입과 관리: 회원 식별, 로그인 유지, 비밀번호 무차별 대입 같은 부정 이용 방지
-- 학습 서비스 제공: 단어장·학습 기록·설정의 저장과 기기 간 동기화, 학년에 맞는 추천 단어 제공
+- 학습 서비스 제공: 단어장·학습 기록·설정의 저장과 기기 간 동기화, 학년에 맞는 추천 단어 제공, 학교·이름을 넣은 시험지 등 학교 수업용 기능 제공
 - AI 기능 제공: AI 단어 완성과 번역 요청 처리, 회원별 하루 사용 한도 관리
 - 서비스 운영: 오류 확인과 대응`],
         ['제2조 처리하는 개인정보 항목', `회원 가입 시 필수 항목
-- 아이디, 비밀번호, 학년
+- 아이디, 비밀번호, 학년(또는 선생님), 이름, 학교
+회원 가입 시 선택 항목
+- 학번(학생만)
 - 비밀번호는 되돌릴 수 없는 방식(bcrypt)으로 바꿔 저장하며 원래 비밀번호는 저장하지 않습니다.
 서비스 이용 중 만들어지는 정보
 - 이용자가 입력한 단어장(단어, 뜻, 발음, 예문, 메모 등), 학습 기록과 통계, 앱 설정
@@ -4411,7 +4450,8 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
 자동으로 생성되는 정보
 - 서비스에 접속하는 과정에서 IP 주소, 브라우저 종류, 접속 일시가 호스팅·서버 업체의 접속 기록에 남을 수 있습니다.
 수집하지 않는 정보
-- 이름, 이메일, 전화번호, 주소, 위치 정보, 광고 식별자는 수집하지 않습니다.`],
+- 이메일, 전화번호, 주소, 위치 정보, 광고 식별자는 수집하지 않습니다.
+- 이름, 학교, 학번은 화면 인사, 시험지 머리글 등 이용자 본인의 앱 안에서만 쓰며 다른 이용자에게 공개하거나 제3자에게 제공하지 않습니다. 설정 > 내 정보에서 언제든 고치거나 지울 수 있습니다(이름은 별명으로 바꿀 수 있습니다).`],
         ['제3조 개인정보의 처리 및 보유 기간', `- 계정 정보, 단어장, 학습 기록, 설정: 회원 탈퇴(계정 삭제) 시까지. 탈퇴하면 즉시 삭제합니다.
 - 로그인 세션 정보: 로그인 후 90일 또는 로그아웃할 때까지
 - AI 날짜별 사용 횟수: 30일
@@ -4464,7 +4504,8 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
 - 경찰청: 국번 없이 182 (ecrm.police.go.kr)`],
         ['제15조 개인정보 처리방침의 변경', `이 방침을 바꿀 때는 시행 7일 전부터 앱 안에서 알리며, 이용자에게 불리하거나 중요한 변경은 30일 전부터 알립니다.
 - 2026년 10월 11일: 제정
-- ${I.effective}: 법정 기재 항목 보완, 학년 정보·AI 기능·국외 이전 내용 반영`],
+- 2026년 10월 11일: 법정 기재 항목 보완, 학년 정보·AI 기능·국외 이전 내용 반영
+- ${I.effective}: 수집 항목에 이름, 학교, 학번(선택)과 선생님 가입 추가`],
         ['시행일', `이 방침은 ${I.effective}부터 시행합니다.`]]],
       terms: ['이용약관', '', [
         ['제1조 (목적)', `이 약관은 ${I.operator}(이하 "운영자")이 제공하는 영어 단어 학습 서비스 VocaPro(이하 "서비스")의 이용 조건과 절차, 운영자와 회원의 권리·의무를 정합니다.`],
@@ -4475,7 +4516,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
         ['제3조 (약관의 게시와 변경)', `- 운영자는 이 약관을 가입 화면과 설정 화면에서 언제든 볼 수 있게 합니다.
 - 운영자는 관련 법령을 어기지 않는 범위에서 약관을 바꿀 수 있습니다. 바꿀 때는 적용일과 이유를 적어 적용일 7일 전부터 앱 안에서 알리며, 회원에게 불리한 변경은 30일 전부터 알립니다.
 - 알린 적용일까지 거부 의사를 밝히지 않으면 바뀐 약관에 동의한 것으로 본다는 점을 함께 알렸는데도 회원이 거부하지 않으면 동의한 것으로 봅니다. 동의하지 않는 회원은 탈퇴할 수 있습니다.`],
-        ['제4조 (회원 가입)', `- 아이디, 비밀번호, 학년을 입력하고 이 약관과 개인정보 처리방침에 동의하면 가입됩니다.
+        ['제4조 (회원 가입)', `- 아이디, 비밀번호, 학년(또는 선생님), 이름, 학교를 입력하고 이 약관과 개인정보 처리방침에 동의하면 가입됩니다.
 - 만 14세 미만은 서버 계정을 만들 수 없으며 "이 기기에만 저장" 방식으로 이용합니다.
 - 다른 사람의 정보를 도용하거나 서비스 운영을 방해할 목적으로 가입한 경우 가입을 거절하거나 취소할 수 있습니다.`],
         ['제5조 (계정 관리)', '회원은 아이디와 비밀번호를 스스로 관리해야 하며 다른 사람이 쓰게 해서는 안 됩니다. 서비스는 이메일 같은 복구 수단을 받지 않으므로 비밀번호를 잊으면 계정을 되찾을 수 없습니다. 도용을 알게 되면 바로 비밀번호를 바꾸고 운영자에게 알려 주세요.'],

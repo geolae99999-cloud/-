@@ -196,6 +196,7 @@
     { id: 'cat_review', name: '누적 복습', words: [] }
   ];
 
+  const cleanProfile = p => ({ name: String((p && p.name) || '').trim().slice(0, 20), school: String((p && p.school) || '').trim().slice(0, 30), sno: String((p && p.sno) || '').trim().slice(0, 12) });
   function loadConfig() {
     const cfg = JSON.parse(JSON.stringify(DEFAULT_CFG));
     const saved = loadJson(KEY_CFG);
@@ -206,6 +207,7 @@
       cfg.darkMode = !!saved.darkMode;
       cfg.grade = GRADE_NAMES[saved.grade] ? saved.grade : '';
       cfg.role = saved.role === 'teacher' ? 'teacher' : '';
+      cfg.profile = cleanProfile(saved.profile);
       for (const p of Object.keys(cfg.keys)) {
         if (saved.keys && saved.keys[p]) cfg.keys[p] = saved.keys[p];
         if (saved.models && saved.models[p]) cfg.models[p] = saved.models[p];

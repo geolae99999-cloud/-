@@ -34,7 +34,7 @@
     for (let r = 0; r < 2000; r++) for (let i = 0; i < t.length; i++) h = ((h * 33) ^ t.charCodeAt(i)) >>> 0;
     return String(h);
   }
-  let authMode = 'login', pendingGrade = '', ageOk = false;
+  let authMode = 'login', pendingGrade = '', pendingProfile = null, ageOk = false;
   function renderAuth() {
     const su = authMode === 'signup';
     $('authScreen').innerHTML = `<div class="auth-box">
@@ -47,7 +47,10 @@
       <div class="form-stack">
         <input type="text" id="auId" placeholder="아이디 (2~20자)" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="20">
         <input type="password" id="auPw" placeholder="비밀번호 (${cloudMode ? 6 : 4}자 이상)" autocomplete="${su ? 'new-password' : 'current-password'}">
-        ${su ? `<input type="password" id="auPw2" placeholder="비밀번호 확인" autocomplete="new-password"><select id="auGrade" aria-label="학년 또는 선생님"><option value="">학년 또는 선생님을 골라 주세요</option>${roleOptions('')}</select>` : ''}
+        ${su ? `<input type="password" id="auPw2" placeholder="비밀번호 확인" autocomplete="new-password"><select id="auGrade" aria-label="학년 또는 선생님" onchange="authRoleChange()"><option value="">학년 또는 선생님을 골라 주세요</option>${roleOptions('')}</select>
+        <input type="text" id="auName" placeholder="이름" autocomplete="name" maxlength="20">
+        <input type="text" id="auSchool" placeholder="학교 (예: 한빛중학교)" autocomplete="organization" maxlength="30">
+        <input type="text" id="auSno" placeholder="학번 (선택, 예: 20315)" inputmode="numeric" maxlength="12">` : ''}
         ${authExtraHtml(su)}
         <label class="switch-row"><input type="checkbox" id="auKeep" checked> 로그인 유지</label>
         <div id="auMsg" style="display:none;color:var(--coral);font-weight:600;font-size:.85rem;"></div>
@@ -63,7 +66,18 @@
     $('authScreen').style.display = 'flex';
     setTimeout(() => { const f = $('auId'); if (f) f.focus(); }, 100);
   }
+  ACTIONS['pf-save'] = () => {
+    const nm = $('pfName').value.trim(), sc = $('pfSchool').value.trim(), sn = isTeacher() ? '' : $('pfSno').value.trim();
+    if (!nm) return toast('이름을 입력해 주세요.');
+    if (sn && !/^[0-9A-Za-z-]{1,12}$/.test(sn)) return toast('학번은 숫자로 입력해 주세요.');
+    config.profile = cleanProfile({ name: nm, school: sc, sno: sn }); syncStorage(); toast('내 정보를 저장했어요.');
+  };
   ACTIONS['auth-mode'] = el => { authMode = el.dataset.m; renderAuth(); };
+  function authRoleChange() {
+    const g = $('auGrade'), sn = $('auSno'), sc = $('auSchool'); if (!g || !sn) return;
+    const t = g.value === 'teacher'; sn.style.display = t ? 'none' : ''; if (t) sn.value = '';
+    if (sc) sc.placeholder = t ? '근무하는 학교 (예: 한빛중학교)' : '학교 (예: 한빛중학교)';
+  }
   ACTIONS['auth-age'] = el => {
     const kid = el.dataset.k === '1';
     if (kid) { setKidMode(true); if (!Object.keys(getUsers()).length) authMode = 'signup'; }
@@ -78,7 +92,12 @@
       if (authMode !== 'signup' && !/보안문자|동의/.test(m)) { authFails++; if (authFails >= 3) { const cb = $('capBox'); if (cb) cb.style.display = 'block'; drawCaptcha(); } }
     };
     { const g = authGate(); if (g) return fail(g); }
-    if (authMode === 'signup') { const gr = $('auGrade') && $('auGrade').value; if (!GRADE_NAMES[gr] && gr !== 'teacher') return fail('학년이나 선생님을 골라 주세요. 학년에 맞는 단어를 추천해 드려요.'); pendingGrade = gr; } else pendingGrade = '';
+    if (authMode === 'signup') { const gr = $('auGrade') && $('auGrade').value; if (!GRADE_NAMES[gr] && gr !== 'teacher') return fail('학년이나 선생님을 골라 주세요. 학년에 맞는 단어를 추천해 드려요.');
+      const nm = $('auName').value.trim(), sc = $('auSchool').value.trim(), sn = gr === 'teacher' ? '' : $('auSno').value.trim();
+      if (!nm) return fail('이름을 입력해 주세요.');
+      if (!sc) return fail('학교 이름을 입력해 주세요.');
+      if (sn && !/^[0-9A-Za-z-]{1,12}$/.test(sn)) return fail('학번은 숫자로 입력해 주세요. (예: 20315)');
+      pendingGrade = gr; pendingProfile = cleanProfile({ name: nm, school: sc, sno: sn }); } else { pendingGrade = ''; pendingProfile = null; }
     if (cloudMode) {
       const email = $('auId').value.trim(), pw0 = $('auPw').value, keep0 = $('auKeep').checked, su0 = authMode === 'signup';
       if (!/^[\w가-힣-]{2,20}$/.test(email)) return fail('아이디는 2~20자의 한글, 영문, 숫자, _, - 만 쓸 수 있어요.');
@@ -141,6 +160,7 @@
     let applied = false;
     if (remote && remote.updated > (+LS.getItem(KEY_DATA + ':ts') || 0)) { try { applyRemote(remote); applied = true; } catch (e) { toast('서버 데이터를 읽지 못했어요.'); } }
     if (pendingGrade) { if (pendingGrade === 'teacher') { config.role = 'teacher'; config.grade = ''; } else { config.role = ''; config.grade = pendingGrade; } pendingGrade = ''; applied = false; }
+    if (pendingProfile) { config.profile = pendingProfile; pendingProfile = null; applied = false; }
     recShown = false; applyTheme(); if (!applied) syncStorage(); go('tabHome'); showOnboarding(); rmCheck(); setTimeout(shareCheck, 700);
   }
   ACTIONS.logout = async () => {
@@ -172,7 +192,7 @@
   async function cloudPush() {
     clearTimeout(cloudTimer); cloudTimer = null;
     if (!cloudMode || !window.Cloud || !currentUser || !Cloud.user()) return;
-    const json = JSON.stringify({ categories, stats, cfg: { ttsRate: config.ttsRate, goal: config.goal, darkMode: config.darkMode, provider: config.provider, grade: config.grade, role: config.role || '' } });
+    const json = JSON.stringify({ categories, stats, cfg: { ttsRate: config.ttsRate, goal: config.goal, darkMode: config.darkMode, provider: config.provider, grade: config.grade, role: config.role || '', profile: config.profile || cleanProfile() } });
     if (json.length > 900000) toast('데이터가 서버 저장 한도(약 1MB)에 가까워요. 단어장을 줄이거나 백업해 두세요.');
     try { await Cloud.save({ data: json, updated: +LS.getItem(KEY_DATA + ':ts') || Date.now() }); }
     catch (e) { toast('서버 저장에 실패했어요. 인터넷을 확인하세요. (' + (e.code || e.message) + ')'); }
@@ -185,6 +205,7 @@
       config.darkMode = !!d.cfg.darkMode; if (PROVIDERS[d.cfg.provider]) config.provider = d.cfg.provider;
       if (GRADE_NAMES[d.cfg.grade]) config.grade = d.cfg.grade;
       if (d.cfg.role !== undefined) config.role = d.cfg.role === 'teacher' ? 'teacher' : '';
+      if (d.cfg.profile) config.profile = cleanProfile(d.cfg.profile);
     }
     LS.setItem(KEY_DATA, JSON.stringify({ categories, stats })); LS.setItem(KEY_CFG, JSON.stringify(config)); LS.setItem(KEY_DATA + ':ts', String(r.updated));
     applyTheme();

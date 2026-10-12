@@ -559,6 +559,7 @@
     .grade-btn { border: 1.5px solid var(--line); background: var(--surface); border-radius: 14px; padding: 14px 6px; display: flex; flex-direction: column; align-items: center; gap: 1px; }
     .grade-btn b { font-size: 1.15rem; font-weight: 900; }
     .grade-btn small { font-size: .72rem; color: var(--muted); font-weight: 700; }
+    .hello-school { font-size: .8rem; color: var(--muted); font-weight: 600; margin-top: 2px; }
     .grade-btn.wide { grid-column: 1 / -1; flex-direction: row; justify-content: center; gap: 10px; }
     .grade-btn.on { background: var(--ink); border-color: var(--ink); color: var(--bg); }
     .grade-btn.on small { color: color-mix(in srgb, var(--bg) 70%, transparent); }

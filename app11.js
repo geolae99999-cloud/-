@@ -15,6 +15,8 @@
   const gradeOptions = sel => GRADES.map(([k]) => `<option value="${k}"${k === sel ? ' selected' : ''}>${gradeFull(k)}</option>`).join('');
   const roleOptions = sel => [['초등학생', 'e'], ['중학생', 'm'], ['고등학생', 'h']].map(([lb, p]) => `<optgroup label="${lb}">${GRADES.filter(([k]) => k[0] === p).map(([k]) => `<option value="${k}"${k === sel ? ' selected' : ''}>${gradeFull(k)}</option>`).join('')}</optgroup>`).join('') + `<optgroup label="선생님"><option value="teacher"${sel === 'teacher' ? ' selected' : ''}>선생님 (교사)</option></optgroup>`;
   const isTeacher = () => config.role === 'teacher';
+  const myName = () => (config.profile && config.profile.name) || currentLabel || currentUser || '';
+  const schoolLine = () => { const p = config.profile || {}; return [p.school, !isTeacher() && p.sno ? '학번 ' + p.sno : ''].filter(Boolean).join(' · '); };
   const gwCache = {};
   function gradeWords(k) {
     if (!gwCache[k]) {

@@ -107,7 +107,7 @@
     ws = ws.slice(0, num);
     const qs = ws.map((w, i) => ({ w, ask: type === 'x' ? (i % 2 ? 'w' : 'm') : type }));
     const row = (q, i, key) => `<li><span class="pt-q">${esc(q.ask === 'm' ? q.w.word : q.w.meaning)}</span><span class="pt-a">${key ? esc(q.ask === 'm' ? q.w.meaning : q.w.word) : ''}</span></li>`;
-    const head = `<div class="pt-head"><h1>${esc(cat.name)}</h1><div class="pt-meta"><span>이름 ________________</span><span>날짜 ____________</span><span>점수 ______ / ${qs.length}</span></div><p class="pt-guide">${type === 'm' ? '영어 단어의 뜻을 쓰세요.' : type === 'w' ? '우리말 뜻에 맞는 영어 단어를 쓰세요.' : '영어 단어는 뜻을, 우리말은 영어 단어를 쓰세요.'}</p></div>`;
+    const head = `<div class="pt-head"><h1>${esc(cat.name)}</h1><div class="pt-meta">${config.profile && config.profile.school ? `<span>${esc(config.profile.school)}</span>` : ''}<span>학번 __________</span><span>이름 ________________</span><span>날짜 ____________</span><span>점수 ______ / ${qs.length}</span></div><p class="pt-guide">${type === 'm' ? '영어 단어의 뜻을 쓰세요.' : type === 'w' ? '우리말 뜻에 맞는 영어 단어를 쓰세요.' : '영어 단어는 뜻을, 우리말은 영어 단어를 쓰세요.'}</p></div>`;
     let el = $('printArea'); if (!el) { el = document.createElement('div'); el.id = 'printArea'; document.body.appendChild(el); }
     el.innerHTML = `${head}<ol class="pt-list">${qs.map((q, i) => row(q, i, false)).join('')}</ol>` +
       ($('ptKey') && $('ptKey').checked ? `<div class="pt-key"><div class="pt-head"><h1>${esc(cat.name)} · 정답</h1></div><ol class="pt-list key">${qs.map((q, i) => row(q, i, true)).join('')}</ol></div>` : '') +
