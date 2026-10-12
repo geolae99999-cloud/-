@@ -49,6 +49,7 @@
     grade(w, ok);
     recordStat(ok);
     if (!item.retry) { ok ? S.ok++ : S.no++; }
+    answerFx(ok);
     if (!ok) {
       if (!S.wrong.has(w.id)) S.wrong.set(w.id, item);
       if (!item.retry && S.mode !== 'test') S.queue.push({ w, catId: item.catId, retry: true });
@@ -56,6 +57,14 @@
     syncStorage(); clPing();
   }
   function nextQuestion() { S.idx++; renderQuestion(); }
+  /* 정답/오답 반응: 화면 테두리가 잠깐 빛나고 휴대폰이 짧게 진동해요. 실전 시험에서는 정답을 미리 알려 주지 않도록 꺼요. */
+  let fxTimer = 0;
+  function answerFx(ok) {
+    if (S.mode === 'test') return;
+    const b = document.body; b.classList.remove('ans-ok', 'ans-no'); void b.offsetWidth; b.classList.add(ok ? 'ans-ok' : 'ans-no');
+    clearTimeout(fxTimer); fxTimer = setTimeout(() => b.classList.remove('ans-ok', 'ans-no'), 600);
+    try { if (navigator.vibrate) navigator.vibrate(ok ? 12 : [24, 40, 24]); } catch (e) {}
+  }
 
   /* ----- 플래시카드 ----- */
   function renderCard(item) {

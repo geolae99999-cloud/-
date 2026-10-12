@@ -1171,6 +1171,44 @@
     .rn-opts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
     .rn-intro { position: absolute; inset: 0; background: color-mix(in srgb, var(--bg) 92%, transparent); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 24px; text-align: center; }
     .rn-intro svg { width: 110px; height: 110px; } .rn-intro small { color: var(--muted); line-height: 1.5; } .rn-intro .btn { max-width: 320px; }
+    /* =====================================================
+     * 디자인 v6 · 시중 단어장 앱(말해보카, 클래스카드, Quizlet)식 다듬기
+     * 떠 있는 하단 탭, 공책 표지 단어장, 정답/오답 화면 반응
+     * ===================================================== */
+    @media (max-width: 899px) {
+      body { padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px)); }
+      .bottom-nav { left: 12px; right: 12px; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); max-width: 456px; padding: 6px; border: 1px solid color-mix(in srgb, var(--line) 70%, transparent); border-radius: 26px;
+        background: color-mix(in srgb, var(--surface) 95%, transparent); backdrop-filter: saturate(1.6) blur(20px); -webkit-backdrop-filter: saturate(1.6) blur(20px);
+        box-shadow: 0 10px 30px -8px rgba(25, 31, 40, .22), 0 2px 6px rgba(25, 31, 40, .06); }
+      .nav-item { border-radius: 20px; padding: 6px 0 4px; transition: color .15s, transform .12s; }
+      .nav-item:active { transform: scale(.94); }
+      .nav-item.active { color: var(--blue); }
+      .nav-item.active svg { background: var(--blue); color: #fff; box-shadow: 0 6px 14px -6px color-mix(in srgb, var(--blue) 80%, transparent); }
+      .toast { bottom: calc(104px + env(safe-area-inset-bottom, 0px)); }
+    }
+    body.dark .bottom-nav { box-shadow: 0 10px 30px -8px rgba(0, 0, 0, .6); }
+
+    /* 단어장: 공책 표지 모양 + 표지 색 진행 막대 */
+    .book { position: relative; padding-right: 40px; transition: transform .12s, box-shadow .2s; }
+    .book::after { content: ''; position: absolute; right: 18px; top: 50%; width: 8px; height: 8px; margin-top: -5px; border: solid var(--muted); border-width: 0 2px 2px 0; transform: rotate(-45deg); opacity: .55; }
+    .book-spine { width: 50px; height: 62px; border-radius: 6px 14px 14px 6px; background: linear-gradient(150deg, color-mix(in srgb, var(--bk, var(--blue)) 78%, #fff) 0%, var(--bk, var(--blue)) 70%);
+      box-shadow: inset 5px 0 0 rgba(0, 0, 0, .12), 0 6px 14px -8px var(--bk, var(--blue)); }
+    .book-spine::after { display: block; content: ''; position: absolute; left: 9px; top: 0; bottom: 0; right: auto; border: none; width: 1.5px; background: rgba(255, 255, 255, .35); }
+    .book-spine b { font-size: 1.1rem; }
+    .book-spine small { display: block; font-size: .6rem; opacity: .9; }
+    .book .bar { height: 6px; }
+    .book .bar i { background: var(--bk, var(--blue)); }
+    @media (hover: hover) { .book:hover { box-shadow: 0 10px 24px -14px rgba(25, 31, 40, .35); } }
+
+    /* 연속 정답 표시를 불꽃 배지로 */
+    .ans-combo { background: linear-gradient(135deg, #ff9f43, #ff6b3d) !important; color: #fff !important; border: none !important; box-shadow: 0 8px 18px -8px rgba(255, 107, 61, .8); animation: optPop .4s cubic-bezier(.2, .9, .3, 1.3); }
+    /* 정답/오답 때 화면 테두리가 잠깐 빛나요 */
+    body.ans-ok::after, body.ans-no::after { content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 950; animation: ansGlow .55s ease-out forwards; }
+    body.ans-ok::after { box-shadow: inset 0 0 0 3px var(--mint), inset 0 0 70px color-mix(in srgb, var(--mint) 30%, transparent); }
+    body.ans-no::after { box-shadow: inset 0 0 0 3px var(--coral), inset 0 0 70px color-mix(in srgb, var(--coral) 30%, transparent); }
+    @keyframes ansGlow { from { opacity: 1; } to { opacity: 0; } }
+    @media (prefers-reduced-motion: reduce) { body.ans-ok::after, body.ans-no::after { animation: none; opacity: 0; } }
+
     /* ----- 첫 화면: 소개(광고 영상) + 로그인 ----- */
     .auth-layout { width: 100%; max-width: 1120px; margin: auto; display: flex; flex-direction: column; align-items: center; gap: 22px; }
     .auth-layout .auth-box { order: -1; margin: 0; }
