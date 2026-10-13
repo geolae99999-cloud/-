@@ -41,7 +41,7 @@ async function signup(p, id, role, name, sno) {
 (async () => {
   if (!NOSQL) psql('truncate voca_submissions, voca_assignments, voca_class_members, voca_classes restart identity cascade');
   const b = await chromium.launch(), errs = [], res = {};
-  const page = async (vp, tag) => { const ctx = await b.newContext({ viewport: vp }), p = await ctx.newPage(); p.on('pageerror', e => errs.push(tag + ' ' + e.message)); await p.route(/fonts|jsdelivr/, r => r.abort()); await p.addInitScript(() => { try { window.speechSynthesis.speak = () => {}; } catch (e) {} }); await mock(p); return p; };
+  const page = async (vp, tag) => { const ctx = await b.newContext({ viewport: vp }), p = await ctx.newPage(); p.on('pageerror', e => errs.push(tag + ' ' + e.message)); await require('./undef')(p, errs, tag); await p.route(/fonts|jsdelivr/, r => r.abort()); await p.addInitScript(() => { try { window.speechSynthesis.speak = () => {}; } catch (e) {} }); await mock(p); return p; };
   const T = await page({ width: 1280, height: 860 }, 'T'), shotT = n => T.screenshot({ path: path.join(shots, `T-${n}.png`) });
   await signup(T, 'kimteacher', 'teacher', '김선생');
   res.teachEntry = await T.evaluate(() => !!document.querySelector('.cl-entry [data-act="class-open"]'));

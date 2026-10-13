@@ -108,10 +108,24 @@
     const own = ownedWords(), list = gradeWords(k), left = list.filter(e => !own.has(e.w.toLowerCase())).length;
     openSheet(`${listName(k)} 단어 ${list.length}`, `
       <div class="rec-tabs">${(ZH_PACK_NAMES[k] ? [ZH_PACKS, ZH_PACKS_NEW] : [PACKS, GRADES]).map(g => `<div class="rec-tab-row">${g.map(([gk, n]) => `<button class="chip ${gk === k ? 'on' : ''}${PACK_NAMES[gk] ? ' pack' : ''}" data-act="rec-tab" data-g="${gk}">${n}</button>`).join('')}</div>`).join('')}</div>
-      <div class="rec-list" id="recList">${list.map((e, i) => { const has = own.has(e.w.toLowerCase()); return `<label class="rec-row ${has ? 'has' : ''}"><input type="checkbox" value="${i}" ${has ? 'checked disabled' : ''}><span class="w-no">${String(i + 1).padStart(3, '0')}</span><b>${esc(e.w)}</b><span class="rec-m">${e.p ? `<i class="rec-py">${esc(e.p)}</i> ` : ''}${esc(e.m)}</span>${has ? '<em>담음</em>' : ''}</label>`; }).join('')}</div>
+      <div class="rec-list" id="recList"></div><button class="rec-more" id="recMore" data-act="rec-more" hidden>더 보기</button>
       <div class="rec-bar"><button class="btn btn-soft" data-act="rec-pick-add">선택한 단어 담기</button><button class="btn btn-primary" data-act="rec-left-add" ${left ? '' : 'disabled'}>남은 ${left}개 모두 담기</button></div>`);
+    recRowsAt = 0; recOwn = own; recMore();
+    // 수천 개를 한 번에 그리면 휴대폰이 멈춰요. 150개씩, 아래로 내리면 이어서 그려요.
+    if (recIO) recIO.disconnect();
+    if ('IntersectionObserver' in window) { recIO = new IntersectionObserver(es => { if (es.some(x => x.isIntersecting)) recMore(); }, { rootMargin: '400px 0px' }); recIO.observe($('recMore')); }
   }
   ACTIONS['rec-tab'] = el => recSheet(el.dataset.g);
+  const REC_STEP = 150;
+  let recRowsAt = 0, recOwn = new Set(), recIO = null;
+  const recRowHtml = (e, i, has) => `<label class="rec-row ${has ? 'has' : ''}"><input type="checkbox" value="${i}" ${has ? 'checked disabled' : ''}><span class="w-no">${String(i + 1).padStart(3, '0')}</span><b>${esc(e.w)}</b><span class="rec-m">${e.p ? `<i class="rec-py">${esc(e.p)}</i> ` : ''}${esc(e.m)}</span>${has ? '<em>담음</em>' : ''}</label>`;
+  function recMore() {
+    const box = $('recList'), btn = $('recMore'); if (!box || !btn) return;
+    const list = gradeWords(recSheetK), end = Math.min(list.length, recRowsAt + REC_STEP);
+    box.insertAdjacentHTML('beforeend', list.slice(recRowsAt, end).map((e, j) => recRowHtml(e, recRowsAt + j, recOwn.has(e.w.toLowerCase()))).join(''));
+    recRowsAt = end; btn.hidden = end >= list.length; btn.textContent = `더 보기 (${(list.length - end).toLocaleString()}개 남음)`;
+  }
+  ACTIONS['rec-more'] = () => recMore();
   ACTIONS['rec-pick-add'] = async () => {
     const list = gradeWords(recSheetK), pick = [...document.querySelectorAll('#recList input:checked:not(:disabled)')].map(i => list[+i.value]).filter(Boolean);
     if (!pick.length) return toast('담을 단어를 골라 주세요.');

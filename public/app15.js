@@ -192,7 +192,7 @@
     ['book-print', IC.print, 'i-teal', '단어 시험지 만들기', '인쇄하거나 PDF로 나눠 줘요'],
     ['book-share', IC.book, 'i-grape', '단어장 링크 공유', '학생들이 링크 하나로 받아 가요'],
     ['exam-open', IC.trophy, 'i-coral', '실전 시험 미리 풀기', '학생이 보는 시험을 직접 확인해요'],
-    ['quizshow', IC.sparkle, 'i-sun', '퀴즈 쇼', '4지선다를 크게 띄우고 팀 점수를 매겨요'],
+    ['quizshow', IC.sparkles, 'i-sun', '퀴즈 쇼', '4지선다를 크게 띄우고 팀 점수를 매겨요'],
     ['bingo', IC.grid, 'i-mint', '단어 빙고판', '학생마다 배치가 다른 빙고판을 인쇄해요'],
     ['picker', IC.users, 'i-grape', '발표자 뽑기 · 모둠', '번호나 반 명단에서 무작위로 뽑아요'],
     ['ctimer', IC.clock, 'i-teal', '수업 타이머', '활동 시간을 크게 띄우고 끝나면 알려요']

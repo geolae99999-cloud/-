@@ -9,6 +9,7 @@
     dict:    { name: '듣고 쓰기', ico: IC.headphones, desc: '발음을 듣고 타이핑' },
     listen:  { name: '듣기 모드', ico: IC.speaker, desc: '자동으로 이어 듣기' },
     cloze:   { name: '문장 빈칸', ico: IC.quote, desc: '예문 속 빈칸 단어 고르기' },
+    sentence:{ name: '문장 배열', ico: IC.rows, desc: '예문 단어를 순서대로 놓기' },
     speak:   { name: '말하기', ico: IC.mic, desc: '소리 내어 발음 확인' },
     lchoice: { name: '듣고 고르기', ico: IC.headphones, desc: '발음만 듣고 뜻 맞히기' },
     scramble:{ name: '철자 퍼즐', ico: IC.shuffle, desc: '글자 조각을 눌러 단어 완성' },

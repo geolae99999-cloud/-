@@ -11,6 +11,7 @@ const srv = http.createServer((q, r) => { let f = path.join(root, decodeURICompo
   for (const vp of [{ width: 1920, height: 1080 }, { width: 1440, height: 900 }, { width: 1100, height: 800 }].filter(v => only.includes(v.width))) {
     const ctx = await b.newContext({ viewport: vp }); const p = await ctx.newPage(); const tag = String(vp.width);
     p.on('pageerror', e => errs.push(tag + ' ' + e.message));
+    await require('./undef')(p, errs, tag);
     await p.route('https://cdn.jsdelivr.net/**', r => r.abort());
     await p.addInitScript(() => { try { window.speechSynthesis.speak = () => {}; } catch (e) {} });
     const shot = n => p.screenshot({ path: path.join(shots, `${tag}-${n}.png`) });

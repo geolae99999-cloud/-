@@ -1,4 +1,227 @@
   /* =========================================================
+   * 데이터 모델 / 저장소
+   * ======================================================= */
+  let KEY_DATA = '', KEY_CFG = '', currentUser = null, currentLabel = '', cloudTimer = null;
+  const cloudAvail = !!(window.VOCA_CLOUD && window.VOCA_CLOUD.apiKey);
+  // 만 14세 미만은 서버 계정 없이 이 기기에만 저장하는 계정(kidMode)으로 써요. 운영자가 아동 개인정보를 모으지 않도록.
+  const KEY_KID = 'vocapro_kid';
+  let kidMode = false, cloudMode = cloudAvail;
+  function setKidMode(on) { kidMode = !!on && cloudAvail; cloudMode = cloudAvail && !kidMode; }
+  const KEY_USERS = 'vocapro_users', KEY_SESS = 'vocapro_session';
+
+  const DEFAULT_CFG = {
+    provider: 'gemini',
+    keys: { gemini: '', xai: '', openai: '', anthropic: '' },
+    models: { gemini: '', xai: '', openai: '', anthropic: '' },
+    modelLists: { gemini: [], xai: [], openai: [], anthropic: [] },
+    ttsRate: 0.9, koRate: 1, ttsPitch: 1, gap: 0.9, wordRep: 1, matchVoice: true, voice: { en: '', zh: '', ko: '' },
+    goal: 20, darkMode: false, grade: '', lang: 'en'
+  };
+
+  function sanitizeNote(n) {
+    if (!n || typeof n !== 'object') return null;
+    const o = {
+      etymology: str(n.etymology), tip: str(n.tip),
+      examples: (Array.isArray(n.examples) ? n.examples : []).map(str).filter(Boolean).slice(0, 5),
+      confusable: (Array.isArray(n.confusable) ? n.confusable : []).map(c => ({ word: str(c && c.word), meaning: str(c && c.meaning), diff: str(c && c.diff) })).filter(c => c.word).slice(0, 4)
+    };
+    return (o.etymology || o.tip || o.examples.length || o.confusable.length) ? o : null;
+  }
+  /* 예전 데이터의 "영어 예문 (한국어 해석)" 을 예문/해석 두 칸으로 나눠요 */
+  function splitExample(en, ko) {
+    en = str(en); ko = str(ko);
+    if (!ko && en) {
+      const m = en.match(/^(.*?[A-Za-z].*?)\s*[(（]([^()（）]*[가-힣][^()（）]*)[)）]\s*$/);
+      if (m) { en = m[1].trim(); ko = m[2].trim(); }
+      else { const k = en.search(/[가-힣]/); if (k > 0 && /[A-Za-z]/.test(en.slice(0, k))) { ko = en.slice(k).replace(/^[\s/\-–—:]+/, '').trim(); en = en.slice(0, k).replace(/[\s/\-–—:(（]+$/, '').trim(); } }
+    }
+    return { en, ko };
+  }
+  function sanitizeWord(w) {
+    const n = x => (Number.isFinite(+x) ? +x : 0);
+    const box = (w.box !== undefined && Number.isFinite(+w.box)) ? Math.max(0, Math.min(5, Math.floor(+w.box))) : (w.memorized ? 5 : 0);
+    let due = n(w.due);
+    if (box > 0 && due <= 0) due = addDays(startOfDay(), INTERVALS[box]);
+    if (box === 0) due = 0;
+    const ex = splitExample(w.example, w.exampleKo);
+    return {
+      id: safeId(w.id) || uid(), word: str(w.word), meaning: str(w.meaning), phonetic: str(w.phonetic),
+      koreanPron: str(w.koreanPron), example: ex.en, exampleKo: ex.ko, synonyms: str(w.synonyms), exPy: str(w.exPy).slice(0, 200),
+      star: !!w.star, box, due, reps: Math.max(0, Math.floor(n(w.reps))), wrong: Math.max(0, Math.floor(n(w.wrong))),
+      miss: Math.max(0, Math.min(9, Math.floor(n(w.miss)))), last: str(w.last), created: n(w.created) || Date.now(), note: sanitizeNote(w.note)
+    };
+  }
+  function sanitizeCategories(list) {
+    if (!Array.isArray(list)) return null;
+    const catIds = new Set();
+    return list.filter(c => c && typeof c === 'object').map(c => {
+      let id = safeId(c.id) || 'c' + uid();
+      if (catIds.has(id)) id = 'c' + uid();
+      catIds.add(id);
+      const wIds = new Set();
+      const words = (Array.isArray(c.words) ? c.words : []).filter(w => w && typeof w === 'object' && str(w.word)).map(sanitizeWord);
+      words.forEach(w => { if (wIds.has(w.id)) w.id = uid(); wIds.add(w.id); });
+      return { id, name: str(c.name).slice(0, 40) || '이름 없음', words };
+    });
+  }
+  function sanitizeStats(s) {
+    const days = {};
+    if (s && typeof s.days === 'object' && s.days) {
+      for (const k of Object.keys(s.days)) {
+        if (/^\d{4}-\d{2}-\d{2}$/.test(k)) {
+          const d = s.days[k] || {};
+          days[k] = { n: Math.max(0, Math.floor(+d.n) || 0), ok: Math.max(0, Math.floor(+d.ok) || 0) };
+        }
+      }
+    }
+    const tests = Array.isArray(s && s.tests) ? s.tests.filter(t => t && +t.d > 0 && +t.n > 0).slice(-30).map(t => ({ d: +t.d, n: Math.floor(+t.n), ok: Math.max(0, Math.floor(+t.ok) || 0), sec: Math.max(0, Math.floor(+t.sec) || 0), src: String(t.src || '').slice(0, 40) })) : [];
+    return tests.length ? { days, tests } : { days };
+  }
+  const defaultCats = () => [
+    { id: 'cat_today', name: '오늘 (Day 1)', words: [] },
+    { id: 'cat_review', name: '누적 복습', words: [] }
+  ];
+
+  const cleanProfile = p => ({ name: String((p && p.name) || '').trim().slice(0, 20), school: String((p && p.school) || '').trim().slice(0, 30), sno: String((p && p.sno) || '').trim().slice(0, 12) });
+  // 읽어주기 설정(속도·높이·쉬는 시간·목소리)을 저장본에서 안전하게 읽어요.
+  function ttsCfgIn(cfg, d) {
+    if (!d) return;
+    const n = (k, lo, hi) => { const x = parseFloat(d[k]); if (isFinite(x)) cfg[k] = Math.min(hi, Math.max(lo, x)); };
+    n('ttsRate', .5, 2); n('koRate', .5, 2); n('ttsPitch', .5, 1.5); n('gap', 0, 5); n('wordRep', 1, 3);
+    if (typeof d.matchVoice === 'boolean') cfg.matchVoice = d.matchVoice;
+    if (d.voice && typeof d.voice === 'object') cfg.voice = { en: String(d.voice.en || '').slice(0, 200), zh: String(d.voice.zh || '').slice(0, 200), ko: String(d.voice.ko || '').slice(0, 200) };
+  }
+  const ttsCfgOut = () => ({ ttsRate: config.ttsRate, koRate: config.koRate, ttsPitch: config.ttsPitch, gap: config.gap, wordRep: config.wordRep, matchVoice: config.matchVoice });
+  function loadConfig() {
+    const cfg = JSON.parse(JSON.stringify(DEFAULT_CFG));
+    const saved = loadJson(KEY_CFG);
+    if (saved) {
+      cfg.provider = saved.provider || cfg.provider;
+      cfg.ttsRate = saved.ttsRate || cfg.ttsRate;
+      ttsCfgIn(cfg, saved);
+      cfg.goal = saved.goal || cfg.goal;
+      cfg.darkMode = !!saved.darkMode;
+      cfg.lang = saved.lang === 'zh' ? 'zh' : 'en';
+      cfg.grade = GRADE_NAMES[saved.grade] ? saved.grade : '';
+      cfg.role = saved.role === 'teacher' ? 'teacher' : '';
+      cfg.profile = cleanProfile(saved.profile);
+      for (const p of Object.keys(cfg.keys)) {
+        if (saved.keys && saved.keys[p]) cfg.keys[p] = saved.keys[p];
+        if (saved.models && saved.models[p]) cfg.models[p] = saved.models[p];
+        if (saved.modelLists && Array.isArray(saved.modelLists[p])) cfg.modelLists[p] = saved.modelLists[p];
+      }
+    }
+    return cfg;
+  }
+  function loadDb() { const d = loadJson(KEY_DATA); useBlob(d && Array.isArray(d.categories) ? d : null); }
+
+  let config = JSON.parse(JSON.stringify(DEFAULT_CFG));
+  let categories = defaultCats();
+  let stats = { days: {} };
+  /* 영어와 중국어는 단어장과 학습 기록을 따로 가져요. 저장할 때는 영어를 예전 자리(categories, stats)에,
+     중국어를 zh 안에 넣어서 예전 앱과 백업 파일도 그대로 읽혀요. altSet 은 지금 안 보고 있는 언어 쪽이에요. */
+  const emptySet = () => ({ categories: defaultCats(), stats: { days: {} } });
+  let altSet = emptySet();
+  function dataBlob() {
+    const cur = { categories, stats }, en = isZh() ? altSet : cur, zh = isZh() ? cur : altSet;
+    return { categories: en.categories, stats: en.stats, zh: { categories: zh.categories, stats: zh.stats } };
+  }
+  function useBlob(d) {
+    const en = { categories: (d && sanitizeCategories(d.categories)) || defaultCats(), stats: sanitizeStats(d && d.stats) };
+    const z = d && d.zh && typeof d.zh === 'object' ? d.zh : null;
+    const zh = { categories: (z && sanitizeCategories(z.categories)) || defaultCats(), stats: sanitizeStats(z && z.stats) };
+    LANG = config.lang === 'zh' ? 'zh' : 'en';
+    const cur = isZh() ? zh : en; altSet = isZh() ? en : zh;
+    categories = cur.categories; stats = cur.stats;
+  }
+
+  function syncStorage() {
+    if (!currentUser) return;
+    try {
+      LS.setItem(KEY_DATA, JSON.stringify(dataBlob()));
+      LS.setItem(KEY_CFG, JSON.stringify(config));
+      LS.setItem(KEY_DATA + ':ts', String(Date.now())); cloudQueue();
+    } catch (e) {
+      toast('저장 공간이 부족하거나 저장이 차단되었어요. 백업을 받아두세요.');
+    }
+  }
+
+  /* ----- 단어/복습 로직 ----- */
+  const allWords = () => { const out = []; categories.forEach(c => c.words.forEach(w => out.push({ w, catId: c.id }))); return out; };
+  const curCatId = () => currentCategoryId;
+  let currentCategoryId = null;
+  const curCat = () => categories.find(c => c.id === currentCategoryId);
+  const findBook = id => categories.find(c => c.id === id);
+
+  function counts() {
+    const end = endOfToday();
+    const c = { total: 0, newW: 0, learning: 0, mastered: 0, due: 0, miss: 0, star: 0 };
+    allWords().forEach(({ w }) => {
+      c.total++;
+      if (w.box === 0) c.newW++; else if (w.box >= 5) c.mastered++; else c.learning++;
+      if (w.box >= 1 && w.due <= end) c.due++;
+      if (w.miss > 0) c.miss++;
+      if (w.star) c.star++;
+    });
+    return c;
+  }
+
+  function grade(w, ok) {
+    const today = startOfDay();
+    const key = dayKey();
+    if (ok) {
+      if (w.last !== key) { w.box = Math.min(5, w.box + 1); w.due = addDays(today, INTERVALS[w.box]); }
+      w.reps++;
+      if (w.miss > 0) w.miss--;
+    } else {
+      w.box = 1; w.due = addDays(today, 1); w.wrong++; w.miss = 2;
+    }
+    w.last = key;
+  }
+  function dueText(w) {
+    if (w.box === 0) return '아직 학습 전';
+    const diff = Math.round((startOfDay(w.due) - startOfDay()) / DAY);
+    if (diff <= 0) return '오늘 복습';
+    if (diff === 1) return '내일 복습';
+    return diff + '일 뒤 복습';
+  }
+  function streak() {
+    let t = startOfDay();
+    const has = x => (stats.days[dayKey(x)] || {}).n > 0;
+    if (!has(t)) t = addDays(t, -1);
+    let n = 0;
+    while (has(t)) { n++; t = addDays(t, -1); }
+    return n;
+  }
+  function bestStreak() {
+    const keys = Object.keys(stats.days).filter(k => stats.days[k].n > 0).sort();
+    let best = 0, cur = 0, prev = null;
+    keys.forEach(k => {
+      const t = new Date(k + 'T00:00:00').getTime();
+      cur = (prev !== null && Math.round((t - prev) / DAY) === 1) ? cur + 1 : 1;
+      best = Math.max(best, cur); prev = t;
+    });
+    return best;
+  }
+  function recordStat(ok) {
+    const k = dayKey();
+    if (!stats.days[k]) stats.days[k] = { n: 0, ok: 0 };
+    stats.days[k].n++;
+    if (ok) stats.days[k].ok++;
+    renderNavCard();
+  }
+  function renderNavCard() {
+    const el = $('navCard'); if (!el) return;
+    try {
+      const goal = config.goal || 20, n = (stats.days[dayKey()] || { n: 0 }).n, st = streak();
+      el.innerHTML = `${MASCOT(n >= goal ? 'cheer' : 'happy')}<b>오늘 ${Math.min(n, 999)} / ${goal}</b><div class="bar"><i style="width:${Math.min(100, Math.round(n / goal * 100))}%"></i></div><small>${st > 0 ? `${st}일 연속 학습 중` : '오늘 첫 학습을 시작해요'}</small>`;
+    } catch (e) { el.innerHTML = ''; }
+  }
+
+  const BOOK_COLORS = ['#3182f6', '#03b26c', '#ff8a1f', '#7b61ff', '#f04f8a', '#00a5b8'];
+  const bookColor = id => { let h = 0; for (const ch of String(id)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return BOOK_COLORS[h % BOOK_COLORS.length]; };
+
+  /* =========================================================
    * 테마 / 라우팅
    * ======================================================= */
   ACTIONS.theme = () => { config.darkMode = !config.darkMode; applyTheme(); syncStorage(); };

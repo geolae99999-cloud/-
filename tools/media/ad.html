@@ -2,185 +2,543 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>VocaPro 광고 영상 (15초)</title>
-<!-- tools/media/render.js 가 이 페이지를 프레임마다 seek(t) 해서 찍은 뒤 mp4로 묶어요. 브라우저로 열면 그대로 재생돼요. -->
+<title>VocaPro 광고 영상 (23초, 1920x1080)</title>
+<!-- tools/media/render.js 가 이 페이지를 seek(t) 해서 프레임마다 찍은 뒤 mp4/webm 으로 묶어요. 브라우저로 열면 그대로 반복 재생돼요.
+     콘티: 1 질문(까먹었나요?) → 2 브랜드 → 3 AI 자동 완성 → 4 간격 반복 그래프 → 5 학습 방법 → 6 영어/중국어 전환 → 7 선생님 수업 도구 → 8 엔딩 -->
 <style>
   @font-face { font-family: P; src: url(__FONT__) format('woff2'); font-weight: 100 900; }
-  * { box-sizing: border-box; margin: 0; }
-  html, body { width: 1280px; height: 720px; overflow: hidden; background: #f2f4f6; font-family: P, Pretendard, 'Apple SD Gothic Neo', sans-serif; color: #191f28; letter-spacing: -0.02em; }
+  __FONT_SC__
+  :root { --blue: #3182f6; --blue2: #1b64da; --ink: #191f28; --sub: #4e5968; --mute: #8b95a1; --bg: #f2f4f6; --navy: #0a1224; --red: #f04452; --green: #03b26c; --orange: #ff7a1a; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; font-family: P, Pretendard, 'Apple SD Gothic Neo', sans-serif; color: var(--ink); letter-spacing: -0.025em; -webkit-font-smoothing: antialiased; }
   .stage { position: absolute; inset: 0; overflow: hidden; }
-  .scene { position: absolute; inset: 0; opacity: 0; }
+  .scene { position: absolute; inset: 0; overflow: hidden; visibility: hidden; will-change: transform, clip-path; }
   .abs { position: absolute; }
-  .blue { background: linear-gradient(135deg, #4593fc 0%, #3182f6 45%, #1b64da 100%); color: #fff; }
-  .disc { border-radius: 50%; background: #fff; box-shadow: 0 24px 60px rgba(0,0,0,.18); }
-  .ring { position: absolute; border-radius: 50%; border: 2px solid rgba(255,255,255,.18); }
-  .mascot { display: block; width: 100%; height: 100%; overflow: visible; color: #191f28; }
-  h1 { font-weight: 800; font-size: 76px; line-height: 1.12; letter-spacing: -0.04em; }
-  h2 { font-weight: 800; font-size: 54px; line-height: 1.18; letter-spacing: -0.035em; }
-  .sub { font-size: 26px; font-weight: 500; color: #4e5968; line-height: 1.5; }
-  .blue .sub { color: rgba(255,255,255,.85); }
-  .logo { display: flex; align-items: center; gap: 14px; font-weight: 800; font-size: 40px; }
-  .logo i { font-style: normal; width: 56px; height: 56px; border-radius: 16px; background: #fff; color: #3182f6; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 900; }
-  .logo b { font-weight: 800; }
-  .phone { width: 330px; height: 600px; border-radius: 46px; background: #191f28; padding: 12px; box-shadow: 0 30px 80px rgba(25,31,40,.25); }
-  .screen { width: 100%; height: 100%; border-radius: 36px; background: #f2f4f6; overflow: hidden; padding: 54px 18px 18px; position: relative; }
-  .notch { position: absolute; top: 12px; left: 50%; width: 96px; height: 26px; margin-left: -48px; border-radius: 14px; background: #191f28; }
-  .card { background: #fff; border-radius: 22px; padding: 18px; box-shadow: 0 2px 10px rgba(0,0,0,.04); }
-  .lbl { font-size: 13px; color: #8b95a1; font-weight: 600; margin-bottom: 6px; }
-  .inp { height: 50px; border-radius: 14px; background: #f2f4f6; display: flex; align-items: center; padding: 0 14px; font-size: 21px; font-weight: 700; }
-  .caret { display: inline-block; width: 2px; height: 24px; background: #3182f6; margin-left: 2px; }
-  .btn { height: 48px; border-radius: 14px; background: #3182f6; color: #fff; font-weight: 700; font-size: 17px; display: flex; align-items: center; justify-content: center; }
-  .field { margin-top: 12px; }
-  .val { font-size: 19px; font-weight: 700; }
-  .val.s { font-size: 16px; font-weight: 500; color: #4e5968; line-height: 1.45; }
-  .chip { display: inline-flex; align-items: center; height: 34px; padding: 0 14px; border-radius: 17px; background: #e8f3ff; color: #1b64da; font-weight: 700; font-size: 15px; }
-  .tile { width: 250px; height: 132px; border-radius: 26px; background: #fff; padding: 22px; box-shadow: 0 8px 24px rgba(25,31,40,.06); }
-  .tile .ico { width: 44px; height: 44px; border-radius: 13px; display: flex; align-items: center; justify-content: center; }
-  .tile .ico svg { width: 24px; height: 24px; }
-  .tile b { display: block; font-size: 24px; font-weight: 800; margin-top: 14px; }
-  .stat { width: 330px; height: 250px; border-radius: 30px; background: #fff; padding: 34px 30px; box-shadow: 0 10px 30px rgba(25,31,40,.07); }
-  .stat .num { font-size: 64px; font-weight: 800; color: #3182f6; letter-spacing: -0.04em; }
-  .stat .t { font-size: 24px; font-weight: 700; margin-top: 10px; }
-  .stat .d { font-size: 18px; color: #8b95a1; margin-top: 6px; line-height: 1.4; }
-  .cta { height: 76px; padding: 0 44px; border-radius: 22px; background: #fff; color: #1b64da; font-weight: 800; font-size: 30px; display: inline-flex; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,.15); }
-  .url { font-size: 28px; font-weight: 700; color: rgba(255,255,255,.9); letter-spacing: 0; }
-  .flip { width: 300px; height: 190px; perspective: 900px; }
-  .flip > div { position: absolute; inset: 0; border-radius: 26px; background: #fff; box-shadow: 0 10px 30px rgba(25,31,40,.10); display: flex; flex-direction: column; align-items: center; justify-content: center; backface-visibility: hidden; }
-  .flip .f b { font-size: 42px; font-weight: 800; }
-  .flip .f small { font-size: 18px; color: #8b95a1; margin-top: 6px; }
-  .flip .k { transform: rotateY(180deg); background: #3182f6; color: #fff; }
-  .flip .k b { font-size: 38px; font-weight: 800; }
+  .ln { display: block; overflow: hidden; padding: .06em 0 .1em; margin: -.06em 0 -.1em; }
+  .ln > span { display: inline-block; will-change: transform; }
+  .ch { display: inline-block; white-space: pre; }
+  .mascot { display: block; width: 100%; height: 100%; overflow: visible; color: var(--ink); }
+  .blueBg { background: radial-gradient(120% 120% at 20% 10%, #4f9dff 0%, #3182f6 40%, #1b5fd6 75%, #1650c0 100%); color: #fff; }
+  .navyBg { background: radial-gradient(90% 90% at 50% 40%, #13213f 0%, #0a1224 60%, #060b17 100%); color: #fff; }
+  .blob { position: absolute; border-radius: 50%; filter: blur(90px); opacity: .55; }
+  .vignette { position: absolute; inset: 0; background: radial-gradient(70% 70% at 50% 50%, transparent 55%, rgba(0,0,0,.45) 100%); pointer-events: none; }
+  .dots { position: absolute; inset: -40px; background-image: radial-gradient(rgba(25,31,40,.07) 1.6px, transparent 1.6px); background-size: 34px 34px; }
+  .logoMark { display: inline-flex; align-items: center; justify-content: center; background: #fff; color: var(--blue); font-weight: 900; }
+  .chip { display: inline-flex; align-items: center; gap: 10px; height: 56px; padding: 0 26px; border-radius: 28px; background: #e8f3ff; color: var(--blue2); font-weight: 700; font-size: 26px; }
+  .chip svg { width: 26px; height: 26px; }
+
+  /* 휴대폰 */
+  .phone { width: 430px; height: 880px; border-radius: 68px; background: linear-gradient(145deg, #2a2f38, #0d0f13); padding: 14px; box-shadow: 0 60px 120px rgba(17,24,39,.28), 0 18px 40px rgba(17,24,39,.18), inset 0 0 0 2px rgba(255,255,255,.08); }
+  .screen { position: relative; width: 100%; height: 100%; border-radius: 55px; background: var(--bg); overflow: hidden; }
+  .island { position: absolute; top: 14px; left: 50%; width: 120px; height: 34px; margin-left: -60px; border-radius: 17px; background: #0d0f13; z-index: 5; }
+  .sbar { position: absolute; top: 18px; left: 40px; right: 36px; display: flex; justify-content: space-between; font-size: 17px; font-weight: 700; color: var(--ink); }
+  .apphead { position: absolute; top: 70px; left: 26px; right: 26px; display: flex; align-items: center; gap: 14px; font-size: 26px; font-weight: 800; }
+  .card { background: #fff; border-radius: 28px; padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,.04); }
+  .lbl { font-size: 16px; color: var(--mute); font-weight: 600; margin-bottom: 8px; }
+  .inp { height: 62px; border-radius: 16px; background: var(--bg); display: flex; align-items: center; padding: 0 18px; font-size: 27px; font-weight: 700; }
+  .caret { display: inline-block; width: 2.5px; height: 30px; background: var(--blue); margin-left: 2px; }
+  .btn { position: relative; overflow: hidden; height: 60px; border-radius: 16px; background: var(--blue); color: #fff; font-weight: 700; font-size: 21px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .btn svg { width: 22px; height: 22px; }
+  .ripple { position: absolute; width: 40px; height: 40px; margin: -20px 0 0 -20px; border-radius: 50%; background: rgba(255,255,255,.45); left: 50%; top: 50%; }
+  .field { margin-top: 18px; position: relative; }
+  .val { font-size: 24px; font-weight: 700; }
+  .val.s { font-size: 19px; font-weight: 500; color: var(--sub); line-height: 1.45; }
+  .val .pos { display: inline-block; font-size: 15px; padding: 2px 8px; border-radius: 6px; background: #e8f3ff; color: var(--blue2); margin-right: 8px; vertical-align: 3px; }
+  .syn { display: inline-flex; height: 36px; padding: 0 14px; border-radius: 18px; background: var(--bg); align-items: center; font-size: 18px; font-weight: 600; color: var(--sub); margin-right: 8px; }
+  .skel { position: absolute; left: 0; right: 0; top: 0; height: 100%; border-radius: 10px; background: linear-gradient(90deg, #eef1f4 0%, #f7f9fb 50%, #eef1f4 100%); background-size: 300% 100%; }
+  .callout { position: absolute; display: flex; align-items: center; gap: 12px; height: 64px; padding: 0 26px 0 14px; border-radius: 32px; background: #fff; box-shadow: 0 16px 40px rgba(17,24,39,.12); font-size: 24px; font-weight: 700; white-space: nowrap; }
+  .callout i { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-style: normal; }
+  .callout i svg { width: 20px; height: 20px; }
+  .callout small { font-weight: 500; color: var(--mute); font-size: 20px; }
+
+  /* 퀴즈 화면 */
+  .qbar { position: absolute; top: 70px; left: 26px; right: 26px; display: flex; align-items: center; gap: 16px; font-size: 18px; color: var(--mute); font-weight: 600; }
+  .qbar .track { flex: 1; height: 10px; border-radius: 5px; background: #e5e8eb; overflow: hidden; }
+  .qbar .track b { display: block; height: 100%; border-radius: 5px; background: var(--blue); }
+  .qcard { position: absolute; left: 22px; right: 22px; top: 120px; height: 300px; border-radius: 32px; background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 2px 12px rgba(0,0,0,.04); }
+  .qcard small { font-size: 18px; color: var(--mute); }
+  .qcard b { font-size: 64px; font-weight: 800; margin: 10px 0 12px; letter-spacing: -0.03em; }
+  .qcard em { font-style: normal; font-size: 19px; color: var(--blue2); background: #e8f3ff; padding: 4px 12px; border-radius: 10px; font-weight: 600; }
+  .opt { position: absolute; left: 22px; right: 22px; height: 76px; border-radius: 22px; background: #fff; border: 2.5px solid transparent; display: flex; align-items: center; gap: 16px; padding: 0 20px; font-size: 24px; font-weight: 600; color: var(--sub); box-shadow: 0 1px 6px rgba(0,0,0,.03); }
+  .opt i { width: 36px; height: 36px; border-radius: 50%; border: 2px solid #e5e8eb; display: flex; align-items: center; justify-content: center; font-style: normal; font-size: 17px; color: var(--mute); }
+  .opt.ok { border-color: var(--green); background: #e9f9f1; color: var(--ink); font-weight: 700; }
+  .opt.ok i { background: var(--green); border-color: var(--green); color: #fff; }
+  .opt.ok i svg { width: 20px; height: 20px; }
+  .glow { position: absolute; inset: 0; border-radius: 55px; box-shadow: inset 0 0 0 5px rgba(3,178,108,.75), inset 0 0 60px rgba(3,178,108,.35); opacity: 0; z-index: 4; }
+  .toast { position: absolute; left: 22px; right: 22px; bottom: 26px; height: 96px; border-radius: 26px; background: #e9f9f1; display: flex; align-items: center; gap: 16px; padding: 0 22px; }
+  .toast i { width: 50px; height: 50px; border-radius: 50%; background: var(--green); color: #fff; display: flex; align-items: center; justify-content: center; }
+  .toast i svg { width: 26px; height: 26px; }
+  .toast b { display: block; font-size: 24px; color: #079a5f; }
+  .toast small { font-size: 17px; color: var(--sub); }
+  .combo { position: absolute; right: 22px; top: 22px; height: 46px; padding: 0 18px; border-radius: 23px; background: linear-gradient(135deg, #ffa53a, #ff6a1a); color: #fff; font-weight: 800; font-size: 18px; display: flex; align-items: center; gap: 6px; box-shadow: 0 8px 20px rgba(255,106,26,.35); }
+  .combo svg { width: 20px; height: 20px; }
+  .finger { position: absolute; width: 74px; height: 74px; border-radius: 50%; background: rgba(25,31,40,.18); border: 3px solid rgba(255,255,255,.9); box-shadow: 0 8px 24px rgba(0,0,0,.18); z-index: 6; }
+
+  /* 학습 방법 휠 */
+  .wheel { position: absolute; left: 900px; top: 470px; width: 860px; height: 470px; overflow: hidden; -webkit-mask-image: linear-gradient(transparent, #000 16%, #000 84%, transparent); }
+  .witem { position: absolute; left: 0; height: 90px; display: flex; align-items: center; gap: 22px; font-size: 54px; font-weight: 800; color: #c2c8d0; white-space: nowrap; transform-origin: left center; }
+  .witem i { width: 74px; height: 74px; border-radius: 22px; display: flex; align-items: center; justify-content: center; }
+  .witem i svg { width: 38px; height: 38px; }
+
+  /* 영어 / 중국어 */
+  .toggle { position: absolute; left: 50%; top: 150px; width: 440px; height: 150px; margin-left: -220px; border-radius: 75px; background: #fff; box-shadow: 0 20px 50px rgba(17,24,39,.12), inset 0 0 0 2px #eef1f4; }
+  .toggle .knob { position: absolute; top: 12px; left: 12px; width: 206px; height: 126px; border-radius: 63px; background: var(--blue); }
+  .toggle span { position: absolute; top: 0; width: 220px; height: 150px; display: flex; align-items: center; justify-content: center; font-size: 60px; font-weight: 900; }
+  .wcard { position: absolute; left: 50%; top: 360px; width: 640px; height: 300px; margin-left: -320px; perspective: 1600px; }
+  .wcard > div { position: absolute; inset: 0; border-radius: 40px; background: #fff; box-shadow: 0 30px 70px rgba(17,24,39,.16); display: flex; flex-direction: column; align-items: center; justify-content: center; backface-visibility: hidden; }
+  .wcard b { font-size: 120px; font-weight: 800; line-height: 1.05; letter-spacing: -0.03em; }
+  .wcard small { font-size: 34px; color: var(--mute); margin-top: 14px; font-weight: 600; }
+  .wcard .zh b { font-family: 'Noto Sans SC', P, sans-serif; letter-spacing: 0; }
+  .wcard .zh small b { font-family: P, sans-serif; font-size: 34px; color: var(--red); letter-spacing: 0; }
+  .stats { position: absolute; left: 0; right: 0; top: 880px; display: flex; justify-content: center; gap: 28px; }
+  .stat { min-width: 400px; height: 120px; border-radius: 30px; background: rgba(255,255,255,.14); display: flex; flex-direction: column; justify-content: center; padding: 0 34px; color: #fff; }
+  .stat b { font-size: 46px; font-weight: 800; letter-spacing: -0.03em; }
+  .stat small { font-size: 22px; opacity: .85; font-weight: 600; }
+
+  /* 수업 도구 */
+  .board { position: absolute; left: 130px; top: 230px; width: 1040px; padding-bottom: 48px !important; border-radius: 40px; background: linear-gradient(180deg, #1c2538, #141b2b); box-shadow: 0 50px 100px rgba(0,0,0,.45), inset 0 0 0 2px rgba(255,255,255,.06); padding: 40px 48px; color: #fff; }
+  .board .bh { display: flex; justify-content: space-between; font-size: 24px; color: rgba(255,255,255,.6); font-weight: 600; }
+  .board .bw { text-align: center; font-size: 150px; font-weight: 800; margin: 34px 0 44px; letter-spacing: -0.03em; }
+  .bopts { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .bopt { height: 112px; border-radius: 22px; display: flex; align-items: center; gap: 18px; padding: 0 26px; font-size: 32px; font-weight: 700; color: #fff; position: relative; }
+  .bopt i { width: 48px; height: 48px; border-radius: 14px; background: rgba(255,255,255,.22); display: flex; align-items: center; justify-content: center; font-style: normal; font-size: 24px; font-weight: 800; }
+  .teams { display: flex; gap: 22px; margin-top: 40px; }
+  .team { flex: 1; height: 96px; border-radius: 20px; background: rgba(255,255,255,.06); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; font-size: 26px; font-weight: 700; }
+  .team .fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 20px; opacity: .35; }
+  .team span, .team b { position: relative; }
+  .team b { font-size: 36px; }
+  .tool { position: absolute; left: 1250px; height: 84px; display: flex; align-items: center; gap: 18px; padding: 0 30px 0 16px; border-radius: 26px; background: rgba(255,255,255,.07); box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.08); color: #fff; font-size: 30px; font-weight: 700; white-space: nowrap; }
+  .tool i { width: 54px; height: 54px; border-radius: 16px; display: flex; align-items: center; justify-content: center; }
+  .tool i svg { width: 28px; height: 28px; }
+
+  /* 엔딩 */
+  .cta { position: relative; overflow: hidden; height: 108px; padding: 0 64px; border-radius: 32px; background: #fff; color: var(--blue2); font-weight: 800; font-size: 42px; display: inline-flex; align-items: center; gap: 14px; box-shadow: 0 24px 60px rgba(10,30,80,.35); }
+  .cta svg { width: 36px; height: 36px; }
+  .cta .ripple { background: rgba(49,130,246,.25); }
+  .cursor { position: absolute; width: 56px; height: 56px; z-index: 9; filter: drop-shadow(0 6px 12px rgba(0,0,0,.3)); }
+  .spark { position: absolute; width: 34px; height: 34px; color: #fff; }
 </style>
 </head>
 <body>
 <div class="stage" id="stage">
 
-  <!-- 1. 오프닝 -->
-  <section class="scene blue" id="s1">
-    <div class="ring" style="width:900px;height:900px;left:-260px;top:-420px"></div>
-    <div class="ring" style="width:620px;height:620px;right:-200px;bottom:-330px"></div>
-    <div class="abs disc" id="s1m" style="left:530px;top:90px;width:220px;height:220px"><div style="position:absolute;left:30px;top:26px;width:160px;height:160px">__MASCOT_HAPPY__</div></div>
-    <h1 class="abs" id="s1t" style="left:0;right:0;top:360px;text-align:center">단어, 끝까지 외우다</h1>
-    <div class="abs logo" id="s1l" style="left:0;right:0;top:480px;justify-content:center"><i>V</i><span><b>Voca</b>Pro</span></div>
-    <p class="abs sub" id="s1s" style="left:0;right:0;top:568px;text-align:center">학교 수업용 AI 영어 단어장</p>
+  <!-- 1. 질문: 어제 외운 단어, 오늘 또 까먹었나요? -->
+  <section class="scene navyBg" id="s1">
+    <div id="rows"></div>
+    <div class="vignette"></div>
+    <div class="abs" style="left:0;right:0;top:360px;text-align:center;font-weight:800;font-size:116px;line-height:1.18;letter-spacing:-0.045em">
+      <span class="ln" id="s1a"><span>어제 외운 단어,</span></span>
+      <span class="ln" id="s1b"><span>오늘 또 <span id="s1forgot" style="color:#7fb6ff"></span></span></span>
+    </div>
   </section>
 
-  <!-- 2. AI 자동 채우기 -->
-  <section class="scene" id="s2">
-    <div class="abs" style="left:110px;top:200px;width:560px">
-      <span class="chip" id="s2c">AI 자동 완성</span>
-      <h2 id="s2t" style="margin-top:22px">모르는 단어,<br>넣기만 하세요</h2>
-      <p class="sub" id="s2s" style="margin-top:20px">뜻, 발음, 예문까지 한 번에 채워 줘요.<br>내장 사전 39,219개라 기다릴 필요 없어요.</p>
+  <!-- 2. 브랜드 -->
+  <section class="scene blueBg" id="s2">
+    <div class="blob" id="b1" style="width:900px;height:900px;background:#6fb3ff;left:-200px;top:-300px"></div>
+    <div class="blob" id="b2" style="width:800px;height:800px;background:#5b5cff;right:-200px;bottom:-320px;opacity:.45"></div>
+    <div class="blob" id="b3" style="width:600px;height:600px;background:#22d3ee;left:900px;top:600px;opacity:.25"></div>
+    <div class="abs" id="s2m" style="left:810px;top:150px;width:300px;height:300px">__MASCOT_HAPPY__</div>
+    <div id="s2sp"></div>
+    <div class="abs" id="s2l" style="left:0;right:0;top:520px;display:flex;justify-content:center;align-items:center;gap:30px">
+      <span class="logoMark" id="s2lm" style="width:150px;height:150px;border-radius:44px;font-size:96px">V</span>
+      <span id="s2lt" style="font-size:150px;font-weight:800;letter-spacing:-0.045em;line-height:1"></span>
     </div>
-    <div class="abs phone" id="s2p" style="left:800px;top:60px"><div class="screen"><div class="notch"></div>
-      <div class="card">
-        <div class="lbl">영어 단어</div>
-        <div class="inp"><span id="s2w"></span><span class="caret" id="s2k"></span></div>
-        <div class="btn" id="s2b" style="margin-top:12px">AI 완성</div>
-        <div class="field" id="f1"><div class="lbl">뜻</div><div class="val">형 일관된, 꾸준한</div></div>
-        <div class="field" id="f2"><div class="lbl">발음</div><div class="val">/kənˈsɪstənt/ [컨시스턴트]</div></div>
-        <div class="field" id="f3"><div class="lbl">예문</div><div class="val s">Be consistent every day.<br>매일 꾸준히 하세요.</div></div>
-        <div class="field" id="f4"><div class="lbl">비슷한 말</div><div class="val s">steady, constant</div></div>
+    <div class="abs" style="left:0;right:0;top:740px;text-align:center;font-size:52px;font-weight:600;color:rgba(255,255,255,.92)"><span class="ln" id="s2s"><span>단어, 끝까지 외우게.</span></span></div>
+  </section>
+
+  <!-- 3. AI 자동 완성 -->
+  <section class="scene" id="s3" style="background:var(--bg)">
+    <div class="dots" id="s3d"></div>
+    <div class="abs" style="left:170px;top:300px;width:820px">
+      <div id="s3c"><span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg>AI 자동 완성</span></div>
+      <div style="margin-top:36px;font-size:112px;font-weight:800;line-height:1.16;letter-spacing:-0.045em">
+        <span class="ln" id="s3t1"><span>단어만 넣으세요.</span></span>
+        <span class="ln" id="s3t2"><span style="color:var(--blue)">나머지는 AI가.</span></span>
       </div>
-    </div></div>
-  </section>
-
-  <!-- 3. 학습 방법 -->
-  <section class="scene" id="s3">
-    <h2 class="abs" id="s3t" style="left:0;right:0;top:64px;text-align:center">10가지 방법으로, 지루하지 않게</h2>
-    <div id="tiles"></div>
-  </section>
-
-  <!-- 4. 선생님과 함께 -->
-  <section class="scene" id="s4">
-    <h2 class="abs" id="s4t" style="left:0;right:0;top:80px;text-align:center">혼자도, 우리 반과 함께도</h2>
-    <div class="abs stat" id="st1" style="left:90px;top:250px"><div class="num" id="n1">0</div><div class="t">내장 사전 단어</div><div class="d">숙어와 변화형까지</div></div>
-    <div class="abs stat" id="st2" style="left:475px;top:250px"><div class="num" id="n2">0</div><div class="t">학년별 추천 단어</div><div class="d">초1부터 고3, 수능까지</div></div>
-    <div class="abs stat" id="st3" style="left:860px;top:250px"><div class="num" style="font-size:52px;line-height:77px">우리 반</div><div class="t">과제와 실시간 현황</div><div class="d">선생님이 한눈에 확인</div></div>
-  </section>
-
-  <!-- 5. 엔딩 -->
-  <section class="scene blue" id="s5">
-    <div class="ring" style="width:1000px;height:1000px;left:140px;top:-140px"></div>
-    <div class="abs disc" id="s5m" style="left:150px;top:180px;width:340px;height:340px"><div style="position:absolute;left:50px;top:44px;width:240px;height:240px">__MASCOT_CHEER__</div></div>
-    <div class="abs" style="left:560px;top:170px">
-      <div class="logo" id="s5l" style="font-size:64px"><i style="width:84px;height:84px;font-size:48px;border-radius:24px">V</i><span><b>Voca</b>Pro</span></div>
-      <p class="sub" id="s5s" style="margin-top:20px;font-size:30px">오늘 단어, 오늘 끝내요</p>
-      <div id="s5c" style="margin-top:40px"><span class="cta">무료로 시작하기</span></div>
-      <p class="url" id="s5u" style="margin-top:26px">hijujuwon.kro.kr</p>
+      <p style="margin-top:34px;font-size:36px;font-weight:500;color:var(--sub);line-height:1.5"><span class="ln" id="s3s"><span>뜻, 발음, 예문, 비슷한 말까지 한 번에.</span></span></p>
     </div>
+    <div class="abs" id="s3pw" style="left:1240px;top:100px;perspective:2200px">
+      <div class="phone" id="s3p"><div class="screen">
+        <div class="island"></div><div class="sbar"><span>9:41</span><span>●●● ▮</span></div>
+        <div class="apphead"><span class="logoMark" style="width:40px;height:40px;border-radius:12px;font-size:24px;background:var(--blue);color:#fff">V</span>단어 추가</div>
+        <div class="card abs" style="left:22px;right:22px;top:130px">
+          <div class="lbl">영어 단어</div>
+          <div class="inp"><span id="s3w"></span><span class="caret" id="s3k"></span></div>
+          <div class="btn" id="s3b" style="margin-top:16px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/></svg><span id="s3bt">AI로 채우기</span><span class="ripple" id="s3r"></span></div>
+          <div class="field" id="f1"><div class="lbl">뜻</div><div class="val"><span class="pos">형</span>일관된, 꾸준한</div><div class="skel" id="k1"></div></div>
+          <div class="field" id="f2"><div class="lbl">발음</div><div class="val" style="font-weight:600">/kənˈsɪstənt/ <span style="color:var(--mute);font-weight:500">[컨시스턴트]</span></div><div class="skel" id="k2"></div></div>
+          <div class="field" id="f3"><div class="lbl">예문</div><div class="val s"><b style="color:var(--ink);font-weight:600">Be <u style="text-decoration-color:var(--blue);text-underline-offset:4px">consistent</u> every day.</b><br>매일 꾸준히 하세요.</div><div class="skel" id="k3"></div></div>
+          <div class="field" id="f4"><div class="lbl">비슷한 말</div><div><span class="syn">steady</span><span class="syn">constant</span></div><div class="skel" id="k4"></div></div>
+        </div>
+      </div></div>
+    </div>
+    <div class="callout" id="c1" style="left:1010px;top:470px"><i style="background:var(--blue)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i>뜻 <small>품사까지</small></div>
+    <div class="callout" id="c2" style="left:1620px;top:560px"><i style="background:#8b5cf6"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg></i>발음 <small>원어민 음성</small></div>
+    <div class="callout" id="c3" style="left:1000px;top:700px"><i style="background:#0aa5b4"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h10M4 18h14"/></svg></i>예문 <small>해석까지</small></div>
+    <div class="callout" id="c4" style="left:1640px;top:820px"><i style="background:var(--orange)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10M7 12h10M7 17h6"/></svg></i>비슷한 말</div>
+  </section>
+
+  <!-- 4. 간격 반복 -->
+  <section class="scene navyBg" id="s4">
+    <div class="abs" style="left:170px;top:120px;font-size:96px;font-weight:800;line-height:1.16;letter-spacing:-0.045em">
+      <span class="ln" id="s4t1"><span>잊을 때쯤,</span></span>
+      <span class="ln" id="s4t2"><span style="color:#5aa2ff">다시 꺼내 줘요.</span></span>
+    </div>
+    <p class="abs" style="left:1100px;top:250px;font-size:32px;line-height:1.5;color:rgba(255,255,255,.7);font-weight:500;width:660px"><span class="ln" id="s4s"><span>간격 반복 복습이 오늘 볼 단어를</span></span><span class="ln" id="s4s2"><span>알아서 골라 줘요.</span></span></p>
+    <svg class="abs" id="chart" style="left:150px;top:420px" width="1620" height="560" viewBox="0 0 1620 560">
+      <defs>
+        <linearGradient id="lg" x1="0" x2="1"><stop offset="0" stop-color="#3182f6"/><stop offset="1" stop-color="#7cc0ff"/></linearGradient>
+        <linearGradient id="ag" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#3182f6" stop-opacity=".35"/><stop offset="1" stop-color="#3182f6" stop-opacity="0"/></linearGradient>
+        <filter id="gl" x="-10%" y="-30%" width="120%" height="160%"><feGaussianBlur stdDeviation="8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <clipPath id="clipA"><rect id="clipR" x="0" y="0" width="0" height="560"/></clipPath>
+      </defs>
+      <g id="axes" stroke="rgba(255,255,255,.1)" stroke-width="2">
+        <line x1="40" y1="460" x2="1580" y2="460"/><line x1="40" y1="60" x2="1580" y2="60" stroke-dasharray="4 10"/>
+      </g>
+      <text x="40" y="44" fill="rgba(255,255,255,.45)" font-size="22" font-weight="600" id="yl">기억</text>
+      <path id="decay" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="4" stroke-dasharray="2 12" stroke-linecap="round"/>
+      <text id="decayL" fill="rgba(255,255,255,.5)" font-size="26" font-weight="600">그냥 두면</text>
+      <path id="area" fill="url(#ag)" clip-path="url(#clipA)"/>
+      <path id="curve" fill="none" stroke="url(#lg)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" filter="url(#gl)"/>
+      <g id="revs"></g>
+      <text id="endL" fill="#fff" font-size="30" font-weight="800" text-anchor="end">오래 남아요</text>
+    </svg>
+  </section>
+
+  <!-- 5. 학습 방법 -->
+  <section class="scene" id="s5" style="background:var(--bg)">
+    <div class="dots"></div>
+    <div class="abs" id="s5pw" style="left:250px;top:100px">
+      <div class="phone" id="s5p"><div class="screen" id="s5scr">
+        <div class="island"></div><div class="sbar"><span>9:41</span><span>●●● ▮</span></div>
+        <div class="qbar"><span>✕</span><div class="track"><b id="qprog" style="width:30%"></b></div><span id="qnum">3/10</span></div>
+        <div id="q1">
+          <div class="qcard"><small>이 단어의 뜻은?</small><b>air</b><em>/ɛr/ [에어]</em></div>
+          <div class="opt" style="top:450px"><i>1</i>얼음</div>
+          <div class="opt" id="q1ok" style="top:542px"><i>2</i>공기</div>
+          <div class="opt" style="top:634px"><i>3</i>일기</div>
+          <div class="opt" style="top:726px"><i>4</i>공룡</div>
+        </div>
+        <div id="q2">
+          <div class="qcard"><small>이 단어의 뜻은?</small><b>brave</b><em>/breɪv/ [브레이브]</em></div>
+          <div class="opt" style="top:450px"><i>1</i>무서운</div>
+          <div class="opt" style="top:542px"><i>2</i>조용한</div>
+          <div class="opt" id="q2ok" style="top:634px"><i>3</i>용감한</div>
+          <div class="opt" style="top:726px"><i>4</i>빠른</div>
+        </div>
+        <div class="toast" id="qt"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i><div><b>완벽해요</b><small id="qts">air · 공기</small></div><div class="combo" id="qc" style="top:25px"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c1 3.5 5.5 5.6 5.5 11a5.5 5.5 0 0 1-11 0c0-2.4 1.1-3.9 2.3-5 .2 1.6.9 2.7 2 3.2C10.6 8.4 11 5 12 2z"/></svg><span id="qcn">3연속 정답</span></div></div>
+        <div class="glow" id="qg"></div>
+        <div class="finger" id="fing"></div>
+      </div></div>
+    </div>
+    <div class="abs" style="left:900px;top:150px;font-size:100px;font-weight:800;line-height:1.16;letter-spacing:-0.045em">
+      <span class="ln" id="s5t1"><span>카드, 퀴즈, 말하기,</span></span>
+      <span class="ln" id="s5t2"><span><span style="color:var(--blue)">게임</span>까지.</span></span>
+    </div>
+    <div class="wheel" id="wheel"></div>
+  </section>
+
+  <!-- 6. 영어 / 중국어 -->
+  <section class="scene" id="s6" style="background:#f7f8fa">
+    <div class="abs" id="s6flood" style="left:0;top:0;width:1920px;height:1080px;background:radial-gradient(100% 100% at 50% 30%, #ff5a5f 0%, #e5383f 45%, #b8222c 100%)"></div>
+    <div class="abs" id="s6blueTint" style="inset:0;background:radial-gradient(90% 80% at 50% 20%, rgba(49,130,246,.10), transparent 70%)"></div>
+    <div class="toggle" id="tg"><div class="knob" id="tgk"></div><span id="tgEn" style="left:0">EN</span><span id="tgZh" style="right:0;font-family:'Noto Sans SC',P,sans-serif">中</span></div>
+    <div class="wcard" id="wc"><div class="en" id="wce"><b>apple</b><small>사과</small></div><div class="zh" id="wcz" style="transform:rotateY(180deg)"><b>苹果</b><small><b>píngguǒ</b> · 사과</small></div></div>
+    <div class="abs" style="left:0;right:0;top:720px;text-align:center;font-size:100px;font-weight:800;letter-spacing:-0.045em"><span class="ln" id="s6t"><span id="s6tt">영어도, <span id="s6zh">중국어도.</span></span></span></div>
+    <div class="stats" id="s6st">
+      <div class="stat" id="st1"><b id="n1">0</b><small>영어 내장 사전 단어</small></div>
+      <div class="stat" id="st2"><b>HSK <span id="n2">1</span>~9급</b><small>중국어 단어 11,470개</small></div>
+    </div>
+  </section>
+
+  <!-- 7. 선생님 수업 도구 -->
+  <section class="scene navyBg" id="s7">
+    <div class="abs" style="left:130px;top:150px;font-size:32px;font-weight:700;color:#7fb6ff" id="s7k"><span class="ln"><span>선생님이라면</span></span></div>
+    <div class="board" id="bd">
+      <div class="bh"><span>퀴즈 쇼 · 2학년 3반</span><span id="bq">3 / 10</span></div>
+      <div class="bw" id="bw">brave</div>
+      <div class="bopts">
+        <div class="bopt" id="o0" style="background:#3182f6"><i>1</i>무서운</div>
+        <div class="bopt" id="o1" style="background:#f04452"><i>2</i>조용한</div>
+        <div class="bopt" id="o2" style="background:#03b26c"><i>3</i>용감한</div>
+        <div class="bopt" id="o3" style="background:#fe9800"><i>4</i>빠른</div>
+      </div>
+      <div class="teams">
+        <div class="team"><div class="fill" id="tf0" style="background:#3182f6"></div><span>1모둠</span><b id="ts0">4</b></div>
+        <div class="team"><div class="fill" id="tf1" style="background:#03b26c"></div><span>2모둠</span><b id="ts1">5</b></div>
+        <div class="team"><div class="fill" id="tf2" style="background:#fe9800"></div><span>3모둠</span><b id="ts2">3</b></div>
+      </div>
+    </div>
+    <div class="abs" style="left:1250px;top:190px;font-size:84px;font-weight:800;line-height:1.16;letter-spacing:-0.045em;color:#fff">
+      <span class="ln" id="s7t1"><span>우리 반 수업도</span></span>
+      <span class="ln" id="s7t2"><span style="color:#5aa2ff">한 번에.</span></span>
+    </div>
+    <div id="tools"></div>
+    <div class="vignette" style="opacity:.6"></div>
+  </section>
+
+  <!-- 8. 엔딩 -->
+  <section class="scene blueBg" id="s8">
+    <div class="blob" id="e1" style="width:1000px;height:1000px;background:#6fb3ff;left:-300px;top:-400px"></div>
+    <div class="blob" id="e2" style="width:900px;height:900px;background:#5b5cff;right:-260px;bottom:-400px;opacity:.45"></div>
+    <div class="abs" id="s8m" style="left:835px;top:90px;width:250px;height:250px">__MASCOT_CHEER__</div>
+    <div class="abs" id="s8l" style="left:0;right:0;top:390px;display:flex;justify-content:center;align-items:center;gap:26px">
+      <span class="logoMark" style="width:128px;height:128px;border-radius:38px;font-size:82px">V</span>
+      <span style="font-size:128px;font-weight:800;letter-spacing:-0.045em;line-height:1">VocaPro</span>
+    </div>
+    <div class="abs" style="left:0;right:0;top:570px;text-align:center;font-size:48px;font-weight:600;color:rgba(255,255,255,.92)"><span class="ln" id="s8s"><span>오늘 단어, 오늘 끝내요</span></span></div>
+    <div class="abs" id="s8c" style="left:0;right:0;top:690px;text-align:center"><span class="cta" id="cta">무료로 시작하기<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg><span class="ripple" id="ctr"></span></span></div>
+    <div class="abs" id="s8u" style="left:0;right:0;top:860px;text-align:center;font-size:38px;font-weight:700;letter-spacing:0;color:rgba(255,255,255,.9)">hijujuwon.kro.kr</div>
+    <svg class="cursor" id="cur" viewBox="0 0 24 24"><path d="M5 3l14 8-6 1.6L10 19z" fill="#191f28" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>
   </section>
 </div>
 
 <script>
-  const DUR = 15;
-  const TILES = [
-    ['플래시카드', '#e8f3ff', '#3182f6', '<rect x="3" y="7" width="14" height="12" rx="2"/><path d="M7 3h12a2 2 0 0 1 2 2v10"/>'],
-    ['뜻 고르기', '#e5f8ee', '#03b26c', '<circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.7 2.7L16 9.5"/>'],
-    ['듣고 고르기', '#ffeeee', '#f04452', '<path d="M3 14v-2a9 9 0 0 1 18 0v2"/><rect x="3" y="14" width="4" height="6" rx="1.5"/><rect x="17" y="14" width="4" height="6" rx="1.5"/>'],
-    ['철자 퍼즐', '#f3eeff', '#8b5cf6', '<rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/><path d="M13 7h4a4 4 0 0 1 4 4M11 17H7a4 4 0 0 1-4-4"/>'],
-    ['스펠링', '#fff3e0', '#fe9800', '<rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/>'],
-    ['말하기', '#e0f7fa', '#0aa5b4', '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>'],
-    ['실전 시험', '#e8f3ff', '#1b64da', '<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/>'],
-    ['단어 비', '#fff0f6', '#e64980', '<path d="M7 4v6M12 2v8M17 4v6"/><path d="M4 14h16l-2 6H6z"/>'],
-  ];
-  document.getElementById('tiles').innerHTML = TILES.map(([n, bg, fg, d], i) => {
-    const x = 70 + (i % 4) * 290, y = 210 + Math.floor(i / 4) * 170;
-    return `<div class="abs tile" id="t${i}" style="left:${x}px;top:${y}px"><div class="ico" style="background:${bg};color:${fg}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg></div><b>${n}</b></div>`;
-  }).join('');
-  document.getElementById('tiles').insertAdjacentHTML('beforeend', '');
-
+  const DUR = 23;
   const $ = id => document.getElementById(id);
   const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
   const prog = (t, a, b) => clamp((t - a) / (b - a));
-  const easeOut = p => 1 - Math.pow(1 - p, 3);
-  const easeInOut = p => p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
-  const back = p => { const c = 1.70158, c3 = c + 1; return 1 + c3 * Math.pow(p - 1, 3) + c * Math.pow(p - 1, 2); };
-  // 등장: a초부터 d초 동안 아래에서 올라오며 나타남
-  const rise = (el, t, a, d = .5, dy = 30) => { const p = easeOut(prog(t, a, a + d)); el.style.opacity = p; el.style.transform = `translateY(${(1 - p) * dy}px)`; };
-  const pop = (el, t, a, d = .55) => { const p = prog(t, a, a + d); el.style.opacity = clamp(p * 3); el.style.transform = `scale(${p ? back(p) : 0})`; };
-  // 장면 표시: a~b 사이, 앞뒤로 0.35초 넘김
-  const scene = (el, t, a, b, enter = 'fade') => {
-    const fi = a === 0 ? 1 : easeInOut(prog(t, a, a + .35)), fo = 1 - easeInOut(prog(t, b - .35, b));
-    const o = Math.min(fi, fo); el.style.opacity = t < a || t > b ? 0 : o;
-    el.style.transform = enter === 'slide' ? `translateX(${(1 - fi) * 80 - (1 - fo) * 80}px)` : `scale(${1.04 - .04 * fi})`;
+  const lerp = (a, b, p) => a + (b - a) * p;
+  const E = {
+    out3: p => 1 - Math.pow(1 - p, 3),
+    out5: p => 1 - Math.pow(1 - p, 5),
+    outExpo: p => p >= 1 ? 1 : 1 - Math.pow(2, -10 * p),
+    inOut3: p => p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2,
+    inOutExpo: p => p <= 0 ? 0 : p >= 1 ? 1 : p < .5 ? Math.pow(2, 20 * p - 10) / 2 : (2 - Math.pow(2, -20 * p + 10)) / 2,
+    in3: p => p * p * p,
+    back: p => { const c = 1.9, c3 = c + 1; return 1 + c3 * Math.pow(p - 1, 3) + c * Math.pow(p - 1, 2); },
+    // 감쇠 스프링: 0 -> 1, 살짝 넘쳤다가 자리 잡음
+    spring: (p, k = 7, d = 5.5) => p >= 1 ? 1 : 1 - Math.exp(-d * p) * Math.cos(k * p * Math.PI / 1.4) * (1 - p * 0)
   };
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const tf = (el, o = {}) => {
+    const { x = 0, y = 0, s = 1, sx = 1, sy = 1, r = 0, rx = 0, ry = 0, op, blur } = o;
+    el.style.transform = `translate3d(${x}px,${y}px,0) rotateX(${rx}deg) rotateY(${ry}deg) rotate(${r}deg) scale(${s * sx},${s * sy})`;
+    if (op !== undefined) el.style.opacity = op;
+    if (blur !== undefined) el.style.filter = blur > .05 ? `blur(${blur}px)` : '';
+  };
+  // 줄 단위 마스크 등장: 아래에서 위로
+  const reveal = (el, t, a, d = .7, out) => {
+    const sp = el.firstElementChild; let p = E.out5(prog(t, a, a + d));
+    let y = (1 - p) * 110;
+    if (out) { const q = E.in3(prog(t, out, out + .4)); y -= q * 110; }
+    sp.style.transform = `translateY(${y}%)`;
+  };
+  const pop = (el, t, a, d = .6, extra = '') => { const p = prog(t, a, a + d); el.style.opacity = clamp(p * 4); el.style.transform = `scale(${p ? E.back(p) : 0}) ${extra}`; };
+  const fadeUp = (el, t, a, d = .6, dy = 40) => { const p = E.out5(prog(t, a, a + d)); el.style.opacity = p; el.style.transform = `translateY(${(1 - p) * dy}px)`; };
+  const split = (el, text) => { el.innerHTML = [...text].map(c => `<span class="ch">${c}</span>`).join(''); return [...el.children]; };
+  const show = (el, t, a, b) => { const on = t >= a && t < b; el.style.visibility = on ? 'visible' : 'hidden'; return on; };
+  const SVG = d => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
 
+  /* ---------- 1. 질문 ---------- */
+  const WORDS = ['consistent', 'ambitious', 'reluctant', 'abundant', 'curious', 'diligent', 'genuine', 'brave', 'vivid', 'obvious', 'precise', 'humble', 'fragile', 'eager', 'subtle', 'rapid', 'sincere', 'gentle', 'vast', 'loyal'];
+  const ROWS = [];
+  for (let r = 0; r < 6; r++) {
+    const row = document.createElement('div');
+    row.className = 'abs'; row.style.cssText = `left:0;top:${-40 + r * 190}px;white-space:nowrap;font-size:160px;font-weight:800;letter-spacing:-0.04em;color:transparent;-webkit-text-stroke:2px rgba(140,180,255,.16)`;
+    const ws = []; for (let i = 0; i < 9; i++) ws.push(WORDS[(r * 5 + i * 3) % WORDS.length]);
+    row.innerHTML = ws.map(w => `<span style="display:inline-block;margin-right:80px">${w}</span>`).join('');
+    $('rows').appendChild(row);
+    ROWS.push({ row, dir: r % 2 ? 1 : -1, sp: 70 + r * 13, off: -300 - rnd() * 600, words: [...row.children].map(w => ({ w, at: 1.15 + rnd() * 1.1 })) });
+  }
+  const forgot = split($('s1forgot'), '까먹었나요?');
+  function s1(t) {
+    ROWS.forEach(R => {
+      R.row.style.transform = `translateX(${R.off + R.dir * R.sp * t}px)`;
+      R.words.forEach(o => { const p = E.in3(prog(t, o.at, o.at + .5)); o.w.style.opacity = 1 - p; o.w.style.filter = p > .02 ? `blur(${p * 14}px)` : ''; });
+    });
+    reveal($('s1a'), t, .15, .8); reveal($('s1b'), t, .45, .8);
+    // '까먹었나요?' 글자가 하나씩 흐려지며 사라져요 (잊어버림)
+    forgot.forEach((c, i) => { const a = 1.75 + i * .07, p = E.inOut3(prog(t, a, a + .45)); c.style.opacity = i === forgot.length - 1 ? 1 : 1 - p * .85; c.style.filter = p > .02 && i < forgot.length - 1 ? `blur(${p * 10}px)` : ''; c.style.transform = `translateY(${-p * 18}px)`; });
+    $('s1').style.transform = `scale(${1 + t * .015})`;
+  }
+
+  /* ---------- 2. 브랜드 ---------- */
+  const logoCh = split($('s2lt'), 'VocaPro');
+  logoCh.forEach((c, i) => { if (i < 4) c.style.fontWeight = 800; else c.style.fontWeight = 500; });
+  const SPARKS = [[700, 190, .9], [1180, 160, .7], [1240, 380, .55], [640, 400, .6], [960, 90, .5]];
+  $('s2sp').innerHTML = SPARKS.map((s, i) => `<svg class="spark" id="sp${i}" style="left:${s[0]}px;top:${s[1]}px" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1.5l2.4 7.1 7.1 2.4-7.1 2.4L12 20.5l-2.4-7.1L2.5 11l7.1-2.4z"/></svg>`).join('');
+  function s2(t) {
+    $('b1').style.transform = `translate(${Math.sin(t * .8) * 60}px,${Math.cos(t * .6) * 40}px)`;
+    $('b2').style.transform = `translate(${Math.cos(t * .7) * 70}px,${Math.sin(t * .9) * 50}px)`;
+    $('b3').style.transform = `translate(${Math.sin(t * 1.1) * 80}px,0)`;
+    // 마스코트: 아래에서 튀어 올라 찌그러졌다 펴짐
+    { const a = 2.85, p = prog(t, a, a + .9), up = E.outExpo(prog(t, a, a + .45)); const sq = p < .5 ? 1 : 1 + Math.sin((p - .5) * Math.PI * 4) * .08 * (1 - p);
+      const bob = t > a + .9 ? Math.sin((t - a - .9) * 3.2) * 10 : 0;
+      tf($('s2m'), { y: (1 - up) * 420 + bob, sx: 1 / sq, sy: sq, r: (1 - up) * -14, op: clamp(prog(t, a, a + .15)) }); }
+    SPARKS.forEach((s, i) => { const a = 3.25 + i * .08, p = prog(t, a, a + .5); const tw = t > a + .5 ? .8 + Math.sin(t * 5 + i) * .2 : 1; $('sp' + i).style.opacity = clamp(p * 3) * .95; $('sp' + i).style.transform = `scale(${(p ? E.back(p) : 0) * s[2] * tw}) rotate(${t * 40 + i * 20}deg)`; });
+    pop($('s2lm'), t, 3.3, .6);
+    logoCh.forEach((c, i) => { const a = 3.42 + i * .045, p = E.out5(prog(t, a, a + .6)); c.style.opacity = p; c.style.transform = `translateY(${(1 - p) * 60}px)`; c.style.filter = p < .98 ? `blur(${(1 - p) * 8}px)` : ''; });
+    reveal($('s2s'), t, 3.85, .7);
+  }
+
+  /* ---------- 3. AI 자동 완성 ---------- */
+  function s3(t) {
+    $('s3d').style.transform = `translateY(${-t * 12}px)`;
+    fadeUp($('s3c'), t, 5.25, .6, 30);
+    reveal($('s3t1'), t, 5.35, .75); reveal($('s3t2'), t, 5.55, .75); reveal($('s3s'), t, 5.85, .7);
+    { const p = E.outExpo(prog(t, 5.15, 6.0)); tf($('s3p'), { y: (1 - p) * 700, ry: lerp(-28, -10, p) + (t - 5) * 1.2, rx: (1 - p) * 10, r: (1 - p) * 4, op: clamp(p * 2) }); }
+    const word = 'consistent', n = Math.floor(clamp((t - 6.05) / .06, 0, word.length));
+    $('s3w').textContent = word.slice(0, n);
+    $('s3k').style.opacity = t < 6.8 ? (Math.floor(t * 3.4) % 2 ? 1 : .15) : 0;
+    { const pr = prog(t, 6.75, 6.95); $('s3b').style.transform = `scale(${1 - Math.sin(pr * Math.PI) * .05})`;
+      const rp = prog(t, 6.85, 7.35); $('s3r').style.opacity = rp > 0 && rp < 1 ? (1 - rp) : 0; $('s3r').style.transform = `scale(${rp * 14})`;
+      $('s3bt').textContent = t > 6.9 && t < 7.4 ? 'AI가 채우는 중…' : 'AI로 채우기'; }
+    ['f1', 'f2', 'f3', 'f4'].forEach((id, i) => {
+      const a = 7.0 + i * .06, b = 7.4 + i * .14;
+      const el = $(id), sk = $('k' + (i + 1));
+      el.style.opacity = clamp(prog(t, a, a + .2));
+      [...el.children].forEach(c => { if (c !== sk && !c.classList.contains('lbl')) { const p = E.out5(prog(t, b, b + .5)); c.style.opacity = p; c.style.transform = `translateY(${(1 - p) * 12}px)`; } });
+      sk.style.opacity = t < a ? 0 : 1 - clamp(prog(t, b, b + .25)); sk.style.backgroundPosition = `${(1 - (t * 1.6 % 1)) * 300}% 0`; sk.style.top = '28px'; sk.style.height = 'calc(100% - 28px)';
+    });
+    ['c1', 'c2', 'c3', 'c4'].forEach((id, i) => { const a = 7.55 + i * .16, p = prog(t, a, a + .6); const fl = t > a + .6 ? Math.sin((t - a) * 2.4 + i) * 6 : 0; $(id).style.opacity = clamp(p * 3); $(id).style.transform = `translateY(${fl}px) scale(${p ? E.back(p) : 0})`; $(id).style.transformOrigin = i % 2 ? 'left center' : 'right center'; });
+  }
+
+  /* ---------- 4. 간격 반복 ---------- */
+  // x: 0~1 (시간), 복습 지점에서 기억이 다시 100%로, 복습할수록 천천히 줄어요
+  const CH = { x0: 40, x1: 1580, y0: 460, y1: 60 };
+  const REV = [0, .16, .36, .62];
+  const memAt = x => { let k = 0; for (let i = 0; i < REV.length; i++) if (x >= REV[i]) k = i; const dx = x - REV[k]; return Math.exp(-dx * (6.5 / Math.pow(2.1, k))); };
+  const px = x => CH.x0 + x * (CH.x1 - CH.x0), py = m => CH.y0 - m * (CH.y0 - CH.y1) * .92;
+  let curveD = '', areaD = '';
+  { const pts = []; for (let i = 0; i <= 400; i++) { const x = i / 400; pts.push([px(x), py(memAt(x))]); REV.forEach(r => { if (r > 0 && Math.abs(x - r) < 1 / 800) { pts.push([px(r), py(memAt(r - 1e-4))]); pts.push([px(r), py(1)]); } }); }
+    pts.sort((a, b) => a[0] - b[0] || b[1] - a[1]);
+    curveD = 'M' + pts.map(p => p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' L');
+    areaD = curveD + ` L${CH.x1} ${CH.y0} L${CH.x0} ${CH.y0} Z`; }
+  $('curve').setAttribute('d', curveD); $('area').setAttribute('d', areaD);
+  { let d = ''; for (let i = 0; i <= 200; i++) { const x = i / 200; d += (i ? ' L' : 'M') + px(x).toFixed(1) + ' ' + py(Math.exp(-x * 6.5) * .9 + .1 * Math.exp(-x * 2)).toFixed(1); } $('decay').setAttribute('d', d); }
+  $('decayL').setAttribute('x', px(.2)); $('decayL').setAttribute('y', py(.18));
+  $('endL').setAttribute('x', CH.x1 - 6); $('endL').setAttribute('y', py(memAt(.999)) - 30);
+  const DAYS = ['1일 뒤', '3일 뒤', '7일 뒤'];
+  $('revs').innerHTML = REV.slice(1).map((r, i) => `<g id="rv${i}" transform="translate(${px(r)} ${py(1)})"><circle r="16" fill="#0a1224" stroke="#7cc0ff" stroke-width="5"/><circle r="6" fill="#fff"/><text y="-34" text-anchor="middle" fill="#fff" font-size="26" font-weight="700">복습</text><text y="${CH.y0 - py(1) + 44}" text-anchor="middle" fill="rgba(255,255,255,.55)" font-size="24" font-weight="600">${DAYS[i]}</text><line y1="22" y2="${CH.y0 - py(1)}" stroke="rgba(255,255,255,.12)" stroke-width="2" stroke-dasharray="4 8"/></g>`).join('');
+  const curveLen = $('curve').getTotalLength(), decayLen = $('decay').getTotalLength();
+  function s4(t) {
+    reveal($('s4t1'), t, 9.35, .75); reveal($('s4t2'), t, 9.55, .75); reveal($('s4s'), t, 9.85, .7); reveal($('s4s2'), t, 9.95, .7);
+    const a = 9.6, b = 11.35;
+    const pd = E.inOut3(prog(t, a, a + 1.0)); $('decay').style.strokeDasharray = `2 12`; $('decay').style.opacity = clamp(prog(t, a, a + .2)) * .9;
+    $('decay').style.clipPath = `inset(0 ${100 - pd * 100}% 0 0)`;
+    $('decayL').style.opacity = clamp(prog(t, a + .7, a + 1.0));
+    const pc = E.inOut3(prog(t, a + .15, b)); $('curve').style.strokeDasharray = `${curveLen} ${curveLen}`; $('curve').style.strokeDashoffset = curveLen * (1 - pc);
+    const xNow = CH.x0 + pc * (CH.x1 - CH.x0); $('clipR').setAttribute('width', xNow);
+    REV.slice(1).forEach((r, i) => { const at = a + .15 + (b - a - .15) * (r * .98); const el = $('rv' + i); const p = prog(t, at, at + .45); el.style.opacity = clamp(p * 3); el.firstElementChild.style.transform = `scale(${p ? E.back(p) : 0})`; el.style.transformBox = 'fill-box'; });
+    fadeUp($('endL'), t, b - .1, .5, 20);
+    $('axes').style.opacity = clamp(prog(t, 9.3, 9.8)); $('yl').style.opacity = clamp(prog(t, 9.3, 9.8));
+  }
+
+  /* ---------- 5. 학습 방법 ---------- */
+  const MODES = [['플래시카드', '#3182f6', '<rect x="3" y="7" width="14" height="12" rx="2"/><path d="M7 3h12a2 2 0 0 1 2 2v10"/>'], ['뜻 고르기', '#03b26c', '<circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.7 2.7L16 9.5"/>'], ['듣고 고르기', '#f04452', '<path d="M3 14v-2a9 9 0 0 1 18 0v2"/><rect x="3" y="14" width="4" height="6" rx="1.5"/><rect x="17" y="14" width="4" height="6" rx="1.5"/>'], ['스펠링', '#fe9800', '<rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/>'], ['말하기', '#0aa5b4', '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>'], ['철자 퍼즐', '#8b5cf6', '<rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/><path d="M13 7h4a4 4 0 0 1 4 4M11 17H7a4 4 0 0 1-4-4"/>'], ['문장 빈칸', '#1b64da', '<path d="M4 6h16M4 12h5M15 12h5M4 18h16"/>'], ['단어 비 게임', '#e64980', '<path d="M7 4v6M12 2v8M17 4v6"/><path d="M4 14h16l-2 6H6z"/>'], ['실전 시험', '#3182f6', '<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/>']];
+  $('wheel').innerHTML = MODES.map(([n, c, d], i) => `<div class="witem" id="w${i}"><i style="background:${c}1f;color:${c}">${SVG(d)}</i><span>${n}</span></div>`).join('');
+  function tap(fg, t, a, x, y, from) { const p = E.inOut3(prog(t, a - .55, a)); fg.style.left = lerp(from[0], x, p) + 'px'; fg.style.top = lerp(from[1], y, p) + 'px'; const pr = prog(t, a, a + .25); const s = 1 - Math.sin(pr * Math.PI) * .22; fg.style.transform = `scale(${s})`; }
+  function s5(t) {
+    reveal($('s5t1'), t, 12.05, .75); reveal($('s5t2'), t, 12.25, .75);
+    { const p = E.outExpo(prog(t, 11.75, 12.6)); tf($('s5p'), { x: (1 - p) * -300, ry: lerp(30, 8, p) - (t - 12) * 1.2, op: clamp(p * 2) }); $('s5pw').style.perspective = '2200px'; }
+    const tapA = 13.0, tapB = 14.25, swap = 13.75;
+    const q2 = t >= swap;
+    { const p = E.inOut3(prog(t, swap - .2, swap + .25)); $('q1').style.transform = `translateX(${-p * 460}px)`; $('q1').style.opacity = 1 - p; $('q2').style.transform = `translateX(${(1 - p) * 460}px)`; $('q2').style.opacity = p; }
+    $('qprog').style.width = (q2 ? 40 : 30) + '%'; $('qnum').textContent = q2 ? '4/10' : '3/10';
+    const ok1 = t >= tapA + .08, ok2 = t >= tapB + .08;
+    $('q1ok').classList.toggle('ok', ok1); $('q2ok').classList.toggle('ok', ok2);
+    $('q1ok').querySelector('i').innerHTML = ok1 ? SVG('<path d="M5 12.5l4.5 4.5L19 7.5"/>') : '2';
+    $('q2ok').querySelector('i').innerHTML = ok2 ? SVG('<path d="M5 12.5l4.5 4.5L19 7.5"/>') : '3';
+    [[tapA, '#q1ok'], [tapB, '#q2ok']].forEach(([a, sel]) => { const p = prog(t, a + .05, a + .35); if (p > 0 && p < 1) document.querySelector(sel).style.transform = `scale(${1 + Math.sin(p * Math.PI) * .04})`; else document.querySelector(sel).style.transform = ''; });
+    { const g1 = prog(t, tapA + .08, tapA + .25) * (1 - prog(t, tapA + .6, tapA + 1.0)), g2 = prog(t, tapB + .08, tapB + .25) * (1 - prog(t, tapB + .6, tapB + 1.0)); $('qg').style.opacity = Math.max(g1, g2); }
+    { const on1 = E.outExpo(prog(t, tapA + .12, tapA + .5)) * (1 - E.in3(prog(t, swap - .3, swap - .05))); const on2 = E.outExpo(prog(t, tapB + .12, tapB + .5)); const on = q2 ? on2 : on1; $('qt').style.transform = `translateY(${(1 - on) * 140}px)`; $('qt').style.opacity = on; $('qts').textContent = q2 ? 'brave · 용감한' : 'air · 공기'; $('qcn').textContent = q2 ? '4연속 정답' : '3연속 정답';
+      const cp = prog(t, (q2 ? tapB : tapA) + .3, (q2 ? tapB : tapA) + .8); $('qc').style.transform = `scale(${cp ? E.back(cp) : 0}) rotate(${(1 - E.out3(cp)) * -12}deg)`; }
+    { const fg = $('fing'); const vis = (t > 12.5 && t < tapA + .5) || (t > tapB - .6 && t < tapB + .5); fg.style.opacity = vis ? 1 : 0; if (t < swap) tap(fg, t, tapA, 230, 560, [330, 900]); else tap(fg, t, tapB, 250, 652, [330, 900]); }
+    // 휠: 0.24초마다 한 칸, 가운데 항목이 커지고 파래져요
+    const pos = Math.max(0, (t - 12.45) / .27);
+    const step = Math.floor(pos), f = E.inOutExpo(clamp((pos - step) / .55));
+    const cur = step + f;
+    MODES.forEach((m, i) => { const d = i - cur; const el = $('w' + i); const ad = Math.abs(d); const y = 190 + d * 110; el.style.top = y + 'px'; const s = lerp(1, .62, clamp(ad)); el.style.transform = `scale(${s})`; el.style.color = ad < .5 ? '#191f28' : '#9aa4b0'; el.style.opacity = clamp(1.5 - ad * .45) * clamp(prog(t, 12.2, 12.6)); });
+  }
+
+  /* ---------- 6. 영어 / 중국어 ---------- */
+  function s6(t) {
+    const flip = 16.15;
+    { const p = E.outExpo(prog(t, 15.35, 16.0)); tf($('tg'), { y: (1 - p) * -80, op: p, s: lerp(.8, 1, p) }); }
+    { const p = E.outExpo(prog(t, 15.5, 16.1)); tf($('wc'), { y: (1 - p) * 120, op: p }); }
+    // 스위치 손잡이: 스프링으로 中 쪽으로
+    { const p = prog(t, flip, flip + .7); const sp = p >= 1 ? 1 : 1 - Math.exp(-6 * p) * Math.cos(p * 9); const w = 1 + Math.sin(clamp(p * 2.2) * Math.PI) * .18;
+      $('tgk').style.transform = `translateX(${sp * 210}px) scaleX(${w})`; $('tgk').style.background = p > .12 ? '#f04452' : '#3182f6';
+      $('tgEn').style.color = p > .12 ? '#8b95a1' : '#fff'; $('tgZh').style.color = p > .12 ? '#fff' : '#191f28'; }
+    // 빨간 배경이 스위치 자리에서 번져요
+    { const p = E.inOutExpo(prog(t, flip + .05, flip + .75)); $('s6flood').style.clipPath = `circle(${p * 2300}px at 1070px 225px)`; }
+    { const p = E.inOut3(prog(t, flip + .12, flip + .75)); $('wce').style.transform = `rotateY(${p * 180}deg)`; $('wcz').style.transform = `rotateY(${p * 180 - 180}deg)`; $('wc').style.transform += ` scale(${1 + Math.sin(p * Math.PI) * .06})`; }
+    reveal($('s6t'), t, 15.75, .75);
+    { const red = t > flip + .3; $('s6tt').style.color = red ? '#fff' : '#191f28'; $('s6zh').style.color = red ? '#fff' : '#f04452'; $('s6zh').style.textDecoration = 'none'; }
+    { const p = E.out5(prog(t, flip + .55, flip + 1.15)); tf($('s6st'), { y: (1 - p) * 60, op: p }); }
+    $('n1').textContent = Math.round(44017 * E.out3(prog(t, flip + .6, flip + 1.6))).toLocaleString('en-US') + '+';
+    $('n2').textContent = '1';
+  }
+
+  /* ---------- 7. 선생님 수업 도구 ---------- */
+  const TOOLS = [['퀴즈 쇼', '#fe9800', '<path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/>'], ['단어 빙고판', '#03b26c', '<rect x="3.5" y="3.5" width="17" height="17" rx="2"/><path d="M9.2 3.5v17M14.8 3.5v17M3.5 9.2h17M3.5 14.8h17"/>'], ['발표자 뽑기 · 모둠', '#8b5cf6', '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6 6 0 0 1 3.5 6"/>'], ['수업 타이머', '#0aa5b4', '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/>'], ['단어 시험지 인쇄', '#3182f6', '<path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/>'], ['과제와 실시간 현황', '#f04452', '<path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/>']];
+  $('tools').innerHTML = TOOLS.map(([n, c, d], i) => `<div class="tool" id="tl${i}" style="top:${440 + i * 100}px"><i style="background:${c}">${SVG(d).replace('currentColor', '#fff')}</i>${n}</div>`).join('');
+  function s7(t) {
+    fadeUp($('s7k'), t, 17.9, .5, 20);
+    { const p = E.outExpo(prog(t, 17.75, 18.6)); tf($('bd'), { y: (1 - p) * 200, s: lerp(.9, 1, p), op: clamp(p * 2), rx: (1 - p) * 12 }); $('bd').style.transformOrigin = '50% 100%'; }
+    reveal($('s7t1'), t, 18.0, .75); reveal($('s7t2'), t, 18.2, .75);
+    TOOLS.forEach((_, i) => { const a = 18.35 + i * .1, p = E.out5(prog(t, a, a + .6)); tf($('tl' + i), { x: (1 - p) * 120, op: p }); });
+    [0, 1, 2, 3].forEach(i => { const a = 18.3 + i * .07, p = prog(t, a, a + .5); $('o' + i).style.transform = `scale(${p ? E.back(p) : 0})`; $('o' + i).style.opacity = clamp(p * 3); });
+    // 정답 공개: 3번만 남고 나머지는 흐려짐, 2모둠 점수 +1
+    const rv = prog(t, 19.45, 19.75);
+    [0, 1, 3].forEach(i => { $('o' + i).style.opacity = Math.min(parseFloat($('o' + i).style.opacity) || 0, 1 - rv * .75); });
+    $('o2').style.boxShadow = rv > 0 ? `0 0 0 ${rv * 6}px rgba(255,255,255,.9), 0 0 ${rv * 60}px rgba(3,178,108,.8)` : '';
+    if (rv > 0) $('o2').style.transform = `scale(${1 + Math.sin(rv * Math.PI) * .05})`;
+    const sc = [4, t > 19.8 ? 6 : 5, 3];
+    sc.forEach((v, i) => { $('ts' + i).textContent = v; const gp = E.out3(prog(t, 18.6, 19.3)); const bump = i === 1 ? E.out3(prog(t, 19.8, 20.2)) : 0; $('tf' + i).style.width = (gp * (([4, 5, 3][i]) / 10) + bump * .1) * 100 + '%'; });
+    { const b = prog(t, 19.8, 20.15); $('ts1').style.transform = `scale(${1 + Math.sin(b * Math.PI) * .45})`; $('ts1').style.color = b > 0 && b < 1 ? '#7dffbe' : '#fff'; }
+  }
+
+  /* ---------- 8. 엔딩 ---------- */
+  function s8(t) {
+    $('e1').style.transform = `translate(${Math.sin(t * .8) * 60}px,${Math.cos(t * .6) * 40}px)`;
+    $('e2').style.transform = `translate(${Math.cos(t * .7) * 70}px,${Math.sin(t * .9) * 50}px)`;
+    { const a = 20.55, up = E.outExpo(prog(t, a, a + .5)), p = prog(t, a, a + .9), sq = p < .5 ? 1 : 1 + Math.sin((p - .5) * Math.PI * 4) * .08 * (1 - p); const bob = t > a + .9 ? Math.sin((t - a - .9) * 3.2) * 10 : 0;
+      tf($('s8m'), { y: (1 - up) * 380 + bob, sx: 1 / sq, sy: sq, r: t > a + .9 ? Math.sin((t - a) * 2.6) * 4 : 0, op: clamp(prog(t, a, a + .15)) }); }
+    { const p = E.out5(prog(t, 20.7, 21.4)); tf($('s8l'), { y: (1 - p) * 70, op: p, blur: (1 - p) * 10 }); }
+    reveal($('s8s'), t, 21.0, .7);
+    { const p = prog(t, 21.2, 21.8); $('s8c').style.opacity = clamp(p * 3); const s = p ? E.back(p) : 0; const press = prog(t, 22.05, 22.3); $('s8c').style.transform = `scale(${s * (1 - Math.sin(press * Math.PI) * .05)})`; }
+    { const rp = prog(t, 22.15, 22.75); $('ctr').style.opacity = rp > 0 && rp < 1 ? 1 - rp : 0; $('ctr').style.transform = `scale(${rp * 22})`; $('ctr').style.left = '62%'; }
+    fadeUp($('s8u'), t, 21.45, .6, 20);
+    { const c = $('cur'); const p = E.inOut3(prog(t, 21.5, 22.05)); c.style.left = lerp(1500, 1120, p) + 'px'; c.style.top = lerp(1100, 770, p) + 'px'; const pr = prog(t, 22.05, 22.3); c.style.transform = `scale(${1 - Math.sin(pr * Math.PI) * .2})`; c.style.opacity = clamp(prog(t, 21.5, 21.7)) * (1 - prog(t, 22.7, 23)); }
+  }
+
+  /* ---------- 장면 전환 ---------- */
+  const SC = [s1, s2, s3, s4, s5, s6, s7, s8].map((f, i) => ({ el: $('s' + (i + 1)), f }));
   function seek(t) {
-    // 1. 0 ~ 3.2
-    scene($('s1'), t, 0, 3.2);
-    pop($('s1m'), t, .1, .7);
-    if (t > .8) $('s1m').style.transform += ` translateY(${Math.sin((t - .8) * 4) * 6}px)`;
-    rise($('s1t'), t, .55); rise($('s1l'), t, .95); rise($('s1s'), t, 1.25);
-    // 2. 3.2 ~ 7.0
-    scene($('s2'), t, 3.2, 7.0, 'slide');
-    rise($('s2c'), t, 3.4); rise($('s2t'), t, 3.55); rise($('s2s'), t, 3.8);
-    { const p = easeOut(prog(t, 3.35, 4.0)); $('s2p').style.transform = `translateY(${(1 - p) * 140}px) rotate(${(1 - p) * 4}deg)`; $('s2p').style.opacity = p; }
-    const word = 'consistent', n = Math.floor(clamp((t - 4.1) / .055, 0, word.length));
-    $('s2w').textContent = word.slice(0, n);
-    $('s2k').style.opacity = t < 4.95 ? (Math.floor(t * 3) % 2 ? 1 : .2) : 0;
-    { const press = prog(t, 4.75, 4.95); $('s2b').style.transform = `scale(${1 - Math.sin(press * Math.PI) * .06})`; $('s2b').textContent = t > 4.95 && t < 5.25 ? '조회 중' : 'AI 완성'; }
-    ['f1', 'f2', 'f3', 'f4'].forEach((id, i) => rise($(id), t, 5.25 + i * .18, .4, 16));
-    // 3. 7.0 ~ 10.4
-    scene($('s3'), t, 7.0, 10.4, 'slide');
-    rise($('s3t'), t, 7.15);
-    TILES.forEach((_, i) => pop($('t' + i), t, 7.45 + i * .11, .5));
-    { const k = Math.floor(clamp((t - 8.9) / .22, -1, 7)); TILES.forEach((_, i) => { const on = i === k; $('t' + i).style.boxShadow = on ? '0 0 0 3px #3182f6, 0 14px 30px rgba(49,130,246,.25)' : ''; }); }
-    // 4. 10.4 ~ 13.0
-    scene($('s4'), t, 10.4, 13.0, 'slide');
-    rise($('s4t'), t, 10.55);
-    ['st1', 'st2', 'st3'].forEach((id, i) => rise($(id), t, 10.75 + i * .15, .5, 40));
-    const cnt = (to, a) => Math.round(to * easeOut(prog(t, a, a + 1.1))).toLocaleString('en-US');
-    $('n1').textContent = cnt(39219, 10.9); $('n2').textContent = cnt(1200, 11.05);
-    // 5. 13.0 ~ 15
-    scene($('s5'), t, 13.0, 15.6);
-    pop($('s5m'), t, 13.2, .7);
-    if (t > 13.9) $('s5m').style.transform += ` translateY(${Math.sin((t - 13.9) * 4) * 6}px) rotate(${Math.sin((t - 13.9) * 3) * 3}deg)`;
-    rise($('s5l'), t, 13.4); rise($('s5s'), t, 13.6); rise($('s5u'), t, 13.95);
-    { rise($('s5c'), t, 13.8); if (t > 14.3) $('s5c').style.transform = `scale(${1 + Math.sin((t - 14.3) * 6) * .025})`; }
+    // 앞뒤로 아무 시점이나 찾아가도 같은 화면이 나오게 장면 상태를 먼저 비워요.
+    SC.forEach(({ el }) => { el.style.transform = ''; el.style.filter = ''; el.style.clipPath = ''; el.style.borderRadius = ''; });
+    // 1 -> 2: 가운데에서 파란 원이 번짐
+    const c12 = E.inOutExpo(prog(t, 2.5, 3.1));
+    if (show(SC[0].el, t, 0, 3.1)) { s1(t); SC[0].el.style.filter = c12 > 0 ? `blur(${c12 * 6}px)` : ''; }
+    if (show(SC[1].el, t, 2.5, 5.35)) { s2(t); SC[1].el.style.clipPath = c12 < 1 ? `circle(${c12 * 1150}px at 50% 50%)` : 'none'; }
+    // 2 -> 3: 위로 밀어 올림
+    const p23 = E.inOutExpo(prog(t, 4.85, 5.4));
+    SC[1].el.style.transform = `translateY(${-p23 * 1080}px) scale(${1 - p23 * .08})`;
+    if (show(SC[2].el, t, 4.85, 9.55)) { s3(t); SC[2].el.style.transform = `translateY(${(1 - p23) * 1080}px)`; }
+    // 3 -> 4: 남색 패널이 오른쪽에서 비스듬히 덮음
+    const p34 = E.inOutExpo(prog(t, 8.95, 9.55));
+    if (t >= 8.95) SC[2].el.style.transform = `translateX(${-p34 * 260}px) scale(${1 - p34 * .05})`;
+    if (show(SC[3].el, t, 8.95, 12.2)) { s4(t); const x = (1 - p34) * 130; SC[3].el.style.clipPath = p34 < 1 ? `polygon(${x}% 0, 130% 0, 130% 100%, ${x - 30}% 100%)` : 'none'; }
+    // 4 -> 5: 화면이 왼쪽으로 밀려남
+    const p45 = E.inOutExpo(prog(t, 11.6, 12.2));
+    if (t >= 11.6) SC[3].el.style.transform = `translateX(${-p45 * 1920}px)`;
+    if (show(SC[4].el, t, 11.6, 15.6)) { s5(t); SC[4].el.style.transform = `translateX(${(1 - p45) * 1920}px)`; }
+    // 5 -> 6: 아래에서 올라옴
+    const p56 = E.inOutExpo(prog(t, 15.0, 15.6));
+    if (t >= 15.0) SC[4].el.style.transform = `translateY(${-p56 * 300}px) scale(${1 - p56 * .1})`, SC[4].el.style.filter = p56 > 0 ? `brightness(${1 - p56 * .3})` : '';
+    if (show(SC[5].el, t, 15.0, 18.3)) { s6(t); SC[5].el.style.transform = `translateY(${(1 - p56) * 1080}px)`; SC[5].el.style.borderRadius = (1 - p56) * 60 + 'px'; }
+    // 6 -> 7: 위로 밀어 올림
+    const p67 = E.inOutExpo(prog(t, 17.7, 18.3));
+    if (t >= 17.7) SC[5].el.style.transform = `translateY(${-p67 * 1080}px)`;
+    if (show(SC[6].el, t, 17.7, 21.1)) { s7(t); SC[6].el.style.transform = `translateY(${(1 - p67) * 1080}px)`; }
+    // 7 -> 8: 다시 파란 원 (처음과 짝)
+    const c78 = E.inOutExpo(prog(t, 20.45, 21.05));
+    if (t >= 20.45) SC[6].el.style.transform = `scale(${1 + c78 * .08})`;
+    if (show(SC[7].el, t, 20.45, 99)) { s8(t); SC[7].el.style.clipPath = c78 < 1 ? `circle(${c78 * 1150}px at 50% 50%)` : 'none'; }
   }
   window.seek = seek; window.DUR = DUR;
-  // 브라우저로 직접 열면 반복 재생
   if (!/render/.test(location.hash)) { const t0 = performance.now(); const loop = () => { seek(((performance.now() - t0) / 1000) % DUR); requestAnimationFrame(loop); }; loop(); } else seek(0);
 </script>
 </body>

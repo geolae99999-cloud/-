@@ -578,6 +578,62 @@
     .rec-m { flex: 1; min-width: 0; color: var(--muted); font-size: .86rem; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .rec-row em { font-style: normal; font-size: .7rem; font-weight: 800; color: var(--mint); background: var(--mint-soft); padding: 2px 6px; border-radius: 6px; flex: none; }
     .rec-row.has { opacity: .6; }
+    /* 문장 배열 */
+    .sen-ko { font-size: 1.12rem; font-weight: 700; color: var(--ink); line-height: 1.5; margin-top: 10px; word-break: keep-all; }
+    .sen-key { display: inline-flex; align-items: center; gap: 8px; margin-top: 14px; padding: 6px 14px; border-radius: 999px; background: var(--blue-soft); color: var(--blue-ink); font-size: .86rem; }
+    .sen-key b { font-weight: 800; } .sen-key span { opacity: .8; }
+    .sen-line { min-height: 70px; margin-top: 14px; padding: 10px; border-radius: 18px; border: 2px dashed var(--line); background: var(--surface); display: flex; flex-wrap: wrap; align-content: flex-start; gap: 7px; transition: border-color .2s, background-color .2s; }
+    .sen-line.on { border-style: solid; border-color: var(--blue); }
+    .sen-line.ok { border-color: var(--mint); background: var(--mint-soft); } .sen-line.bad { border-color: var(--coral); animation: mshake .35s; }
+    .sen-ph { margin: auto; color: var(--ink-3, #8b95a1); font-size: .88rem; }
+    .sen-tiles { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 16px 0 6px; }
+    .sen-chip { border: none; padding: 10px 14px; border-radius: 13px; background: var(--surface); box-shadow: 0 3px 0 var(--sh-line); font: inherit; font-size: 1.02rem; font-weight: 700; color: var(--ink); cursor: pointer; transition: transform .12s, opacity .15s; }
+    .sen-chip:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--sh-line); }
+    .sen-tiles .sen-chip:disabled { opacity: .18; box-shadow: none; transform: translateY(3px) scale(.96); }
+    .sen-line .sen-chip { background: var(--blue); color: #fff; box-shadow: 0 3px 0 var(--blue-ink); animation: senIn .24s cubic-bezier(.2, .9, .3, 1.35); }
+    .sen-line.ok .sen-chip { background: var(--mint); box-shadow: 0 3px 0 rgba(0,0,0,.12); } .sen-line.bad .sen-chip { background: var(--coral); box-shadow: 0 3px 0 rgba(0,0,0,.12); }
+    .sen-ans { font-size: .98rem; line-height: 1.5; } .sen-ans u { text-decoration: none; background: linear-gradient(transparent 60%, rgba(255, 196, 0, .45) 0); font-weight: 800; }
+    @keyframes senIn { from { transform: scale(.55); opacity: 0; } }
+    /* 우리 반 랭킹 */
+    .rk-ms { display: flex; gap: 6px; flex-wrap: wrap; }
+    .rk-ms button { border: none; padding: 8px 14px; border-radius: 999px; background: var(--surface-2); color: var(--ink-2); font: inherit; font-size: .85rem; font-weight: 700; cursor: pointer; }
+    .rk-ms button.on { background: var(--ink); color: var(--bg); }
+    .rk-pod { display: grid; grid-template-columns: 1fr 1.1fr 1fr; align-items: end; gap: 8px; margin: 14px 0 4px; padding: 18px 10px 0; border-radius: 22px; background: linear-gradient(180deg, var(--blue-soft), transparent); }
+    .rk-p { display: flex; flex-direction: column; align-items: center; min-width: 0; }
+    .rk-av { position: relative; width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 800; font-size: 1.2rem; box-shadow: 0 6px 16px rgba(0,0,0,.12); }
+    .rk-p.r1 .rk-av { width: 64px; height: 64px; font-size: 1.45rem; }
+    .rk-av i { position: absolute; right: -4px; bottom: -4px; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-size: .72rem; font-weight: 900; color: #fff; border: 2px solid var(--surface); }
+    .rk-p b { margin-top: 8px; font-size: .92rem; font-weight: 800; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .rk-p small { color: var(--ink-2); font-size: .8rem; font-weight: 700; }
+    .rk-ped { width: 100%; margin-top: 8px; border-radius: 14px 14px 0 0; display: grid; place-items: center; color: #fff; font-weight: 900; font-size: 1.4rem; transform-origin: bottom; animation: rkUp .7s cubic-bezier(.2, .9, .3, 1.1) both; }
+    .rk-p.r1 .rk-ped { height: 96px; background: linear-gradient(180deg, #ffc93c, #f59f00); animation-delay: .25s; }
+    .rk-p.r2 .rk-ped { height: 70px; background: linear-gradient(180deg, #c3cad3, #8f9aa6); animation-delay: .1s; }
+    .rk-p.r3 .rk-ped { height: 52px; background: linear-gradient(180deg, #e7a46a, #c06a2b); animation-delay: .4s; }
+    @keyframes rkUp { from { transform: scaleY(0); } }
+    .rk-list { display: grid; gap: 6px; margin-top: 10px; }
+    .rk-row { display: grid; grid-template-columns: 28px 1fr auto; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 14px; background: var(--surface-2); }
+    .rk-row > span { font-weight: 800; color: var(--ink-3, #8b95a1); text-align: center; }
+    .rk-row b { font-weight: 700; } .rk-row em { font-style: normal; font-weight: 800; }
+    .rk-bar { grid-column: 2 / 4; height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; } .rk-bar i { display: block; height: 100%; border-radius: 3px; background: var(--blue); }
+    .tt-rank { background: radial-gradient(90% 90% at 50% 20%, #1d3a7a, #0b1430 70%); color: #fff; }
+    .tt-rank .pv-top { position: relative; z-index: 2; color: #fff; } .tt-rank .pv-name { color: rgba(255,255,255,.8); } .tt-rank .pv-x { background: rgba(255,255,255,.14); color: #fff; }
+    .tt-rank .rk-big { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2vh 4vw 0; }
+    .tt-rank h2 { font-size: clamp(1.6rem, 4vw, 3.2rem); font-weight: 800; letter-spacing: -.03em; margin: 0; }
+    .tt-rank .rk-sub { opacity: .7; margin: .4em 0 2vh; font-size: clamp(.9rem, 1.6vw, 1.3rem); }
+    .tt-rank .rk-pod { width: min(1000px, 100%); background: none; gap: 2vw; padding: 0; margin: 0; }
+    .tt-rank .rk-av { width: clamp(64px, 9vw, 130px); height: clamp(64px, 9vw, 130px); font-size: clamp(1.4rem, 3vw, 3rem); }
+    .tt-rank .rk-p.r1 .rk-av { width: clamp(78px, 11vw, 160px); height: clamp(78px, 11vw, 160px); }
+    .tt-rank .rk-av i { width: 36%; height: 36%; font-size: clamp(.8rem, 1.4vw, 1.3rem); border-color: #0b1430; }
+    .tt-rank .rk-p b { font-size: clamp(1rem, 2.2vw, 2rem); } .tt-rank .rk-p small { color: rgba(255,255,255,.75); font-size: clamp(.85rem, 1.5vw, 1.4rem); }
+    .tt-rank .rk-p.r1 .rk-ped { height: 30vh; } .tt-rank .rk-p.r2 .rk-ped { height: 21vh; } .tt-rank .rk-p.r3 .rk-ped { height: 15vh; }
+    .tt-rank .rk-ped { font-size: clamp(2rem, 6vw, 5rem); border-radius: 20px 20px 0 0; }
+    .tt-rank .rk-ms { justify-content: center; margin-top: 1.4vh; } .tt-rank .rk-ms button { background: rgba(255,255,255,.12); color: #fff; font-size: clamp(.85rem, 1.3vw, 1.1rem); } .tt-rank .rk-ms button.on { background: #fff; color: #0b1430; }
+    .rk-conf { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+    .rk-conf i { position: absolute; top: -20px; width: 10px; height: 16px; border-radius: 2px; animation: rkFall 3.2s linear infinite; }
+    @keyframes rkFall { to { transform: translateY(110vh) rotate(540deg); } }
+    @media (prefers-reduced-motion: reduce) { .rk-ped, .sen-line .sen-chip { animation: none; } .rk-conf { display: none; } }
+    .rec-more { display: block; width: 100%; margin-top: 10px; padding: 12px; border: 0; border-radius: 14px; background: var(--surface-2, #f2f4f6); color: var(--ink-2, #4e5968); font: inherit; font-weight: 700; cursor: pointer; }
+    .rec-more[hidden] { display: none; }
     .rec-bar { position: sticky; bottom: calc(-22px - env(safe-area-inset-bottom, 0px)); display: flex; gap: 6px; margin: 0 -2px calc(-22px - env(safe-area-inset-bottom, 0px)); padding: 12px 2px calc(14px + env(safe-area-inset-bottom, 0px)); background: var(--bg); border-top: 1px solid var(--line); }
     .rec-bar .btn { flex: 1; font-size: .92rem; padding: 0 8px; }
     .grade-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
@@ -1683,7 +1739,7 @@ window.VOCA_CLOUD = {
   const $ = id => document.getElementById(id);
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const str = v => (v == null ? '' : String(v)).trim();
-  const IC = {
+  const IC = new Proxy({
     clock: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2.5h6"/></svg>',
     grid: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="2.5"/><path d="M9.2 3.5v17M14.8 3.5v17M3.5 9.2h17M3.5 14.8h17"/></svg>',
     users: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.2a6.5 6.5 0 0 1 3.5 5.8"/></svg>',
@@ -1718,8 +1774,13 @@ window.VOCA_CLOUD = {
     tick: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
     book: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"/></svg>',
     bell: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4l2-2z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>',
-    translate: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>'
-  };
+    translate: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>',
+    rows: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="7" height="5" rx="1.5"/><rect x="12" y="4" width="9" height="5" rx="1.5"/><rect x="3" y="15" width="10" height="5" rx="1.5"/><path d="M16 17.5h5M19 15l2.5 2.5L19 20"/></svg>',
+    podium: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21V10h6v11M3 21v-6h6M15 21v-8h6v8M2 21h20"/><path d="M12 2.5l.9 1.9 2 .3-1.5 1.4.4 2-1.8-1-1.8 1 .4-2-1.5-1.4 2-.3z"/></svg>'
+  }, {
+    /* 없는 이름을 쓰면 'undefined' 글자 대신 기본 아이콘(별)을 그려요. */
+    get: (o, k) => (k in o || typeof k !== 'string' ? o[k] : (console.warn('IC: 없는 아이콘', k), o.sparkles))
+  });
   /* 마스코트: 새싹을 단 동글동글한 파란 캐릭터. mood = happy | cheer | think | sleep */
   function MASCOT(mood) {
     mood = mood || 'happy';
@@ -2718,6 +2779,7 @@ window.VOCA_CLOUD = {
     dict:    { name: '듣고 쓰기', ico: IC.headphones, desc: '발음을 듣고 타이핑' },
     listen:  { name: '듣기 모드', ico: IC.speaker, desc: '자동으로 이어 듣기' },
     cloze:   { name: '문장 빈칸', ico: IC.quote, desc: '예문 속 빈칸 단어 고르기' },
+    sentence:{ name: '문장 배열', ico: IC.rows, desc: '예문 단어를 순서대로 놓기' },
     speak:   { name: '말하기', ico: IC.mic, desc: '소리 내어 발음 확인' },
     lchoice: { name: '듣고 고르기', ico: IC.headphones, desc: '발음만 듣고 뜻 맞히기' },
     scramble:{ name: '철자 퍼즐', ico: IC.shuffle, desc: '글자 조각을 눌러 단어 완성' },
@@ -2775,6 +2837,7 @@ window.VOCA_CLOUD = {
     if (['choice', 'rchoice', 'test', 'cloze', 'lchoice', 'mix'].includes(mode) && allWords().length < 4) return toast(mode === 'test' ? '시험은 전체 단어가 4개 이상 있어야 해요.' : '4지선다는 전체 단어가 4개 이상 있어야 해요.');
     let q = shuffled(items.map(x => ({ w: x.w, catId: x.catId })));
     if (mode === 'scramble') { q = q.filter(x => scrOk(x.w)); if (!q.length) return toast('철자 퍼즐로 풀 수 있는 단어가 없어요.'); }
+    if (mode === 'sentence') { q = q.filter(x => senTokens(x.w)); if (!q.length) return toast('예문이 있는 단어가 없어요. 단어에 예문을 넣거나 AI로 채워 주세요.'); }
     if (src.type === 'today') q.sort((a, b) => (a.w.box === 0) - (b.w.box === 0));
     if (mode === 'test') q.forEach((x, i) => { const sp = spellOk(x.w); x.t = ['choice', 'rchoice', sp ? 'spell' : 'choice'][i % 3]; });
     if (mode === 'test') q = shuffled(q);
@@ -2803,6 +2866,7 @@ window.VOCA_CLOUD = {
     else if (md === 'speak') renderSpeak(item);
     else if (md === 'lchoice') renderLChoice(item);
     else if (md === 'scramble') renderScramble(item);
+    else if (md === 'sentence') renderSentence(item);
     else renderTyping(item, md === 'dict');
     if (S.mode === 'test') { const qc = $('stBody').querySelector('.q-card'); if (qc) qc.insertAdjacentHTML('afterbegin', `<div class="exam-no">문제 ${S.idx + 1}</div>`); }
     $('stBody').scrollTop = 0;
@@ -3139,6 +3203,68 @@ window.VOCA_CLOUD = {
         <div class="opts">${S.options.map((o, i) => `<button class="opt" data-act="opt" data-i="${i}"><span class="opt-n">${i + 1}</span><span>${esc(o.word)}</span></button>`).join('')}</div>
       </div>`;
     return true;
+  }
+
+  /* ----- 문장 배열: 예문을 단어 조각으로 섞어 두고, 순서대로 눌러 문장을 완성해요 (클래스카드 문장 학습) ----- */
+  function senTokens(w) {
+    const ex = String(w.example || '').trim(), wd = String(w.word || '').trim(); if (!ex || !wd) return null;
+    let t;
+    if (isHanWord(wd)) {
+      // 띄어쓰기가 없는 중국어는 HSK 사전에서 가장 긴 단어부터 잘라요(최대 4글자). 문장부호는 앞 조각에 붙여요.
+      const x = ex.replace(/\s+/g, ''); t = []; let i = 0;
+      while (i < x.length) {
+        let L = 1;
+        if (x.startsWith(wd, i)) L = wd.length;
+        else if (zhMap) { L = Math.min(4, x.length - i); while (L > 1 && !zhMap.has(x.substr(i, L))) L--; }
+        const piece = x.substr(i, L); i += L;
+        if (/^[\p{P}\p{S}]+$/u.test(piece) && t.length) t[t.length - 1] += piece; else t.push(piece);
+      }
+    } else t = ex.split(/\s+/).filter(Boolean);
+    return t.length >= 3 && t.length <= 14 ? t : null;
+  }
+  function renderSentence(item) {
+    const w = item.w, toks = senTokens(w);
+    if (!toks) return renderChoice(item, false);
+    let order = shuffled(toks.map((_, i) => i)); if (order.every((v, i) => v === i)) order = order.slice().reverse();
+    S.sen = { toks, order, picked: [] };
+    $('stBody').innerHTML = `
+      <div class="q-wrap">
+        <div class="q-card sen-card">
+          <div class="q-label">${isHanWord(w.word) ? '조각을 순서대로 눌러 중국어 문장을 만드세요' : '단어를 순서대로 눌러 영어 문장을 만드세요'}</div>
+          ${w.exampleKo ? `<div class="sen-ko">${esc(w.exampleKo)}</div>` : ''}
+          <div class="sen-key"><b>${esc(w.word)}</b><span>${esc(w.meaning)}</span></div>
+        </div>
+        <div class="sen-line" id="senLine" aria-live="polite"></div>
+        <div class="sen-tiles" id="senTiles"></div>
+        <div id="typeFeedback"></div>
+        <div class="row q-foot"><button class="btn btn-soft" data-act="sen-reset">처음부터</button><button class="btn btn-soft" data-act="sen-skip">모르겠어요</button></div>
+      </div>`;
+    senDraw();
+  }
+  function senDraw() {
+    const s = S.sen, line = $('senLine'); if (!line) return;
+    line.classList.toggle('on', s.picked.length > 0);
+    line.innerHTML = s.picked.length ? s.picked.map((i, k) => `<button class="sen-chip" data-act="sen-unpick" data-k="${k}">${esc(s.toks[i])}</button>`).join('') : '<span class="sen-ph">여기에 문장이 만들어져요</span>';
+    $('senTiles').innerHTML = s.order.map(i => `<button class="sen-chip" data-act="sen-pick" data-i="${i}"${s.picked.includes(i) ? ' disabled' : ''}>${esc(s.toks[i])}</button>`).join('');
+  }
+  ACTIONS['sen-pick'] = el => {
+    if (!S.active || S.locked || !S.sen) return;
+    const s = S.sen, i = +el.dataset.i; if (s.picked.includes(i)) return;
+    s.picked.push(i); senDraw();
+    if (s.picked.length === s.toks.length) senDone(s.picked.map(j => s.toks[j]).join(' ') === s.toks.join(' '));
+  };
+  ACTIONS['sen-unpick'] = el => { if (!S.active || S.locked || !S.sen) return; S.sen.picked.splice(+el.dataset.k, 1); senDraw(); };
+  ACTIONS['sen-reset'] = () => { if (!S.active || S.locked || !S.sen) return; S.sen.picked = []; senDraw(); };
+  ACTIONS['sen-skip'] = () => { if (!S.active || S.locked || !S.sen) return; senDone(false); };
+  function senDone(ok) {
+    S.locked = true; const item = S.queue[S.idx], w = item.w, s = S.sen;
+    $('stBody').querySelectorAll('.sen-chip, .q-foot .btn').forEach(b => { b.disabled = true; });
+    $('senLine').classList.add(ok ? 'ok' : 'bad');
+    const hl = s.toks.map(x => { const hit = isHanWord(w.word) ? x.startsWith(w.word) : x.toLowerCase().replace(/[^a-z'-]/g, '').startsWith(w.word.toLowerCase().slice(0, Math.max(3, w.word.length - 2))); return hit ? `<u>${esc(x)}</u>` : esc(x); }).join(isHanWord(w.word) ? '' : ' ');
+    $('typeFeedback').innerHTML = ok ? `<div class="fb ok"><span class="ans-ic">${IC.tick}</span><div>완벽한 문장이에요!<div class="fb-sub sen-ans">${hl}</div></div></div>`
+      : `<div class="fb bad"><span class="ans-ic">${IC.x}</span><div>이렇게 써요<div class="fb-sub sen-ans">${hl}</div></div></div>`;
+    playAudio(w.example); recordResult(item, ok);
+    const my = S.idx; setTimeout(() => { if (S.active && S.idx === my) nextQuestion(); }, ok ? 1500 : 2600);
   }
 
   /* ----- 말하기 ----- */
@@ -4404,7 +4530,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     landingVideo();
   }
   /* 첫 화면 소개: 광고 영상(media/ad.mp4)과 핵심 기능. PC에서는 왼쪽, 휴대폰에서는 로그인 아래에 보여요. */
-  const LP_SRC = '<source src="media/ad.webm" type="video/webm"><source src="media/ad.mp4" type="video/mp4">';
+  const LP_SRC = '<source src="media/ad.webm?v=2" type="video/webm"><source src="media/ad.mp4?v=2" type="video/mp4">';
   const LP_FEATS = [
     ['sparkles', '자동 완성', '단어만 넣으면 뜻·발음·예문까지'],
     ['cards', '10가지 학습', '카드, 퀴즈, 말하기, 게임'],
@@ -4416,7 +4542,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
       <div class="lp-brand"><img src="media/profile.png" alt="" width="36" height="36"><span><b>Voca</b>Pro</span></div>
       <h1 class="lp-h">단어,<br><em>끝까지</em> 외우다</h1>
       <p class="lp-sub">학교 수업용 AI 영어 단어장이에요. 내장 사전으로 뜻이 바로 채워지고, 매일 조금씩 복습해서 끝까지 외우게 도와줘요.</p>
-      <div class="lp-video"><video id="lpVid" poster="media/ad-poster.jpg" muted loop playsinline preload="metadata" aria-label="VocaPro 소개 영상">${LP_SRC}</video></div>
+      <div class="lp-video"><video id="lpVid" poster="media/ad-poster.jpg?v=2" muted loop playsinline preload="metadata" aria-label="VocaPro 소개 영상">${LP_SRC}</video></div>
       <ul class="lp-feats">${LP_FEATS.map(([ic, t, d]) => `<li>${IC[ic] || ''}<b>${t}</b><small>${d}</small></li>`).join('')}</ul>
       <p class="lp-foot">문의 vocaproe2@gmail.com</p>
     </section>`;
@@ -4433,7 +4559,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
   // 어디서든 소개 영상 열기 (설정의 소개 카드)
   ACTIONS['about-video'] = () => {
     const ov = document.createElement('div'); ov.className = 'vid-ov'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-label', 'VocaPro 소개 영상');
-    ov.innerHTML = `<button class="icon-btn" data-act="about-video-close" aria-label="닫기">${IC.x}</button><video poster="media/ad-poster.jpg" controls autoplay playsinline>${LP_SRC}</video>`;
+    ov.innerHTML = `<button class="icon-btn" data-act="about-video-close" aria-label="닫기">${IC.x}</button><video poster="media/ad-poster.jpg?v=2" controls autoplay playsinline>${LP_SRC}</video>`;
     ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
     document.body.appendChild(ov);
   };
@@ -5015,10 +5141,24 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     const own = ownedWords(), list = gradeWords(k), left = list.filter(e => !own.has(e.w.toLowerCase())).length;
     openSheet(`${listName(k)} 단어 ${list.length}`, `
       <div class="rec-tabs">${(ZH_PACK_NAMES[k] ? [ZH_PACKS, ZH_PACKS_NEW] : [PACKS, GRADES]).map(g => `<div class="rec-tab-row">${g.map(([gk, n]) => `<button class="chip ${gk === k ? 'on' : ''}${PACK_NAMES[gk] ? ' pack' : ''}" data-act="rec-tab" data-g="${gk}">${n}</button>`).join('')}</div>`).join('')}</div>
-      <div class="rec-list" id="recList">${list.map((e, i) => { const has = own.has(e.w.toLowerCase()); return `<label class="rec-row ${has ? 'has' : ''}"><input type="checkbox" value="${i}" ${has ? 'checked disabled' : ''}><span class="w-no">${String(i + 1).padStart(3, '0')}</span><b>${esc(e.w)}</b><span class="rec-m">${e.p ? `<i class="rec-py">${esc(e.p)}</i> ` : ''}${esc(e.m)}</span>${has ? '<em>담음</em>' : ''}</label>`; }).join('')}</div>
+      <div class="rec-list" id="recList"></div><button class="rec-more" id="recMore" data-act="rec-more" hidden>더 보기</button>
       <div class="rec-bar"><button class="btn btn-soft" data-act="rec-pick-add">선택한 단어 담기</button><button class="btn btn-primary" data-act="rec-left-add" ${left ? '' : 'disabled'}>남은 ${left}개 모두 담기</button></div>`);
+    recRowsAt = 0; recOwn = own; recMore();
+    // 수천 개를 한 번에 그리면 휴대폰이 멈춰요. 150개씩, 아래로 내리면 이어서 그려요.
+    if (recIO) recIO.disconnect();
+    if ('IntersectionObserver' in window) { recIO = new IntersectionObserver(es => { if (es.some(x => x.isIntersecting)) recMore(); }, { rootMargin: '400px 0px' }); recIO.observe($('recMore')); }
   }
   ACTIONS['rec-tab'] = el => recSheet(el.dataset.g);
+  const REC_STEP = 150;
+  let recRowsAt = 0, recOwn = new Set(), recIO = null;
+  const recRowHtml = (e, i, has) => `<label class="rec-row ${has ? 'has' : ''}"><input type="checkbox" value="${i}" ${has ? 'checked disabled' : ''}><span class="w-no">${String(i + 1).padStart(3, '0')}</span><b>${esc(e.w)}</b><span class="rec-m">${e.p ? `<i class="rec-py">${esc(e.p)}</i> ` : ''}${esc(e.m)}</span>${has ? '<em>담음</em>' : ''}</label>`;
+  function recMore() {
+    const box = $('recList'), btn = $('recMore'); if (!box || !btn) return;
+    const list = gradeWords(recSheetK), end = Math.min(list.length, recRowsAt + REC_STEP);
+    box.insertAdjacentHTML('beforeend', list.slice(recRowsAt, end).map((e, j) => recRowHtml(e, recRowsAt + j, recOwn.has(e.w.toLowerCase()))).join(''));
+    recRowsAt = end; btn.hidden = end >= list.length; btn.textContent = `더 보기 (${(list.length - end).toLocaleString()}개 남음)`;
+  }
+  ACTIONS['rec-more'] = () => recMore();
   ACTIONS['rec-pick-add'] = async () => {
     const list = gradeWords(recSheetK), pick = [...document.querySelectorAll('#recList input:checked:not(:disabled)')].map(i => list[+i.value]).filter(Boolean);
     if (!pick.length) return toast('담을 단어를 골라 주세요.');
@@ -5265,7 +5405,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     ['book-print', IC.print, 'i-teal', '단어 시험지 만들기', '인쇄하거나 PDF로 나눠 줘요'],
     ['book-share', IC.book, 'i-grape', '단어장 링크 공유', '학생들이 링크 하나로 받아 가요'],
     ['exam-open', IC.trophy, 'i-coral', '실전 시험 미리 풀기', '학생이 보는 시험을 직접 확인해요'],
-    ['quizshow', IC.sparkle, 'i-sun', '퀴즈 쇼', '4지선다를 크게 띄우고 팀 점수를 매겨요'],
+    ['quizshow', IC.sparkles, 'i-sun', '퀴즈 쇼', '4지선다를 크게 띄우고 팀 점수를 매겨요'],
     ['bingo', IC.grid, 'i-mint', '단어 빙고판', '학생마다 배치가 다른 빙고판을 인쇄해요'],
     ['picker', IC.users, 'i-grape', '발표자 뽑기 · 모둠', '번호나 반 명단에서 무작위로 뽑아요'],
     ['ctimer', IC.clock, 'i-teal', '수업 타이머', '활동 시간을 크게 띄우고 끝나면 알려요']
@@ -5337,7 +5477,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     if (!silent) { if (!$('sheetOv').classList.contains('open') && !S.active) document.body.classList.remove('no-scroll'); try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) {} }
   }
   const ttTop = (title, right) => `<div class="pv-top"><span class="pv-name">${esc(title)}</span>${right || ''}<button class="pv-x" data-tt="x" aria-label="닫기">${IC.x}</button></div>`;
-  function ttDraw() { if (!TT) return; ({ qs: qsDraw, timer: tmDraw, pick: pkDraw })[TT.kind](); }
+  function ttDraw() { if (!TT) return; ({ qs: qsDraw, timer: tmDraw, pick: pkDraw, rank: rkDraw })[TT.kind](); }
   function ttBeep(n) {
     try {
       const A = window.AudioContext || window.webkitAudioContext; if (!A) return; const ctx = new A();
@@ -5751,9 +5891,10 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     const head = `<div class="cl-code"><div><small>초대 코드</small><b>${esc(c.code)}</b></div><button class="btn btn-sm btn-soft" data-act="cl-copy" data-code="${esc(c.code)}">복사</button></div>
       <button class="btn btn-primary btn-block lv-open" data-act="cl-live"><i class="lv-dot"></i>실시간 보기 (누가 들어와서 무엇을 하는지)</button>
       <p class="muted cl-p">학생은 홈의 '우리 반'에서 이 코드를 넣으면 들어와요. 만 14세 미만(이 기기에만 저장하는 계정)은 참여할 수 없어요.</p>
-      <div class="seg"><button class="${CLV.tab === 'stu' ? 'on' : ''}" data-act="cl-tab" data-t="stu">학생 ${mem.length}명</button><button class="${CLV.tab === 'asg' ? 'on' : ''}" data-act="cl-tab" data-t="asg">과제 ${asg.length}개</button></div>`;
+      <div class="seg"><button class="${CLV.tab === 'stu' ? 'on' : ''}" data-act="cl-tab" data-t="stu">학생 ${mem.length}명</button><button class="${CLV.tab === 'asg' ? 'on' : ''}" data-act="cl-tab" data-t="asg">과제 ${asg.length}개</button><button class="${CLV.tab === 'rank' ? 'on' : ''}" data-act="cl-tab" data-t="rank">랭킹</button></div>`;
     let body = '';
-    if (CLV.tab === 'stu') {
+    if (CLV.tab === 'rank') body = rkHtml(mem, false);
+    else if (CLV.tab === 'stu') {
       const weak = clWeakTop(mem.map(m => (m.progress && m.progress.weak) || []), 10);
       body = mem.length ? `${weak.length ? `<div class="cl-weak"><h4 class="syn-h">반에서 많이 틀린 단어</h4><div class="cl-chips">${weak.map(x => `<span>${esc(x.w)}${x.mean ? ` <small>${esc(x.mean)}</small>` : ''} <b>${x.c}명</b></span>`).join('')}</div></div>` : ''}
         <div class="cl-table"><div class="cl-tr cl-th"><span>이름</span><span>최근 학습</span><span>7일 단어</span><span>정답률</span><span>과제</span></div>
@@ -5772,6 +5913,35 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
       ${Array.isArray(p.weak) && p.weak.length ? `<h4 class="syn-h">많이 틀린 단어</h4><div class="cl-chips">${p.weak.filter(Array.isArray).map(x => `<span>${esc(x[0])} <small>${esc(x[1] || '')}</small> <b>${esc(x[2])}회</b></span>`).join('')}</div>` : ''}
       ${tests ? `<h4 class="syn-h">최근 시험</h4><div class="cl-chips">${tests}</div>` : ''}<p class="muted cl-p">${clDate(p.at)} 기준</p>` : '<p class="muted cl-p">아직 학습 기록이 올라오지 않았어요. 학생이 앱을 열면 올라와요.</p>'}
       <button class="btn btn-sm btn-soft cl-danger" data-act="cl-kick" data-uid="${esc(m.uid)}" data-name="${esc(m.name)}">반에서 내보내기</button></div>`;
+  }
+  /* ----- 우리 반 랭킹: 7일 학습량 · 정답률 · 연속 학습 · 마스터 단어로 순위. 시상대와 칠판용 큰 화면 (클래스카드 반 랭킹) ----- */
+  const RK_M = [['n7', '7일 학습', '개'], ['acc7', '정답률', '%'], ['streak', '연속 학습', '일'], ['mastered', '마스터', '개']];
+  const RK_C = ['#3182f6', '#f04452', '#03b26c', '#8b5cf6', '#fe9800', '#0aa5b4', '#e64980', '#1b64da'];
+  const rkColor = s => RK_C[[...String(s || '')].reduce((a, c) => a + c.charCodeAt(0), 0) % RK_C.length];
+  function rkRank(mem, m) {
+    const v = x => { const p = x.progress || {}, n = p[m]; return n == null || n === '' ? -1 : +n || 0; };
+    // 정답률은 7일 동안 10개 넘게 푼 학생만 줄을 세워요(한두 개만 풀고 100%가 1등이 되지 않게).
+    const ok = x => m !== 'acc7' || ((x.progress || {}).n7 || 0) >= 10;
+    return mem.filter(x => ok(x) && v(x) > 0).map(x => ({ name: x.name || '이름 없음', sno: x.sno || '', v: v(x) })).sort((a, b) => b.v - a.v || a.name.localeCompare(b.name, 'ko'));
+  }
+  function rkHtml(mem, big) {
+    const m = CLV.rk || 'n7', [, label, unit] = RK_M.find(x => x[0] === m), list = rkRank(mem, m);
+    const chips = `<div class="rk-ms">${RK_M.map(([k, n]) => `<button class="${k === m ? 'on' : ''}" data-act="cl-rk" data-m="${k}">${n}</button>`).join('')}</div>`;
+    if (!list.length) return chips + `<div class="cl-load">${MASCOT('think')}<span>${m === 'acc7' ? '7일 동안 10개 넘게 푼 학생이 아직 없어요.' : '아직 순위를 매길 학습 기록이 없어요.'}</span></div>`;
+    const top = [list[1], list[0], list[2]], medal = ['#9aa5b1', '#f5a524', '#c8783a'];
+    const pod = `<div class="rk-pod">${top.map((x, i) => { const r = [2, 1, 3][i]; return x ? `<div class="rk-p r${r}"><div class="rk-av" style="background:${rkColor(x.name)}">${esc([...x.name][0] || '?')}<i style="background:${medal[i]}">${r}</i></div><b>${esc(x.name)}</b><small>${x.v.toLocaleString()}${unit}</small><div class="rk-ped">${r}</div></div>` : '<div></div>'; }).join('')}</div>`;
+    if (big) return pod + chips;
+    const max = list[0].v || 1;
+    const rest = list.slice(3).map((x, i) => `<div class="rk-row"><span>${i + 4}</span><b>${esc(x.name)}${x.sno ? ` <small class="muted">${esc(x.sno)}</small>` : ''}</b><em>${x.v.toLocaleString()}${unit}</em><div class="rk-bar"><i style="width:${Math.round(x.v / max * 100)}%"></i></div></div>`).join('');
+    return `${chips}${pod}${rest ? `<div class="rk-list">${rest}</div>` : ''}<button class="btn btn-primary btn-block" data-act="cl-rk-big">${IC.podium} 칠판에 크게 띄우기</button><p class="muted cl-p">${label} 기준 · 학생이 앱을 열 때 올라온 기록이에요.</p>`;
+  }
+  ACTIONS['cl-rk'] = el => { CLV.rk = el.dataset.m; if (TT && TT.kind === 'rank') ttDraw(); else clDraw(); };
+  ACTIONS['cl-rk-big'] = () => ttOpen('rank', {});
+  function rkDraw() {
+    const ov = $('ttOv'), d = CLV.data; if (!ov || !d) return;
+    const m = CLV.rk || 'n7', label = RK_M.find(x => x[0] === m)[1];
+    const conf = Array.from({ length: 36 }, (_, i) => `<i style="left:${(i * 97) % 100}%;background:${RK_C[i % RK_C.length]};animation-delay:${-(i * 0.37) % 3.2}s;animation-duration:${2.6 + (i % 5) * 0.3}s"></i>`).join('');
+    ov.innerHTML = `${ttTop(d.class.name + ' · 랭킹')}<div class="rk-conf">${conf}</div><div class="rk-big"><h2>${m === 'n7' ? '이번 주 우리 반 학습 왕' : `우리 반 ${esc(label)} 왕`}</h2><p class="rk-sub">${esc(d.class.name)} · 학생 ${d.members.length}명</p>${rkHtml(d.members, true)}</div>`;
   }
   ACTIONS['cl-copy'] = async el => { try { await navigator.clipboard.writeText(el.dataset.code); toast('초대 코드를 복사했어요.'); } catch (e) { toast('코드: ' + el.dataset.code); } };
   ACTIONS['cl-kick'] = async el => {

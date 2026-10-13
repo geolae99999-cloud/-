@@ -16,7 +16,7 @@
 | `supabase/sql/` | 서버 SQL (v5~v8). SQL Editor에서 순서대로 한 번씩 실행 |
 | `supabase/functions/ai/index.ts` | Edge Function `ai` |
 | `supabase/cache/` | (미적용) 공유 AI 캐시 |
-| `public/media/` | 광고 영상(`ad.mp4`, `ad.webm`, `ad-poster.jpg`), 프로필(`profile.png`, `profile-1024.png`), 배너(`og.jpg` 공유 미리보기, `wide.jpg` 가로 배너) |
+| `public/media/` | 광고 영상(23초, 공유용 1080p `ad-1080.mp4`, 사이트용 720p `ad.mp4`·`ad.webm`, `ad-poster.jpg`), 프로필(`profile.png`, `profile-1024.png`), 배너(`og.jpg` 공유 미리보기, `wide.jpg` 가로 배너) |
 | `tools/media/` | 위 영상과 이미지의 원본(`ad.html`, `banners.html`)과 만드는 스크립트 `render.js` |
 | `docs/` | 변경 내역 |
 | `_redirects`, `_headers` | Cloudflare Pages 설정. 주소 `/xxx`를 `public/xxx`로 보여 주고, 그 밖의 파일은 404. 보안 헤더. |
@@ -29,8 +29,8 @@ python3 tools/build_dict.py gen public              # 사전을 바꿨을 때만
 python3 tools/build_ko_index.py src/VocaPro.html public   # 사전이나 단어장을 바꾼 뒤: 한글 뜻으로 찾기 목록(dict/ko.json)
 python3 tools/build_zh.py gen/zh public             # 중국어 사전을 바꿨을 때만 (pip install pypinyin)
 for f in public/*.js; do node --check $f; done
-sh test/prep.sh && node test/smoke.js               # pack, kid, cloud, flip, design, feat, wide, teach, zh, klass, audit 도 같은 방식
-node tools/media/render.js                          # 광고 영상·배너를 고쳤을 때만 (ffmpeg 필요)
+sh test/prep.sh && node test/smoke.js               # pack, kid, cloud, flip, design, feat, wide, teach, zh, klass, tools, sentence, perf, audit 도 같은 방식
+node tools/media/render.js [ad|banners|preview]     # 광고 영상·배너를 고쳤을 때만 (ffmpeg 필요, 글꼴은 파일 머리 설명)
 git push origin main                                # Cloudflare Pages가 자동 배포
 ```
 

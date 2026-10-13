@@ -9,6 +9,7 @@ const srv = http.createServer((q, r) => { let f = path.join(root, decodeURICompo
   const p = await ctx.newPage();
   const errs = [];
   p.on('pageerror', e => errs.push('pageerror: ' + e.message));
+  await require('./undef')(p, errs);
   p.on('console', m => { if (m.type() === 'error') errs.push('console: ' + m.text()); });
   await p.route('**/fonts.googleapis.com/**', r => r.abort());
   await p.route('https://cdn.jsdelivr.net/**', r => r.abort());

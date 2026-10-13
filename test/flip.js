@@ -5,6 +5,7 @@ const srv = http.createServer((q, r) => { let f = path.join(root, q.url.split('?
 (async () => {
   const b = await chromium.launch(); const p = await (await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 })).newPage();
   const errs = []; p.on('pageerror', e => errs.push(e.message));
+  await require('./undef')(p, errs);
   await p.route(/fonts|jsdelivr/, r => r.abort());
   await p.goto('http://localhost:8766/'); await p.waitForSelector('.auth-box');
   await p.click('[data-m="signup"]'); await p.fill('#auId', 'kim'); await p.fill('#auPw', 'pass1234'); await p.fill('#auPw2', 'pass1234');

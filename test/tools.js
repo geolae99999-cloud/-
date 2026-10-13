@@ -4,11 +4,12 @@ const http = require('http'), fs = require('fs'), path = require('path');
 const root = path.join(__dirname, 'site2'), shots = path.join(__dirname, 'shots', 'tools');
 fs.mkdirSync(shots, { recursive: true });
 const srv = http.createServer((q, r) => { let f = path.join(root, decodeURIComponent(q.url.split('?')[0])); if (f.endsWith('/')) f += 'index.html'; fs.readFile(f, (e, d) => { if (e) { r.writeHead(404); return r.end(); } r.writeHead(200, { 'Content-Type': f.endsWith('.js') ? 'text/javascript' : f.endsWith('.css') ? 'text/css' : f.endsWith('.json') ? 'application/json' : 'text/html; charset=utf-8' }); r.end(d); }); }).listen(8783);
-const members = [{ uid: '2', name: '이지우', sno: '20315', progress: { last: '2026-10-13', n7: 40, acc7: 85, streak: 3, total: 120, mastered: 10 }, done: 1 }, { uid: '3', name: '박민', sno: '20301', progress: {}, done: 0 }, { uid: '4', name: '=cmd', sno: '20302', progress: {}, done: 0 }];
+const members = [{ uid: '2', name: '이지우', sno: '20315', progress: { last: '2026-10-13', n7: 40, acc7: 85, streak: 3, total: 120, mastered: 10 }, done: 1 }, { uid: '3', name: '박민', sno: '20301', progress: {}, done: 0 }, { uid: '4', name: '=cmd', sno: '20302', progress: {}, done: 0 }, { uid: '5', name: '최서연', sno: '20322', progress: { last: '2026-10-13', n7: 72, acc7: 91, streak: 6, total: 210, mastered: 44 }, done: 1 }, { uid: '6', name: '정하늘', sno: '20327', progress: { last: '2026-10-12', n7: 55, acc7: 78, streak: 9, total: 160, mastered: 30 }, done: 1 }, { uid: '7', name: '김도윤', sno: '20305', progress: { last: '2026-10-11', n7: 18, acc7: 66, streak: 1, total: 60, mastered: 5 }, done: 0 }];
 (async () => {
   const b = await chromium.launch(), errs = [], res = {};
   const ctx = await b.newContext({ viewport: { width: 1280, height: 800 }, acceptDownloads: true }), p = await ctx.newPage();
   p.on('pageerror', e => errs.push(e.message));
+  await require('./undef')(p, errs);
   await p.route(/fonts|jsdelivr/, r => r.abort());
   await p.addInitScript(() => { try { window.speechSynthesis.speak = () => {}; } catch (e) {} window.print = () => { window.__printed = document.getElementById('printArea').innerHTML.length; }; });
   await p.route('https://psmmrwhmpezyeehjivav.supabase.co/**', async r => {
@@ -67,5 +68,12 @@ const members = [{ uid: '2', name: '이지우', sno: '20315', progress: { last: 
   const [dl] = await Promise.all([p.waitForEvent('download'), p.click('[data-act="cl-csv"]')]);
   const file = await dl.path(); const csv = fs.readFileSync(file, 'utf8');
   res.csvName = dl.suggestedFilename(); res.csv = csv.replace(/^﻿/, '').split('\r\n');
+  // 우리 반 랭킹: 시상대, 기준 바꾸기, 칠판용 큰 화면
+  await p.click('[data-act="cl-tab"][data-t="rank"]'); await p.waitForSelector('.rk-pod'); await p.waitForTimeout(900); await shot('10-rank');
+  res.rank = await p.$$eval('.rk-p b', a => a.map(x => x.textContent).join(','));
+  await p.click('[data-act="cl-rk"][data-m="streak"]'); await p.waitForSelector('.rk-pod'); res.rankStreak = await p.$$eval('.rk-p b', a => a.map(x => x.textContent).join(','));
+  await p.click('[data-act="cl-rk-big"]'); await p.waitForSelector('#ttOv .rk-pod'); await p.waitForTimeout(1200); await shot('11-rank-big');
+  res.rankBig = await p.evaluate(() => document.querySelectorAll('#ttOv .rk-p').length);
+  await p.keyboard.press('Escape');
   console.log(JSON.stringify(res, null, 1)); console.log('ERRORS:', errs.length ? errs.join('\n') : 'none'); await b.close(); srv.close();
 })().catch(e => { console.error(e); process.exit(1); });

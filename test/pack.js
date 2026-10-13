@@ -6,6 +6,7 @@ const srv = http.createServer((q, r) => { let f = path.join(root, decodeURICompo
   const b = await chromium.launch();
   const p = await (await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 })).newPage();
   const errs = []; p.on('pageerror', e => errs.push(e.message));
+  await require('./undef')(p, errs);
   await p.route('**/fonts.googleapis.com/**', r => r.abort()); await p.route('https://cdn.jsdelivr.net/**', r => r.abort());
   await p.goto('http://localhost:8766/'); await p.waitForSelector('#authScreen .auth-box');
   await p.click('[data-act="auth-mode"][data-m="signup"]');

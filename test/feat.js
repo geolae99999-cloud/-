@@ -9,6 +9,7 @@ const srv = http.createServer((q, r) => { let f = path.join(root, decodeURICompo
   for (const vp of [{ width: 390, height: 844 }, { width: 1920, height: 1080 }]) {
     const tag = String(vp.width); const ctx = await b.newContext({ viewport: vp }); const p = await ctx.newPage();
     p.on('pageerror', e => errs.push(tag + ' ' + e.message));
+    await require('./undef')(p, errs, tag);
     await p.route('https://cdn.jsdelivr.net/**', r => r.abort());
     await p.addInitScript(() => { try { window.speechSynthesis.speak = () => {}; } catch (e) {} window.__printed = 0; window.print = () => { window.__printed++; }; });
     const shot = n => p.screenshot({ path: path.join(shots, `${tag}-${n}.png`) });

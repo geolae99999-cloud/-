@@ -10,6 +10,7 @@
     if (['choice', 'rchoice', 'test', 'cloze', 'lchoice', 'mix'].includes(mode) && allWords().length < 4) return toast(mode === 'test' ? '시험은 전체 단어가 4개 이상 있어야 해요.' : '4지선다는 전체 단어가 4개 이상 있어야 해요.');
     let q = shuffled(items.map(x => ({ w: x.w, catId: x.catId })));
     if (mode === 'scramble') { q = q.filter(x => scrOk(x.w)); if (!q.length) return toast('철자 퍼즐로 풀 수 있는 단어가 없어요.'); }
+    if (mode === 'sentence') { q = q.filter(x => senTokens(x.w)); if (!q.length) return toast('예문이 있는 단어가 없어요. 단어에 예문을 넣거나 AI로 채워 주세요.'); }
     if (src.type === 'today') q.sort((a, b) => (a.w.box === 0) - (b.w.box === 0));
     if (mode === 'test') q.forEach((x, i) => { const sp = spellOk(x.w); x.t = ['choice', 'rchoice', sp ? 'spell' : 'choice'][i % 3]; });
     if (mode === 'test') q = shuffled(q);
@@ -38,6 +39,7 @@
     else if (md === 'speak') renderSpeak(item);
     else if (md === 'lchoice') renderLChoice(item);
     else if (md === 'scramble') renderScramble(item);
+    else if (md === 'sentence') renderSentence(item);
     else renderTyping(item, md === 'dict');
     if (S.mode === 'test') { const qc = $('stBody').querySelector('.q-card'); if (qc) qc.insertAdjacentHTML('afterbegin', `<div class="exam-no">문제 ${S.idx + 1}</div>`); }
     $('stBody').scrollTop = 0;
@@ -374,6 +376,68 @@
         <div class="opts">${S.options.map((o, i) => `<button class="opt" data-act="opt" data-i="${i}"><span class="opt-n">${i + 1}</span><span>${esc(o.word)}</span></button>`).join('')}</div>
       </div>`;
     return true;
+  }
+
+  /* ----- 문장 배열: 예문을 단어 조각으로 섞어 두고, 순서대로 눌러 문장을 완성해요 (클래스카드 문장 학습) ----- */
+  function senTokens(w) {
+    const ex = String(w.example || '').trim(), wd = String(w.word || '').trim(); if (!ex || !wd) return null;
+    let t;
+    if (isHanWord(wd)) {
+      // 띄어쓰기가 없는 중국어는 HSK 사전에서 가장 긴 단어부터 잘라요(최대 4글자). 문장부호는 앞 조각에 붙여요.
+      const x = ex.replace(/\s+/g, ''); t = []; let i = 0;
+      while (i < x.length) {
+        let L = 1;
+        if (x.startsWith(wd, i)) L = wd.length;
+        else if (zhMap) { L = Math.min(4, x.length - i); while (L > 1 && !zhMap.has(x.substr(i, L))) L--; }
+        const piece = x.substr(i, L); i += L;
+        if (/^[\p{P}\p{S}]+$/u.test(piece) && t.length) t[t.length - 1] += piece; else t.push(piece);
+      }
+    } else t = ex.split(/\s+/).filter(Boolean);
+    return t.length >= 3 && t.length <= 14 ? t : null;
+  }
+  function renderSentence(item) {
+    const w = item.w, toks = senTokens(w);
+    if (!toks) return renderChoice(item, false);
+    let order = shuffled(toks.map((_, i) => i)); if (order.every((v, i) => v === i)) order = order.slice().reverse();
+    S.sen = { toks, order, picked: [] };
+    $('stBody').innerHTML = `
+      <div class="q-wrap">
+        <div class="q-card sen-card">
+          <div class="q-label">${isHanWord(w.word) ? '조각을 순서대로 눌러 중국어 문장을 만드세요' : '단어를 순서대로 눌러 영어 문장을 만드세요'}</div>
+          ${w.exampleKo ? `<div class="sen-ko">${esc(w.exampleKo)}</div>` : ''}
+          <div class="sen-key"><b>${esc(w.word)}</b><span>${esc(w.meaning)}</span></div>
+        </div>
+        <div class="sen-line" id="senLine" aria-live="polite"></div>
+        <div class="sen-tiles" id="senTiles"></div>
+        <div id="typeFeedback"></div>
+        <div class="row q-foot"><button class="btn btn-soft" data-act="sen-reset">처음부터</button><button class="btn btn-soft" data-act="sen-skip">모르겠어요</button></div>
+      </div>`;
+    senDraw();
+  }
+  function senDraw() {
+    const s = S.sen, line = $('senLine'); if (!line) return;
+    line.classList.toggle('on', s.picked.length > 0);
+    line.innerHTML = s.picked.length ? s.picked.map((i, k) => `<button class="sen-chip" data-act="sen-unpick" data-k="${k}">${esc(s.toks[i])}</button>`).join('') : '<span class="sen-ph">여기에 문장이 만들어져요</span>';
+    $('senTiles').innerHTML = s.order.map(i => `<button class="sen-chip" data-act="sen-pick" data-i="${i}"${s.picked.includes(i) ? ' disabled' : ''}>${esc(s.toks[i])}</button>`).join('');
+  }
+  ACTIONS['sen-pick'] = el => {
+    if (!S.active || S.locked || !S.sen) return;
+    const s = S.sen, i = +el.dataset.i; if (s.picked.includes(i)) return;
+    s.picked.push(i); senDraw();
+    if (s.picked.length === s.toks.length) senDone(s.picked.map(j => s.toks[j]).join(' ') === s.toks.join(' '));
+  };
+  ACTIONS['sen-unpick'] = el => { if (!S.active || S.locked || !S.sen) return; S.sen.picked.splice(+el.dataset.k, 1); senDraw(); };
+  ACTIONS['sen-reset'] = () => { if (!S.active || S.locked || !S.sen) return; S.sen.picked = []; senDraw(); };
+  ACTIONS['sen-skip'] = () => { if (!S.active || S.locked || !S.sen) return; senDone(false); };
+  function senDone(ok) {
+    S.locked = true; const item = S.queue[S.idx], w = item.w, s = S.sen;
+    $('stBody').querySelectorAll('.sen-chip, .q-foot .btn').forEach(b => { b.disabled = true; });
+    $('senLine').classList.add(ok ? 'ok' : 'bad');
+    const hl = s.toks.map(x => { const hit = isHanWord(w.word) ? x.startsWith(w.word) : x.toLowerCase().replace(/[^a-z'-]/g, '').startsWith(w.word.toLowerCase().slice(0, Math.max(3, w.word.length - 2))); return hit ? `<u>${esc(x)}</u>` : esc(x); }).join(isHanWord(w.word) ? '' : ' ');
+    $('typeFeedback').innerHTML = ok ? `<div class="fb ok"><span class="ans-ic">${IC.tick}</span><div>완벽한 문장이에요!<div class="fb-sub sen-ans">${hl}</div></div></div>`
+      : `<div class="fb bad"><span class="ans-ic">${IC.x}</span><div>이렇게 써요<div class="fb-sub sen-ans">${hl}</div></div></div>`;
+    playAudio(w.example); recordResult(item, ok);
+    const my = S.idx; setTimeout(() => { if (S.active && S.idx === my) nextQuestion(); }, ok ? 1500 : 2600);
   }
 
   /* ----- 말하기 ----- */

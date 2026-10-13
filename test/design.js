@@ -10,6 +10,7 @@ async function setup(b, vp, tag) {
   const p = await ctx.newPage();
   const errs = [];
   p.on('pageerror', e => errs.push(tag + ' pageerror: ' + e.message));
+  await require('./undef')(p, errs, tag);
   await p.route('**/fonts.googleapis.com/**', r => r.abort());
   await p.route('https://cdn.jsdelivr.net/**', r => r.abort());
   await p.addInitScript(() => { try { window.speechSynthesis.speak = () => {}; } catch (e) {} });

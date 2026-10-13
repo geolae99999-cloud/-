@@ -16,6 +16,7 @@ const SKIP = new Set(['acct-del', 'reset-all', 'book-del', 'del-word', 'cl-delet
   const p = await ctx.newPage();
   let where = 'start';
   const errs = []; p.on('pageerror', e => errs.push(where + ': ' + e.message));
+  await require('./undef')(p, errs);
   await p.route('**/fonts.googleapis.com/**', r => r.abort()); await p.route('https://cdn.jsdelivr.net/**', r => r.abort());
   await p.route('https://translate.googleapis.com/**', r => {
     const u = new URL(r.request().url()), q = u.searchParams.get('q'), tl = u.searchParams.get('tl');
@@ -140,7 +141,8 @@ const SKIP = new Set(['acct-del', 'reset-all', 'book-del', 'del-word', 'cl-delet
 
   // 6) 신HSK 단어장
   await p.evaluate(() => recSheet('nhsk7')); await p.waitForSelector('#recList .rec-row');
-  ok(await p.evaluate(() => document.getElementById('sheetTitle').textContent.includes('신HSK 7~9급') && document.querySelectorAll('#recList .rec-row').length > 5000), '신HSK 7~9급: ' + await p.locator('#recList .rec-row').count() + '개');
+  ok(await p.evaluate(() => document.getElementById('sheetTitle').textContent.includes('신HSK 7~9급') && document.querySelectorAll('#recList .rec-row').length < 400 && gradeWords('nhsk7').length > 5000), '신HSK 7~9급: ' + await p.locator('#recList .rec-row').count() + '개');
+  { const n0 = await p.locator('#recList .rec-row').count(); await p.click('#recMore'); await p.waitForTimeout(200); const n1 = await p.locator('#recList .rec-row').count(); ok(n1 > n0, `더 보기로 이어서 그림 ${n0} -> ${n1}`); }
   await p.screenshot({ path: path.join(shots, 'audit-nhsk.png') });
   await p.evaluate(() => closeSheet());
   await p.evaluate(() => dictOpen('人工智能')); await p.waitForSelector('#dictOut .dict-card');

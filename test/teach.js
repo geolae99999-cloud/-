@@ -9,6 +9,7 @@ const srv = http.createServer((q, r) => { let f = path.join(root, decodeURICompo
   for (const vp of [{ width: 390, height: 844 }, { width: 1440, height: 900 }]) {
     const tag = String(vp.width), ctx = await b.newContext({ viewport: vp }), p = await ctx.newPage();
     p.on('pageerror', e => errs.push(tag + ' ' + e.message));
+    await require('./undef')(p, errs, tag);
     await p.route('https://cdn.jsdelivr.net/**', r => r.abort());
     await p.addInitScript(() => {
       try { window.speechSynthesis.speak = () => {}; } catch (e) {}

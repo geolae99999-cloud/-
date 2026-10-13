@@ -7,6 +7,12 @@ s = open(src, encoding='utf-8').read()
 os.makedirs(out, exist_ok=True)
 for f in os.listdir(out):
     if re.match(r'app\d+\.js$', f): os.remove(os.path.join(out, f))
+# 아이콘 이름 검사: IC.xxx 가 IC 표에 없으면 화면에 기본 아이콘이 떠요. 빌드에서 미리 잡아요.
+_ic = re.search(r'const IC = new Proxy\(\{\n(.*?)\n  \}, \{', s, re.S)
+assert _ic, 'IC 표를 찾지 못했어요'
+_keys = set(re.findall(r'^    (\w+):', _ic.group(1), re.M))
+_bad = sorted(set(re.findall(r'\bIC\.(\w+)', s)) - _keys)
+assert not _bad, '없는 아이콘 이름: ' + ', '.join(_bad)
 style = re.search(r'\n  <style>\n(.*?)\n  </style>\n', s, re.S)
 scripts = list(re.finditer(r'\n  <script>\n(.*?)\n\s*</script>', s, re.S))
 assert style and len(scripts) == 3, (bool(style), len(scripts))

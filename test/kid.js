@@ -5,6 +5,7 @@ const srv = http.createServer((q, r) => { let f = path.join(root, q.url.split('?
 (async () => {
   const b = await chromium.launch(); const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 }); const p = await ctx.newPage();
   const errs = []; p.on('pageerror', e => errs.push(e.message));
+  await require('./undef')(p, errs);
   await p.route(/fonts|jsdelivr/, r => r.abort());
   const calls = [];
   await p.route('https://psmmrwhmpezyeehjivav.supabase.co/**', r => { calls.push(r.request().url().split('/').pop()); r.fulfill({ status: 200, contentType: 'application/json', body: 'null' }); });

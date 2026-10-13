@@ -12,6 +12,7 @@ const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); if (!c) fails++
   const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
   const p = await ctx.newPage();
   const errs = []; p.on('pageerror', e => errs.push(e.message));
+  await require('./undef')(p, errs);
   await p.route('**/fonts.googleapis.com/**', r => r.abort()); await p.route('https://cdn.jsdelivr.net/**', r => r.abort());
   await p.addInitScript(() => { window.__spoken = []; const s = window.speechSynthesis; if (s) { s.speak = u => { window.__spoken.push([u.text, u.lang]); setTimeout(() => u.onend && u.onend(), 5); }; } });
   await p.goto('http://localhost:8771/'); await p.waitForSelector('#authScreen .auth-box');

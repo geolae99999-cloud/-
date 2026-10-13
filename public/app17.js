@@ -94,9 +94,10 @@
     const head = `<div class="cl-code"><div><small>초대 코드</small><b>${esc(c.code)}</b></div><button class="btn btn-sm btn-soft" data-act="cl-copy" data-code="${esc(c.code)}">복사</button></div>
       <button class="btn btn-primary btn-block lv-open" data-act="cl-live"><i class="lv-dot"></i>실시간 보기 (누가 들어와서 무엇을 하는지)</button>
       <p class="muted cl-p">학생은 홈의 '우리 반'에서 이 코드를 넣으면 들어와요. 만 14세 미만(이 기기에만 저장하는 계정)은 참여할 수 없어요.</p>
-      <div class="seg"><button class="${CLV.tab === 'stu' ? 'on' : ''}" data-act="cl-tab" data-t="stu">학생 ${mem.length}명</button><button class="${CLV.tab === 'asg' ? 'on' : ''}" data-act="cl-tab" data-t="asg">과제 ${asg.length}개</button></div>`;
+      <div class="seg"><button class="${CLV.tab === 'stu' ? 'on' : ''}" data-act="cl-tab" data-t="stu">학생 ${mem.length}명</button><button class="${CLV.tab === 'asg' ? 'on' : ''}" data-act="cl-tab" data-t="asg">과제 ${asg.length}개</button><button class="${CLV.tab === 'rank' ? 'on' : ''}" data-act="cl-tab" data-t="rank">랭킹</button></div>`;
     let body = '';
-    if (CLV.tab === 'stu') {
+    if (CLV.tab === 'rank') body = rkHtml(mem, false);
+    else if (CLV.tab === 'stu') {
       const weak = clWeakTop(mem.map(m => (m.progress && m.progress.weak) || []), 10);
       body = mem.length ? `${weak.length ? `<div class="cl-weak"><h4 class="syn-h">반에서 많이 틀린 단어</h4><div class="cl-chips">${weak.map(x => `<span>${esc(x.w)}${x.mean ? ` <small>${esc(x.mean)}</small>` : ''} <b>${x.c}명</b></span>`).join('')}</div></div>` : ''}
         <div class="cl-table"><div class="cl-tr cl-th"><span>이름</span><span>최근 학습</span><span>7일 단어</span><span>정답률</span><span>과제</span></div>
@@ -115,6 +116,35 @@
       ${Array.isArray(p.weak) && p.weak.length ? `<h4 class="syn-h">많이 틀린 단어</h4><div class="cl-chips">${p.weak.filter(Array.isArray).map(x => `<span>${esc(x[0])} <small>${esc(x[1] || '')}</small> <b>${esc(x[2])}회</b></span>`).join('')}</div>` : ''}
       ${tests ? `<h4 class="syn-h">최근 시험</h4><div class="cl-chips">${tests}</div>` : ''}<p class="muted cl-p">${clDate(p.at)} 기준</p>` : '<p class="muted cl-p">아직 학습 기록이 올라오지 않았어요. 학생이 앱을 열면 올라와요.</p>'}
       <button class="btn btn-sm btn-soft cl-danger" data-act="cl-kick" data-uid="${esc(m.uid)}" data-name="${esc(m.name)}">반에서 내보내기</button></div>`;
+  }
+  /* ----- 우리 반 랭킹: 7일 학습량 · 정답률 · 연속 학습 · 마스터 단어로 순위. 시상대와 칠판용 큰 화면 (클래스카드 반 랭킹) ----- */
+  const RK_M = [['n7', '7일 학습', '개'], ['acc7', '정답률', '%'], ['streak', '연속 학습', '일'], ['mastered', '마스터', '개']];
+  const RK_C = ['#3182f6', '#f04452', '#03b26c', '#8b5cf6', '#fe9800', '#0aa5b4', '#e64980', '#1b64da'];
+  const rkColor = s => RK_C[[...String(s || '')].reduce((a, c) => a + c.charCodeAt(0), 0) % RK_C.length];
+  function rkRank(mem, m) {
+    const v = x => { const p = x.progress || {}, n = p[m]; return n == null || n === '' ? -1 : +n || 0; };
+    // 정답률은 7일 동안 10개 넘게 푼 학생만 줄을 세워요(한두 개만 풀고 100%가 1등이 되지 않게).
+    const ok = x => m !== 'acc7' || ((x.progress || {}).n7 || 0) >= 10;
+    return mem.filter(x => ok(x) && v(x) > 0).map(x => ({ name: x.name || '이름 없음', sno: x.sno || '', v: v(x) })).sort((a, b) => b.v - a.v || a.name.localeCompare(b.name, 'ko'));
+  }
+  function rkHtml(mem, big) {
+    const m = CLV.rk || 'n7', [, label, unit] = RK_M.find(x => x[0] === m), list = rkRank(mem, m);
+    const chips = `<div class="rk-ms">${RK_M.map(([k, n]) => `<button class="${k === m ? 'on' : ''}" data-act="cl-rk" data-m="${k}">${n}</button>`).join('')}</div>`;
+    if (!list.length) return chips + `<div class="cl-load">${MASCOT('think')}<span>${m === 'acc7' ? '7일 동안 10개 넘게 푼 학생이 아직 없어요.' : '아직 순위를 매길 학습 기록이 없어요.'}</span></div>`;
+    const top = [list[1], list[0], list[2]], medal = ['#9aa5b1', '#f5a524', '#c8783a'];
+    const pod = `<div class="rk-pod">${top.map((x, i) => { const r = [2, 1, 3][i]; return x ? `<div class="rk-p r${r}"><div class="rk-av" style="background:${rkColor(x.name)}">${esc([...x.name][0] || '?')}<i style="background:${medal[i]}">${r}</i></div><b>${esc(x.name)}</b><small>${x.v.toLocaleString()}${unit}</small><div class="rk-ped">${r}</div></div>` : '<div></div>'; }).join('')}</div>`;
+    if (big) return pod + chips;
+    const max = list[0].v || 1;
+    const rest = list.slice(3).map((x, i) => `<div class="rk-row"><span>${i + 4}</span><b>${esc(x.name)}${x.sno ? ` <small class="muted">${esc(x.sno)}</small>` : ''}</b><em>${x.v.toLocaleString()}${unit}</em><div class="rk-bar"><i style="width:${Math.round(x.v / max * 100)}%"></i></div></div>`).join('');
+    return `${chips}${pod}${rest ? `<div class="rk-list">${rest}</div>` : ''}<button class="btn btn-primary btn-block" data-act="cl-rk-big">${IC.podium} 칠판에 크게 띄우기</button><p class="muted cl-p">${label} 기준 · 학생이 앱을 열 때 올라온 기록이에요.</p>`;
+  }
+  ACTIONS['cl-rk'] = el => { CLV.rk = el.dataset.m; if (TT && TT.kind === 'rank') ttDraw(); else clDraw(); };
+  ACTIONS['cl-rk-big'] = () => ttOpen('rank', {});
+  function rkDraw() {
+    const ov = $('ttOv'), d = CLV.data; if (!ov || !d) return;
+    const m = CLV.rk || 'n7', label = RK_M.find(x => x[0] === m)[1];
+    const conf = Array.from({ length: 36 }, (_, i) => `<i style="left:${(i * 97) % 100}%;background:${RK_C[i % RK_C.length]};animation-delay:${-(i * 0.37) % 3.2}s;animation-duration:${2.6 + (i % 5) * 0.3}s"></i>`).join('');
+    ov.innerHTML = `${ttTop(d.class.name + ' · 랭킹')}<div class="rk-conf">${conf}</div><div class="rk-big"><h2>${m === 'n7' ? '이번 주 우리 반 학습 왕' : `우리 반 ${esc(label)} 왕`}</h2><p class="rk-sub">${esc(d.class.name)} · 학생 ${d.members.length}명</p>${rkHtml(d.members, true)}</div>`;
   }
   ACTIONS['cl-copy'] = async el => { try { await navigator.clipboard.writeText(el.dataset.code); toast('초대 코드를 복사했어요.'); } catch (e) { toast('코드: ' + el.dataset.code); } };
   ACTIONS['cl-kick'] = async el => {
@@ -226,83 +256,5 @@
     const tests = (stats.tests || []).slice(-5).reverse().map(t => [t.d, Math.round(t.ok / t.n * 100), String(t.src || '').slice(0, 40)]);
     const p = { total: c.total, mastered: c.mastered, due: c.due, streak: streak(), today: (stats.days[dayKey()] || { n: 0 }).n, n7, acc7: n7 ? Math.round(ok7 / n7 * 100) : null, last, weak, tests, at: Date.now() };
     try { await Cloud.call('voca_class_report', { p_progress: p }); } catch (e) {}
-  }
-
-  /* =========================================================
-   * 우리 반 실시간 (학생 접속·학습 상태 -> 선생님 실시간 화면)
-   * ======================================================= */
-  let clPingAt = 0, clPingOff = false;
-  function clLiveState() {
-    const t = (stats.days[dayKey()] || { n: 0 }).n;
-    if (document.visibilityState === 'hidden') return { s: 'away', t };
-    if (S && S.active) {
-      const base = { m: S.mode, i: Math.min(S.idx, S.total), n: S.total, ok: S.ok, no: S.no, src: String(srcLabel(S.src) || '').slice(0, 40), a: S.assign ? String(S.assign.title).slice(0, 60) : '' };
-      return Object.assign({ s: S.finished ? 'done' : 'study', t }, base);
-    }
-    return { s: 'app', t };
-  }
-  async function clPing(force) {
-    if (clPingOff || !clOk() || isTeacher() || !clCache().joined) return;
-    const now = Date.now(); if (!force && now - clPingAt < 5000) return; clPingAt = now;
-    try { await Cloud.call('voca_class_ping', { p_live: clLiveState() }); }
-    catch (e) { if (e && e.code === 'missing') clPingOff = true; }
-  }
-  setInterval(() => { if (document.visibilityState !== 'hidden') clPing(true); }, 15000);
-  document.addEventListener('visibilitychange', () => clPing(true));
-
-  let LV = null;
-  const LV_MODE = m => (MODES[m] && MODES[m].name) || '학습';
-  function lvStatus(m) {
-    const l = m.live || {}, ago = m.ago;
-    if (ago == null) return { k: 'off', t: '아직 접속 기록 없음' };
-    if (ago > 60 || l.s === 'away') return { k: ago > 60 ? 'off' : 'away', t: ago > 3600 ? (ago > 86400 ? `${Math.floor(ago / 86400)}일 전 접속` : `${Math.floor(ago / 3600)}시간 전 접속`) : ago > 60 ? `${Math.floor(ago / 60)}분 전 접속` : '잠시 다른 화면' };
-    if (l.s === 'study') return { k: 'study', t: `${l.a ? l.a + ' · ' : ''}${LV_MODE(l.m)} ${l.i}/${l.n}`, p: l.n ? l.i / l.n : 0, ok: l.ok, no: l.no };
-    if (l.s === 'done') { const f = (l.ok || 0) + (l.no || 0); return { k: 'on', t: `${l.a ? l.a + ' · ' : ''}${LV_MODE(l.m)} 끝냄${f ? ` · 정답 ${Math.round((l.ok || 0) / f * 100)}%` : ''}` }; }
-    return { k: 'on', t: '앱을 보고 있어요' };
-  }
-  ACTIONS['cl-live'] = async () => {
-    const id = CLV.id; if (!id) return;
-    closeSheet();
-    const ov = document.createElement('div'); ov.id = 'lvOv'; ov.className = 'pv lv'; document.body.appendChild(ov); document.body.classList.add('no-scroll');
-    LV = { id, seen: new Map(), feed: [], timer: null, first: true };
-    ov.innerHTML = `<div class="cl-load">${MASCOT('think')}<span>학생들을 불러오는 중...</span></div>`;
-    await lvTick();
-    LV && (LV.timer = setInterval(lvTick, 5000));
-  };
-  function lvClose() { if (!LV) return; clearInterval(LV.timer); LV = null; const o = $('lvOv'); if (o) o.remove(); document.body.classList.remove('no-scroll'); }
-  ACTIONS['lv-close'] = () => { const id = CLV.id; lvClose(); if (id) clDetail(id, true); };
-  document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('lvOv') && !document.querySelector('.dlg-ov')) { e.stopImmediatePropagation(); ACTIONS['lv-close'](); } }, true);
-  async function lvTick() {
-    if (!LV) return; const lv = LV;
-    let r; try { r = await Cloud.call('voca_class_live', { p_class: lv.id }); }
-    catch (e) {
-      if (LV !== lv) return;
-      const o = $('lvOv'); if (o && (lv.first || e.code === 'missing')) { clearInterval(lv.timer); o.innerHTML = `<div class="lv-top"><b>실시간 보기</b><button class="icon-btn" data-act="lv-close" aria-label="닫기">${IC.x}</button></div><div class="cl-load">${MASCOT('sleep')}<span>${esc(e.code === 'missing' ? '실시간 보기는 서버 설정(supabase_update_v7.sql)을 마치면 쓸 수 있어요.' : clMsg(e))}</span></div>`; }
-      return;
-    }
-    if (LV !== lv) return;
-    const list = r.members.map(m => Object.assign(m, { st: lvStatus(m) }));
-    list.forEach(m => {
-      const was = lv.seen.get(m.uid), on = m.st.k === 'on' || m.st.k === 'study';
-      if (!lv.first && on && was !== true) { m.arrive = true; lv.feed.unshift([Date.now(), `${m.name || '학생'} 학생이 들어왔어요`]); }
-      if (!lv.first && m.st.k === 'study' && m.live.i === 0 && m.live.n) { const k = 'start:' + m.uid + ':' + m.live.a + m.live.m; if (!lv.seen.has(k)) { lv.seen.set(k, 1); lv.feed.unshift([Date.now(), `${m.name || '학생'} 학생 '${m.live.a || LV_MODE(m.live.m)}' 시작`]); } }
-      lv.seen.set(m.uid, on);
-    });
-    lv.feed = lv.feed.slice(0, 6); lv.first = false;
-    const on = list.filter(m => m.st.k === 'on' || m.st.k === 'study').length, study = list.filter(m => m.st.k === 'study').length;
-    const order = { study: 0, on: 1, away: 2, off: 3 };
-    list.sort((a, b) => order[a.st.k] - order[b.st.k] || String(a.sno).localeCompare(String(b.sno)) || String(a.name).localeCompare(String(b.name)));
-    const c = r.class, o = $('lvOv'); if (!o) return;
-    o.innerHTML = `<div class="lv-top"><div class="lv-title"><small>${esc(c.school || '')}</small><b>${esc(c.name)} 실시간</b></div>
-        <div class="lv-nums"><span><b>${on}</b>접속</span><span><b>${study}</b>공부 중</span><span><b>${list.length}</b>전체</span></div>
-        <div class="lv-code"><small>초대 코드</small><b>${esc(c.code)}</b></div>
-        <button class="icon-btn" data-act="lv-close" aria-label="닫기">${IC.x}</button></div>
-      ${lv.feed.length ? `<div class="lv-feed">${lv.feed.map(([t, s]) => `<span>${esc(s)} <small>${new Date(t).toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit' })}</small></span>`).join('')}</div>` : ''}
-      ${list.length ? `<div class="lv-grid">${list.map(m => `<div class="lv-card k-${m.st.k}${m.arrive ? ' arrive' : ''}"><div class="lv-name"><i></i><b>${esc(m.name || '이름 없음')}</b><small>${esc(m.sno || '')}</small></div>
-          <div class="lv-act">${esc(m.st.t)}</div>
-          ${m.st.k === 'study' ? `<div class="lv-bar"><div style="width:${Math.round(m.st.p * 100) || 0}%"></div></div><div class="lv-ok"><span class="ok">맞음 ${esc(m.st.ok || 0)}</span><span class="no">틀림 ${esc(m.st.no || 0)}</span></div>` : ''}
-          <div class="lv-today">오늘 ${Math.max(+m.today || 0, +(m.live && m.live.t) || 0)}단어</div></div>`).join('')}</div>`
-        : `<div class="cl-load">${MASCOT('happy')}<span>아직 들어온 학생이 없어요. 초대 코드 <b>${esc(c.code)}</b>를 칠판에 적어 주세요.</span></div>`}
-      <div class="lv-foot">5초마다 새로 고쳐요. 학생 앱이 열려 있으면 '접속'으로 보여요.</div>`;
   }
 
