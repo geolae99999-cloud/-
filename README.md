@@ -1,6 +1,6 @@
 # VocaPro
 
-학교 수업용 AI 영어 단어장 (https://hijujuwon.kro.kr). 문의: vocaproe2@gmail.com
+학교 수업용 AI 영어 단어장 (https://vocapro.kro.kr, 예전 주소 hijujuwon.kro.kr). 문의: vocaproe2@gmail.com
 
 ## 폴더
 

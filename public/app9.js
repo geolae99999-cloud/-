@@ -63,7 +63,7 @@
     landingVideo();
   }
   /* 첫 화면 소개: 광고 영상(media/ad.mp4)과 핵심 기능. PC에서는 왼쪽, 휴대폰에서는 로그인 아래에 보여요. */
-  const LP_SRC = '<source src="media/ad.webm?v=2" type="video/webm"><source src="media/ad.mp4?v=2" type="video/mp4">';
+  const LP_SRC = '<source src="media/ad.webm?v=3" type="video/webm"><source src="media/ad.mp4?v=3" type="video/mp4">';
   const LP_FEATS = [
     ['sparkles', '자동 완성', '단어만 넣으면 뜻·발음·예문까지'],
     ['cards', '10가지 학습', '카드, 퀴즈, 말하기, 게임'],
@@ -75,7 +75,7 @@
       <div class="lp-brand"><img src="media/profile.png" alt="" width="36" height="36"><span><b>Voca</b>Pro</span></div>
       <h1 class="lp-h">단어,<br><em>끝까지</em> 외우다</h1>
       <p class="lp-sub">학교 수업용 AI 영어 단어장이에요. 내장 사전으로 뜻이 바로 채워지고, 매일 조금씩 복습해서 끝까지 외우게 도와줘요.</p>
-      <div class="lp-video"><video id="lpVid" poster="media/ad-poster.jpg?v=2" muted loop playsinline preload="metadata" aria-label="VocaPro 소개 영상">${LP_SRC}</video></div>
+      <div class="lp-video"><video id="lpVid" poster="media/ad-poster.jpg?v=3" muted loop playsinline preload="metadata" aria-label="VocaPro 소개 영상">${LP_SRC}</video></div>
       <ul class="lp-feats">${LP_FEATS.map(([ic, t, d]) => `<li>${IC[ic] || ''}<b>${t}</b><small>${d}</small></li>`).join('')}</ul>
       <p class="lp-foot">문의 vocaproe2@gmail.com</p>
     </section>`;
@@ -92,7 +92,7 @@
   // 어디서든 소개 영상 열기 (설정의 소개 카드)
   ACTIONS['about-video'] = () => {
     const ov = document.createElement('div'); ov.className = 'vid-ov'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-label', 'VocaPro 소개 영상');
-    ov.innerHTML = `<button class="icon-btn" data-act="about-video-close" aria-label="닫기">${IC.x}</button><video poster="media/ad-poster.jpg?v=2" controls autoplay playsinline>${LP_SRC}</video>`;
+    ov.innerHTML = `<button class="icon-btn" data-act="about-video-close" aria-label="닫기">${IC.x}</button><video poster="media/ad-poster.jpg?v=3" controls autoplay playsinline>${LP_SRC}</video>`;
     ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
     document.body.appendChild(ov);
   };

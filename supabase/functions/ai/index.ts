@@ -1,7 +1,7 @@
 // supabase/functions/ai/index.ts  (v6)
 // 배포: supabase functions deploy ai --no-verify-jwt --project-ref psmmrwhmpezyeehjivav
 // 비밀키: supabase secrets set GEMINI_API_KEY=... AI_DAILY_LIMIT=40 AI_GLOBAL_LIMIT=3000
-//   선택: ALLOWED_ORIGINS=https://hijujuwon.kro.kr,https://vocapro.pages.dev (쉼표로 구분, 기본값이 이 두 주소)
+//   선택: ALLOWED_ORIGINS=https://vocapro.kro.kr,https://hijujuwon.kro.kr,https://vocapro.pages.dev (쉼표로 구분, 기본값이 이 세 주소)
 //
 // v6 변경점
 // - 중국어 단어장: { lang: 'zh' } 이면 중국어 단어(한자)를 받아 병음, 한글 발음, 중국어 예문으로 답해요.
@@ -20,7 +20,7 @@
 // - 모델 한 번당 7초, 전체 15초 안에 답하고, 응답 형식(JSON 스키마)을 고정해 해석 실패를 줄였어요.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
-const ALLOWED = (Deno.env.get("ALLOWED_ORIGINS") ?? "https://hijujuwon.kro.kr,https://vocapro.pages.dev")
+const ALLOWED = (Deno.env.get("ALLOWED_ORIGINS") ?? "https://vocapro.kro.kr,https://hijujuwon.kro.kr,https://vocapro.pages.dev")
   .split(",").map((s) => s.trim().replace(/\/+$/, "")).filter(Boolean);
 // 사이트 주소, Cloudflare 미리보기 주소(*.vocapro.pages.dev), 내 컴퓨터(localhost)만 허용해요.
 // Origin 이 없는 요청(앱이 아닌 서버·도구)은 브라우저 보호와 상관없으니 통과시키고, 로그인과 한도로 막아요.
