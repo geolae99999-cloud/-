@@ -88,7 +88,7 @@ const srv = http.createServer((q, r) => { let f = path.join(root, decodeURICompo
     await p.click('.nav-item[data-t="tabHome"]'); await p.waitForTimeout(300); await shot('13-home2');
     // 학년 탭
     await p.evaluate(() => recSheet('basic')); await p.waitForTimeout(200);
-    await p.click('[data-act="rec-tab"][data-g="h3"]'); await p.waitForTimeout(200);
+    await p.click('.rec-tabs [data-act="rec-tab"][data-g="h3"]'); await p.waitForTimeout(200);
     res[tag + ' h3 first'] = await p.$$eval('#recList .rec-row b', a => a.slice(0, 5).map(x => x.textContent));
     await shot('07-rec-h3');
     await ctx.close();

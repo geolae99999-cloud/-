@@ -20,7 +20,7 @@ const srv = http.createServer((q, r) => { let f = path.join(root, decodeURICompo
   console.log('sheet title:', await p.evaluate(() => document.querySelector('.sheet h3, .sheet-title, #sheetTitle')?.textContent));
   console.log('rows:', await p.locator('#recList .rec-row').count());
   await p.screenshot({ path: path.join(shots, 'pack-basic.png') });
-  await p.click('[data-act="rec-tab"][data-g="csat"]'); await p.waitForTimeout(200);
+  await p.click('.rec-tabs [data-act="rec-tab"][data-g="csat"]'); await p.waitForTimeout(200);
   console.log('csat rows:', await p.locator('#recList .rec-row').count());
   await p.click('[data-act="rec-left-add"]'); await p.waitForTimeout(400);
   console.log('books:', await p.evaluate(() => categories.map(c => c.name + ':' + c.words.length).join(', ')));

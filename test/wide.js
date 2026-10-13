@@ -27,7 +27,7 @@ const srv = http.createServer((q, r) => { let f = path.join(root, decodeURICompo
       if (t === 'tabBooks') { await p.click('#folderContainer .book:has-text("추천")'); await p.waitForTimeout(300); await shot('03-book'); }
     }
     await p.click('.nav-item[data-t="tabHome"]'); await p.waitForTimeout(200); await p.click('[data-act="pack-open"]'); await p.waitForTimeout(400); await shot('07-packs');
-    await p.click('[data-act="rec-tab"][data-g="e4"]'); await p.waitForTimeout(300); await shot('08-packs-e4');
+    await p.click('.rec-tabs [data-act="rec-tab"][data-g="e4"]'); await p.waitForTimeout(300); await shot('08-packs-e4');
     await p.keyboard.press('Escape'); await p.waitForTimeout(200);
     await p.evaluate(() => startSession('choice', { type: 'all' }, 5)); await p.waitForTimeout(400); await shot('09-choice');
     await p.evaluate(() => exitSession(true));
