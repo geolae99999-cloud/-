@@ -1470,6 +1470,85 @@
       .bg-grid div { border: 1px solid #000; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; text-align: center; padding: 2mm; font-weight: 700; font-size: 14pt; word-break: keep-all; }
       .bg-grid.s5 div { font-size: 12pt; }
     }
+    /* ----- 단어 맞추기 대결 (60초 스피드 퀴즈 + 랭킹) ----- */
+    .wq-entry { background: linear-gradient(135deg, var(--blue-soft), var(--surface) 70%); }
+    .wq-entry .mg-ico { background: linear-gradient(135deg, #ffc93c, #f59f00); color: #fff; }
+    .wq-tag { flex: none; font-size: .72rem; font-weight: 800; color: #fff; background: var(--coral); border-radius: 99px; padding: 3px 9px; }
+    .mg.wq { gap: 12px; }
+    .wq .mg-top > span:empty { min-width: 40px; }
+    .wq-back { display: inline-block; width: 10px; height: 10px; border-left: 2.4px solid currentColor; border-bottom: 2.4px solid currentColor; transform: rotate(45deg); margin-left: 4px; }
+    .wq-rkbtn { border: none; background: var(--sun-soft); color: var(--sun); width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; }
+    .wq-rkbtn .ic { width: 22px; height: 22px; }
+    .wq-scroll { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding-bottom: 6px; }
+    .wq-hero { position: relative; overflow: hidden; border-radius: 24px; padding: 22px 20px; background: linear-gradient(135deg, #3182f6, #1b64da); color: #fff; display: flex; gap: 12px; align-items: center; }
+    .wq-hero.zh { background: linear-gradient(135deg, #e5484d, #b4232a); }
+    .wq-hero-t { flex: 1; min-width: 0; }
+    .wq-hero small { font-weight: 800; opacity: .85; font-size: .8rem; }
+    .wq-hero h2 { margin: 4px 0 6px; font-size: 1.35rem; font-weight: 800; letter-spacing: -.04em; line-height: 1.3; }
+    .wq-hero p { margin: 0; font-size: .84rem; opacity: .9; line-height: 1.5; }
+    .wq-badge { flex: none; width: 64px; height: 64px; border-radius: 20px; background: rgba(255,255,255,.18); display: grid; place-items: center; font-size: 1.6rem; font-weight: 900; animation: wqBob 2.4s ease-in-out infinite; }
+    @keyframes wqBob { 50% { transform: translateY(-5px) rotate(-4deg); } }
+    .wq .syn-h { margin: 6px 2px 0; }
+    .wq-lvs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .wq-lv { position: relative; text-align: left; border: 2px solid transparent; background: var(--surface); box-shadow: var(--shadow); border-radius: 18px; padding: 14px; display: flex; flex-direction: column; gap: 2px; color: var(--ink); font: inherit; cursor: pointer; transition: transform .12s, border-color .15s; }
+    .wq-lv:active { transform: scale(.97); }
+    .wq-lv b { font-weight: 800; font-size: 1rem; } .wq-lv small { color: var(--muted); font-size: .76rem; }
+    .wq-lv em { margin-top: 6px; font-style: normal; font-weight: 800; font-size: .8rem; color: var(--sun); display: flex; align-items: center; gap: 3px; } .wq-lv em .ic { width: 14px; height: 14px; }
+    .wq-lv.on { border-color: var(--blue); background: var(--blue-soft); }
+    .wq-lv.my { grid-column: 1 / -1; }
+    .wq-lv:disabled { opacity: .5; cursor: default; }
+    .wq-note { margin: 2px 4px; font-size: .82rem; line-height: 1.55; text-align: center; }
+    .wq-note .link-btn { border: none; background: none; padding: 0 2px; font: inherit; font-weight: 700; cursor: pointer; }
+    .wq-go { flex: none; }
+    .wq-cd { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
+    .wq-cd b { font-size: 6rem; font-weight: 900; color: var(--blue); animation: pop .6s cubic-bezier(.2, .9, .3, 1.2); }
+    .wq-cd small { font-weight: 800; color: var(--muted); font-size: 1.1rem; }
+    .wq-clock span { min-width: 0; text-align: left; color: inherit; }
+    .wq-clock { position: relative; display: flex; align-items: center; gap: 5px; font-variant-numeric: tabular-nums; } .wq-clock .ic { width: 18px; height: 18px; }
+    .wq-pen { position: absolute; left: 100%; top: -2px; margin-left: 6px; font-style: normal; color: var(--coral); font-weight: 900; white-space: nowrap; animation: wqUp .8s ease-out forwards; }
+    @keyframes wqUp { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(-16px); } }
+    .wq-time { height: 10px; border-radius: 99px; background: var(--surface-2); overflow: hidden; flex: none; }
+    .wq-time i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--mint), var(--blue)); transition: width .1s linear; }
+    .wq-time.low i { background: linear-gradient(90deg, var(--coral), var(--sun)); animation: wqBlink .5s ease-in-out infinite alternate; }
+    @keyframes wqBlink { to { opacity: .55; } }
+    .wq-play { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 12px; }
+    .wq-combo { align-self: center; display: flex; align-items: center; gap: 4px; font-weight: 800; font-size: .86rem; color: var(--muted); background: var(--surface); border-radius: 99px; padding: 6px 14px; box-shadow: var(--shadow); transition: transform .2s; }
+    .wq-combo .ic { width: 16px; height: 16px; } .wq-combo b { font-size: 1rem; }
+    .wq-combo.on { color: #fff; background: linear-gradient(135deg, #ff9f00, #f04452); animation: pop .35s cubic-bezier(.2, .9, .3, 1.3); }
+    .wq-combo small { font-weight: 800; opacity: .9; }
+    .wq-q { flex: 1; min-height: 120px; max-height: 260px; background: var(--surface); border-radius: 24px; box-shadow: var(--shadow); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 16px; text-align: center; animation: pvIn .25s ease; }
+    .wq-q small { color: var(--muted); font-weight: 700; font-size: .84rem; }
+    .wq-q b { font-size: 1.6rem; font-weight: 800; letter-spacing: -.03em; line-height: 1.25; word-break: keep-all; overflow-wrap: anywhere; }
+    .wq-q b.en { font-size: 2.3rem; } .wq-q b.zh { font-size: 2.8rem; font-family: 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Microsoft YaHei', var(--font); }
+    .wq-py { color: var(--blue); font-weight: 700; font-size: 1rem; }
+    .wq-opts { display: grid; gap: 8px; flex: none; }
+    .wq-opt { position: relative; min-height: 58px; width: 100%; word-break: keep-all; }
+    .wq-opt.zh span:last-child { font-family: 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Microsoft YaHei', var(--font); font-size: 1.2rem; }
+    .wq-plus { position: absolute; right: 14px; top: 50%; font-style: normal; font-weight: 900; color: var(--mint); animation: wqPlus .6s ease-out forwards; }
+    @keyframes wqPlus { from { opacity: 1; transform: translateY(-50%); } to { opacity: 0; transform: translateY(-160%); } }
+    .wq-end { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; }
+    .wq-end .result-art { margin: 4px auto 0; } .wq-end .result-art svg { width: 100px; height: 100px; }
+    .wq-end > small { font-weight: 800; color: var(--sun); }
+    .wq-end h2 { margin: 0; font-size: 3.2rem; font-weight: 900; letter-spacing: -.04em; line-height: 1; } .wq-end h2 span { font-size: 1.2rem; margin-left: 2px; color: var(--muted); }
+    .wq-kv { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; margin-top: 10px; }
+    .wq-kv span { background: var(--surface); box-shadow: var(--shadow); border-radius: 16px; padding: 12px 6px; display: flex; flex-direction: column; font-size: .78rem; color: var(--muted); font-weight: 700; } .wq-kv b { font-size: 1.25rem; color: var(--ink); font-weight: 800; }
+    .wq-rkres { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; }
+    .wq-rkres div { border-radius: 18px; padding: 14px 10px; background: linear-gradient(135deg, #fff6dc, #ffe8b0); color: #8a5a00; display: flex; flex-direction: column; animation: pop .45s cubic-bezier(.2, .9, .3, 1.2); }
+    .wq-rkres small { font-weight: 800; font-size: .76rem; } .wq-rkres b { font-size: 1.6rem; font-weight: 900; color: #6b4300; } .wq-rkres span { font-size: .76rem; font-weight: 700; }
+    .wq-end .syn-h { align-self: flex-start; margin-top: 10px; }
+    .wq-wrong { display: grid; gap: 6px; width: 100%; text-align: left; }
+    .wq-wrong span { display: flex; align-items: baseline; gap: 10px; background: var(--surface); border-radius: 14px; padding: 10px 14px; box-shadow: var(--shadow); } .wq-wrong b { font-weight: 800; flex: none; } .wq-wrong small { color: var(--ink-2); }
+    .wq-wrong b.zh { font-family: 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Microsoft YaHei', var(--font); }
+    .wq-btns { flex: none; gap: 8px; } .wq-btns .btn { flex: 1; }
+    .wq-ms { justify-content: center; }
+    .wq-filt { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .wq-me { display: flex; align-items: center; gap: 10px; background: var(--blue-soft); color: var(--blue-ink); border-radius: 16px; padding: 12px 14px; font-weight: 700; font-size: .88rem; flex-wrap: wrap; }
+    .wq-me b { font-size: 1.15rem; font-weight: 900; } .wq-me em { font-style: normal; font-weight: 800; }
+    .wq-me .link-btn { margin-left: auto; border: none; background: none; font: inherit; font-weight: 700; cursor: pointer; padding: 0; }
+    .wq .rk-pod { margin-top: 4px; }
+    .rk-p.me b { color: var(--blue); } .rk-row.me { background: var(--blue-soft); outline: 2px solid var(--blue); }
+    .wq .cl-load { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; color: var(--muted); font-weight: 700; padding: 20px 10px; } .wq .cl-load svg { width: 90px; height: 90px; }
+    @media (min-width: 900px) { .wq-opts { grid-template-columns: 1fr 1fr; } .wq-opt { min-height: 72px; } }
   </style>
 </head>
 <body>
@@ -2255,7 +2334,7 @@ window.VOCA_CLOUD = {
       ${shelfHtml()}
 
       <div class="h-tools">${isTeacher() ? teachToolsHtml() : ''}<div class="section-title"><span>학습 도구</span></div>
-      <div class="tool-list">${isTeacher() ? '' : classEntryHtml()}${todayHtml()}${flowEntryHtml()}<button class="mg-entry" data-act="match"><span class="mg-ico i-grape">${IC.cards}</span><span class="mg-txt"><b>짝 맞추기</b><small>${LN()}와 뜻을 빠르게 연결해요</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="rain"><span class="mg-ico i-teal">${IC.play}</span><span class="mg-txt"><b>단어 비</b><small>떨어지는 뜻이 닿기 전에 단어를 골라요</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="exam-open"><span class="mg-ico i-coral">${IC.trophy}</span><span class="mg-txt"><b>실전 시험</b><small>섞인 문제를 풀고 점수와 등급을 받아요</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="dict-open"><span class="mg-ico i-teal">${IC.search}</span><span class="mg-txt"><b>${LN()}사전</b><small>${isZh() ? '한자, 병음, 한글 뜻으로 바로 찾아요' : '뜻, 예문, 비슷한 단어를 바로 찾아요'}</small></span><span class="mg-chev"></span></button>${recEntryHtml()}${packEntryHtml()}${ltEntryHtml()}</div></div>
+      <div class="tool-list">${isTeacher() ? '' : classEntryHtml()}${todayHtml()}${flowEntryHtml()}${wqEntryHtml()}<button class="mg-entry" data-act="match"><span class="mg-ico i-grape">${IC.cards}</span><span class="mg-txt"><b>짝 맞추기</b><small>${LN()}와 뜻을 빠르게 연결해요</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="rain"><span class="mg-ico i-teal">${IC.play}</span><span class="mg-txt"><b>단어 비</b><small>떨어지는 뜻이 닿기 전에 단어를 골라요</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="exam-open"><span class="mg-ico i-coral">${IC.trophy}</span><span class="mg-txt"><b>실전 시험</b><small>섞인 문제를 풀고 점수와 등급을 받아요</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="dict-open"><span class="mg-ico i-teal">${IC.search}</span><span class="mg-txt"><b>${LN()}사전</b><small>${isZh() ? '한자, 병음, 한글 뜻으로 바로 찾아요' : '뜻, 예문, 비슷한 단어를 바로 찾아요'}</small></span><span class="mg-chev"></span></button>${recEntryHtml()}${packEntryHtml()}${ltEntryHtml()}</div></div>
 
       <div class="h-books"><div class="section-title"><span>내 단어장</span><button data-act="tab" data-t="tabBooks">전체 보기</button></div>
       <div class="book-list">${books || emptyHtml('아직 단어장이 없어요', '단어장 탭에서 새로 만들어 보세요.')}</div></div>
@@ -3179,6 +3258,245 @@ window.VOCA_CLOUD = {
   }
   ACTIONS.rain = openRain;
   document.addEventListener('keydown', e => { if (!RN || !$('rnOv')) return; if (/^[1-4]$/.test(e.key)) { e.preventDefault(); e.stopImmediatePropagation(); rnPick(+e.key - 1); } else if (e.key === 'Escape' && !document.querySelector('.dlg-ov')) { e.preventDefault(); e.stopImmediatePropagation(); rnClose(); } }, true);
+
+  /* =========================================================
+   * 단어 맞추기 대결: 60초 동안 4지선다를 최대한 많이 맞혀요. 영어·중국어, 4단계, 랭킹(이번 주 · 역대, 전체 · 우리 반)
+   * 랭킹은 서버 SQL v9(voca_game_*)를 써요. 없거나 로컬 계정이면 이 기기의 내 기록만 보여 줘요.
+   * ======================================================= */
+  const WQ_SEC = 60, WQ_PEN = 3;
+  const WQ_LV = {
+    en: [['l1', '기초', '초등 · 기초 단어', ['basic']], ['l2', '중학교', '중학교 필수 단어', ['mid']], ['l3', '고등학교', '고등학교 필수 단어', ['high']], ['l4', '수능 · 토익', '수능 · 토익 · 토플 단어', ['csat', 'toeic', 'toefl']]],
+    zh: [['l1', 'HSK 1~2급', '입문 단어', ['hsk1', 'hsk2']], ['l2', 'HSK 3~4급', '초중급 단어', ['hsk3', 'hsk4']], ['l3', 'HSK 5~6급', '고급 단어', ['hsk5', 'hsk6']], ['l4', '신HSK 7~9급', '최상급 단어', ['nhsk7']]]
+  };
+  const wqLvName = (lang, lv) => lv === 'my' ? '내 단어장' : ((WQ_LV[lang] || []).find(x => x[0] === lv) || [])[1] || '';
+  const wqKey = () => 'vocapro_wq:' + currentUser;
+  const wqLocal = () => loadJson(wqKey()) || {};
+  const wqCloud = () => clOk() && !kidMode;
+  let WQ = null;
+  // 랭킹 이름: 정하지 않았으면 이름 가운데를 가려서 보여 줘요(김주원 -> 김*원).
+  function wqMask(s) {
+    const a = [...String(s || '').trim()];
+    if (!a.length) return '익명';
+    if (a.length <= 2) return a[0] + '*';
+    return a[0] + '*'.repeat(Math.min(a.length - 2, 3)) + a[a.length - 1];
+  }
+  const wqName = () => (config.gameName && String(config.gameName).trim()) || wqMask(myName());
+  const wqShort = m => { const s = String(m || '').split(/[;]/)[0].trim(); return s.length > 26 ? s.slice(0, 25) + '…' : s; };
+
+  function wqPool(lang, lv) {
+    if (lv === 'my') return allWords().map(x => x.w).filter(w => w.word && w.meaning).map(w => ({ w: w.word, m: wqShort(w.meaning), p: isHanWord(w.word) ? w.phonetic || '' : '' }));
+    const row = (WQ_LV[lang] || []).find(x => x[0] === lv); if (!row) return [];
+    const seen = new Set(), out = [];
+    row[3].forEach(k => gradeWords(k).forEach(e => { if (!e.w || !e.m || seen.has(e.w)) return; seen.add(e.w); out.push({ w: e.w, m: wqShort(e.m), p: e.p || '' }); }));
+    return out;
+  }
+  function wqOpen() {
+    wqClose();
+    const ov = document.createElement('div'); ov.className = 'mg wq'; ov.id = 'wqOv'; document.body.appendChild(ov); document.body.classList.add('no-scroll');
+    WQ = { lang: LANG, lv: (wqLocal().last || {})[LANG] || 'l2', view: 'lobby', rk: { per: 'week', scope: 'all' } };
+    ov.addEventListener('click', wqClick);
+    wqLobby();
+    if (isZh()) zhLoad().then(() => { if (WQ && WQ.view === 'lobby') wqLobby(); });
+  }
+  function wqClose() { if (WQ) { clearInterval(WQ.timer); clearTimeout(WQ.cd); } WQ = null; const o = $('wqOv'); if (o) o.remove(); if (!$('sheetOv').classList.contains('open') && !S.active) document.body.classList.remove('no-scroll'); }
+  const wqTop = (title, right) => `<div class="mg-top"><button class="round-btn" data-wq="${WQ && WQ.view !== 'lobby' && WQ.view !== 'play' ? 'lobby' : 'x'}" aria-label="${WQ && WQ.view !== 'lobby' && WQ.view !== 'play' ? '뒤로' : '닫기'}">${WQ && WQ.view !== 'lobby' && WQ.view !== 'play' ? '<i class="wq-back"></i>' : IC.x}</button><b>${esc(title)}</b>${right || '<span></span>'}</div>`;
+
+  function wqLobby() {
+    const ov = $('wqOv'); if (!ov || !WQ) return; WQ.view = 'lobby';
+    const L = wqLocal(), lang = WQ.lang, best = lv => ((L.best || {})[lang + ':' + lv] || {}).score || 0;
+    const zhWait = lang === 'zh' && !zhIdx;
+    const myN = lang === LANG ? allWords().filter(x => x.w.word && x.w.meaning).length : 0;
+    const lvs = WQ_LV[lang].map(([k, n, d]) => `<button class="wq-lv${WQ.lv === k ? ' on' : ''}" data-wq="lv" data-k="${k}"><b>${esc(n)}</b><small>${esc(d)}</small>${best(k) ? `<em>${IC.trophy}${best(k).toLocaleString()}</em>` : ''}</button>`).join('')
+      + `<button class="wq-lv my${WQ.lv === 'my' ? ' on' : ''}" data-wq="lv" data-k="my"${myN >= 4 ? '' : ' disabled'}><b>내 단어장</b><small>${myN >= 4 ? `${myN.toLocaleString()}개 · 연습(랭킹 없음)` : lang === LANG ? '단어가 4개 이상 있어야 해요' : `${lang === 'zh' ? '중국어' : '영어'} 모드에서 쓸 수 있어요`}</small>${best('my') ? `<em>${IC.trophy}${best('my').toLocaleString()}</em>` : ''}</button>`;
+    ov.innerHTML = `${wqTop('단어 맞추기 대결', `<button class="wq-rkbtn" data-wq="rank" aria-label="랭킹">${IC.podium}</button>`)}
+      <div class="wq-scroll"><div class="wq-hero ${lang}">
+        <div class="wq-hero-t"><small>60초 스피드 퀴즈</small><h2>몇 개나 맞힐 수 있을까요?</h2><p>연속으로 맞히면 점수가 커지고, 틀리면 ${WQ_PEN}초가 줄어요.</p></div>
+        <div class="wq-badge">${lang === 'zh' ? '中' : 'EN'}</div></div>
+        <div class="seg wq-lang"><button class="${lang === 'en' ? 'on' : ''}" data-wq="lang" data-l="en">영어</button><button class="${lang === 'zh' ? 'on' : ''}" data-wq="lang" data-l="zh">중국어</button></div>
+        <h4 class="syn-h">단계</h4><div class="wq-lvs">${lvs}</div>
+        <p class="muted wq-note">${wqCloud() ? `랭킹 이름: <b>${esc(wqName())}</b> <button class="link-btn" data-wq="rename">바꾸기</button>` : kidMode ? '이 기기에만 저장하는 계정이라 랭킹에는 오르지 않고 내 기록만 남아요.' : '로그인한 서버 계정이면 전체 랭킹에 올라가요. 지금은 내 기록만 남아요.'}</p>
+      </div>
+      <button class="btn btn-primary btn-block wq-go" data-wq="go"${zhWait ? ' disabled' : ''}>${zhWait ? '중국어 단어 불러오는 중...' : `${IC.play} 시작`}</button>`;
+  }
+
+  function wqQuestion() {
+    const g = WQ, pool = g.pool;
+    let cur; for (let t = 0; t < 8; t++) { cur = pool[Math.floor(Math.random() * pool.length)]; if (!g.recent.includes(cur.w)) break; }
+    g.recent.push(cur.w); if (g.recent.length > Math.min(12, pool.length - 1)) g.recent.shift();
+    const a = Math.random() < 0.5 ? 'm' : 'w', f = a === 'm' ? 'm' : 'w', seen = new Set([cur[f]]), d = [];
+    for (let t = 0; t < 60 && d.length < 3; t++) { const o = pool[Math.floor(Math.random() * pool.length)]; if (o !== cur && o[f] && !seen.has(o[f])) { seen.add(o[f]); d.push(o); } }
+    for (const o of pool) { if (d.length >= 3) break; if (o !== cur && o[f] && !seen.has(o[f])) { seen.add(o[f]); d.push(o); } }
+    g.q = { cur, a, opts: shuffled([cur, ...d]) }; g.lock = false;
+  }
+  function wqStart() {
+    const g = WQ; if (!g) return;
+    const pool = wqPool(g.lang, g.lv);
+    if (pool.length < 4) return toast(g.lang === 'zh' && !zhIdx ? '중국어 단어를 불러오는 중이에요. 잠시 뒤 다시 눌러 주세요.' : '단어가 4개 이상 있어야 해요.');
+    const L = wqLocal(); L.last = Object.assign(L.last || {}, { [g.lang]: g.lv }); try { LS.setItem(wqKey(), JSON.stringify(L)); } catch (e) {}
+    Object.assign(g, { view: 'cd', pool, score: 0, ok: 0, n: 0, combo: 0, maxCombo: 0, wrong: [], recent: [], q: null, lock: true, sent: null });
+    let c = 3; const ov = $('wqOv');
+    const draw = () => { ov.innerHTML = `${wqTop(wqLvName(g.lang, g.lv))}<div class="wq-cd"><b>${c}</b><small>${g.lang === 'zh' ? '准备!' : 'Ready!'}</small></div>`; };
+    draw();
+    const tick = () => { if (WQ !== g) return; c--; if (c > 0) { draw(); g.cd = setTimeout(tick, 700); } else wqGo(); };
+    g.cd = setTimeout(tick, 700);
+  }
+  function wqGo() {
+    const g = WQ; if (!g) return;
+    g.view = 'play'; g.t0 = Date.now(); g.end = g.t0 + WQ_SEC * 1000; g.log = [];
+    // 랭킹 판이면 서버에서 입장권을 받아요. 점수는 서버가 답한 기록(맞음/틀림, 시각)으로 다시 계산해요.
+    g.run = g.lv !== 'my' && wqCloud() ? Cloud.call('voca_game_start', { p_lang: g.lang, p_lvl: g.lv }).then(r => r, e => ({ err: (e && e.code) || 'server' })) : null;
+    wqQuestion(); wqDraw();
+    clearInterval(g.timer);
+    g.timer = setInterval(() => { if (WQ !== g) return clearInterval(g.timer); wqTime(); }, 100);
+  }
+  function wqTime() {
+    const g = WQ, left = Math.max(0, g.end - Date.now()), bar = $('wqBar'), num = $('wqLeft');
+    if (bar) { bar.style.width = (left / (WQ_SEC * 1000) * 100) + '%'; bar.parentElement.classList.toggle('low', left < 10000); }
+    if (num) num.textContent = Math.ceil(left / 1000);
+    if (left <= 0) { clearInterval(g.timer); wqEnd(); }
+  }
+  function wqDraw() {
+    const ov = $('wqOv'), g = WQ; if (!ov || !g || !g.q) return;
+    const q = g.q, zh = g.lang === 'zh', f = q.a === 'm' ? 'm' : 'w';
+    ov.innerHTML = `<div class="mg-top"><button class="round-btn" data-wq="quit" aria-label="그만하기">${IC.x}</button><b class="wq-clock">${IC.clock}<span id="wqLeft">${Math.ceil(Math.max(0, g.end - Date.now()) / 1000)}</span></b><span id="wqScore">${g.score.toLocaleString()}점</span></div>
+      <div class="wq-time"><i id="wqBar" style="width:${Math.max(0, g.end - Date.now()) / (WQ_SEC * 1000) * 100}%"></i></div>
+      <div class="wq-play">
+        <div class="wq-combo${g.combo >= 2 ? ' on' : ''}" id="wqCombo">${IC.flame}<b>${g.combo}</b>연속${g.combo >= 2 ? ` <small>+${Math.min(g.combo, 10) * 2}</small>` : ''}</div>
+        <div class="wq-q" id="wqQ"><small>${q.a === 'm' ? '이 단어의 뜻은?' : `이 뜻의 ${zh ? '중국어' : '영어'}는?`}</small><b class="${q.a === 'm' ? (zh ? 'zh' : 'en') : ''}">${esc(q.a === 'm' ? q.cur.w : q.cur.m)}</b>${q.a === 'm' && zh && q.cur.p ? `<span class="wq-py">${esc(q.cur.p)}</span>` : ''}</div>
+        <div class="wq-opts">${q.opts.map((o, i) => `<button class="opt wq-opt${f === 'w' ? (zh ? ' zh' : ' en') : ''}" data-wq="pick" data-i="${i}"><span class="opt-n">${i + 1}</span><span>${esc(o[f])}</span></button>`).join('')}</div>
+      </div>`;
+  }
+  function wqPick(i) {
+    const g = WQ; if (!g || g.view !== 'play' || g.lock || !g.q) return;
+    const q = g.q, ok = q.opts[i] === q.cur, btns = document.querySelectorAll('#wqOv .wq-opt');
+    g.lock = true; g.n++; g.log.push([ok ? 1 : 0, Date.now() - g.t0]);
+    if (ok) {
+      const add = 10 + Math.min(g.combo, 10) * 2;
+      g.score += add; g.ok++; g.combo++; g.maxCombo = Math.max(g.maxCombo, g.combo);
+      if (btns[i]) { btns[i].classList.add('correct'); const p = document.createElement('em'); p.className = 'wq-plus'; p.textContent = '+' + add; btns[i].appendChild(p); }
+    } else {
+      g.combo = 0; g.end -= WQ_PEN * 1000;
+      if (!g.wrong.some(x => x.w === q.cur.w)) g.wrong.push(q.cur);
+      if (btns[i]) btns[i].classList.add('wrong');
+      const ci = q.opts.indexOf(q.cur); if (btns[ci]) btns[ci].classList.add('correct');
+      const t = document.createElement('em'); t.className = 'wq-pen'; t.textContent = `-${WQ_PEN}초`; const tp = document.querySelector('#wqOv .wq-clock'); if (tp) tp.appendChild(t);
+    }
+    const b = document.body; b.classList.remove('ans-ok', 'ans-no'); void b.offsetWidth; b.classList.add(ok ? 'ans-ok' : 'ans-no'); clearTimeout(fxTimer); fxTimer = setTimeout(() => b.classList.remove('ans-ok', 'ans-no'), 600);
+    try { if (navigator.vibrate) navigator.vibrate(ok ? 12 : [24, 40, 24]); } catch (e) {}
+    const sc = $('wqScore'); if (sc) sc.textContent = g.score.toLocaleString() + '점';
+    wqTime(); if (g.view !== 'play') return;
+    setTimeout(() => { if (WQ !== g || g.view !== 'play') return; wqQuestion(); wqDraw(); }, ok ? 260 : 750);
+  }
+  function wqEnd() {
+    const g = WQ, ov = $('wqOv'); if (!g || !ov) return;
+    g.view = 'end'; clearInterval(g.timer);
+    const L = wqLocal(), k = g.lang + ':' + g.lv; L.best = L.best || {}; L.hist = L.hist || {};
+    const prev = (L.best[k] || {}).score || 0, nb = g.score > prev;
+    if (nb) L.best[k] = { score: g.score, ok: g.ok, n: g.n, combo: g.maxCombo, at: Date.now() };
+    L.hist[k] = (L.hist[k] || []).concat([{ score: g.score, ok: g.ok, n: g.n, combo: g.maxCombo, at: Date.now() }]).sort((a, b) => b.score - a.score).slice(0, 10);
+    try { LS.setItem(wqKey(), JSON.stringify(L)); } catch (e) {}
+    g.nb = nb && g.score > 0; g.prev = prev;
+    const ranked = !!g.run && g.score > 0;
+    g.sent = ranked ? 'wait' : null;
+    wqEndDraw();
+    if (g.nb) confetti();
+    if (ranked) g.run.then(t => t && t.id ? Cloud.call('voca_game_submit', { p_run: t.id, p_log: g.log, p_name: wqName() }) : { err: (t && t.err) || 'server' })
+      .then(r => { g.sent = r; }, e => { g.sent = { err: e && e.code }; }).then(() => { if (WQ === g && g.view === 'end') wqEndDraw(); });
+  }
+  const WQ_ERR = { missing: '랭킹은 아직 준비 중이에요. 운영자가 서버 설정을 마치면 올라가요.', too_fast: '너무 빨리 다시 시작해서 이번 판은 랭킹에 올리지 않았어요.', too_many: '오늘은 랭킹 판을 다 썼어요. 내일 다시 올라가요.', bad_input: '기록이 올바르지 않아 랭킹에 올리지 않았어요.', bad_run: '게임 시간이 너무 지나 랭킹에 올리지 않았어요.', used: '이미 올린 판이에요.', network: '인터넷 연결이 없어 랭킹에 올리지 못했어요.', auth: '로그인이 만료돼 랭킹에 올리지 못했어요.' };
+  function wqEndDraw() {
+    const g = WQ, ov = $('wqOv'); if (!g || !ov) return;
+    const acc = g.n ? Math.round(g.ok / g.n * 100) : 0, s = g.sent;
+    const rk = !s ? (g.lv === 'my' ? '내 단어장은 연습이라 랭킹에 올리지 않아요.' : '') : s === 'wait' ? '랭킹에 올리는 중...' : s.err ? (WQ_ERR[s.err] || '랭킹에 올리지 못했어요.') : '';
+    const rkBox = s && s !== 'wait' && !s.err ? `<div class="wq-rkres"><div><small>이번 주 순위</small><b>${s.rank.toLocaleString()}위</b><span>${s.total.toLocaleString()}명 중</span></div><div><small>역대 순위</small><b>${s.arank.toLocaleString()}위</b><span>최고 ${(+s.best || 0).toLocaleString()}점</span></div></div>` : rk ? `<p class="muted wq-note">${esc(rk)}</p>` : '';
+    ov.innerHTML = `${wqTop(wqLvName(g.lang, g.lv) + ' · 결과')}
+      <div class="wq-scroll"><div class="wq-end">
+        <div class="result-art">${MASCOT(g.nb ? 'cheer' : g.ok ? 'happy' : 'think')}</div>
+        <small>${g.nb ? '새 최고 기록!' : g.prev ? `최고 기록 ${g.prev.toLocaleString()}점` : '첫 기록'}</small>
+        <h2>${g.score.toLocaleString()}<span>점</span></h2>
+        <div class="wq-kv"><span><b>${g.ok}</b>맞힘</span><span><b>${acc}%</b>정답률</span><span><b>${g.maxCombo}</b>최대 연속</span></div>
+        ${rkBox}
+        ${g.wrong.length ? `<h4 class="syn-h">틀린 단어</h4><div class="wq-wrong">${g.wrong.slice(0, 12).map(w => `<span><b class="${g.lang === 'zh' ? 'zh' : 'en'}">${esc(w.w)}</b><small>${esc(w.m)}</small></span>`).join('')}</div>` : ''}
+      </div></div>
+      <div class="row wq-btns"><button class="btn btn-soft" data-wq="rank">${IC.podium} 랭킹</button><button class="btn btn-primary" data-wq="go">${IC.repeat} 다시 하기</button></div>`;
+  }
+
+  /* ----- 랭킹 화면 ----- */
+  async function wqRank() {
+    const g = WQ, ov = $('wqOv'); if (!g || !ov) return;
+    g.view = 'rank'; if (g.lv === 'my') g.lv = 'l2';
+    const r = g.rk, lang = g.lang, lv = g.lv, key = [lang, lv, r.per, r.scope].join(':');
+    const head = `${wqTop((lang === 'zh' ? '중국어' : '영어') + ' 랭킹')}
+      <div class="wq-scroll"><div class="seg wq-lang"><button class="${lang === 'en' ? 'on' : ''}" data-wq="rk-lang" data-l="en">영어</button><button class="${lang === 'zh' ? 'on' : ''}" data-wq="rk-lang" data-l="zh">중국어</button></div>
+      <div class="rk-ms wq-ms">${WQ_LV[lang].map(([k, n]) => `<button class="${k === lv ? 'on' : ''}" data-wq="rk-lv" data-k="${k}">${esc(n)}</button>`).join('')}</div>
+      ${wqCloud() ? `<div class="wq-filt"><div class="seg"><button class="${r.per === 'week' ? 'on' : ''}" data-wq="rk-per" data-v="week">이번 주</button><button class="${r.per === 'all' ? 'on' : ''}" data-wq="rk-per" data-v="all">역대</button></div><div class="seg"><button class="${r.scope === 'all' ? 'on' : ''}" data-wq="rk-scope" data-v="all">전체</button><button class="${r.scope === 'class' ? 'on' : ''}" data-wq="rk-scope" data-v="class">우리 반</button></div></div>` : ''}`;
+    const foot = `</div><button class="btn btn-primary btn-block wq-go" data-wq="go-lv">${IC.play} ${esc(wqLvName(lang, lv))} 도전하기</button>`;
+    if (!wqCloud()) { ov.innerHTML = head + wqLocalRank(lang, lv, kidMode ? '이 기기에만 저장하는 계정이라 내 기록만 보여요.' : '로그인한 서버 계정이면 전체 랭킹을 볼 수 있어요. 지금은 내 기록만 보여요.') + foot; return; }
+    ov.innerHTML = head + `<div class="cl-load">${MASCOT('think')}<span>랭킹 불러오는 중...</span></div>` + foot;
+    let d; try { d = await Cloud.call('voca_game_top', { p_lang: lang, p_lvl: lv, p_period: r.per, p_scope: r.scope }); }
+    catch (e) { if (WQ !== g || g.view !== 'rank' || [g.lang, g.lv, g.rk.per, g.rk.scope].join(':') !== key) return; ov.innerHTML = head + wqLocalRank(lang, lv, e && e.code === 'missing' ? WQ_ERR.missing + ' 지금은 내 기록만 보여요.' : (WQ_ERR[e && e.code] || '랭킹을 불러오지 못했어요.')) + foot; return; }
+    if (WQ !== g || g.view !== 'rank' || [g.lang, g.lv, g.rk.per, g.rk.scope].join(':') !== key) return;
+    ov.innerHTML = head + wqBoard(d, r) + foot;
+  }
+  function wqLocalRank(lang, lv, msg) {
+    const h = (wqLocal().hist || {})[lang + ':' + lv] || [];
+    return `<p class="muted wq-note">${esc(msg)}</p>${h.length ? `<h4 class="syn-h">내 최고 기록</h4><div class="rk-list">${h.map((x, i) => `<div class="rk-row"><span>${i + 1}</span><b>${esc(clDate(new Date(x.at).toISOString()))} <small class="muted">${x.ok}개 맞힘 · 최대 ${x.combo}연속</small></b><em>${(+x.score || 0).toLocaleString()}점</em></div>`).join('')}</div>` : `<div class="cl-load">${MASCOT('happy')}<span>아직 기록이 없어요. 첫 기록을 세워 보세요!</span></div>`}`;
+  }
+  function wqBoard(d, r) {
+    const list = (d && Array.isArray(d.list) ? d.list : []).map(x => ({ name: String(x.name || '익명'), v: +x.score || 0, ok: +x.ok || 0, combo: +x.combo || 0, me: !!x.me }));
+    if (d && d.noclass) return `<div class="cl-load">${MASCOT('think')}<span>참여한 반이 없어요. 홈의 '우리 반'에서 선생님께 받은 코드로 참여하면 반 친구들과 겨룰 수 있어요.</span></div>`;
+    const me = d && d.me, myLine = me ? `<div class="wq-me"><span>내 순위</span><b>${(+me.rank || 0).toLocaleString()}위</b><em>${(+me.score || 0).toLocaleString()}점</em><button class="link-btn" data-wq="rename">이름: ${esc(wqName())}</button></div>`
+      : `<div class="wq-me"><span>${r.per === 'week' ? '이번 주' : '아직'} 기록이 없어요</span><button class="link-btn" data-wq="rename">이름: ${esc(wqName())}</button></div>`;
+    if (!list.length) return myLine + `<div class="cl-load">${MASCOT('happy')}<span>${r.per === 'week' ? '이번 주' : ''} 첫 1등이 되어 보세요!</span></div>`;
+    const top = [list[1], list[0], list[2]], medal = ['#9aa5b1', '#f5a524', '#c8783a'];
+    const pod = `<div class="rk-pod">${top.map((x, i) => { const n = [2, 1, 3][i]; return x ? `<div class="rk-p r${n}${x.me ? ' me' : ''}"><div class="rk-av" style="background:${rkColor(x.name)}">${esc([...x.name][0] || '?')}<i style="background:${medal[i]}">${n}</i></div><b>${esc(x.name)}</b><small>${x.v.toLocaleString()}점</small><div class="rk-ped">${n}</div></div>` : '<div></div>'; }).join('')}</div>`;
+    const max = list[0].v || 1;
+    const rest = list.slice(3).map((x, i) => `<div class="rk-row${x.me ? ' me' : ''}"><span>${i + 4}</span><b>${esc(x.name)} <small class="muted">${x.ok}개 · ${x.combo}연속</small></b><em>${x.v.toLocaleString()}점</em><div class="rk-bar"><i style="width:${Math.round(x.v / max * 100)}%"></i></div></div>`).join('');
+    return `${myLine}${pod}${rest ? `<div class="rk-list">${rest}</div>` : ''}<p class="muted wq-note">${r.per === 'week' ? '월요일마다 새로 시작해요. ' : ''}${(+d.total || 0).toLocaleString()}명 참가 · 같은 점수면 먼저 세운 기록이 앞서요.</p>`;
+  }
+  async function wqRename() {
+    const v = await ask('랭킹에 보일 이름 (12자까지)\n다른 사람도 볼 수 있으니 실명 대신 별명을 써도 좋아요.', { input: wqName(), ok: '저장' });
+    if (v == null) return;
+    const nm = String(v).replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 12);
+    if (!nm) return toast('이름을 적어 주세요.');
+    config.gameName = nm; syncStorage();
+    if (wqCloud()) { try { await Cloud.call('voca_game_name', { p_name: nm }); } catch (e) {} }
+    toast('랭킹 이름을 바꿨어요.');
+    if (WQ) (WQ.view === 'rank' ? wqRank : WQ.view === 'lobby' ? wqLobby : () => {})();
+  }
+  function wqClick(e) {
+    const b = e.target.closest('[data-wq]'); if (!b || b.disabled || !WQ) return;
+    const a = b.dataset.wq, g = WQ;
+    if (a === 'x') return wqClose();
+    if (a === 'quit') { clearInterval(g.timer); return wqEnd(); }
+    if (a === 'lobby') { clearInterval(g.timer); clearTimeout(g.cd); return wqLobby(); }
+    if (a === 'lv') { g.lv = b.dataset.k; return wqLobby(); }
+    if (a === 'lang' || a === 'rk-lang') {
+      g.lang = b.dataset.l === 'zh' ? 'zh' : 'en'; if (g.lv === 'my' && g.lang !== LANG) g.lv = 'l2';
+      if (g.lang === 'zh' && !zhIdx) zhLoad().then(() => { if (WQ === g && g.view === 'lobby') wqLobby(); });
+      return a === 'lang' ? wqLobby() : wqRank();
+    }
+    if (a === 'go') return wqStart();
+    if (a === 'go-lv') return wqStart();
+    if (a === 'pick') return wqPick(+b.dataset.i);
+    if (a === 'rank') return wqRank();
+    if (a === 'rk-lv') { g.lv = b.dataset.k; return wqRank(); }
+    if (a === 'rk-per') { g.rk.per = b.dataset.v; return wqRank(); }
+    if (a === 'rk-scope') { g.rk.scope = b.dataset.v; return wqRank(); }
+    if (a === 'rename') return wqRename();
+  }
+  ACTIONS.wordquiz = wqOpen;
+  function wqEntryHtml() {
+    const L = loadJson(wqKey()) || {}, b = Object.entries(L.best || {}).filter(([k]) => k.startsWith(LANG + ':') && !k.endsWith(':my')).reduce((m, [, v]) => Math.max(m, +v.score || 0), 0);
+    return `<button class="mg-entry wq-entry" data-act="wordquiz"><span class="mg-ico">${IC.trophy}</span><span class="mg-txt"><b>단어 맞추기 대결</b><small>60초 스피드 퀴즈${b ? ` · 내 최고 ${b.toLocaleString()}점` : ', 랭킹에 도전해요'}</small></span><span class="wq-tag">랭킹</span><span class="mg-chev"></span></button>`;
+  }
+  ACTIONS['wq-rank'] = () => { wqOpen(); wqRank(); };
+  document.addEventListener('keydown', e => {
+    if (!WQ || !$('wqOv') || document.querySelector('.dlg-ov')) return;
+    if (WQ.view === 'play' && /^[1-4]$/.test(e.key)) { e.preventDefault(); e.stopImmediatePropagation(); wqPick(+e.key - 1); }
+    else if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); if (WQ.view === 'play') { clearInterval(WQ.timer); wqEnd(); } else if (WQ.view === 'lobby') wqClose(); else wqLobby(); }
+    else if (e.key === 'Enter' && (WQ.view === 'lobby' || WQ.view === 'end')) { e.preventDefault(); e.stopImmediatePropagation(); wqStart(); }
+  }, true);
 
   /* ----- 문장 빈칸 ----- */
   const reEsc = x => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -4720,6 +5038,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     if (!await ask(`'${currentUser}' 계정과 모든 단어, 학습 기록이 삭제돼요.\n되돌릴 수 없어요. 계속할까요?`, { ok: '삭제', danger: true })) return;
     if (cloudMode) {
       try { await Cloud.call('voca_class_forget'); } catch (e) {}
+      try { await Cloud.call('voca_game_forget'); } catch (e) {}
       try { await Cloud.remove(); } catch (e) { return say(e.code === 'auth/requires-recent-login' ? '보안을 위해 로그인한 직후에만 삭제할 수 있어요. 로그아웃하고 다시 로그인한 뒤 시도해 주세요.' : '삭제하지 못했어요: ' + (e.code || e.message)); }
     } else { const u = getUsers(); delete u[currentUser]; saveUsers(u); }
     try { LS.removeItem(KEY_DATA); LS.removeItem(KEY_CFG); } catch (e) {}

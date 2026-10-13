@@ -1,357 +1,241 @@
   /* =========================================================
-   * 학습 세션 엔진
+   * 단어 맞추기 대결: 60초 동안 4지선다를 최대한 많이 맞혀요. 영어·중국어, 4단계, 랭킹(이번 주 · 역대, 전체 · 우리 반)
+   * 랭킹은 서버 SQL v9(voca_game_*)를 써요. 없거나 로컬 계정이면 이 기기의 내 기록만 보여 줘요.
    * ======================================================= */
-  let S = { active: false };
+  const WQ_SEC = 60, WQ_PEN = 3;
+  const WQ_LV = {
+    en: [['l1', '기초', '초등 · 기초 단어', ['basic']], ['l2', '중학교', '중학교 필수 단어', ['mid']], ['l3', '고등학교', '고등학교 필수 단어', ['high']], ['l4', '수능 · 토익', '수능 · 토익 · 토플 단어', ['csat', 'toeic', 'toefl']]],
+    zh: [['l1', 'HSK 1~2급', '입문 단어', ['hsk1', 'hsk2']], ['l2', 'HSK 3~4급', '초중급 단어', ['hsk3', 'hsk4']], ['l3', 'HSK 5~6급', '고급 단어', ['hsk5', 'hsk6']], ['l4', '신HSK 7~9급', '최상급 단어', ['nhsk7']]]
+  };
+  const wqLvName = (lang, lv) => lv === 'my' ? '내 단어장' : ((WQ_LV[lang] || []).find(x => x[0] === lv) || [])[1] || '';
+  const wqKey = () => 'vocapro_wq:' + currentUser;
+  const wqLocal = () => loadJson(wqKey()) || {};
+  const wqCloud = () => clOk() && !kidMode;
+  let WQ = null;
+  // 랭킹 이름: 정하지 않았으면 이름 가운데를 가려서 보여 줘요(김주원 -> 김*원).
+  function wqMask(s) {
+    const a = [...String(s || '').trim()];
+    if (!a.length) return '익명';
+    if (a.length <= 2) return a[0] + '*';
+    return a[0] + '*'.repeat(Math.min(a.length - 2, 3)) + a[a.length - 1];
+  }
+  const wqName = () => (config.gameName && String(config.gameName).trim()) || wqMask(myName());
+  const wqShort = m => { const s = String(m || '').split(/[;]/)[0].trim(); return s.length > 26 ? s.slice(0, 25) + '…' : s; };
 
-  function startSession(mode, src, count, override) {
-    if (!MODES[mode]) return;
-    const items = override ? override : poolFor(src);
-    if (!items.length) return toast(EMPTY_MSG[src.type] || '학습할 단어가 없어요.');
-    if (['choice', 'rchoice', 'test', 'cloze', 'lchoice', 'mix'].includes(mode) && allWords().length < 4) return toast(mode === 'test' ? '시험은 전체 단어가 4개 이상 있어야 해요.' : '4지선다는 전체 단어가 4개 이상 있어야 해요.');
-    let q = shuffled(items.map(x => ({ w: x.w, catId: x.catId })));
-    if (mode === 'scramble') { q = q.filter(x => scrOk(x.w)); if (!q.length) return toast('철자 퍼즐로 풀 수 있는 단어가 없어요.'); }
-    if (mode === 'sentence') { q = q.filter(x => senTokens(x.w)); if (!q.length) return toast('예문이 있는 단어가 없어요. 단어에 예문을 넣거나 AI로 채워 주세요.'); }
-    if (src.type === 'today') q.sort((a, b) => (a.w.box === 0) - (b.w.box === 0));
-    if (mode === 'test') q.forEach((x, i) => { const sp = spellOk(x.w); x.t = ['choice', 'rchoice', sp ? 'spell' : 'choice'][i % 3]; });
-    if (mode === 'test') q = shuffled(q);
-    if (count > 0) q = q.slice(0, count);
-    if (mode === 'mix') mixTypes(q);
-    const dpool = poolFor(src).map(x => x.w);
-    S = { active: true, finished: false, mode, src, count, queue: q, total: q.length, idx: 0, ok: 0, no: 0, wrong: new Map(), locked: false, answered: false, options: [], dpool: dpool.length >= 4 ? dpool : allWords().map(x => x.w), startN: (stats.days[dayKey()] || { n: 0 }).n, t0: Date.now(), log: [] };
-    $('studyScreen').classList.add('open');
-    document.body.classList.add('no-scroll');
-    kbdHint(mode);
-    if (mode === 'listen') startListen(); else renderQuestion();
-    setTimeout(() => clPing(true), 0);
+  function wqPool(lang, lv) {
+    if (lv === 'my') return allWords().map(x => x.w).filter(w => w.word && w.meaning).map(w => ({ w: w.word, m: wqShort(w.meaning), p: isHanWord(w.word) ? w.phonetic || '' : '' }));
+    const row = (WQ_LV[lang] || []).find(x => x[0] === lv); if (!row) return [];
+    const seen = new Set(), out = [];
+    row[3].forEach(k => gradeWords(k).forEach(e => { if (!e.w || !e.m || seen.has(e.w)) return; seen.add(e.w); out.push({ w: e.w, m: wqShort(e.m), p: e.p || '' }); }));
+    return out;
+  }
+  function wqOpen() {
+    wqClose();
+    const ov = document.createElement('div'); ov.className = 'mg wq'; ov.id = 'wqOv'; document.body.appendChild(ov); document.body.classList.add('no-scroll');
+    WQ = { lang: LANG, lv: (wqLocal().last || {})[LANG] || 'l2', view: 'lobby', rk: { per: 'week', scope: 'all' } };
+    ov.addEventListener('click', wqClick);
+    wqLobby();
+    if (isZh()) zhLoad().then(() => { if (WQ && WQ.view === 'lobby') wqLobby(); });
+  }
+  function wqClose() { if (WQ) { clearInterval(WQ.timer); clearTimeout(WQ.cd); } WQ = null; const o = $('wqOv'); if (o) o.remove(); if (!$('sheetOv').classList.contains('open') && !S.active) document.body.classList.remove('no-scroll'); }
+  const wqTop = (title, right) => `<div class="mg-top"><button class="round-btn" data-wq="${WQ && WQ.view !== 'lobby' && WQ.view !== 'play' ? 'lobby' : 'x'}" aria-label="${WQ && WQ.view !== 'lobby' && WQ.view !== 'play' ? '뒤로' : '닫기'}">${WQ && WQ.view !== 'lobby' && WQ.view !== 'play' ? '<i class="wq-back"></i>' : IC.x}</button><b>${esc(title)}</b>${right || '<span></span>'}</div>`;
+
+  function wqLobby() {
+    const ov = $('wqOv'); if (!ov || !WQ) return; WQ.view = 'lobby';
+    const L = wqLocal(), lang = WQ.lang, best = lv => ((L.best || {})[lang + ':' + lv] || {}).score || 0;
+    const zhWait = lang === 'zh' && !zhIdx;
+    const myN = lang === LANG ? allWords().filter(x => x.w.word && x.w.meaning).length : 0;
+    const lvs = WQ_LV[lang].map(([k, n, d]) => `<button class="wq-lv${WQ.lv === k ? ' on' : ''}" data-wq="lv" data-k="${k}"><b>${esc(n)}</b><small>${esc(d)}</small>${best(k) ? `<em>${IC.trophy}${best(k).toLocaleString()}</em>` : ''}</button>`).join('')
+      + `<button class="wq-lv my${WQ.lv === 'my' ? ' on' : ''}" data-wq="lv" data-k="my"${myN >= 4 ? '' : ' disabled'}><b>내 단어장</b><small>${myN >= 4 ? `${myN.toLocaleString()}개 · 연습(랭킹 없음)` : lang === LANG ? '단어가 4개 이상 있어야 해요' : `${lang === 'zh' ? '중국어' : '영어'} 모드에서 쓸 수 있어요`}</small>${best('my') ? `<em>${IC.trophy}${best('my').toLocaleString()}</em>` : ''}</button>`;
+    ov.innerHTML = `${wqTop('단어 맞추기 대결', `<button class="wq-rkbtn" data-wq="rank" aria-label="랭킹">${IC.podium}</button>`)}
+      <div class="wq-scroll"><div class="wq-hero ${lang}">
+        <div class="wq-hero-t"><small>60초 스피드 퀴즈</small><h2>몇 개나 맞힐 수 있을까요?</h2><p>연속으로 맞히면 점수가 커지고, 틀리면 ${WQ_PEN}초가 줄어요.</p></div>
+        <div class="wq-badge">${lang === 'zh' ? '中' : 'EN'}</div></div>
+        <div class="seg wq-lang"><button class="${lang === 'en' ? 'on' : ''}" data-wq="lang" data-l="en">영어</button><button class="${lang === 'zh' ? 'on' : ''}" data-wq="lang" data-l="zh">중국어</button></div>
+        <h4 class="syn-h">단계</h4><div class="wq-lvs">${lvs}</div>
+        <p class="muted wq-note">${wqCloud() ? `랭킹 이름: <b>${esc(wqName())}</b> <button class="link-btn" data-wq="rename">바꾸기</button>` : kidMode ? '이 기기에만 저장하는 계정이라 랭킹에는 오르지 않고 내 기록만 남아요.' : '로그인한 서버 계정이면 전체 랭킹에 올라가요. 지금은 내 기록만 남아요.'}</p>
+      </div>
+      <button class="btn btn-primary btn-block wq-go" data-wq="go"${zhWait ? ' disabled' : ''}>${zhWait ? '중국어 단어 불러오는 중...' : `${IC.play} 시작`}</button>`;
   }
 
-  function renderQuestion() {
-    if (S.idx >= S.queue.length) return finishSession();
-    S.locked = false; S.answered = false;
-    $('stProg').style.width = (S.idx / S.queue.length * 100) + '%';
-    $('stCount').textContent = `${S.idx + 1}/${S.queue.length}`;
-    const item = S.queue[S.idx];
-    const md = S.mode === 'test' || S.mode === 'mix' ? (item.t || 'choice') : S.mode;
-    if (md === 'card') renderCard(item);
-    else if (md === 'choice') renderChoice(item, false);
-    else if (md === 'rchoice') renderChoice(item, true);
-    else if (md === 'cloze') { if (!renderCloze(item)) renderChoice(item, true); }
-    else if (md === 'speak') renderSpeak(item);
-    else if (md === 'lchoice') renderLChoice(item);
-    else if (md === 'scramble') renderScramble(item);
-    else if (md === 'sentence') renderSentence(item);
-    else renderTyping(item, md === 'dict');
-    if (S.mode === 'test') { const qc = $('stBody').querySelector('.q-card'); if (qc) qc.insertAdjacentHTML('afterbegin', `<div class="exam-no">문제 ${S.idx + 1}</div>`); }
-    $('stBody').scrollTop = 0;
+  function wqQuestion() {
+    const g = WQ, pool = g.pool;
+    let cur; for (let t = 0; t < 8; t++) { cur = pool[Math.floor(Math.random() * pool.length)]; if (!g.recent.includes(cur.w)) break; }
+    g.recent.push(cur.w); if (g.recent.length > Math.min(12, pool.length - 1)) g.recent.shift();
+    const a = Math.random() < 0.5 ? 'm' : 'w', f = a === 'm' ? 'm' : 'w', seen = new Set([cur[f]]), d = [];
+    for (let t = 0; t < 60 && d.length < 3; t++) { const o = pool[Math.floor(Math.random() * pool.length)]; if (o !== cur && o[f] && !seen.has(o[f])) { seen.add(o[f]); d.push(o); } }
+    for (const o of pool) { if (d.length >= 3) break; if (o !== cur && o[f] && !seen.has(o[f])) { seen.add(o[f]); d.push(o); } }
+    g.q = { cur, a, opts: shuffled([cur, ...d]) }; g.lock = false;
   }
-  const pronText = w => `${w.phonetic} ${w.koreanPron ? `[${w.koreanPron}]` : ''}`.trim();
-
-  function recordResult(item, ok) {
-    const w = item.w;
-    grade(w, ok);
-    recordStat(ok);
-    if (!item.retry) { ok ? S.ok++ : S.no++; }
-    answerFx(ok);
-    if (!ok) {
-      if (!S.wrong.has(w.id)) S.wrong.set(w.id, item);
-      if (!item.retry && S.mode !== 'test') S.queue.push({ w, catId: item.catId, retry: true });
+  function wqStart() {
+    const g = WQ; if (!g) return;
+    const pool = wqPool(g.lang, g.lv);
+    if (pool.length < 4) return toast(g.lang === 'zh' && !zhIdx ? '중국어 단어를 불러오는 중이에요. 잠시 뒤 다시 눌러 주세요.' : '단어가 4개 이상 있어야 해요.');
+    const L = wqLocal(); L.last = Object.assign(L.last || {}, { [g.lang]: g.lv }); try { LS.setItem(wqKey(), JSON.stringify(L)); } catch (e) {}
+    Object.assign(g, { view: 'cd', pool, score: 0, ok: 0, n: 0, combo: 0, maxCombo: 0, wrong: [], recent: [], q: null, lock: true, sent: null });
+    let c = 3; const ov = $('wqOv');
+    const draw = () => { ov.innerHTML = `${wqTop(wqLvName(g.lang, g.lv))}<div class="wq-cd"><b>${c}</b><small>${g.lang === 'zh' ? '准备!' : 'Ready!'}</small></div>`; };
+    draw();
+    const tick = () => { if (WQ !== g) return; c--; if (c > 0) { draw(); g.cd = setTimeout(tick, 700); } else wqGo(); };
+    g.cd = setTimeout(tick, 700);
+  }
+  function wqGo() {
+    const g = WQ; if (!g) return;
+    g.view = 'play'; g.t0 = Date.now(); g.end = g.t0 + WQ_SEC * 1000; g.log = [];
+    // 랭킹 판이면 서버에서 입장권을 받아요. 점수는 서버가 답한 기록(맞음/틀림, 시각)으로 다시 계산해요.
+    g.run = g.lv !== 'my' && wqCloud() ? Cloud.call('voca_game_start', { p_lang: g.lang, p_lvl: g.lv }).then(r => r, e => ({ err: (e && e.code) || 'server' })) : null;
+    wqQuestion(); wqDraw();
+    clearInterval(g.timer);
+    g.timer = setInterval(() => { if (WQ !== g) return clearInterval(g.timer); wqTime(); }, 100);
+  }
+  function wqTime() {
+    const g = WQ, left = Math.max(0, g.end - Date.now()), bar = $('wqBar'), num = $('wqLeft');
+    if (bar) { bar.style.width = (left / (WQ_SEC * 1000) * 100) + '%'; bar.parentElement.classList.toggle('low', left < 10000); }
+    if (num) num.textContent = Math.ceil(left / 1000);
+    if (left <= 0) { clearInterval(g.timer); wqEnd(); }
+  }
+  function wqDraw() {
+    const ov = $('wqOv'), g = WQ; if (!ov || !g || !g.q) return;
+    const q = g.q, zh = g.lang === 'zh', f = q.a === 'm' ? 'm' : 'w';
+    ov.innerHTML = `<div class="mg-top"><button class="round-btn" data-wq="quit" aria-label="그만하기">${IC.x}</button><b class="wq-clock">${IC.clock}<span id="wqLeft">${Math.ceil(Math.max(0, g.end - Date.now()) / 1000)}</span></b><span id="wqScore">${g.score.toLocaleString()}점</span></div>
+      <div class="wq-time"><i id="wqBar" style="width:${Math.max(0, g.end - Date.now()) / (WQ_SEC * 1000) * 100}%"></i></div>
+      <div class="wq-play">
+        <div class="wq-combo${g.combo >= 2 ? ' on' : ''}" id="wqCombo">${IC.flame}<b>${g.combo}</b>연속${g.combo >= 2 ? ` <small>+${Math.min(g.combo, 10) * 2}</small>` : ''}</div>
+        <div class="wq-q" id="wqQ"><small>${q.a === 'm' ? '이 단어의 뜻은?' : `이 뜻의 ${zh ? '중국어' : '영어'}는?`}</small><b class="${q.a === 'm' ? (zh ? 'zh' : 'en') : ''}">${esc(q.a === 'm' ? q.cur.w : q.cur.m)}</b>${q.a === 'm' && zh && q.cur.p ? `<span class="wq-py">${esc(q.cur.p)}</span>` : ''}</div>
+        <div class="wq-opts">${q.opts.map((o, i) => `<button class="opt wq-opt${f === 'w' ? (zh ? ' zh' : ' en') : ''}" data-wq="pick" data-i="${i}"><span class="opt-n">${i + 1}</span><span>${esc(o[f])}</span></button>`).join('')}</div>
+      </div>`;
+  }
+  function wqPick(i) {
+    const g = WQ; if (!g || g.view !== 'play' || g.lock || !g.q) return;
+    const q = g.q, ok = q.opts[i] === q.cur, btns = document.querySelectorAll('#wqOv .wq-opt');
+    g.lock = true; g.n++; g.log.push([ok ? 1 : 0, Date.now() - g.t0]);
+    if (ok) {
+      const add = 10 + Math.min(g.combo, 10) * 2;
+      g.score += add; g.ok++; g.combo++; g.maxCombo = Math.max(g.maxCombo, g.combo);
+      if (btns[i]) { btns[i].classList.add('correct'); const p = document.createElement('em'); p.className = 'wq-plus'; p.textContent = '+' + add; btns[i].appendChild(p); }
+    } else {
+      g.combo = 0; g.end -= WQ_PEN * 1000;
+      if (!g.wrong.some(x => x.w === q.cur.w)) g.wrong.push(q.cur);
+      if (btns[i]) btns[i].classList.add('wrong');
+      const ci = q.opts.indexOf(q.cur); if (btns[ci]) btns[ci].classList.add('correct');
+      const t = document.createElement('em'); t.className = 'wq-pen'; t.textContent = `-${WQ_PEN}초`; const tp = document.querySelector('#wqOv .wq-clock'); if (tp) tp.appendChild(t);
     }
-    syncStorage(); clPing();
-  }
-  function nextQuestion() { S.idx++; renderQuestion(); }
-  /* 정답/오답 반응: 화면 테두리가 잠깐 빛나고 휴대폰이 짧게 진동해요. 실전 시험에서는 정답을 미리 알려 주지 않도록 꺼요. */
-  let fxTimer = 0;
-  function answerFx(ok) {
-    if (S.mode === 'test') return;
-    const b = document.body; b.classList.remove('ans-ok', 'ans-no'); void b.offsetWidth; b.classList.add(ok ? 'ans-ok' : 'ans-no');
-    clearTimeout(fxTimer); fxTimer = setTimeout(() => b.classList.remove('ans-ok', 'ans-no'), 600);
+    const b = document.body; b.classList.remove('ans-ok', 'ans-no'); void b.offsetWidth; b.classList.add(ok ? 'ans-ok' : 'ans-no'); clearTimeout(fxTimer); fxTimer = setTimeout(() => b.classList.remove('ans-ok', 'ans-no'), 600);
     try { if (navigator.vibrate) navigator.vibrate(ok ? 12 : [24, 40, 24]); } catch (e) {}
+    const sc = $('wqScore'); if (sc) sc.textContent = g.score.toLocaleString() + '점';
+    wqTime(); if (g.view !== 'play') return;
+    setTimeout(() => { if (WQ !== g || g.view !== 'play') return; wqQuestion(); wqDraw(); }, ok ? 260 : 750);
+  }
+  function wqEnd() {
+    const g = WQ, ov = $('wqOv'); if (!g || !ov) return;
+    g.view = 'end'; clearInterval(g.timer);
+    const L = wqLocal(), k = g.lang + ':' + g.lv; L.best = L.best || {}; L.hist = L.hist || {};
+    const prev = (L.best[k] || {}).score || 0, nb = g.score > prev;
+    if (nb) L.best[k] = { score: g.score, ok: g.ok, n: g.n, combo: g.maxCombo, at: Date.now() };
+    L.hist[k] = (L.hist[k] || []).concat([{ score: g.score, ok: g.ok, n: g.n, combo: g.maxCombo, at: Date.now() }]).sort((a, b) => b.score - a.score).slice(0, 10);
+    try { LS.setItem(wqKey(), JSON.stringify(L)); } catch (e) {}
+    g.nb = nb && g.score > 0; g.prev = prev;
+    const ranked = !!g.run && g.score > 0;
+    g.sent = ranked ? 'wait' : null;
+    wqEndDraw();
+    if (g.nb) confetti();
+    if (ranked) g.run.then(t => t && t.id ? Cloud.call('voca_game_submit', { p_run: t.id, p_log: g.log, p_name: wqName() }) : { err: (t && t.err) || 'server' })
+      .then(r => { g.sent = r; }, e => { g.sent = { err: e && e.code }; }).then(() => { if (WQ === g && g.view === 'end') wqEndDraw(); });
+  }
+  const WQ_ERR = { missing: '랭킹은 아직 준비 중이에요. 운영자가 서버 설정을 마치면 올라가요.', too_fast: '너무 빨리 다시 시작해서 이번 판은 랭킹에 올리지 않았어요.', too_many: '오늘은 랭킹 판을 다 썼어요. 내일 다시 올라가요.', bad_input: '기록이 올바르지 않아 랭킹에 올리지 않았어요.', bad_run: '게임 시간이 너무 지나 랭킹에 올리지 않았어요.', used: '이미 올린 판이에요.', network: '인터넷 연결이 없어 랭킹에 올리지 못했어요.', auth: '로그인이 만료돼 랭킹에 올리지 못했어요.' };
+  function wqEndDraw() {
+    const g = WQ, ov = $('wqOv'); if (!g || !ov) return;
+    const acc = g.n ? Math.round(g.ok / g.n * 100) : 0, s = g.sent;
+    const rk = !s ? (g.lv === 'my' ? '내 단어장은 연습이라 랭킹에 올리지 않아요.' : '') : s === 'wait' ? '랭킹에 올리는 중...' : s.err ? (WQ_ERR[s.err] || '랭킹에 올리지 못했어요.') : '';
+    const rkBox = s && s !== 'wait' && !s.err ? `<div class="wq-rkres"><div><small>이번 주 순위</small><b>${s.rank.toLocaleString()}위</b><span>${s.total.toLocaleString()}명 중</span></div><div><small>역대 순위</small><b>${s.arank.toLocaleString()}위</b><span>최고 ${(+s.best || 0).toLocaleString()}점</span></div></div>` : rk ? `<p class="muted wq-note">${esc(rk)}</p>` : '';
+    ov.innerHTML = `${wqTop(wqLvName(g.lang, g.lv) + ' · 결과')}
+      <div class="wq-scroll"><div class="wq-end">
+        <div class="result-art">${MASCOT(g.nb ? 'cheer' : g.ok ? 'happy' : 'think')}</div>
+        <small>${g.nb ? '새 최고 기록!' : g.prev ? `최고 기록 ${g.prev.toLocaleString()}점` : '첫 기록'}</small>
+        <h2>${g.score.toLocaleString()}<span>점</span></h2>
+        <div class="wq-kv"><span><b>${g.ok}</b>맞힘</span><span><b>${acc}%</b>정답률</span><span><b>${g.maxCombo}</b>최대 연속</span></div>
+        ${rkBox}
+        ${g.wrong.length ? `<h4 class="syn-h">틀린 단어</h4><div class="wq-wrong">${g.wrong.slice(0, 12).map(w => `<span><b class="${g.lang === 'zh' ? 'zh' : 'en'}">${esc(w.w)}</b><small>${esc(w.m)}</small></span>`).join('')}</div>` : ''}
+      </div></div>
+      <div class="row wq-btns"><button class="btn btn-soft" data-wq="rank">${IC.podium} 랭킹</button><button class="btn btn-primary" data-wq="go">${IC.repeat} 다시 하기</button></div>`;
   }
 
-  /* ----- 플래시카드 ----- */
-  function renderCard(item) {
-    const w = item.w;
-    $('stBody').innerHTML = `
-      <div class="q-wrap">
-        <div class="sw-hint"><span class="no">← 아직 몰라요</span><span class="ok">알아요 →</span></div>
-        <div class="swipe-area">
-          <div class="swipe-wrap" id="swipeWrap" data-dir="">
-            <div class="sw-badge ok">알아요</div><div class="sw-badge no">몰라요</div>
-            <div class="fc-card-3d" id="fc3d">
-              <div class="fc-face">
-                <div class="q-word">${esc(w.word)}</div>
-                <div class="q-pron">${esc(pronText(w))}</div>
-                <button class="q-speak" data-act="speak" data-text="${esc(w.word)}" aria-label="발음 듣기">${IC.speaker}</button>
-                <div class="fc-hint">카드를 눌러 뜻 보기</div>
-              </div>
-              <div class="fc-face fc-back">
-                <div class="q-meaning">${esc(w.meaning)}</div>
-                ${w.example ? `<div class="fc-ex"><span>${esc(w.example)}</span>${exPyHtml(w)}${w.exampleKo ? `<small>${esc(w.exampleKo)}</small>` : ''}</div>` : ''}
-                <div class="fc-hint">${w.box >= 1 ? esc(dueText(w)) : '새 단어'}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="row q-foot">
-          <button class="btn btn-bad" data-act="fly" data-dir="-1">아직 몰라요</button>
-          <button class="btn btn-ok" data-act="fly" data-dir="1">알아요</button>
-        </div>
-      </div>`;
-    bindSwipe();
-    playAudio(w.word);
+  /* ----- 랭킹 화면 ----- */
+  async function wqRank() {
+    const g = WQ, ov = $('wqOv'); if (!g || !ov) return;
+    g.view = 'rank'; if (g.lv === 'my') g.lv = 'l2';
+    const r = g.rk, lang = g.lang, lv = g.lv, key = [lang, lv, r.per, r.scope].join(':');
+    const head = `${wqTop((lang === 'zh' ? '중국어' : '영어') + ' 랭킹')}
+      <div class="wq-scroll"><div class="seg wq-lang"><button class="${lang === 'en' ? 'on' : ''}" data-wq="rk-lang" data-l="en">영어</button><button class="${lang === 'zh' ? 'on' : ''}" data-wq="rk-lang" data-l="zh">중국어</button></div>
+      <div class="rk-ms wq-ms">${WQ_LV[lang].map(([k, n]) => `<button class="${k === lv ? 'on' : ''}" data-wq="rk-lv" data-k="${k}">${esc(n)}</button>`).join('')}</div>
+      ${wqCloud() ? `<div class="wq-filt"><div class="seg"><button class="${r.per === 'week' ? 'on' : ''}" data-wq="rk-per" data-v="week">이번 주</button><button class="${r.per === 'all' ? 'on' : ''}" data-wq="rk-per" data-v="all">역대</button></div><div class="seg"><button class="${r.scope === 'all' ? 'on' : ''}" data-wq="rk-scope" data-v="all">전체</button><button class="${r.scope === 'class' ? 'on' : ''}" data-wq="rk-scope" data-v="class">우리 반</button></div></div>` : ''}`;
+    const foot = `</div><button class="btn btn-primary btn-block wq-go" data-wq="go-lv">${IC.play} ${esc(wqLvName(lang, lv))} 도전하기</button>`;
+    if (!wqCloud()) { ov.innerHTML = head + wqLocalRank(lang, lv, kidMode ? '이 기기에만 저장하는 계정이라 내 기록만 보여요.' : '로그인한 서버 계정이면 전체 랭킹을 볼 수 있어요. 지금은 내 기록만 보여요.') + foot; return; }
+    ov.innerHTML = head + `<div class="cl-load">${MASCOT('think')}<span>랭킹 불러오는 중...</span></div>` + foot;
+    let d; try { d = await Cloud.call('voca_game_top', { p_lang: lang, p_lvl: lv, p_period: r.per, p_scope: r.scope }); }
+    catch (e) { if (WQ !== g || g.view !== 'rank' || [g.lang, g.lv, g.rk.per, g.rk.scope].join(':') !== key) return; ov.innerHTML = head + wqLocalRank(lang, lv, e && e.code === 'missing' ? WQ_ERR.missing + ' 지금은 내 기록만 보여요.' : (WQ_ERR[e && e.code] || '랭킹을 불러오지 못했어요.')) + foot; return; }
+    if (WQ !== g || g.view !== 'rank' || [g.lang, g.lv, g.rk.per, g.rk.scope].join(':') !== key) return;
+    ov.innerHTML = head + wqBoard(d, r) + foot;
   }
-  function bindSwipe() {
-    const wrap = $('swipeWrap'); if (!wrap) return;
-    let sx = 0, dx = 0, drag = false, moved = false;
-    const reset = () => { wrap.style.transition = 'transform .2s'; wrap.style.transform = ''; wrap.dataset.dir = ''; };
-    wrap.addEventListener('pointerdown', e => {
-      if (S.locked || e.target.closest('[data-act="speak"]')) return;
-      drag = true; moved = false; sx = e.clientX; dx = 0;
-      wrap.style.transition = 'none';
-      try { wrap.setPointerCapture(e.pointerId); } catch (err) {}
-    });
-    wrap.addEventListener('pointermove', e => {
-      if (!drag) return;
-      dx = e.clientX - sx;
-      if (Math.abs(dx) > 8) moved = true;
-      wrap.style.transform = `translateX(${dx}px) rotate(${dx / 22}deg)`;
-      wrap.dataset.dir = dx > 45 ? 'ok' : dx < -45 ? 'no' : '';
-    });
-    wrap.addEventListener('pointerup', () => {
-      if (!drag) return;
-      drag = false;
-      if (!moved) { reset(); $('fc3d').classList.toggle('is-flipped'); return; }
-      if (dx > 100) flyCard(1); else if (dx < -100) flyCard(-1); else reset();
-    });
-    wrap.addEventListener('pointercancel', () => { drag = false; reset(); });
+  function wqLocalRank(lang, lv, msg) {
+    const h = (wqLocal().hist || {})[lang + ':' + lv] || [];
+    return `<p class="muted wq-note">${esc(msg)}</p>${h.length ? `<h4 class="syn-h">내 최고 기록</h4><div class="rk-list">${h.map((x, i) => `<div class="rk-row"><span>${i + 1}</span><b>${esc(clDate(new Date(x.at).toISOString()))} <small class="muted">${x.ok}개 맞힘 · 최대 ${x.combo}연속</small></b><em>${(+x.score || 0).toLocaleString()}점</em></div>`).join('')}</div>` : `<div class="cl-load">${MASCOT('happy')}<span>아직 기록이 없어요. 첫 기록을 세워 보세요!</span></div>`}`;
   }
-  function flyCard(dir) {
-    const wrap = $('swipeWrap');
-    if (!wrap || S.locked) return;
-    S.locked = true;
-    wrap.dataset.dir = dir > 0 ? 'ok' : 'no';
-    wrap.style.transition = 'transform .28s ease, opacity .28s';
-    wrap.style.transform = `translateX(${dir * 520}px) rotate(${dir * 22}deg)`;
-    wrap.style.opacity = '0';
-    const my = S.idx;
-    setTimeout(() => {
-      if (!S.active || S.idx !== my) return;
-      recordResult(S.queue[S.idx], dir > 0);
-      nextQuestion();
-    }, 260);
+  function wqBoard(d, r) {
+    const list = (d && Array.isArray(d.list) ? d.list : []).map(x => ({ name: String(x.name || '익명'), v: +x.score || 0, ok: +x.ok || 0, combo: +x.combo || 0, me: !!x.me }));
+    if (d && d.noclass) return `<div class="cl-load">${MASCOT('think')}<span>참여한 반이 없어요. 홈의 '우리 반'에서 선생님께 받은 코드로 참여하면 반 친구들과 겨룰 수 있어요.</span></div>`;
+    const me = d && d.me, myLine = me ? `<div class="wq-me"><span>내 순위</span><b>${(+me.rank || 0).toLocaleString()}위</b><em>${(+me.score || 0).toLocaleString()}점</em><button class="link-btn" data-wq="rename">이름: ${esc(wqName())}</button></div>`
+      : `<div class="wq-me"><span>${r.per === 'week' ? '이번 주' : '아직'} 기록이 없어요</span><button class="link-btn" data-wq="rename">이름: ${esc(wqName())}</button></div>`;
+    if (!list.length) return myLine + `<div class="cl-load">${MASCOT('happy')}<span>${r.per === 'week' ? '이번 주' : ''} 첫 1등이 되어 보세요!</span></div>`;
+    const top = [list[1], list[0], list[2]], medal = ['#9aa5b1', '#f5a524', '#c8783a'];
+    const pod = `<div class="rk-pod">${top.map((x, i) => { const n = [2, 1, 3][i]; return x ? `<div class="rk-p r${n}${x.me ? ' me' : ''}"><div class="rk-av" style="background:${rkColor(x.name)}">${esc([...x.name][0] || '?')}<i style="background:${medal[i]}">${n}</i></div><b>${esc(x.name)}</b><small>${x.v.toLocaleString()}점</small><div class="rk-ped">${n}</div></div>` : '<div></div>'; }).join('')}</div>`;
+    const max = list[0].v || 1;
+    const rest = list.slice(3).map((x, i) => `<div class="rk-row${x.me ? ' me' : ''}"><span>${i + 4}</span><b>${esc(x.name)} <small class="muted">${x.ok}개 · ${x.combo}연속</small></b><em>${x.v.toLocaleString()}점</em><div class="rk-bar"><i style="width:${Math.round(x.v / max * 100)}%"></i></div></div>`).join('');
+    return `${myLine}${pod}${rest ? `<div class="rk-list">${rest}</div>` : ''}<p class="muted wq-note">${r.per === 'week' ? '월요일마다 새로 시작해요. ' : ''}${(+d.total || 0).toLocaleString()}명 참가 · 같은 점수면 먼저 세운 기록이 앞서요.</p>`;
   }
-  ACTIONS.fly = el => flyCard(parseInt(el.dataset.dir, 10));
-
-  /* ----- 4지선다 ----- */
-  function makeOptions(cur, field) {
-    const val = x => x[field];
-    const seen = new Set([val(cur)]);
-    const d = [];
-    const take = list => {
-      for (const w of shuffled(list)) {
-        if (d.length === 3) break;
-        if (w.id !== cur.id && val(w) && !seen.has(val(w))) { seen.add(val(w)); d.push(w); }
-      }
-    };
-    take(S.dpool);
-    if (d.length < 3) take(allWords().map(x => x.w));
-    return shuffled([cur, ...d]);
+  async function wqRename() {
+    const v = await ask('랭킹에 보일 이름 (12자까지)\n다른 사람도 볼 수 있으니 실명 대신 별명을 써도 좋아요.', { input: wqName(), ok: '저장' });
+    if (v == null) return;
+    const nm = String(v).replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 12);
+    if (!nm) return toast('이름을 적어 주세요.');
+    config.gameName = nm; syncStorage();
+    if (wqCloud()) { try { await Cloud.call('voca_game_name', { p_name: nm }); } catch (e) {} }
+    toast('랭킹 이름을 바꿨어요.');
+    if (WQ) (WQ.view === 'rank' ? wqRank : WQ.view === 'lobby' ? wqLobby : () => {})();
   }
-  function renderChoice(item, reverse) {
-    const w = item.w;
-    S.options = makeOptions(w, reverse ? 'word' : 'meaning');
-    $('stBody').innerHTML = `
-      <div class="q-wrap">
-        <div class="q-card">
-          ${reverse
-            ? `<div class="q-label">이 뜻의 ${LN()} 단어는?</div><div class="q-meaning">${esc(w.meaning)}</div>`
-            : `<div class="q-label">이 단어의 뜻은?</div><div class="q-word">${esc(w.word)}</div><div class="q-pron">${esc(pronText(w))}</div><button class="q-speak" data-act="speak" data-text="${esc(w.word)}" aria-label="발음 듣기">${IC.speaker}</button>`}
-        </div>
-        <div class="opts">${S.options.map((o, i) => `<button class="opt" data-act="opt" data-i="${i}"><span class="opt-n">${i + 1}</span><span>${esc(reverse ? o.word : o.meaning)}</span></button>`).join('')}</div>
-      </div>`;
-    if (!reverse) playAudio(w.word);
-  }
-  const PRAISE = ['정답이에요', '좋아요', '잘했어요', '훌륭해요', '완벽해요'];
-  ACTIONS.opt = el => {
-    if (S.locked || !S.active) return;
-    S.locked = true;
-    const item = S.queue[S.idx];
-    const chosen = S.options[parseInt(el.dataset.i, 10)];
-    const ok = chosen.id === item.w.id;
-    if (S.mode === 'test') {
-      el.classList.add('picked'); $('stBody').querySelectorAll('.opt').forEach(b => { b.disabled = true; });
-      S.log.push({ w: item.w, t: item.t, ok, your: item.t === 'rchoice' ? chosen.word : chosen.meaning });
-      recordResult(item, ok); const my = S.idx;
-      setTimeout(() => { if (S.active && S.idx === my) nextQuestion(); }, 280);
-      return;
+  function wqClick(e) {
+    const b = e.target.closest('[data-wq]'); if (!b || b.disabled || !WQ) return;
+    const a = b.dataset.wq, g = WQ;
+    if (a === 'x') return wqClose();
+    if (a === 'quit') { clearInterval(g.timer); return wqEnd(); }
+    if (a === 'lobby') { clearInterval(g.timer); clearTimeout(g.cd); return wqLobby(); }
+    if (a === 'lv') { g.lv = b.dataset.k; return wqLobby(); }
+    if (a === 'lang' || a === 'rk-lang') {
+      g.lang = b.dataset.l === 'zh' ? 'zh' : 'en'; if (g.lv === 'my' && g.lang !== LANG) g.lv = 'l2';
+      if (g.lang === 'zh' && !zhIdx) zhLoad().then(() => { if (WQ === g && g.view === 'lobby') wqLobby(); });
+      return a === 'lang' ? wqLobby() : wqRank();
     }
-    const btns = [...$('stBody').querySelectorAll('.opt')];
-    btns.forEach(b => { b.disabled = true; });
-    el.classList.add(ok ? 'correct' : 'wrong');
-    if (!ok) { const ci = S.options.findIndex(o => o.id === item.w.id); if (btns[ci]) btns[ci].classList.add('correct'); }
-    S.combo = ok ? (S.combo || 0) + 1 : 0;
-    const qw = $('stBody').querySelector('.q-wrap');
-    if (qw) {
-      const bar = document.createElement('div');
-      bar.className = 'ans-bar ' + (ok ? 'ok' : 'bad');
-      bar.innerHTML = `<span class="ans-ic">${ok ? IC.tick : IC.x}</span><span class="ans-t"><b>${ok ? PRAISE[Math.floor(Math.random() * PRAISE.length)] : '정답은 이거예요'}</b><span>${esc(item.w.word)} · ${esc(item.w.meaning)}</span></span>${ok && S.combo >= 3 ? `<span class="ans-combo">${S.combo}연속 정답</span>` : ''}`;
-      qw.appendChild(bar);
-    }
-    const omd = S.mode === 'mix' ? item.t : S.mode;
-    if (omd === 'rchoice' || omd === 'cloze') playAudio(item.w.word);
-    recordResult(item, ok);
-    const my = S.idx;
-    setTimeout(() => { if (S.active && S.idx === my) nextQuestion(); }, ok ? 700 : 1600);
-  };
-
-  /* ----- 듣고 고르기 ----- */
-  function renderLChoice(item) {
-    const w = item.w;
-    S.options = makeOptions(w, 'meaning');
-    $('stBody').innerHTML = `
-      <div class="q-wrap">
-        <div class="q-card">
-          <div class="q-label">들리는 단어의 뜻은?</div>
-          <button class="q-speak big" data-act="speak" data-text="${esc(w.word)}" aria-label="다시 듣기">${IC.speaker}</button>
-          <div class="q-sub">눌러서 다시 들을 수 있어요</div>
-        </div>
-        <div class="opts">${S.options.map((o, i) => `<button class="opt" data-act="opt" data-i="${i}"><span class="opt-n">${i + 1}</span><span>${esc(o.meaning)}</span></button>`).join('')}</div>
-      </div>`;
-    playAudio(w.word);
+    if (a === 'go') return wqStart();
+    if (a === 'go-lv') return wqStart();
+    if (a === 'pick') return wqPick(+b.dataset.i);
+    if (a === 'rank') return wqRank();
+    if (a === 'rk-lv') { g.lv = b.dataset.k; return wqRank(); }
+    if (a === 'rk-per') { g.rk.per = b.dataset.v; return wqRank(); }
+    if (a === 'rk-scope') { g.rk.scope = b.dataset.v; return wqRank(); }
+    if (a === 'rename') return wqRename();
   }
-
-  /* ----- 철자 퍼즐 (글자 조각을 눌러 단어 완성) ----- */
-  const scrOk = w => isHanWord(w.word) ? /^[\u3400-\u9fff]{2,8}$/.test(w.word) : /^[a-z][a-z' -]{1,17}$/i.test(w.word) && w.word.replace(/[^a-z]/gi, '').length >= 2;
-  // 중국어는 한자 한 글자씩 조각이 돼요.
-  const scrCh = (w, c) => isHanWord(w.word) ? HAN.test(c) : /[a-z']/i.test(c);
-  function renderScramble(item) {
-    const w = item.w, letters = [...w.word].filter(c => scrCh(w, c));
-    let order = shuffled(letters.map((c, i) => i)); if (letters.length > 1 && order.every((v, i) => v === i)) order = order.slice(1).concat(order[0]);
-    S.scr = { letters, order, picked: [] };
-    $('stBody').innerHTML = `
-      <div class="q-wrap">
-        <div class="q-card">
-          <div class="q-label">${isHanWord(w.word) ? '한자를 순서대로 눌러 단어를 완성하세요' : '글자를 순서대로 눌러 단어를 완성하세요'}</div>
-          <div class="q-meaning">${esc(w.meaning)}</div>
-          <div class="scr-slots" id="scrSlots"></div>
-        </div>
-        <div class="scr-tiles" id="scrTiles"></div>
-        <div id="typeFeedback"></div>
-        <div class="row q-foot"><button class="btn btn-soft" data-act="scr-back">한 글자 지우기</button><button class="btn btn-soft" data-act="scr-skip">모르겠어요</button></div>
-      </div>`;
-    scrDraw();
+  ACTIONS.wordquiz = wqOpen;
+  function wqEntryHtml() {
+    const L = loadJson(wqKey()) || {}, b = Object.entries(L.best || {}).filter(([k]) => k.startsWith(LANG + ':') && !k.endsWith(':my')).reduce((m, [, v]) => Math.max(m, +v.score || 0), 0);
+    return `<button class="mg-entry wq-entry" data-act="wordquiz"><span class="mg-ico">${IC.trophy}</span><span class="mg-txt"><b>단어 맞추기 대결</b><small>60초 스피드 퀴즈${b ? ` · 내 최고 ${b.toLocaleString()}점` : ', 랭킹에 도전해요'}</small></span><span class="wq-tag">랭킹</span><span class="mg-chev"></span></button>`;
   }
-  function scrDraw() {
-    const s = S.scr, w = S.queue[S.idx].w; let k = 0;
-    $('scrSlots').innerHTML = [...w.word].map(c => scrCh(w, c) ? `<span class="${s.picked[k] !== undefined ? 'on' : ''}">${s.picked[k] !== undefined ? esc(s.letters[s.picked[k++]]) : (k++, '')}</span>` : `<i>${c === ' ' ? '&nbsp;' : esc(c)}</i>`).join('');
-    $('scrTiles').innerHTML = s.order.map(i => `<button class="scr-t" data-act="scr-pick" data-i="${i}"${s.picked.includes(i) ? ' disabled' : ''}>${esc(s.letters[i].toLowerCase())}</button>`).join('');
-  }
-  ACTIONS['scr-pick'] = el => {
-    if (!S.active || S.locked || !S.scr) return;
-    const s = S.scr, i = +el.dataset.i; if (s.picked.includes(i)) return;
-    s.picked.push(i); scrDraw();
-    if (s.picked.length === s.letters.length) {
-      const got = s.picked.map(j => s.letters[j]).join('').toLowerCase(), want = s.letters.join('').toLowerCase();
-      scrDone(got === want);
-    }
-  };
-  ACTIONS['scr-back'] = () => { if (!S.active || S.locked || !S.scr) return; S.scr.picked.pop(); scrDraw(); };
-  ACTIONS['scr-skip'] = () => { if (!S.active || S.locked) return; scrDone(false); };
-  function scrDone(ok) {
-    S.locked = true; const item = S.queue[S.idx], w = item.w;
-    $('stBody').querySelectorAll('.scr-t, .q-foot .btn').forEach(b => { b.disabled = true; });
-    $('scrSlots').classList.add(ok ? 'ok' : 'bad');
-    $('typeFeedback').innerHTML = ok ? `<div class="fb ok"><span class="ans-ic">${IC.tick}</span><div>정답이에요! <b>${esc(w.word)}</b></div></div>`
-      : `<div class="fb bad"><span class="ans-ic">${IC.x}</span><div>정답은 <b>${esc(w.word)}</b> ${esc(w.phonetic || '')}<div class="fb-sub">${esc(w.meaning)}</div></div></div>`;
-    playAudio(w.word); recordResult(item, ok);
-    const my = S.idx; setTimeout(() => { if (S.active && S.idx === my) nextQuestion(); }, ok ? 900 : 1900);
-  }
-
-  /* ----- 오늘의 학습 (복습 + 새 단어를 여러 문제 유형으로) ----- */
-  function mixTypes(q) {
-    const seq = ['choice', 'lchoice', 'scramble', 'rchoice', 'spell'];
-    q.forEach((x, i) => {
-      let t = seq[i % seq.length];
-      if (t === 'scramble' && !scrOk(x.w)) t = 'rchoice';
-      if (t === 'spell' && !spellOk(x.w)) t = 'choice';
-      if (x.w.box === 0 && (t === 'spell' || t === 'scramble')) t = i % 2 ? 'scramble' : 'choice';
-      if (t === 'scramble' && !scrOk(x.w)) t = 'choice';
-      x.t = t;
-    });
-  }
-  function todayHtml() {
-    const c = counts(); if (!c.total) return '';
-    const n = Math.min(20, c.due + c.newW);
-    return `<button class="mg-entry today-entry" data-act="today-go"><span class="mg-ico i-mint">${IC.sparkles}</span><span class="mg-txt"><b>오늘의 학습</b><small>${n ? `복습 ${Math.min(c.due, 20)}개 + 새 단어, 5가지 문제로 ${n}개` : '오늘 할 단어를 다 했어요. 전체에서 20개를 섞어 풀어요'}</small></span><span class="mg-chev"></span></button>`;
-  }
-  ACTIONS['today-go'] = () => { const c = counts(); startSession('mix', { type: c.due + c.newW ? 'today' : 'all' }, 20); };
-
-  /* ----- 단어 비 (떨어지는 뜻을 보고 단어 고르기) ----- */
-  let RN = null;
-  const rnBestKey = () => 'vocapro_rain_best:' + currentUser;
-  function rnClose() { if (RN) { cancelAnimationFrame(RN.raf); RN = null; } const o = $('rnOv'); if (o) o.remove(); document.body.classList.remove('no-scroll'); }
-  function openRain() {
-    const ws = allWords().map(x => x.w).filter(w => w.word && w.meaning);
-    if (ws.length < 4) return toast('단어가 4개 이상 있어야 해요.');
-    rnClose();
-    const ov = document.createElement('div'); ov.className = 'mg rn'; ov.id = 'rnOv'; document.body.appendChild(ov); document.body.classList.add('no-scroll');
-    const best = +(LS.getItem(rnBestKey()) || 0);
-    ov.innerHTML = `<div class="mg-top"><button class="round-btn" data-rn="x" aria-label="닫기">${IC.x}</button><b>단어 비</b><span id="rnScore">0점</span></div>
-      <div class="rn-life" id="rnLife"></div>
-      <div class="rn-sky" id="rnSky"><div class="rn-drop" id="rnDrop"></div></div>
-      <div class="rn-opts" id="rnOpts"></div>
-      <div class="rn-intro" id="rnIntro">${MASCOT('happy')}<b>뜻이 바닥에 닿기 전에 맞는 단어를 고르세요</b><small>맞힐수록 빨라져요. 3번 놓치면 끝나요.${best ? ` 최고 기록 ${best}점` : ''}</small><button class="btn btn-primary btn-block" data-rn="go">시작</button></div>`;
-    RN = { ws, score: 0, life: 3, n: 0, cur: null, y: 0, raf: 0, last: 0, lock: false, best };
-    ov.addEventListener('click', e => {
-      const k = e.target.closest('[data-rn]'); if (k) { const a = k.dataset.rn; if (a === 'x') rnClose(); else if (a === 'go') { const i = $('rnIntro'); if (i) i.remove(); rnNext(); } else if (a === 'again') { rnClose(); openRain(); } return; }
-      const b = e.target.closest('.rn-opt'); if (b) rnPick(+b.dataset.i);
-    });
-  }
-  function rnNext() {
-    const r = RN; if (!r) return;
-    r.cur = r.ws[Math.floor(Math.random() * r.ws.length)];
-    const d = [], seen = new Set([r.cur.word.toLowerCase()]);
-    for (const w of shuffled(r.ws)) { if (d.length === 3) break; if (!seen.has(w.word.toLowerCase())) { seen.add(w.word.toLowerCase()); d.push(w); } }
-    r.opts = shuffled([r.cur, ...d]); r.y = 0; r.lock = false; r.last = performance.now();
-    r.speed = Math.min(0.42, 0.12 + r.n * 0.012);
-    $('rnDrop').textContent = String(r.cur.meaning).split(/[;]/)[0].trim(); $('rnDrop').className = 'rn-drop'; $('rnDrop').style.left = (8 + Math.random() * 44) + '%';
-    $('rnOpts').innerHTML = r.opts.map((w, i) => `<button class="rn-opt opt" data-i="${i}"><span class="opt-n">${i + 1}</span><span>${esc(w.word)}</span></button>`).join('');
-    $('rnLife').innerHTML = [0, 1, 2].map(i => `<i class="${i < r.life ? 'on' : ''}"></i>`).join('');
-    cancelAnimationFrame(r.raf); r.raf = requestAnimationFrame(rnFrame);
-  }
-  function rnFrame(t) {
-    const r = RN; if (!r || r.lock) return;
-    const sky = $('rnSky'), drop = $('rnDrop'); if (!sky || !drop) return;
-    r.y += (t - r.last) * r.speed / 1000 * 100; r.last = t;
-    const max = sky.clientHeight - drop.offsetHeight;
-    drop.style.transform = `translateY(${Math.min(max, r.y / 100 * max)}px)`;
-    if (r.y >= 100) return rnMiss(-1);
-    r.raf = requestAnimationFrame(rnFrame);
-  }
-  function rnPick(i) {
-    const r = RN; if (!r || r.lock || !r.cur) return;
-    const ok = r.opts[i] === r.cur, btn = $('rnOpts').children[i];
-    if (!ok) return rnMiss(i);
-    r.lock = true; cancelAnimationFrame(r.raf); r.n++; r.score += 10 + Math.max(0, Math.round((100 - r.y) / 10));
-    btn.classList.add('correct'); $('rnDrop').classList.add('pop'); $('rnScore').textContent = r.score + '점';
-    playAudio(r.cur.word); setTimeout(() => RN === r && rnNext(), 450);
-  }
-  function rnMiss(i) {
-    const r = RN; if (!r) return;
-    r.lock = true; cancelAnimationFrame(r.raf); r.life--;
-    const btns = $('rnOpts').children; if (i >= 0 && btns[i]) btns[i].classList.add('wrong');
-    const ci = r.opts.indexOf(r.cur); if (btns[ci]) btns[ci].classList.add('correct');
-    $('rnDrop').classList.add('miss'); $('rnLife').innerHTML = [0, 1, 2].map(k => `<i class="${k < r.life ? 'on' : ''}"></i>`).join('');
-    setTimeout(() => { if (RN !== r) return; if (r.life > 0) return rnNext(); rnEnd(); }, 1100);
-  }
-  function rnEnd() {
-    const r = RN, ov = $('rnOv'); if (!r || !ov) return;
-    const nb = r.score > r.best; if (nb) { try { LS.setItem(rnBestKey(), String(r.score)); } catch (e) {} }
-    ov.innerHTML = `<div class="mg-done"><div class="result-art">${MASCOT(nb ? 'cheer' : 'happy')}</div><h2>${nb ? '최고 기록이에요!' : '끝났어요'}</h2><p>${r.score}점 · ${r.n}개 맞힘${r.best && !nb ? ` · 최고 ${r.best}점` : ''}</p><button class="btn btn-primary btn-block" data-rn="again">한 번 더</button><button class="btn btn-soft btn-block" data-rn="x" style="margin-top:8px;">닫기</button></div>`;
-    if (nb && r.score > 0) confetti();
-  }
-  ACTIONS.rain = openRain;
-  document.addEventListener('keydown', e => { if (!RN || !$('rnOv')) return; if (/^[1-4]$/.test(e.key)) { e.preventDefault(); e.stopImmediatePropagation(); rnPick(+e.key - 1); } else if (e.key === 'Escape' && !document.querySelector('.dlg-ov')) { e.preventDefault(); e.stopImmediatePropagation(); rnClose(); } }, true);
+  ACTIONS['wq-rank'] = () => { wqOpen(); wqRank(); };
+  document.addEventListener('keydown', e => {
+    if (!WQ || !$('wqOv') || document.querySelector('.dlg-ov')) return;
+    if (WQ.view === 'play' && /^[1-4]$/.test(e.key)) { e.preventDefault(); e.stopImmediatePropagation(); wqPick(+e.key - 1); }
+    else if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); if (WQ.view === 'play') { clearInterval(WQ.timer); wqEnd(); } else if (WQ.view === 'lobby') wqClose(); else wqLobby(); }
+    else if (e.key === 'Enter' && (WQ.view === 'lobby' || WQ.view === 'end')) { e.preventDefault(); e.stopImmediatePropagation(); wqStart(); }
+  }, true);
 
   /* ----- 문장 빈칸 ----- */
   const reEsc = x => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

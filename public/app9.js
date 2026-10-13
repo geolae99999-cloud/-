@@ -253,6 +253,7 @@
     if (!await ask(`'${currentUser}' 계정과 모든 단어, 학습 기록이 삭제돼요.\n되돌릴 수 없어요. 계속할까요?`, { ok: '삭제', danger: true })) return;
     if (cloudMode) {
       try { await Cloud.call('voca_class_forget'); } catch (e) {}
+      try { await Cloud.call('voca_game_forget'); } catch (e) {}
       try { await Cloud.remove(); } catch (e) { return say(e.code === 'auth/requires-recent-login' ? '보안을 위해 로그인한 직후에만 삭제할 수 있어요. 로그아웃하고 다시 로그인한 뒤 시도해 주세요.' : '삭제하지 못했어요: ' + (e.code || e.message)); }
     } else { const u = getUsers(); delete u[currentUser]; saveUsers(u); }
     try { LS.removeItem(KEY_DATA); LS.removeItem(KEY_CFG); } catch (e) {}
