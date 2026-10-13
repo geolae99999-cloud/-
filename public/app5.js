@@ -11,7 +11,7 @@
     let q = shuffled(items.map(x => ({ w: x.w, catId: x.catId })));
     if (mode === 'scramble') { q = q.filter(x => scrOk(x.w)); if (!q.length) return toast('철자 퍼즐로 풀 수 있는 단어가 없어요.'); }
     if (src.type === 'today') q.sort((a, b) => (a.w.box === 0) - (b.w.box === 0));
-    if (mode === 'test') q.forEach((x, i) => { const sp = /^[a-z][a-z'-]{0,13}$/i.test(x.w.word); x.t = ['choice', 'rchoice', sp ? 'spell' : 'choice'][i % 3]; });
+    if (mode === 'test') q.forEach((x, i) => { const sp = spellOk(x.w); x.t = ['choice', 'rchoice', sp ? 'spell' : 'choice'][i % 3]; });
     if (mode === 'test') q = shuffled(q);
     if (count > 0) q = q.slice(0, count);
     if (mode === 'mix') mixTypes(q);
@@ -84,7 +84,7 @@
               </div>
               <div class="fc-face fc-back">
                 <div class="q-meaning">${esc(w.meaning)}</div>
-                ${w.example ? `<div class="fc-ex"><span>${esc(w.example)}</span>${w.exampleKo ? `<small>${esc(w.exampleKo)}</small>` : ''}</div>` : ''}
+                ${w.example ? `<div class="fc-ex"><span>${esc(w.example)}</span>${exPyHtml(w)}${w.exampleKo ? `<small>${esc(w.exampleKo)}</small>` : ''}</div>` : ''}
                 <div class="fc-hint">${w.box >= 1 ? esc(dueText(w)) : '새 단어'}</div>
               </div>
             </div>
@@ -162,7 +162,7 @@
       <div class="q-wrap">
         <div class="q-card">
           ${reverse
-            ? `<div class="q-label">이 뜻의 영어 단어는?</div><div class="q-meaning">${esc(w.meaning)}</div>`
+            ? `<div class="q-label">이 뜻의 ${LN()} 단어는?</div><div class="q-meaning">${esc(w.meaning)}</div>`
             : `<div class="q-label">이 단어의 뜻은?</div><div class="q-word">${esc(w.word)}</div><div class="q-pron">${esc(pronText(w))}</div><button class="q-speak" data-act="speak" data-text="${esc(w.word)}" aria-label="발음 듣기">${IC.speaker}</button>`}
         </div>
         <div class="opts">${S.options.map((o, i) => `<button class="opt" data-act="opt" data-i="${i}"><span class="opt-n">${i + 1}</span><span>${esc(reverse ? o.word : o.meaning)}</span></button>`).join('')}</div>
@@ -219,15 +219,17 @@
   }
 
   /* ----- 철자 퍼즐 (글자 조각을 눌러 단어 완성) ----- */
-  const scrOk = w => /^[a-z][a-z' -]{1,17}$/i.test(w.word) && w.word.replace(/[^a-z]/gi, '').length >= 2;
+  const scrOk = w => isHanWord(w.word) ? /^[\u3400-\u9fff]{2,8}$/.test(w.word) : /^[a-z][a-z' -]{1,17}$/i.test(w.word) && w.word.replace(/[^a-z]/gi, '').length >= 2;
+  // 중국어는 한자 한 글자씩 조각이 돼요.
+  const scrCh = (w, c) => isHanWord(w.word) ? HAN.test(c) : /[a-z']/i.test(c);
   function renderScramble(item) {
-    const w = item.w, letters = w.word.split('').filter(c => /[a-z']/i.test(c));
+    const w = item.w, letters = [...w.word].filter(c => scrCh(w, c));
     let order = shuffled(letters.map((c, i) => i)); if (letters.length > 1 && order.every((v, i) => v === i)) order = order.slice(1).concat(order[0]);
     S.scr = { letters, order, picked: [] };
     $('stBody').innerHTML = `
       <div class="q-wrap">
         <div class="q-card">
-          <div class="q-label">글자를 순서대로 눌러 단어를 완성하세요</div>
+          <div class="q-label">${isHanWord(w.word) ? '한자를 순서대로 눌러 단어를 완성하세요' : '글자를 순서대로 눌러 단어를 완성하세요'}</div>
           <div class="q-meaning">${esc(w.meaning)}</div>
           <div class="scr-slots" id="scrSlots"></div>
         </div>
@@ -239,7 +241,7 @@
   }
   function scrDraw() {
     const s = S.scr, w = S.queue[S.idx].w; let k = 0;
-    $('scrSlots').innerHTML = w.word.split('').map(c => /[a-z']/i.test(c) ? `<span class="${s.picked[k] !== undefined ? 'on' : ''}">${s.picked[k] !== undefined ? esc(s.letters[s.picked[k++]]) : (k++, '')}</span>` : `<i>${c === ' ' ? '&nbsp;' : esc(c)}</i>`).join('');
+    $('scrSlots').innerHTML = [...w.word].map(c => scrCh(w, c) ? `<span class="${s.picked[k] !== undefined ? 'on' : ''}">${s.picked[k] !== undefined ? esc(s.letters[s.picked[k++]]) : (k++, '')}</span>` : `<i>${c === ' ' ? '&nbsp;' : esc(c)}</i>`).join('');
     $('scrTiles').innerHTML = s.order.map(i => `<button class="scr-t" data-act="scr-pick" data-i="${i}"${s.picked.includes(i) ? ' disabled' : ''}>${esc(s.letters[i].toLowerCase())}</button>`).join('');
   }
   ACTIONS['scr-pick'] = el => {
@@ -269,7 +271,7 @@
     q.forEach((x, i) => {
       let t = seq[i % seq.length];
       if (t === 'scramble' && !scrOk(x.w)) t = 'rchoice';
-      if (t === 'spell' && !/^[a-z][a-z'-]{0,13}$/i.test(x.w.word)) t = 'choice';
+      if (t === 'spell' && !spellOk(x.w)) t = 'choice';
       if (x.w.box === 0 && (t === 'spell' || t === 'scramble')) t = i % 2 ? 'scramble' : 'choice';
       if (t === 'scramble' && !scrOk(x.w)) t = 'choice';
       x.t = t;
@@ -330,7 +332,7 @@
     if (!ok) return rnMiss(i);
     r.lock = true; cancelAnimationFrame(r.raf); r.n++; r.score += 10 + Math.max(0, Math.round((100 - r.y) / 10));
     btn.classList.add('correct'); $('rnDrop').classList.add('pop'); $('rnScore').textContent = r.score + '점';
-    speak(r.cur.word, 'en-US'); setTimeout(() => RN === r && rnNext(), 450);
+    playAudio(r.cur.word); setTimeout(() => RN === r && rnNext(), 450);
   }
   function rnMiss(i) {
     const r = RN; if (!r) return;
@@ -353,6 +355,7 @@
   const reEsc = x => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   function clozeOf(w) {
     const ex = String(w.example || ''), wd = String(w.word || '').trim(); if (!ex || !wd) return null;
+    if (isHanWord(wd)) { const i = ex.indexOf(wd); return i < 0 ? null : { before: ex.slice(0, i), hit: wd, after: ex.slice(i + wd.length) }; }
     let m = ex.match(new RegExp(`\\b${reEsc(wd)}[a-z]*\\b`, 'i'));
     if (!m && wd.length >= 4 && !wd.includes(' ')) m = ex.match(new RegExp(`\\b${reEsc(wd.slice(0, Math.max(3, wd.length - 2)))}[a-z]*\\b`, 'i'));
     if (!m) return null;
@@ -365,7 +368,7 @@
       <div class="q-wrap">
         <div class="q-card">
           <div class="q-label">빈칸에 들어갈 단어는?</div>
-          <div class="cloze-s">${esc(c.before)}<span class="cloze-b">${'_'.repeat(Math.min(10, Math.max(4, c.hit.length)))}</span>${esc(c.after)}</div>
+          <div class="cloze-s">${esc(c.before)}<span class="cloze-b">${'_'.repeat(Math.min(10, Math.max(4, isHanWord(c.hit) ? c.hit.length * 2 : c.hit.length)))}</span>${esc(c.after)}</div>
           ${w.exampleKo ? `<div class="q-sub">${esc(w.exampleKo)}</div>` : ''}
         </div>
         <div class="opts">${S.options.map((o, i) => `<button class="opt" data-act="opt" data-i="${i}"><span class="opt-n">${i + 1}</span><span>${esc(o.word)}</span></button>`).join('')}</div>
@@ -388,6 +391,7 @@
     return p[b.length];
   }
   function spkMatch(heard, target) {
+    if (isHanWord(target)) { const h = String(heard || '').replace(HAN_G, ''), t = String(target).replace(HAN_G, ''); return !!t && h.includes(t); }
     const h = spkNorm(spkWords(heard)), t = spkNorm(target);
     if (!h || !t) return false;
     const hs = h.replace(/ /g, ''), ts = t.replace(/ /g, '');
@@ -395,7 +399,7 @@
     const parts = t.includes(' ') ? [h] : h.split(' ').concat(h);
     return parts.some(p => { const ps = p.replace(/ /g, ''); if (!ps) return false; if (spkSame(ps, ts)) return true; return ts.length >= 5 && spkDist(ps, ts) <= (ts.length >= 9 ? 2 : 1); });
   }
-  const SPK_FATAL = { 'not-allowed': '마이크 사용이 막혀 있어요. 주소창의 자물쇠를 눌러 마이크를 허용해 주세요.', 'service-not-allowed': '이 브라우저는 음성 인식을 막아 두었어요.', network: '음성 인식 서버에 연결하지 못했어요.', 'audio-capture': '마이크를 찾지 못했어요.', 'language-not-supported': '이 기기는 영어 음성 인식을 지원하지 않아요.' };
+  const SPK_FATAL = { 'not-allowed': '마이크 사용이 막혀 있어요. 주소창의 자물쇠를 눌러 마이크를 허용해 주세요.', 'service-not-allowed': '이 브라우저는 음성 인식을 막아 두었어요.', network: '음성 인식 서버에 연결하지 못했어요.', 'audio-capture': '마이크를 찾지 못했어요.', 'language-not-supported': '이 기기는 이 언어의 음성 인식을 지원하지 않아요.' };
   let spkSelf = false;
   function renderSpeak(item) {
     const w = item.w; S.tries = 0;
@@ -428,7 +432,7 @@
     spkStop();
     try { window.speechSynthesis.cancel(); } catch (e) {}
     let r; try { r = new SR(); } catch (e) { return spkFallback('이 브라우저에서는 음성 인식을 시작할 수 없어요.'); }
-    SPK = r; r.lang = 'en-US'; r.maxAlternatives = 5; r.interimResults = false; r.continuous = false;
+    SPK = r; r.lang = ttsLang(item.w.word); r.maxAlternatives = 5; r.interimResults = false; r.continuous = false;
     const mine = () => SPK === r && S.active && S.queue[S.idx] === item;
     btn.classList.add('on'); out.textContent = '듣고 있어요...';
     let got = false;
@@ -460,17 +464,26 @@
 
   /* ----- 스펠링 / 듣고 쓰기 ----- */
   const norm = s => String(s).toLowerCase().replace(/\s+/g, ' ').replace(/[.,!?]+$/g, '').trim();
+  // 중국어 단어는 한자로 써도, 병음으로 써도 맞아요 (성조와 띄어쓰기는 안 봐요).
+  function answerOk(typed, w) {
+    if (!isHanWord(w.word)) return norm(typed) === norm(w.word);
+    const t = String(typed || '').trim(); if (!t) return false;
+    if (HAN.test(t)) return t.replace(HAN_G, '') === w.word.replace(HAN_G, '');
+    return !!w.phonetic && !!pyPlain(t) && pyPlain(t) === pyPlain(w.phonetic);
+  }
+  const spellOk = w => isHanWord(w.word) ? /^[\u3400-\u9fff]{1,6}$/.test(w.word) : /^[a-z][a-z'-]{0,13}$/i.test(w.word);
   function renderTyping(item, dictation) {
     const w = item.w;
-    const hint = w.word.split('').map((ch, i) => ch === ' ' ? '  ' : (i === 0 ? ch : '_')).join(' ');
+    const zh = isHanWord(w.word);
+    const hint = zh ? '□'.repeat(w.word.length) : w.word.split('').map((ch, i) => ch === ' ' ? '  ' : (i === 0 ? ch : '_')).join(' ');
     $('stBody').innerHTML = `
       <div class="q-wrap">
         <div class="q-card">
           ${dictation
             ? `<div class="q-label">들리는 단어를 입력하세요</div><button class="q-speak big" data-act="speak" data-text="${esc(w.word)}" aria-label="다시 듣기">${IC.speaker}</button><div class="q-sub">눌러서 다시 들을 수 있어요</div>`
-            : `<div class="q-label">이 뜻의 영어 단어를 쓰세요</div><div class="q-meaning">${esc(w.meaning)}</div><div class="q-hint">${esc(hint)}</div>`}
+            : `<div class="q-label">이 뜻의 ${zh ? '중국어' : '영어'} 단어를 쓰세요</div><div class="q-meaning">${esc(w.meaning)}</div><div class="q-hint">${esc(hint)}</div>${zh ? '<div class="q-sub">병음(성조 없이)이나 한자로 써요</div>' : ''}`}
         </div>
-        <input type="text" id="typeInput" class="type-input" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="여기에 입력">
+        <input type="text" id="typeInput" class="type-input" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="${zh ? '병음(예: xuexi) 또는 한자' : '여기에 입력'}">
         <div id="typeFeedback"></div>
         <div class="row q-foot">
           <button class="btn btn-soft" id="typeSkip" data-act="type-skip">모르겠어요</button>
@@ -485,7 +498,7 @@
     S.answered = true;
     $('typeInput').disabled = true;
     $('typeFeedback').innerHTML = ok
-      ? `<div class="fb ok"><span class="ans-ic">${IC.tick}</span><div>정답이에요! <b>${esc(w.word)}</b><div class="fb-sub">${esc(w.meaning)}</div></div></div>`
+      ? `<div class="fb ok"><span class="ans-ic">${IC.tick}</span><div>정답이에요! <b>${esc(w.word)}</b>${isHanWord(w.word) && w.phonetic ? ` ${esc(w.phonetic)}` : ''}<div class="fb-sub">${esc(w.meaning)}</div></div></div>`
       : `<div class="fb bad"><span class="ans-ic">${IC.x}</span><div>정답은 <b>${esc(w.word)}</b> ${esc(w.phonetic)}<div class="fb-sub">${esc(w.meaning)}${w.example ? '<br>' + esc(w.example) : ''}${w.exampleKo ? '<br>' + esc(w.exampleKo) : ''}</div></div></div>`;
     $('typeBtn').textContent = '다음';
     $('typeSkip').style.display = 'none';
@@ -498,11 +511,11 @@
     const typed = $('typeInput').value;
     if (!typed.trim()) return toast('답을 입력해 주세요.');
     if (S.mode === 'test') return examType(typed);
-    showTypeResult(norm(typed) === norm(S.queue[S.idx].w.word), typed);
+    showTypeResult(answerOk(typed, S.queue[S.idx].w), typed);
   };
   ACTIONS['type-skip'] = () => { if (!S.active || S.answered) return; if (S.mode === 'test') return examType(''); showTypeResult(false, ''); };
   function examType(typed) {
-    const item = S.queue[S.idx], ok = !!typed && norm(typed) === norm(item.w.word);
+    const item = S.queue[S.idx], ok = !!typed && answerOk(typed, item.w);
     S.answered = true; S.log.push({ w: item.w, t: item.t, ok, your: typed.trim() });
     recordResult(item, ok); nextQuestion();
   }
@@ -639,7 +652,7 @@
           <div class="q-word">${esc(w.word)}</div>
           <div class="q-pron">${esc(pronText(w))}</div>
           <div class="q-meaning" style="margin-top:10px;">${esc(w.meaning)}</div>
-          ${w.example ? `<div class="q-sub">${esc(w.example)}${w.exampleKo ? `<br><span class="ex-ko">${esc(w.exampleKo)}</span>` : ''}</div>` : ''}
+          ${w.example ? `<div class="q-sub">${esc(w.example)}${exPyHtml(w)}${w.exampleKo ? `<br><span class="ex-ko">${esc(w.exampleKo)}</span>` : ''}</div>` : ''}
         </div>
         <div class="player">
           <button data-act="l-prev" aria-label="이전">${IC.prev}</button>
@@ -653,14 +666,14 @@
     while (L.token === token && L.playing && L.i < L.items.length) {
       const w = L.items[L.i].w;
       renderListen();
-      await speak(w.word, 'en-US');
+      await speak(w.word, ttsLang(w.word));
       if (L.token !== token || !L.playing) return;
       await sleep(450);
       await speak(w.meaning.replace(/[()\[\]]/g, ' '), 'ko-KR');
       if (L.token !== token || !L.playing) return;
       if (L.example && w.example) {
         await sleep(350);
-        await speak(w.example, 'en-US');
+        await speak(w.example, ttsLang(w.example));
         if (L.token !== token || !L.playing) return;
       }
       await sleep(900);

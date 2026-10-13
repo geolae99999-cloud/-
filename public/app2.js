@@ -1,4 +1,72 @@
   /* =========================================================
+   * 테마 / 라우팅
+   * ======================================================= */
+  ACTIONS.theme = () => { config.darkMode = !config.darkMode; applyTheme(); syncStorage(); };
+  function applyTheme() {
+    document.body.classList.toggle('dark', !!config.darkMode);
+    $('btnTheme').innerHTML = config.darkMode ? IC.sun : IC.moon;
+    const m = document.querySelector('meta[name="theme-color"]');
+    if (m) m.setAttribute('content', config.darkMode ? '#17171c' : '#f2f4f6');
+  }
+  /* 영어 ↔ 중국어 전환: 머리글의 EN/中 스위치나 설정에서 바꿔요. 단어장과 기록은 언어마다 따로예요. */
+  function applyLang() {
+    document.body.classList.toggle('lang-zh', isZh());
+    const b = $('btnLang'); if (b) { b.setAttribute('aria-pressed', isZh() ? 'true' : 'false'); b.title = isZh() ? '영어 단어장으로 바꾸기' : '중국어 단어장으로 바꾸기'; }
+    const d = $('btnDict'); if (d) d.setAttribute('aria-label', LN() + '사전');
+    if (isZh()) zhLoad();
+  }
+  function setLang(l) {
+    l = l === 'zh' ? 'zh' : 'en';
+    if (l === LANG || !currentUser) return;
+    if (S.active) return toast('학습을 마친 뒤에 바꿀 수 있어요.');
+    const cur = { categories, stats };
+    categories = altSet.categories; stats = altSet.stats; altSet = cur;
+    LANG = l; config.lang = l;
+    currentCategoryId = null; viewOrder = null; openDrawers.clear(); studyPrefs.src = 'due'; recShown = true;
+    const rv = $('recOv'); if (rv) rv.remove();
+    applyLang(); langSplash(l); syncStorage();
+    go(curTab === 'paneBook' ? 'tabBooks' : curTab);
+  }
+  function langSplash(l) {
+    const old = $('langSplash'); if (old) old.remove();
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return toast(l === 'zh' ? '중국어 단어장으로 바꿨어요.' : '영어 단어장으로 바꿨어요.');
+    const el = document.createElement('div'); el.className = 'lang-splash ' + l; el.id = 'langSplash'; el.setAttribute('aria-hidden', 'true');
+    el.innerHTML = `<div class="ls-card"><b>${l === 'zh' ? '中' : 'EN'}</b><span>${l === 'zh' ? '중국어 단어장' : '영어 단어장'}</span><small>${l === 'zh' ? '你好! 오늘도 한 걸음' : 'Hello! 오늘도 한 걸음'}</small></div>`;
+    document.body.appendChild(el);
+    setTimeout(() => el.classList.add('out'), 650);
+    setTimeout(() => el.remove(), 1050);
+  }
+  ACTIONS.lang = () => setLang(isZh() ? 'en' : 'zh');
+  ACTIONS['lang-set'] = el => setLang(el.dataset.l);
+
+  let curTab = 'tabHome';
+  const TITLES = { tabBooks: '단어장', tabStudy: '학습', tabStats: '통계', tabSettings: '설정' };
+  function go(id) {
+    curTab = id;
+    document.body.dataset.tab = id;
+    renderNavCard();
+    if (id !== 'tabHome') { const rv = $('recOv'); if (rv) rv.remove(); }
+    document.querySelectorAll('.view-pane').forEach(el => el.classList.remove('active'));
+    $(id).classList.add('active');
+    const navFor = id === 'paneBook' ? 'tabBooks' : id;
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.t === navFor));
+    $('btnBackHome').style.display = id === 'paneBook' ? 'flex' : 'none';
+    if (id === 'tabHome') $('headTitle').innerHTML = '<i class="brand-mark">V</i><span><b>Voca</b>Pro</span>';
+    else if (id === 'paneBook') $('headTitle').textContent = (curCat() || {}).name || '단어장';
+    else $('headTitle').textContent = TITLES[id] || 'VocaPro';
+
+    if (id === 'tabHome') renderHome();
+    else if (id === 'tabBooks') renderBooks();
+    else if (id === 'paneBook') renderBookDynamic();
+    else if (id === 'tabStudy') renderStudy();
+    else if (id === 'tabStats') renderStats();
+    else if (id === 'tabSettings') loadSettingsUI();
+    window.scrollTo(0, 0);
+  }
+  ACTIONS.tab = el => go(el.dataset.t);
+  ACTIONS.back = () => go('tabBooks');
+
+  /* =========================================================
    * 홈
    * ======================================================= */
   function ringSvg(pct) {
@@ -35,7 +103,7 @@
     $('tabHome').innerHTML = `
       <div class="home-grid">
       <div class="h-hello"><div class="hello"><div class="hello-who">${MASCOT(today.n >= goal ? 'cheer' : 'happy')}<div><div class="hello-sub">${hello}</div><div class="hello-name">${esc(myName())}${isTeacher() ? ' 선생님' : '님'}</div>${schoolLine() ? `<div class="hello-school">${esc(schoolLine())}</div>` : ''}</div></div>
-        <button class="grade-chip" data-act="grade-pick">${isTeacher() ? '선생님' : gname ? esc(gname) : '학년 설정'}</button></div></div>
+        ${isZh() && !isTeacher() ? '<button class="grade-chip" data-act="pack-open">HSK 단어</button>' : `<button class="grade-chip" data-act="grade-pick">${isTeacher() ? '선생님' : gname ? esc(gname) : '학년 설정'}</button>`}</div></div>
       <div class="h-hero"><section class="hero">
         <div class="hero-top">
           <div>
@@ -64,7 +132,7 @@
       </div></div>
 
       <div class="h-tools">${isTeacher() ? teachToolsHtml() : ''}<div class="section-title"><span>학습 도구</span></div>
-      <div class="tool-list">${isTeacher() ? '' : classEntryHtml()}${todayHtml()}${flowEntryHtml()}<button class="mg-entry" data-act="match"><span class="mg-ico i-grape">${IC.cards}</span><span class="mg-txt"><b>짝 맞추기</b><small>영어와 뜻을 빠르게 연결해요</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="rain"><span class="mg-ico i-teal">${IC.play}</span><span class="mg-txt"><b>단어 비</b><small>떨어지는 뜻이 닿기 전에 단어를 골라요</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="exam-open"><span class="mg-ico i-coral">${IC.trophy}</span><span class="mg-txt"><b>실전 시험</b><small>섞인 문제를 풀고 점수와 등급을 받아요</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="dict-open"><span class="mg-ico i-teal">${IC.search}</span><span class="mg-txt"><b>영어사전</b><small>뜻, 예문, 비슷한 단어를 바로 찾아요</small></span><span class="mg-chev"></span></button>${recEntryHtml()}${packEntryHtml()}${ltEntryHtml()}</div></div>
+      <div class="tool-list">${isTeacher() ? '' : classEntryHtml()}${todayHtml()}${flowEntryHtml()}<button class="mg-entry" data-act="match"><span class="mg-ico i-grape">${IC.cards}</span><span class="mg-txt"><b>짝 맞추기</b><small>${LN()}와 뜻을 빠르게 연결해요</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="rain"><span class="mg-ico i-teal">${IC.play}</span><span class="mg-txt"><b>단어 비</b><small>떨어지는 뜻이 닿기 전에 단어를 골라요</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="exam-open"><span class="mg-ico i-coral">${IC.trophy}</span><span class="mg-txt"><b>실전 시험</b><small>섞인 문제를 풀고 점수와 등급을 받아요</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="dict-open"><span class="mg-ico i-teal">${IC.search}</span><span class="mg-txt"><b>${LN()}사전</b><small>${isZh() ? '한자, 병음, 한글 뜻으로 바로 찾아요' : '뜻, 예문, 비슷한 단어를 바로 찾아요'}</small></span><span class="mg-chev"></span></button>${recEntryHtml()}${packEntryHtml()}${ltEntryHtml()}</div></div>
 
       <div class="h-books"><div class="section-title"><span>내 단어장</span><button data-act="tab" data-t="tabBooks">전체 보기</button></div>
       <div class="book-list">${books || emptyHtml('아직 단어장이 없어요', '단어장 탭에서 새로 만들어 보세요.')}</div></div>

@@ -64,6 +64,19 @@
   const shuffled = arr => { const a = [...arr]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
   const safeId = v => str(v).replace(/[^\w-]/g, '');
 
+  /* ----- 학습 언어 (영어 / 중국어) -----
+     LANG 은 지금 보고 있는 단어장 언어예요. 발음, 사전, AI 는 단어 글자를 보고 언어를 정해서
+     공유받은 단어장이나 과제가 다른 언어여도 맞게 읽어요. */
+  const HAN = /[㐀-鿿豈-﫿]/, HAN_G = /[^㐀-鿿豈-﫿]/g;
+  const isHanWord = s => HAN.test(String(s || '')) && !/[A-Za-z]/.test(String(s || ''));
+  let LANG = 'en';
+  const isZh = () => LANG === 'zh';
+  const LN = () => isZh() ? '중국어' : '영어';
+  const ttsLang = t => HAN.test(String(t || '')) && !/[A-Za-z]{2}/.test(String(t || '')) ? 'zh-CN' : 'en-US';
+  // 병음 비교용: 성조, 띄어쓰기, 숫자를 빼요 (xué xí, xue2xi2, xuexi 모두 같게)
+  const pyPlain = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/v/g, 'u').replace(/[^a-z]/g, '');
+  const exPyHtml = w => w && w.exPy ? `<small class="ex-py">${esc(w.exPy)}</small>` : '';
+
   const DAY = 86400000;
   const INTERVALS = [0, 1, 3, 7, 14, 30];   // 박스(레벨)별 복습 간격(일)
   const SESSION_DEFAULT = 20;
@@ -155,7 +168,7 @@
     keys: { gemini: '', xai: '', openai: '', anthropic: '' },
     models: { gemini: '', xai: '', openai: '', anthropic: '' },
     modelLists: { gemini: [], xai: [], openai: [], anthropic: [] },
-    ttsRate: 0.9, goal: 20, darkMode: false, grade: ''
+    ttsRate: 0.9, goal: 20, darkMode: false, grade: '', lang: 'en'
   };
 
   function sanitizeNote(n) {
@@ -186,7 +199,7 @@
     const ex = splitExample(w.example, w.exampleKo);
     return {
       id: safeId(w.id) || uid(), word: str(w.word), meaning: str(w.meaning), phonetic: str(w.phonetic),
-      koreanPron: str(w.koreanPron), example: ex.en, exampleKo: ex.ko, synonyms: str(w.synonyms),
+      koreanPron: str(w.koreanPron), example: ex.en, exampleKo: ex.ko, synonyms: str(w.synonyms), exPy: str(w.exPy).slice(0, 200),
       star: !!w.star, box, due, reps: Math.max(0, Math.floor(n(w.reps))), wrong: Math.max(0, Math.floor(n(w.wrong))),
       miss: Math.max(0, Math.min(9, Math.floor(n(w.miss)))), last: str(w.last), created: n(w.created) || Date.now(), note: sanitizeNote(w.note)
     };
@@ -231,6 +244,7 @@
       cfg.ttsRate = saved.ttsRate || cfg.ttsRate;
       cfg.goal = saved.goal || cfg.goal;
       cfg.darkMode = !!saved.darkMode;
+      cfg.lang = saved.lang === 'zh' ? 'zh' : 'en';
       cfg.grade = GRADE_NAMES[saved.grade] ? saved.grade : '';
       cfg.role = saved.role === 'teacher' ? 'teacher' : '';
       cfg.profile = cleanProfile(saved.profile);
@@ -242,20 +256,32 @@
     }
     return cfg;
   }
-  function loadDb() {
-    const d = loadJson(KEY_DATA);
-    if (d && Array.isArray(d.categories)) return { categories: sanitizeCategories(d.categories), stats: sanitizeStats(d.stats) };
-    return { categories: defaultCats(), stats: { days: {} } };
-  }
+  function loadDb() { const d = loadJson(KEY_DATA); useBlob(d && Array.isArray(d.categories) ? d : null); }
 
   let config = JSON.parse(JSON.stringify(DEFAULT_CFG));
   let categories = defaultCats();
   let stats = { days: {} };
+  /* 영어와 중국어는 단어장과 학습 기록을 따로 가져요. 저장할 때는 영어를 예전 자리(categories, stats)에,
+     중국어를 zh 안에 넣어서 예전 앱과 백업 파일도 그대로 읽혀요. altSet 은 지금 안 보고 있는 언어 쪽이에요. */
+  const emptySet = () => ({ categories: defaultCats(), stats: { days: {} } });
+  let altSet = emptySet();
+  function dataBlob() {
+    const cur = { categories, stats }, en = isZh() ? altSet : cur, zh = isZh() ? cur : altSet;
+    return { categories: en.categories, stats: en.stats, zh: { categories: zh.categories, stats: zh.stats } };
+  }
+  function useBlob(d) {
+    const en = { categories: (d && sanitizeCategories(d.categories)) || defaultCats(), stats: sanitizeStats(d && d.stats) };
+    const z = d && d.zh && typeof d.zh === 'object' ? d.zh : null;
+    const zh = { categories: (z && sanitizeCategories(z.categories)) || defaultCats(), stats: sanitizeStats(z && z.stats) };
+    LANG = config.lang === 'zh' ? 'zh' : 'en';
+    const cur = isZh() ? zh : en; altSet = isZh() ? en : zh;
+    categories = cur.categories; stats = cur.stats;
+  }
 
   function syncStorage() {
     if (!currentUser) return;
     try {
-      LS.setItem(KEY_DATA, JSON.stringify({ categories, stats }));
+      LS.setItem(KEY_DATA, JSON.stringify(dataBlob()));
       LS.setItem(KEY_CFG, JSON.stringify(config));
       LS.setItem(KEY_DATA + ':ts', String(Date.now())); cloudQueue();
     } catch (e) {
@@ -337,42 +363,4 @@
 
   const BOOK_COLORS = ['#3182f6', '#03b26c', '#ff8a1f', '#7b61ff', '#f04f8a', '#00a5b8'];
   const bookColor = id => { let h = 0; for (const ch of String(id)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return BOOK_COLORS[h % BOOK_COLORS.length]; };
-
-  /* =========================================================
-   * 테마 / 라우팅
-   * ======================================================= */
-  ACTIONS.theme = () => { config.darkMode = !config.darkMode; applyTheme(); syncStorage(); };
-  function applyTheme() {
-    document.body.classList.toggle('dark', !!config.darkMode);
-    $('btnTheme').innerHTML = config.darkMode ? IC.sun : IC.moon;
-    const m = document.querySelector('meta[name="theme-color"]');
-    if (m) m.setAttribute('content', config.darkMode ? '#17171c' : '#f2f4f6');
-  }
-
-  let curTab = 'tabHome';
-  const TITLES = { tabBooks: '단어장', tabStudy: '학습', tabStats: '통계', tabSettings: '설정' };
-  function go(id) {
-    curTab = id;
-    document.body.dataset.tab = id;
-    renderNavCard();
-    if (id !== 'tabHome') { const rv = $('recOv'); if (rv) rv.remove(); }
-    document.querySelectorAll('.view-pane').forEach(el => el.classList.remove('active'));
-    $(id).classList.add('active');
-    const navFor = id === 'paneBook' ? 'tabBooks' : id;
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.t === navFor));
-    $('btnBackHome').style.display = id === 'paneBook' ? 'flex' : 'none';
-    if (id === 'tabHome') $('headTitle').innerHTML = '<i class="brand-mark">V</i><span><b>Voca</b>Pro</span>';
-    else if (id === 'paneBook') $('headTitle').textContent = (curCat() || {}).name || '단어장';
-    else $('headTitle').textContent = TITLES[id] || 'VocaPro';
-
-    if (id === 'tabHome') renderHome();
-    else if (id === 'tabBooks') renderBooks();
-    else if (id === 'paneBook') renderBookDynamic();
-    else if (id === 'tabStudy') renderStudy();
-    else if (id === 'tabStats') renderStats();
-    else if (id === 'tabSettings') loadSettingsUI();
-    window.scrollTo(0, 0);
-  }
-  ACTIONS.tab = el => go(el.dataset.t);
-  ACTIONS.back = () => go('tabBooks');
 

@@ -151,7 +151,7 @@
         </div>
         ${open ? `
         <div class="w-detail">
-          ${w.example ? `<div class="w-ex"><h4>예문</h4><p class="ex-en">${esc(w.example)} <button class="ex-say" data-act="speak" data-text="${esc(w.example)}" aria-label="예문 듣기">${IC.speaker}</button></p>${w.exampleKo ? `<p class="ex-ko">${esc(w.exampleKo)}</p>` : '<button class="btn btn-soft btn-sm" data-act="fill-exko">예문 해석 채우기</button>'}</div>` : ''}
+          ${w.example ? `<div class="w-ex"><h4>예문</h4><p class="ex-en">${esc(w.example)} <button class="ex-say" data-act="speak" data-text="${esc(w.example)}" aria-label="예문 듣기">${IC.speaker}</button></p>${exPyHtml(w)}${w.exampleKo ? `<p class="ex-ko">${esc(w.exampleKo)}</p>` : '<button class="btn btn-soft btn-sm" data-act="fill-exko">예문 해석 채우기</button>'}</div>` : ''}
           ${syns.length ? `<div><h4>비슷한 단어 (눌러서 뜻 보기)</h4><div class="syn-chips">${syns.map(s => `<button class="syn" data-act="syn" data-word="${esc(s)}">${esc(s)}</button>`).join('')}</div></div>` : ''}
           <div class="muted w-due">${dueText(w)}${w.wrong ? ` · 틀린 횟수 ${w.wrong}` : ''}</div>
           <div class="w-tools">
@@ -216,7 +216,7 @@
       </div>
       <div id="addOne" class="form-stack">${wordFormHtml(null)}</div>
       <div id="addBulk" class="form-stack" style="display:none;">
-        <textarea id="bulkText" placeholder="한 줄에 단어 하나씩 붙여넣으세요.&#10;&#10;consistent&#10;reluctant&#10;apple, 사과&#10;&#10;뜻을 같이 적으면(쉼표, 탭, ' - ' 구분) 그 뜻을 쓰고 나머지는 AI가 채워요."></textarea>
+        <textarea id="bulkText" placeholder="한 줄에 단어 하나씩 붙여넣으세요.&#10;&#10;${isZh() ? '学习&#10;朋友&#10;苹果, 사과' : 'consistent&#10;reluctant&#10;apple, 사과'}&#10;&#10;뜻을 같이 적으면(쉼표, 탭, ' - ' 구분) 그 뜻을 쓰고 나머지는 AI가 채워요."></textarea>
         <div class="bulk-status" id="bulkStatus">한 번에 최대 60개까지 넣을 수 있어요.</div>
         <button class="btn btn-primary btn-block" id="btnBulk" data-act="bulk-run">AI로 한꺼번에 채우고 저장</button>
       </div>`);
@@ -227,27 +227,27 @@
   function wordFormHtml(w) {
     const v = k => esc(w ? w[k] : ''); formEditId = w ? w.id : null; aiRun++;
     return `
-        <label class="f-lab" for="fieldWord">영단어</label>
+        <label class="f-lab" for="fieldWord">${isZh() ? '중국어 단어 (한자)' : '영단어'}</label>
         <div class="row f-ai">
-          <input type="text" id="fieldWord" value="${v('word')}" placeholder="예: consistent" autocomplete="off" autocapitalize="none" spellcheck="false" data-enter="ai-fill">
+          <input type="text" id="fieldWord" value="${v('word')}" placeholder="${isZh() ? '예: 学习' : '예: consistent'}" autocomplete="off" autocapitalize="none" spellcheck="false" data-enter="ai-fill">
           <button class="btn btn-primary" id="btnRunAi" data-act="ai-fill">AI 완성</button>
         </div>
         <div class="ai-state" id="aiState"></div>
         <label class="f-lab" for="fieldMeaning">뜻</label>
         <input type="text" id="fieldMeaning" value="${v('meaning')}" placeholder="한국어 뜻">
         <div class="row">
-          <div><label class="f-lab" for="fieldPhonetic">발음기호</label><input type="text" id="fieldPhonetic" value="${v('phonetic')}" placeholder="/kənˈsɪstənt/"></div>
-          <div><label class="f-lab" for="fieldKoreanPron">한글 발음</label><input type="text" id="fieldKoreanPron" value="${v('koreanPron')}" placeholder="컨시스턴트"></div>
+          <div><label class="f-lab" for="fieldPhonetic">${isZh() ? '병음' : '발음기호'}</label><input type="text" id="fieldPhonetic" value="${v('phonetic')}" placeholder="${isZh() ? 'xuéxí' : '/kənˈsɪstənt/'}"></div>
+          <div><label class="f-lab" for="fieldKoreanPron">한글 발음</label><input type="text" id="fieldKoreanPron" value="${v('koreanPron')}" placeholder="${isZh() ? '쉬에시' : '컨시스턴트'}"></div>
         </div>
-        <label class="f-lab" for="fieldExample">예문 (영어)</label>
-        <textarea id="fieldExample" class="short" rows="2" placeholder="Be consistent and results will come.">${v('example')}</textarea>
+        <label class="f-lab" for="fieldExample">예문 (${LN()})</label>
+        <textarea id="fieldExample" class="short" rows="2" placeholder="${isZh() ? '我每天学习汉语。' : 'Be consistent and results will come.'}">${v('example')}</textarea>
         <label class="f-lab" for="fieldExampleKo">예문 해석</label>
         <div class="row f-ai">
-          <textarea id="fieldExampleKo" class="short" rows="2" placeholder="꾸준히 하면 결과가 따라와요.">${v('exampleKo')}</textarea>
+          <textarea id="fieldExampleKo" class="short" rows="2" placeholder="${isZh() ? '나는 매일 중국어를 공부해요.' : '꾸준히 하면 결과가 따라와요.'}">${v('exampleKo')}</textarea>
           <button class="btn btn-soft" id="btnExKo" data-act="form-exko">번역</button>
         </div>
         <label class="f-lab" for="fieldSynonyms">비슷한 단어</label>
-        <input type="text" id="fieldSynonyms" value="${v('synonyms')}" placeholder="쉼표로 구분 (steady, constant)">
+        <input type="text" id="fieldSynonyms" value="${v('synonyms')}" placeholder="${isZh() ? '쉼표로 구분 (学, 读书)' : '쉼표로 구분 (steady, constant)'}">
         <button class="btn btn-primary btn-block" style="margin-top:10px;" data-act="word-save"${w ? ` data-id="${esc(w.id)}"` : ''}>${w ? '수정 저장' : '단어 저장'}</button>`;
   }
   const formVals = () => ({ word: $('fieldWord').value.trim(), meaning: $('fieldMeaning').value.trim(), phonetic: $('fieldPhonetic').value, koreanPron: $('fieldKoreanPron').value, example: $('fieldExample').value, exampleKo: $('fieldExampleKo').value, synonyms: $('fieldSynonyms').value });
@@ -266,7 +266,7 @@
   }
   ACTIONS['form-exko'] = async el => {
     const en = ($('fieldExample').value || '').trim();
-    if (!en) return toast('먼저 영어 예문을 입력해 주세요.');
+    if (!en) return toast(`먼저 ${LN()} 예문을 입력해 주세요.`);
     el.disabled = true; el.textContent = '번역 중';
     try { const r = await translateText(en, true); if ($('fieldExampleKo')) $('fieldExampleKo').value = r.t; }
     catch (e) { toast('번역하지 못했어요. 잠시 후 다시 해 주세요.'); }
@@ -308,7 +308,7 @@
     const seen = new Set(cat.words.map(w => w.word.toLowerCase()));
     let skipped = 0; const entries = [];
     $('bulkText').value.split('\n').map(s => s.trim()).filter(Boolean).slice(0, 60).forEach(line => {
-      const parts = line.split(/\t|\s+[-–—]\s+|\s*[,;]\s*/);
+      const parts = line.split(/\t|\s+[-–—]\s+|\s*[,;，；、]\s*/);
       const word = parts[0].trim(); if (!word) return;
       if (seen.has(word.toLowerCase())) { skipped++; return; }
       seen.add(word.toLowerCase()); entries.push({ word, um: parts.slice(1).join(', ').trim() });
@@ -325,7 +325,7 @@
       while (!bulkCancel && !stopped) {
         const ch = chunks[ci++]; if (!ch) return;
         try {
-          const m = await callAi(buildBatchPrompt(ch.map(e => e.word)), normalizeBatch, { task: 'batch', words: ch.map(e => e.word) });
+          const m = await callAi(buildBatchPrompt(ch.map(e => e.word)), normalizeBatch, { task: 'batch', words: ch.map(e => e.word), lang: aiLang(ch[0].word) });
           ch.forEach(e => { const r = m[e.word.toLowerCase()]; if (r) { res.set(e.word.toLowerCase(), r); aicSet(e.word, r); } });
         } catch (err) { if ([401, 403, 429].includes(err.status) || /AI를 쓸 수 없|한도|준비되지/.test(err.message)) stopped = err.message.split('\n')[0]; }
         done += ch.length; upd();
@@ -415,7 +415,7 @@
     for (const w of words) {
       const d = await dictGet(w.word); if (!d) continue;
       let hit = false;
-      ['meaning', 'phonetic', 'koreanPron', 'example', 'exampleKo', 'synonyms'].forEach(k => { if (!w[k] && d[k]) { w[k] = d[k]; hit = true; } });
+      ['meaning', 'phonetic', 'koreanPron', 'example', 'exampleKo', 'synonyms', 'exPy'].forEach(k => { if (!w[k] && d[k]) { w[k] = d[k]; hit = true; } });
       if (hit) n++;
     }
     return n;
@@ -435,7 +435,7 @@
     for (let i = 0; i < need.length && !stop; i += 6) {
       const ch = need.slice(i, i + 6);
       try {
-        const m = await callAi(buildBatchPrompt(ch.map(w => w.word)), normalizeBatch, { task: 'batch', words: ch.map(w => w.word) });
+        const m = await callAi(buildBatchPrompt(ch.map(w => w.word)), normalizeBatch, { task: 'batch', words: ch.map(w => w.word), lang: aiLang(ch[0].word) });
         ch.forEach(w => {
           const r = m[w.word.toLowerCase()]; if (!r) { fail++; return; }
           aicSet(w.word, r);

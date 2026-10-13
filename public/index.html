@@ -33,6 +33,7 @@
       <h1 class="brand" id="headTitle"><i class="brand-mark">V</i><span><b>Voca</b>Pro</span></h1>
     </div>
     <div class="header-right">
+      <button class="lang-sw" data-act="lang" id="btnLang" aria-label="학습 언어 바꾸기 (영어, 중국어)" aria-pressed="false"><i class="ls-knob"></i><span class="ls-en">EN</span><span class="ls-zh">中</span></button>
       <button class="round-btn" data-act="dict-open" id="btnDict" aria-label="영어사전"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
       <button class="round-btn" data-act="translator" id="btnTr" aria-label="번역"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg></button>
       <button class="round-btn" data-act="theme" id="btnTheme" aria-label="테마 변경"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
@@ -59,6 +60,10 @@
 
     <div class="settings-card">
       <div class="settings-title">학습 목표</div>
+      <div class="setting-item">
+        <span class="setting-label">학습 언어 (단어장과 기록은 언어마다 따로 저장돼요)</span>
+        <div class="seg lang-seg" id="cfgLang"><button data-act="lang-set" data-l="en">영어</button><button data-act="lang-set" data-l="zh">중국어</button></div>
+      </div>
       <div class="setting-item">
         <span class="setting-label">학년 (추천 단어 기준)</span>
         <select id="cfgGrade" data-change="grade"></select>
@@ -224,5 +229,6 @@
   <script src="app12.js"></script>
   <script src="app13.js"></script>
   <script src="app14.js"></script>
+  <script src="app15.js"></script>
 </body>
 </html>

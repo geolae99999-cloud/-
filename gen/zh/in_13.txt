@@ -1,0 +1,250 @@
+6	还原	huán yuán	to restore to the original state; to reconstruct (an event); reduction (chemistry)
+6	海拔	hǎi bá	height above sea level; elevation
+6	海滨	hǎi bīn	shore; seaside
+6	含糊	hán hu	ambiguous; vague; careless
+6	含义	hán yì	meaning (implicit in a phrase); implied meaning; hidden meaning
+6	寒暄	hán xuān	to exchange conventional greetings; to exchange pleasantries
+6	罕见	hǎn jiàn	rare; rarely seen
+6	捍卫	hàn wèi	to defend; to uphold; to safeguard
+6	航空	háng kōng	aviation
+6	航天	háng tiān	space flight
+6	航行	háng xíng	to sail; to fly; to navigate
+6	毫米	háo mǐ	millimeter
+6	毫无	háo wú	not in the least; to completely lack
+6	豪迈	háo mài	bold; open-minded; heroic
+6	好客	hào kè	hospitality; to treat guests well; to enjoy having guests
+6	号召	hào zhào	to call; to appeal
+6	耗费	hào fèi	to waste; to spend; to consume
+6	合并	hé bìng	variant of 合并; to merge; to annex
+6	合成	hé chéng	to compose; to constitute; compound
+6	合乎	hé hū	to accord with; to conform to
+6	合伙	hé huǒ	to act jointly; to form a partnership
+6	合身	hé shēn	well-fitting (of clothes)
+6	合算	hé suàn	worthwhile; to be a good deal; to be a bargain
+6	和蔼	hé ǎi	kindly; nice; amiable
+6	和解	hé jiě	to settle (a dispute out of court); to reconcile; settlement
+6	和睦	hé mù	peaceful relations; harmonious
+6	和气	hé qi	friendly; polite; amiable
+6	和谐	hé xié	harmonious; harmony; (euphemism) to censor
+6	嘿	hēi	hey
+6	痕迹	hén jì	vestige; mark; trace
+6	狠心	hěn xīn	callous; heartless; to resolve (to do sth); firm resolve (as in 心)
+6	恨不得	hèn bu de	wishing one could do sth; to hate to be unable; itching to do sth
+6	哼	hēng	to groan; to snort; to hum
+6	轰动	hōng dòng	to cause a sensation; to create a stir in (a place); commotion
+6	哄	hōng | hǒng | hòng	roar of laughter (onom.); hubbub; to roar (as a crowd)
+6	烘	hōng	to bake; to heat by fire; to set off by contrast
+6	红包	hóng bāo	money wrapped in red as a gift; bonus payment; kickback
+6	宏观	hóng guān	macro-; macroscopic; holistic
+6	宏伟	hóng wěi	grand; imposing; magnificent
+6	洪水	hóng shuǐ	deluge; flood
+6	喉咙	hóu lóng	the throat
+6	吼	hǒu	to roar; to howl; to shriek
+6	后代	hòu dài	descendant; progeny; posterity
+6	后顾之忧	hòu gù zhī yōu	fears of trouble in the rear (idiom); family worries (obstructing freedom of action); worr
+6	后勤	hòu qín	logistics
+6	候选	hòu xuǎn	candidate (attributive)
+6	呼啸	hū xiào	to whistle; to scream; to whiz
+6	呼吁	hū yù	to call on (sb to do sth); to appeal (to); an appeal
+6	忽略	hū lu:è	to neglect; to overlook; to ignore
+6	胡乱	hú luàn	careless; reckless; casually
+6	湖泊	hú pō	lake
+6	互联网	Hù lián wǎng	Internet
+6	花瓣	huā bàn	petal
+6	华丽	huá lì	gorgeous
+6	华侨	Huá qiáo	overseas Chinese; (in a restricted sense) Chinese emigrant who still retains Chinese natio
+6	化肥	huà féi	fertilizer
+6	化石	huà shí	fossil
+6	化验	huà yàn	chemical examination; to do a lab test
+6	化妆	huà zhuāng	to put on makeup
+6	划分	huà fēn	to divide up; to partition; to differentiate
+6	画蛇添足	huà shé tiān zú	lit. draw legs on a snake (idiom); fig. to ruin the effect by adding sth superfluous; to o
+6	话筒	huà tǒng	microphone; (telephone) receiver; handset
+6	怀孕	huái yùn	pregnant; to have conceived; gestation
+6	环节	huán jié	(zoology) segment (of the body of a worm, centipede etc); (fig.) a part of an integrated w
+6	缓和	huǎn hé	to ease (tension); to alleviate; to moderate
+6	患者	huàn zhě	patient; sufferer
+6	欢乐	huān lè	gaiety; gladness; glee
+6	荒凉	huāng liáng	desolate
+6	荒谬	huāng miù	absurd; ridiculous
+6	荒唐	huāng táng	beyond belief; preposterous; absurd
+6	慌忙	huāng máng	in a great rush; in a flurry
+6	黄昏	huáng hūn	dusk; evening; nightfall
+6	恍然大悟	huǎng rán dà wù	to suddenly realize; to suddenly see the light
+6	挥霍	huī huò	to squander money; extravagant; prodigal
+6	辉煌	huī huáng	splendid; glorious
+6	回报	huí bào	(in) return; reciprocation; payback
+6	回避	huí bì	variant of 回避; to shun; to avoid (sb)
+6	回顾	huí gù	to look back; to review
+6	回收	huí shōu	to recycle; to reclaim; to retrieve
+6	悔恨	huǐ hèn	remorse; repentance
+6	毁灭	huǐ miè	to perish; to ruin; to destroy
+6	汇报	huì bào	to report; to give an account of; to collect information and report back
+6	会晤	huì wù	to meet; meeting; conference
+6	贿赂	huì lù	to bribe; a bribe
+6	昏迷	hūn mí	to lose consciousness; to be in a coma; stupor
+6	浑身	hún shēn	all over; from head to foot
+6	混合	hùn hé	to mix; to blend; hybrid
+6	混乱	hùn luàn	confusion; chaos; disorder
+6	混淆	hùn xiáo	to obscure; to confuse; to mix up
+6	混浊	hùn zhuó	turbid; muddy; dirty
+6	活该	huó gāi	(coll.) serve sb right; deservedly; ought
+6	活力	huó lì	energy; vitality; vigor
+6	火箭	huǒ jiàn	rocket
+6	火焰	huǒ yàn	blaze; flame
+6	火药	huǒ yào	gunpowder
+6	或许	huò xǔ	perhaps; maybe
+6	货币	huò bì	currency; monetary; money
+6	讥笑	jī xiào	to sneer
+6	饥饿	jī è	hunger; starvation; famine
+6	机动	jī dòng	locomotive; motorized; power-driven
+6	机构	jī gòu	mechanism; structure; organization
+6	机关	jī guān	mechanism; gear; machine-operated; office; agency; organ; organization; establishment; ins
+6	机灵	jī ling	clever; quick-witted
+6	机密	jī mì	secret; classified (information)
+6	机械	jī xiè	machine; machinery; mechanical
+6	机遇	jī yù	opportunity; favorable circumstance; stroke of luck
+6	机智	jī zhì	quick-witted; resourceful
+6	迹象	jì xiàng	sign; indication; mark; indicator
+6	基地	jī dì	base (of operations); industrial or military base; al-Qaeda
+6	基金	jī jīn	fund
+6	基因	jī yīn	gene (loanword)
+6	激发	jī fā	to arouse; to stimulate; (physics) to excite
+6	激励	jī lì	to encourage; to urge; motivation
+6	激情	jī qíng	passion; fervor; enthusiasm
+6	及早	jí zǎo	at the earliest possible time; as soon as possible
+6	吉祥	jí xiáng	lucky; auspicious; propitious
+6	级别	jí bié	(military) rank; level; grade
+6	即便	jí biàn	even if; even though; right away
+6	即将	jí jiāng	on the eve of; to be about to; to be on the verge of
+6	极端	jí duān	extreme
+6	极限	jí xiàn	limit; extreme boundary
+6	急功近利	jí gōng jìn lì	seeking instant benefit (idiom); shortsighted vision, looking only for fast return
+6	急剧	jí jù	rapid; sudden
+6	急切	jí qiè	eager; impatient
+6	急于求成	jí yú qiú chéng	anxious for quick results (idiom); to demand instant success; impatient for result; impetu
+6	急躁	jí zào	irritable; irascible; impetuous
+6	疾病	jí bìng	disease; sickness; ailment
+6	集团	jí tuán	group; bloc; corporation
+6	嫉妒	jí dù	to be jealous of; to envy
+6	籍贯	jí guàn	one's native place; place of ancestry; registered birthplace
+6	计较	jì jiào	to bother about; to haggle; to bicker
+6	记性	jì xing	memory (ability to retain information)
+6	记载	jì zǎi	to write down; to record; written account
+6	纪要	jì yào	minutes; written summary of a meeting
+6	忌讳	jì huì	taboo; to avoid as taboo; to abstain from
+6	技能	jì néng	technical ability; skill
+6	技巧	jì qiǎo	skill; technique
+6	季度	jì dù	quarter of a year; season (sports)
+6	季军	jì jūn	third in a race; bronze medalist
+6	继承	jì chéng	to inherit; to succeed to (the throne etc); to carry on (a tradition etc)
+6	继往开来	jì wǎng kāi lái	to follow the past and herald the future (idiom); part of a historical transition; forming
+6	寂静	jì jìng	quiet
+6	寄托	jì tuō	to entrust (to sb); to place (one's hope, energy etc) in; a thing in which you invest (you
+6	加工	jiā gōng	to process; processing; working (of machinery)
+6	加剧	jiā jù	to intensify
+6	夹杂	jiā zá	to mix together (disparate substances); to mingle; a mix
+6	佳肴	jiā yáo	fine food; delicacies; delicious food
+6	家常	jiā cháng	the daily life of a family
+6	家伙	jiā huo	variant of 伙; household dish, implement or furniture; domestic animal
+6	家属	jiā shǔ	family member; (family) dependent
+6	家喻户晓	jiā yù hù xiǎo	understood by everyone (idiom); well known; a household name
+6	假设	jiǎ shè	to suppose; to presume; to assume
+6	假使	jiǎ shǐ	if; in case; suppose
+6	尖端	jiān duān	sharp pointed end; the tip; the cusp
+6	坚定	jiān dìng	firm; steady; staunch
+6	坚固	jiān gù	firm; firmly; hard
+6	坚韧	jiān rèn	tough and durable; tenacious
+6	坚实	jiān shí	firm and substantial; solid
+6	坚硬	jiān yìng	hard; solid
+6	间谍	jiàn dié	spy
+6	间隔	jiàn gé	gap; interval; compartment
+6	间接	jiàn jiē	indirect
+6	艰难	jiān nán	difficult; hard; challenging
+6	兼职	jiān zhí	to hold concurrent posts; concurrent job; moonlighting
+6	监督	jiān dū	to control; to supervise; to inspect
+6	监视	jiān shì	to monitor; to keep a close watch over; surveillance
+6	监狱	jiān yù	prison
+6	拣	jiǎn	to choose; to pick; to sort out
+6	剪彩	jiǎn cǎi	to cut the ribbon (at a launching or opening ceremony)
+6	检讨	jiǎn tǎo	to examine or inspect; self-criticism; review
+6	检验	jiǎn yàn	to inspect; to examine; to test
+6	简化	jiǎn huà	to simplify
+6	简陋	jiǎn lòu	simple and crude
+6	简体字	jiǎn tǐ zì	simplified Chinese character, as opposed to traditional Chinese character 繁体字
+6	简要	jiǎn yào	concise; brief
+6	见多识广	jiàn duō shí guǎng	experienced and knowledgeable (idiom)
+6	见解	jiàn jiě	opinion; view; understanding
+6	见闻	jiàn wén	what one has seen and heard; knowledge; one's experience
+6	见义勇为	jiàn yì yǒng wéi	to see what is right and act courageously (idiom, from Analects); to stand up bravely for 
+6	健全	jiàn quán	robust; sound
+6	舰艇	jiàn tǐng	warship; naval vessel
+6	溅	jiàn	to splash
+6	践踏	jiàn tà	to trample
+6	鉴别	jiàn bié	to differentiate; to distinguish
+6	鉴定	jiàn dìng	to appraise; to identify; to evaluate
+6	鉴于	jiàn yú	in view of; seeing that; considering
+6	将近	jiāng jìn	almost; nearly; close to
+6	将军	Jiāng jūn | jiāng jūn	(common place name); general; high-ranking military officer
+6	僵硬	jiāng yìng	stiff; rigid
+6	奖励	jiǎng lì	to reward; reward (as encouragement)
+6	奖赏	jiǎng shǎng	reward; prize; award
+6	桨	jiǎng	oar; paddle
+6	降临	jiàng lín	to descend; to arrive; to come
+6	交叉	jiāo chā	to cross; to intersect; to overlap
+6	交代	jiāo dài	to transfer (duties to sb else); to give instructions; to tell (sb to do sth); to explain;
+6	交涉	jiāo shè	to negotiate (with); to have dealings (with)
+6	交往	jiāo wǎng	to associate (with); to have contact (with); to hang out (with)
+6	交易	jiāo yì	to deal; to trade; to transact; transaction; deal
+6	娇气	jiāo qì	delicate; squeamish; finicky
+6	焦点	jiāo diǎn	focal point; focus (lit. and fig.)
+6	焦急	jiāo jí	anxiety; anxious
+6	角落	jiǎo luò	nook; corner
+6	搅拌	jiǎo bàn	to stir; to agitate
+6	缴纳	jiǎo nà	to pay (taxes etc)
+6	较量	jiào liàng	to pit oneself against sb; to compete with sb; contest
+6	教养	jiào yǎng	to educate; to bring up; to nurture; upbringing; breeding; culture
+6	阶层	jiē céng	social class
+6	皆	jiē	all; each and every; in all cases
+6	接连	jiē lián	on end; in a row; in succession
+6	揭发	jiē fā	to expose; to bring to light; to disclose
+6	揭露	jiē lù	to expose; to unmask; to ferret out
+6	节奏	jié zòu	rhythm; tempo; musical pulse
+6	杰出	jié chū	outstanding; distinguished; remarkable
+6	结晶	jié jīng	to crystallize; crystallization; crystal
+6	结局	jié jú	conclusion; ending
+6	结算	jié suàn	to settle a bill; to close an account
+6	截至	jié zhì	up to (a time); by (a time)
+6	竭尽全力	jié jìn quán lì	to spare no effort (idiom); to do one's utmost
+6	解除	jiě chú	to remove; to sack; to get rid of
+6	解雇	jiě gù	to fire; to sack; to dismiss
+6	解剖	jiě pōu	to dissect (an animal); to analyze; anatomy
+6	解散	jiě sàn	to dissolve; to disband
+6	解体	jiě tǐ	to break up into components; to disintegrate; to collapse
+6	戒备	jiè bèi	to take precautions; to guard against (emergency)
+6	界限	jiè xiàn	boundary
+6	借鉴	jiè jiàn	to draw on (others' experience); to learn from (how others do things); lesson to be learne
+6	借助	jiè zhù	to draw support from; with the help of
+6	金融	jīn róng	banking; finance; financial
+6	津津有味	jīn jīn yǒu wèi	with keen interest (idiom); with great pleasure; with gusto
+6	尽快	jǐn kuài | jìn kuài	as quickly as possible; as soon as possible; see 尽快
+6	紧密	jǐn mì	inseparably close
+6	紧迫	jǐn pò	pressing; urgent
+6	锦绣前程	jǐn xiù qián chéng	bright future; bright prospects
+6	劲头	jìn tóu	enthusiasm; zeal; vigor
+6	近来	jìn lái	recently; lately
+6	近视	jìn shì	shortsighted; nearsighted; myopia
+6	进而	jìn ér	and then (what follows next)
+6	进攻	jìn gōng	to attack; to assault; to go on the offensive
+6	进化	jìn huà	evolution
+6	进展	jìn zhǎn	to make headway; to make progress
+6	晋升	jìn shēng	to promote to a higher position
+6	浸泡	jìn pào	to steep; to soak; to immerse
+6	经费	jīng fèi	funds; expenditure
+6	经商	jīng shāng	to trade; to carry out commercial activities; in business
+6	经纬	jīng wěi	warp and woof; longitude and latitude; main points
+6	茎	jīng	stalk; stem
+6	惊动	jīng dòng	to alarm; to startle; to disturb
+6	惊奇	jīng qí	to be amazed; to be surprised; to wonder
+6	惊讶	jīng yà	amazed; astonished; to surprise
+6	兢兢业业	jīng jīng yè yè	(idiom) conscientious; assiduous

@@ -1,0 +1,250 @@
+5	融化	róng huà	to melt; to thaw; to dissolve
+5	如何	rú hé	how; what way; what
+5	如今	rú jīn	nowadays; now
+5	软件	ruǎn jiàn	(computer) software
+5	弱	ruò	weak; feeble; young; inferior; not as good as
+5	洒	sǎ	to sprinkle; to spray; to spill
+5	嗓子	sǎng zi	throat; voice
+5	杀	shā	to kill; to murder; to attack
+5	沙漠	shā mò	desert
+5	沙滩	shā tān	beach; sandy shore
+5	傻	shǎ	foolish
+5	晒	shài	variant of 晒; (of the sun) to shine on; to bask in (the sunshine)
+5	删除	shān chú	to delete; to cancel
+5	闪电	shǎn diàn	lightning
+5	扇子	shàn zi	fan
+5	善良	shàn liáng	good and honest; kindhearted
+5	善于	shàn yú	to be good at; to be adept at
+5	商品	shāng pǐn	commodity; goods; merchandise
+5	商业	shāng yè	business; trade; commerce
+5	上当	shàng dàng	taken in (by sb's deceit); to be fooled; to be duped
+5	勺子	sháo zi	scoop; ladle
+5	舌头	shé tou	tongue; enemy soldier captured for the purpose of extracting information
+5	蛇	shé	variant of 蛇; snake; serpent
+5	舍不得	shě bu de	to hate to do sth; to hate to part with; to begrudge
+5	设备	shè bèi	equipment; facilities; installations
+5	设计	shè jì	to design; to plan; design; plan
+5	设施	shè shī	facilities; installation
+5	射击	shè jī	to shoot; to fire (a gun)
+5	摄影	shè yǐng	to take a photograph; photography; to shoot (a movie)
+5	伸	shēn	to stretch; to extend
+5	身材	shēn cái	stature; build (height and weight); figure
+5	身份	shēn fèn	identity; aspect of one's identity (i.e. sth that one is – mayor, father, permanent reside
+5	深刻	shēn kè	profound; deep; deep-going
+5	神话	shén huà	legend; fairy tale; myth
+5	神经	shén jīng	nerve; mental state; (coll.) unhinged
+5	神秘	shén mì	mysterious; mystery
+5	升	shēng	to ascend; to rise to the rank of; to promote
+5	生产	shēng chǎn	to produce; to manufacture; to give birth to a child
+5	生动	shēng dòng	vivid; lively
+5	声调	shēng diào	tone; note; a tone (on a Chinese syllable)
+5	绳子	shéng zi	cord; string; rope
+5	省略	shěng lu:è	to leave out; an omission
+5	胜利	shèng lì	victory
+5	失眠	shī mián	to suffer from insomnia
+5	失去	shī qù	to lose
+5	失业	shī yè	unemployment; to lose one's job
+5	诗	Shī | shī	abbr. for Shijing 诗经, the Book of Songs; poem; poetry
+5	石头	shí tou	stone
+5	时代	Shí dài | shí dài	Time, US weekly news magazine; age; era
+5	时刻	shí kè	time; juncture; moment
+5	时髦	shí máo	in vogue; fashionable
+5	时期	shí qī	period; phase
+5	时尚	shí shàng	fashion; fad; fashionable
+5	实话	shí huà	truth
+5	实践	shí jiàn	practice; to put into practice; to live up to (a promise)
+5	实习	shí xí	to practice; field work; to intern
+5	实现	shí xiàn	to achieve; to implement; to realize
+5	实行	shí xíng	to implement; to carry out; to put into practice
+5	实验	shí yàn	experiment; test; experimental
+5	实用	shí yòng	practical; functional; pragmatic
+5	食物	shí wù	food
+5	使劲儿	shǐ jìn r	erhua variant of 使劲; to exert all one's strength
+5	始终	shǐ zhōng	from beginning to end; all along
+5	士兵	shì bīng	soldier
+5	似的	shì de	seems as if; rather like; Taiwan pr. [sì de]
+5	似乎	sì hū	it seems; seemingly; as if
+5	事实	shì shí	fact
+5	事物	shì wù	thing; object
+5	事先	shì xiān	in advance; before the event; beforehand
+5	试卷	shì juàn	examination paper; test paper
+5	是否	shì fǒu	whether (or not); if; is or isn't
+5	收获	shōu huò	variant of 收获; to harvest; to reap
+5	收据	shōu jù	receipt
+5	手工	shǒu gōng	handwork; manual
+5	手术	shǒu shù	(surgical) operation; surgery
+5	手套	shǒu tào	glove; mitten
+5	手续	shǒu xù	procedure; formalities
+5	手指	shǒu zhǐ	finger
+5	寿命	shòu mìng	life span; life expectancy; lifetime (of a machine)
+5	受伤	shòu shāng	to sustain injuries; wounded (in an accident etc); harmed
+5	书架	shū jià	bookshelf
+5	梳子	shū zi	comb
+5	舒适	shū shì	cozy; snug
+5	输入	shū rù	to import; to input
+5	蔬菜	shū cài	vegetables
+5	熟练	shú liàn	practiced; proficient; skilled
+5	属于	shǔ yú	to be classified as; to belong to; to be part of
+5	鼠标	shǔ biāo	mouse (computing)
+5	数据	shù jù	data
+5	数码	shù mǎ	number; numerals; figures
+5	摔	shuāi	to throw down; to fall; to drop and break
+5	甩	shuǎi	to throw; to fling; to swing
+5	双方	shuāng fāng	bilateral; both sides; both parties involved
+5	税	shuì	taxes; duties
+5	说不定	shuō bu dìng	can't say for sure; maybe
+5	说服	shuō fú	to persuade; to convince; to talk sb over
+5	丝绸	sī chóu	silk cloth; silk
+5	丝毫	sī háo	the slightest amount or degree; a bit
+5	私人	sī rén	private; personal; interpersonal
+5	思考	sī kǎo	to reflect on; to ponder over
+5	思想	sī xiǎng	thought; thinking; idea
+5	撕	sī	to tear
+5	寺庙	sì miào	temple; monastery; shrine
+5	宿舍	sù shè	dormitory; dorm room; living quarters
+5	随时	suí shí	at any time; at all times; at the right time; whenever necessary
+5	碎	suì	(transitive or intransitive verb) to break into pieces; to shatter; to crumble; broken; fr
+5	损失	sǔn shī	loss; damage; to lose
+5	缩短	suō duǎn	to curtail; to cut down
+5	缩小	suō xiǎo	to reduce; to decrease; to shrink
+5	所	suǒ	actually; place; classifier for houses, small buildings, institutions etc
+5	所谓	suǒ wèi	so-called; what is called
+5	锁	suǒ	to lock; to lock up; a lock; old variant of 锁
+5	塔	tǎ	pagoda; tower; minaret
+5	台阶	tái jiē	steps; flight of steps; step (over obstacle)
+5	太极拳	tài jí quán	shadowboxing or Taiji, T'aichi or T'aichichuan; traditional form of physical exercise or r
+5	太太	tài tai	married woman; Mrs.; Madam
+5	谈判	tán pàn	to negotiate; negotiation; talks
+5	坦率	tǎn shuài	frank (discussion); blunt; open
+5	烫	tàng	to scald; to burn (by scalding); to blanch (cooking)
+5	逃	táo	to escape; to run away; to flee
+5	逃避	táo bì	to escape; to evade; to avoid
+5	桃	táo	peach
+5	套	tào	to cover; to encase; cover
+5	特殊	tè shū	special; particular; unusual
+5	特意	tè yì	specially; intentionally
+5	特征	tè zhēng	characteristic; diagnostic property; distinctive feature
+5	疼爱	téng ài	to love dearly
+5	提	dī | tí	used in 防 and 溜; to carry (hanging down from the hand); to lift
+5	提倡	tí chàng	to promote; to advocate
+5	提纲	tí gāng	outline; synopsis; notes
+5	提问	tí wèn	to question; to quiz; to grill
+5	题目	tí mù	subject; title; topic
+5	体会	tǐ huì	to know from experience; to learn through experience; to realize
+5	体积	tǐ jī	volume; bulk
+5	体贴	tǐ tiē	considerate (of other people's needs)
+5	体现	tǐ xiàn	to embody; to reflect; to incarnate
+5	体验	tǐ yàn	to experience for oneself
+5	天空	tiān kōng	sky
+5	天真	tiān zhēn	naive; innocent; artless
+5	田野	tián yě	field; open land
+5	挑战	tiǎo zhàn	to challenge; challenge
+5	通常	tōng cháng	regular; usual; normal
+5	通讯	tōng xùn	communications; news story; dispatch
+5	同时	tóng shí	at the same time; simultaneously
+5	铜	tóng	copper (chemistry); see also 红铜
+5	统一	tǒng yī	to unify; to integrate; unified; integrated
+5	统治	tǒng zhì	to rule (a country); to govern; rule
+5	痛苦	tòng kǔ	pain; suffering; painful
+5	痛快	tòng kuài	delighted; to one's heart's content; straightforward
+5	投资	tóu zī	investment; to invest
+5	透明	tòu míng	transparent; (fig.) transparent; open to scrutiny
+5	突出	tū chū	prominent; outstanding; to give prominence to
+5	土地	tǔ dì | tǔ di	land; soil; territory
+5	土豆	tǔ dòu	potato; (Tw) peanut
+5	吐	tǔ | tù	to spit; to send out (silk from a silkworm, bolls from cotton flowers etc); to say
+5	兔子	tù zi	hare; rabbit
+5	团	tuán	round; lump; ball
+5	推辞	tuī cí	to decline (an appointment, invitation etc)
+5	推广	tuī guǎng	to extend; to spread; to popularize
+5	推荐	tuī jiàn	to recommend; recommendation
+5	退	tuì	to retreat; to withdraw; to reject; to return (sth); to decline
+5	退步	tuì bù	to do less well than before; to make a concession; setback
+5	退休	tuì xiū	to retire (from the workforce); to go into retirement
+5	歪	wāi | wǎi	askew; at a crooked angle; devious
+5	外交	wài jiāo	diplomacy; diplomatic; foreign affairs
+5	弯	wān	to bend; bent; a bend; a turn (in a road etc)
+5	完美	wán měi	perfect
+5	完善	wán shàn	(of systems, facilities etc) comprehensive; well-developed; excellent
+5	完整	wán zhěng	complete; intact
+5	玩具	wán jù	plaything; toy
+5	万一	wàn yī	just in case; if by any chance; contingency
+5	王子	wáng zǐ	prince; son of a king
+5	往返	wǎng fǎn	to go back and forth; to go to and fro; to do a round trip
+5	危害	wēi hài	to jeopardize; to harm; to endanger
+5	威胁	wēi xié	to threaten; to menace
+5	微笑	wēi xiào	smile; to smile
+5	围巾	wéi jīn	scarf; shawl
+5	围绕	wéi rào	to revolve around; to center on (an issue)
+5	违反	wéi fǎn	to violate (a law)
+5	唯一	wéi yī	only; sole
+5	维护	wéi hù	to defend; to safeguard; to protect
+5	伟大	wěi dà	huge; great; grand; worthy of the greatest admiration; important (contribution etc)
+5	尾巴	wěi ba	tail; colloquial pr. [yǐ ba]
+5	委屈	wěi qu	to feel wronged; to cause sb to feel wronged; grievance
+5	委托	wěi tuō	to entrust; to trust; to commission
+5	卫生间	wèi shēng jiān	bathroom; toilet; WC
+5	未必	wèi bì	not necessarily; maybe not
+5	未来	wèi lái	future; tomorrow; approaching
+5	位置	wèi zhi	position; place; seat
+5	胃	wèi	stomach
+5	温暖	wēn nuǎn	warm
+5	温柔	wēn róu	gentle and soft; tender; sweet (commonly used to describe a girl or woman)
+5	文件	wén jiàn	document; file
+5	文具	wén jù	stationery; item of stationery (pen, pencil, eraser, pencil sharpener etc)
+5	文明	wén míng	civilized; civilization; culture
+5	文学	wén xué	literature
+5	闻	Wén | wén	surname Wen; to hear; news
+5	吻	wěn	kiss; to kiss; mouth
+5	稳定	wěn dìng	steady; stable; stability
+5	问候	wèn hòu	to give one's respects; to send a greeting; (fig.) (coll.) to make offensive reference to 
+5	卧室	wò shì	bedroom
+5	屋子	wū zi	house; room
+5	无奈	wú nài	to have no alternative; frustrated; exasperated
+5	无数	wú shù	countless; numberless; innumerable
+5	武器	wǔ qì	weapon; arms
+5	武术	wǔ shù	military skill or technique (in former times); all kinds of martial art sports (some claim
+5	物理	wù lǐ	physics; physical
+5	物质	wù zhì	matter; substance; material
+5	雾	wù	fog; mist
+5	吸收	xī shōu	to absorb; to assimilate; to ingest
+5	戏剧	xì jù	a drama; a play; theater; script of a play
+5	系	xì | jì	to connect; to relate to; to tie up
+5	系领带	xì lǐng dài	to wear a tie
+5	系统	xì tǒng	system
+5	细节	xì jié	details; particulars
+5	瞎	xiā	blind; groundlessly; foolishly
+5	下载	xià zǎi	to download; also pr. [xià zài]
+5	吓	hè | xià	to scare; to intimidate; to threaten
+5	鲜艳	xiān yàn	bright-colored; gaily-colored
+5	显得	xiǎn de	to seem; to look; to appear
+5	显然	xiǎn rán	clearly; evidently; obviously
+5	显示	xiǎn shì	to show; to illustrate; to display
+5	县	xiàn	county
+5	现金	xiàn jīn	cash
+5	现实	xiàn shí	reality; actuality; real
+5	现象	xiàn xiàng	phenomenon; appearance
+5	相处	xiāng chǔ	to be in contact (with sb); to associate; to interact
+5	相当	xiāng dāng	equivalent to; appropriate; considerably
+5	相对	xiāng duì	relatively; opposite; to resist
+5	相关	xiāng guān	related; relevant; pertinent
+5	相似	xiāng sì	similar; alike
+5	享受	xiǎng shòu	to enjoy; to live it up; pleasure
+5	想念	xiǎng niàn	to miss; to remember with longing; to long to see again
+5	想象	xiǎng xiàng	to imagine; to envision; imagination
+5	项	Xiàng | xiàng	surname Xiang; back of neck; item
+5	项链	xiàng liàn	necklace
+5	项目	xiàng mù	item; project; (sports) event
+5	象棋	xiàng qí	Chinese chess
+5	象征	xiàng zhēng	emblem; symbol; token
+5	橡皮	xiàng pí	rubber; an eraser
+5	消费	xiāo fèi	to consume; to spend
+5	消化	xiāo huà	to digest (food); (fig.) to absorb (information etc); to assimilate; to process
+5	消灭	xiāo miè	to put an end to; to annihilate; to cause to perish
+5	消失	xiāo shī	to disappear; to fade away
+5	销售	xiāo shòu	to sell; to market; sales (representative, agreement etc)
+5	小吃	xiǎo chī	snack; refreshments
+5	小伙子	xiǎo huǒ zi	young man; young guy; lad
+5	小麦	xiǎo mài	wheat
+5	小气	xiǎo qì	stingy; miserly; narrow-minded
+5	小偷	xiǎo tōu	thief

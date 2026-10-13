@@ -1247,3 +1247,37 @@
     .vid-ov { position: fixed; inset: 0; z-index: 900; background: rgba(0, 12, 30, .78); display: flex; align-items: center; justify-content: center; padding: 18px; }
     .vid-ov video { width: 100%; max-width: 960px; border-radius: 18px; background: #000; box-shadow: 0 30px 80px rgba(0, 0, 0, .4); }
     .vid-ov .icon-btn { position: absolute; top: 14px; right: 14px; background: rgba(255, 255, 255, .16); color: #fff; }
+
+    /* =====================================================
+     * 영어 / 중국어 전환 (머리글 EN·中 스위치, 전환 화면, 중국어 글꼴)
+     * ===================================================== */
+    .lang-sw { position: relative; flex: none; display: flex; align-items: center; width: 74px; height: 38px; padding: 3px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); cursor: pointer; }
+    .lang-sw span { position: relative; z-index: 1; flex: 1; text-align: center; font-size: .82rem; font-weight: 800; color: var(--muted); transition: color .25s; }
+    .lang-sw .ls-zh { font-size: .95rem; }
+    .lang-sw .ls-knob { position: absolute; top: 3px; left: 3px; width: 34px; height: 30px; border-radius: 999px; background: var(--blue); box-shadow: 0 2px 6px rgba(49, 130, 246, .35); transition: transform .32s cubic-bezier(.34, 1.4, .64, 1), background .25s; }
+    .lang-sw .ls-en { color: #fff; }
+    body.lang-zh .lang-sw .ls-knob { transform: translateX(34px); background: #e5484d; box-shadow: 0 2px 6px rgba(229, 72, 77, .35); }
+    body.lang-zh .lang-sw .ls-en { color: var(--muted); }
+    body.lang-zh .lang-sw .ls-zh { color: #fff; }
+    .lang-sw:active .ls-knob { width: 38px; }
+    .lang-seg button.on { font-weight: 800; }
+    .lang-splash { position: fixed; inset: 0; z-index: 1200; display: flex; align-items: center; justify-content: center; pointer-events: none; background: rgba(49, 130, 246, .9); animation: lsIn .3s ease both; }
+    .lang-splash.zh { background: rgba(214, 48, 49, .92); }
+    .lang-splash .ls-card { display: flex; flex-direction: column; align-items: center; gap: 6px; color: #fff; animation: lsPop .5s cubic-bezier(.34, 1.5, .64, 1) both; }
+    .lang-splash b { font-size: 5.2rem; line-height: 1; font-weight: 900; letter-spacing: -.02em; }
+    .lang-splash span { font-size: 1.25rem; font-weight: 800; }
+    .lang-splash small { font-size: .9rem; opacity: .85; }
+    .lang-splash.out { animation: lsOut .38s ease both; }
+    @keyframes lsIn { from { clip-path: circle(0 at calc(100% - 60px) 30px); } to { clip-path: circle(150% at calc(100% - 60px) 30px); } }
+    @keyframes lsOut { from { opacity: 1; } to { opacity: 0; transform: scale(1.04); } }
+    @keyframes lsPop { from { opacity: 0; transform: translateY(14px) scale(.8); } to { opacity: 1; transform: none; } }
+    .ex-py { display: block; margin-top: 3px; font-size: .8rem; color: var(--muted); font-style: normal; letter-spacing: .01em; }
+    .rec-py { font-style: normal; color: var(--blue); font-weight: 600; margin-right: 2px; }
+    .hsk-tag { font-style: normal; font-size: .7rem; font-weight: 800; color: #e5484d; background: rgba(229, 72, 77, .1); border-radius: 6px; padding: 1px 6px; margin-left: 4px; white-space: nowrap; }
+    .dict-head .hsk-tag { align-self: center; margin-left: auto; margin-right: 8px; }
+    body.lang-zh :is(.q-word, .w-word, .fl-word, .dict-w, .wotd-body b, .rec-w b, .rec-row b, .mg-tile, .opt, .cloze-s, .ex-en, .fc-ex span, .q-sub, .syn, .dict-row b, .scr-t, .scr-slots span, .wrong-item b, .miss-item b, .ex-t b, .rn-opt, .type-input, .lt-q h2, .syn-ex div, .fl-ex, .wotd-ex, .book-name) {
+      font-family: 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Source Han Sans SC', 'Microsoft YaHei', var(--font);
+    }
+    @media (max-width: 899px) { body[data-tab="paneBook"] .lang-sw { display: none; } }
+    @media (max-width: 380px) { .lang-sw { width: 66px; } .lang-sw .ls-knob { width: 30px; } body.lang-zh .lang-sw .ls-knob { transform: translateX(30px); } }
+    @media (prefers-reduced-motion: reduce) { .lang-sw .ls-knob { transition: none; } }

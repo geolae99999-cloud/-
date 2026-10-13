@@ -1,0 +1,250 @@
+5	孝顺	xiào shùn	filial; dutiful; devoted to one's parents (and grandparents etc)
+5	效率	xiào lǜ	efficiency
+5	歇	xiē	to rest; to take a break; to stop
+5	协调	xié tiáo	to coordinate; to harmonize; to fit together
+5	斜	xié	inclined; slanting; oblique
+5	心理	xīn lǐ	psychology; mentality
+5	心脏	xīn zàng	heart
+5	欣赏	xīn shǎng	to appreciate; to enjoy; to admire
+5	信封	xìn fēng	envelope
+5	信号	xìn hào	signal
+5	信息	xìn xī	information; news; message
+5	行动	xíng dòng	operation; action; to move about
+5	行人	xíng rén	pedestrian; traveler on foot; passer-by
+5	行为	xíng wéi	action; conduct; behavior
+5	行业	háng yè	trade; profession; industry; business
+5	形成	xíng chéng	to form; to take shape
+5	形容	xíng róng	to describe; (literary) countenance; appearance
+5	形式	xíng shì	outer appearance; form; shape
+5	形势	xíng shì	circumstances; situation; terrain
+5	形象	xíng xiàng	image; form; figure
+5	形状	xíng zhuàng	form; shape
+5	幸亏	xìng kuī	fortunately; luckily
+5	幸运	xìng yùn	fortunate; lucky; fortune
+5	性质	xìng zhì	nature; characteristic
+5	兄弟	xiōng dì	brothers; younger brother; I, me (humble term used by men in public speech)
+5	胸	xiōng	variant of 胸; chest; bosom
+5	雄伟	xióng wěi	grand; imposing; magnificent
+5	休闲	xiū xián	leisure; relaxation; not working
+5	修改	xiū gǎi	to amend; to alter; to modify
+5	虚心	xū xīn	open-minded; humble
+5	叙述	xù shù	to relate (a story or information); to tell or talk about; to recount
+5	宣布	xuān bù	to declare; to announce; to proclaim
+5	宣传	xuān chuán	to disseminate; to give publicity to; propaganda
+5	选举	xuǎn jǔ	to elect; election
+5	学期	xué qī	term; semester
+5	学术	xué shù	learning; science; academic
+5	学问	xué wèn	learning; knowledge
+5	寻找	xún zhǎo	to seek; to look for
+5	询问	xún wèn	to inquire
+5	迅速	xùn sù	rapid; speedy; fast
+5	训练	xùn liàn	to train; to drill; training
+5	延长	Yán cháng | yán cháng	Yanchang county in Yan'an 安, Shaanxi; to prolong; to extend
+5	严肃	yán sù	solemn; grave; serious
+5	宴会	yàn huì	banquet; feast; dinner party
+5	阳台	yáng tái	variant of 阳台; balcony; porch
+5	痒	yǎng	variant of 痒; to itch; to tickle
+5	样式	yàng shì	type; style
+5	腰	yāo	waist; lower back; pocket
+5	摇	Yáo | yáo	surname Yao; to shake; to rock
+5	咬	yǎo	to bite; to nip; variant of 咬
+5	要不	yào bù	otherwise; or else; how about...?
+5	要是	yào shi	(coll.) if
+5	业务	yè wù	business; professional work; service
+5	业余	yè yú	in one's spare time; outside working hours; amateur (historian etc)
+5	夜	yè	variant of 夜; night
+5	液体	yè tǐ	liquid
+5	一辈子	yī bèi zi	(for) a lifetime
+5	一旦	yī dàn	in case (sth happens); if; once (sth happens, then...)
+5	一路	yī lù	the whole journey; all the way; going the same way
+5	一致	yī zhì	unanimous; identical (views or opinions)
+5	依然	yī rán	still; as before
+5	移动	yí dòng	to move; movement; migration
+5	移民	yí mín	to immigrate; to migrate; emigrant
+5	遗憾	yí hàn	regret; to regret; to be sorry that
+5	疑问	yí wèn	question; interrogation; doubt
+5	乙	yǐ | zhé	second of the ten Heavenly Stems 干; second in order; letter "B" or Roman "II" in list "A, 
+5	以及	yǐ jí	as well as; too; and
+5	以来	yǐ lái	since (a previous event)
+5	义务	yì wù	duty; obligation; volunteer (work etc)
+5	议论	yì lùn	to comment; to talk about; to discuss
+5	意外	yì wài	unexpected; accident; mishap
+5	意义	yì yì	sense; meaning; significance
+5	因而	yīn ér	therefore; as a result; thus
+5	因素	yīn sù	element; factor
+5	银	yín	silver; silver-colored; relating to money or currency
+5	应付	yìng fu	to deal with; to cope
+5	应聘	yìng pìn	to accept a job offer; to apply for an advertised position
+5	应用	yìng yòng	to put to use; to apply; practical
+5	英俊	yīng jùn	handsome
+5	英雄	yīng xióng	hero
+5	迎接	yíng jiē	to welcome; to greet
+5	营养	yíng yǎng	nutrition; nourishment
+5	营业	yíng yè	to do business; to trade
+5	影子	yǐng zi	shadow; reflection; (fig.) hint
+5	硬币	yìng bì	coin
+5	硬件	yìng jiàn	hardware
+5	拥抱	yōng bào	to embrace; to hug
+5	拥挤	yōng jǐ	crowded; to throng; congestion
+5	勇气	yǒng qì	courage; valor
+5	用途	yòng tú	use; application
+5	优惠	yōu huì	privilege; favorable (terms); preferential (treatment)
+5	优美	yōu měi	graceful; fine; elegant
+5	优势	yōu shì	superiority; dominance; advantage
+5	悠久	yōu jiǔ	long (tradition, history etc)
+5	犹豫	yóu yù	to hesitate
+5	邮局	yóu jú	post office
+5	油炸	yóu zhá	to deep fry
+5	游览	yóu lǎn	to go sightseeing; to tour; to visit
+5	有利	yǒu lì	advantageous; favorable
+5	幼儿园	yòu ér yuán	kindergarten; nursery school
+5	娱乐	yú lè	to entertain; to amuse; entertainment
+5	与其	yǔ qí	rather than...; 与其 A 如 B (rather than A, better to B)
+5	宇宙	yǔ zhòu	universe; cosmos
+5	语气	yǔ qì	tone; manner of speaking; mood
+5	玉米	yù mǐ	corn; maize
+5	预报	yù bào	forecast
+5	预订	yù dìng	to place an order; to book ahead
+5	预防	yù fáng	to prevent; to take precautions against; to protect
+5	元旦	Yuán dàn	New Year's Day
+5	原料	yuán liào	raw material
+5	原则	yuán zé	principle; doctrine
+5	缘故	yuán gù	reason; cause
+5	愿望	yuàn wàng	desire; wish
+5	晕	yūn | yùn	confused; dizzy; giddy
+5	运气	yùn qi	luck (good or bad)
+5	运输	yùn shū	to transport; to carry; transportation
+5	运用	yùn yòng	to use; to put to use
+5	灾害	zāi hài	calamity; disaster
+5	再三	zài sān	over and over again; again and again
+5	赞成	zàn chéng	to approve; to endorse; (literary) to assist
+5	赞美	zàn měi	to admire; to praise; to eulogize
+5	糟糕	zāo gāo	too bad; how terrible; what bad luck
+5	造成	zào chéng	to bring about; to create; to cause
+5	则	zé	(literary) (conjunction used to express contrast with a previous clause) but; then; (bound
+5	责备	zé bèi	to blame; to criticize; condemnation
+5	摘	zhāi	to take; to borrow; to pick (flowers, fruit etc)
+5	粘贴	zhān tiē	to stick; to affix; to adhere
+5	展开	zhǎn kāi	to unfold; to spread out; to open up; to launch; to carry out
+5	展览	zhǎn lǎn	to put on display; to exhibit; exhibition
+5	占线	zhàn xiàn	busy (telephone line)
+5	战争	zhàn zhēng	war; conflict
+5	长途	cháng tú	long distance
+5	涨	zhǎng | zhàng	to rise (of prices, rivers); to swell; to distend
+5	掌握	zhǎng wò	to grasp (often fig.); to control; to seize (initiative, opportunity, destiny)
+5	账户	zhàng hù	bank account; online account
+5	招待	zhāo dài	to hold a reception; to offer hospitality; to entertain (guests); to serve (customers)
+5	召开	zhào kāi	to convene (a conference or meeting); to convoke; to call together
+5	照常	zhào cháng	as usual
+5	哲学	zhé xué	philosophy
+5	着凉	zháo liáng	to catch cold; Taiwan pr. [zhāo liáng]
+5	针对	zhēn duì	to target; to focus on; to be aimed at or against
+5	珍惜	zhēn xī	to treasure; to value; to cherish
+5	真理	zhēn lǐ	truth
+5	真实	zhēn shí	true; real
+5	诊断	zhěn duàn	to diagnose
+5	枕头	zhěn tou	pillow
+5	阵	zhèn	disposition of troops; wave; spate
+5	振动	zhèn dòng	to vibrate; to shake; vibration
+5	争论	zhēng lùn	to argue; to debate; to contend
+5	争取	zhēng qǔ	to fight for; to strive for; to win over
+5	征求	zhēng qiú	to solicit; to seek; to request (opinions, feedback etc)
+5	挣钱	zhèng qián	to make money
+5	睁	zhēng	to open (one's eyes)
+5	整个	zhěng gè	whole; entire; total
+5	整体	zhěng tǐ	whole entity; entire body; synthesis
+5	正	zhēng | zhèng	first month of the lunar year; straight; upright
+5	证件	zhèng jiàn	certificate; papers; credentials; document; ID
+5	证据	zhèng jù	evidence; proof; testimony
+5	政策	zhèng cè	policy
+5	政府	zhèng fǔ	government
+5	政治	zhèng zhì	politics; political
+5	支	Zhī | zhī	surname Zhi; to support; to sustain
+5	支票	zhī piào	check (bank); cheque
+5	执行	zhí xíng	to implement; to carry out; to execute
+5	执照	zhí zhào	license; permit
+5	直	Zhí | zhí	surname Zhi; Zhi (c. 2000 BC), fifth of the legendary Flame Emperors 帝 descended from Shen
+5	指导	zhǐ dǎo	to guide; to give directions; to direct
+5	指挥	zhǐ huī	to conduct; to command; to direct
+5	至今	zhì jīn	so far; to this day; until now
+5	至于	zhì yú	as for; as to; to go so far as to
+5	制定	zhì dìng	to draw up; to formulate
+5	制度	zhì dù	system (e.g. political, adminstrative etc); institution
+5	制作	zhì zuò	to make; to manufacture
+5	治疗	zhì liáo	to treat (an illness); medical treatment; therapy
+5	秩序	zhì xù	order (orderly); order (sequence); social order
+5	智慧	zhì huì	wisdom; knowledge; intelligent
+5	中介	zhōng jiè	to act as intermediary; to link; intermediate
+5	中心	zhōng xīn	center; heart; core
+5	中旬	zhōng xún	middle third of a month
+5	钟	Zhōng | zhōng	surname Zhong; handleless cup; goblet
+5	重	chóng | zhòng	to repeat; repetition; again
+5	重复	chóng fù	to repeat; to duplicate; variant of 重复
+5	重量	zhòng liàng	weight
+5	周到	zhōu dào	thoughtful; considerate; attentive
+5	竹子	zhú zi	bamboo
+5	逐步	zhú bù	progressively; step by step
+5	主持	zhǔ chí	to take charge of; to manage or direct; to preside over
+5	主观	zhǔ guān	subjective
+5	主人	zhǔ rén	master; host; owner
+5	主席	zhǔ xí	chairperson; premier; chairman
+5	主张	zhǔ zhāng	to advocate; to stand for; view
+5	煮	zhǔ	variant of 煮; to cook; to boil
+5	嘱咐	zhǔ fù	to tell; to exhort; injunction
+5	注册	zhù cè	to register; to enroll
+5	祝福	zhù fú	blessings; to wish sb well
+5	抓紧	zhuā jǐn	to keep a firm grip on; to pay close attention to; to lose no time in (doing sth)
+5	专家	zhuān jiā	expert; specialist
+5	专心	zhuān xīn	to focus one's attention; to concentrate on (doing sth)
+5	转变	zhuǎn biàn	to change; to transform; shift
+5	转告	zhuǎn gào	to pass on; to communicate; to transmit
+5	装	zhuāng	adornment; to adorn; dress
+5	装饰	zhuāng shì	to decorate; decoration; decorative
+5	状况	zhuàng kuàng	condition; state; situation
+5	状态	zhuàng tài	condition; state; state of affairs
+5	追求	zhuī qiú	to pursue (a goal etc) stubbornly; to seek after; to woo
+5	咨询	zī xún	to consult; to seek advice; consultation
+5	姿势	zī shì	posture; position
+5	资格	zī gé	qualifications; seniority
+5	资金	zī jīn	funds; capital
+5	资料	zī liào	material; resources; data
+5	资源	Zī yuán | zī yuán	Ziyuan county in Guilin 林, Guangxi; natural resource (such as water or minerals); resource
+5	紫	zǐ	purple; violet
+5	字幕	zì mù	caption; subtitle
+5	自从	zì cóng	since (a time); ever since
+5	自动	zì dòng	automatic; voluntarily
+5	自豪	zì háo	proud (of one's achievements etc)
+5	自觉	zì jué	conscious; aware; on one's own initiative
+5	自私	zì sī	selfish; selfishness
+5	自信	zì xìn	to have confidence in oneself; self-confidence
+5	自由	zì yóu	freedom; liberty; free; unrestricted
+5	自愿	zì yuàn	voluntary
+5	宗教	zōng jiào	religion
+5	综合	zōng hé	comprehensive; composite; synthesized
+5	总裁	zǒng cái	chairman; director-general (of a company etc)
+5	总共	zǒng gòng	altogether; in sum; in all; in total
+5	总理	zǒng lǐ	premier; prime minister
+5	总算	zǒng suàn	at long last; finally; on the whole
+5	总统	zǒng tǒng	president (of a country)
+5	总之	zǒng zhī	in a word; in short; in brief
+5	阻止	zǔ zhǐ	to prevent; to block
+5	组合	zǔ hé	to assemble; to combine; to compose
+5	祖国	zǔ guó	motherland
+5	祖先	zǔ xiān	ancestors; forebears; (biology) ancestral species; ancient species from which present-day 
+5	最初	zuì chū	first; primary; initial
+5	罪犯	zuì fàn	criminal
+5	醉	zuì	intoxicated
+5	尊敬	zūn jìng	to respect; to revere; to esteem; honorable; distinguished (used on formal occasions befor
+5	遵守	zūn shǒu	to comply with; to abide by; to respect (an agreement)
+5	作品	zuò pǐn	work (of art); opus
+5	作为	zuò wéi	one's conduct; deed; activity
+5	作文	zuò wén	to write an essay; composition (student essay)
+6	呵	ā | hē	variant of 啊; expel breath; my goodness
+6	哎哟	āi yō	hey; ow; ouch
+6	挨	āi | ái	in order; in sequence; close to; adjacent to; to suffer; to endure
+6	癌症	ái zhèng	cancer
+6	爱不释手	ài bù shì shǒu	(idiom) to like sth so much that one is reluctant to put it down; to find sth utterly irre
+6	爱戴	ài dài	to love and respect; love and respect
+6	暧昧	ài mèi	vague; ambiguous; equivocal
+6	安居乐业	ān jū lè yè	to live in peace and work happily (idiom)
+6	安宁	Ān níng | ān níng	Anning District of Lanzhou City 兰州市, Gansu; Anning City, to the west of Kunming 明, Yunnan;

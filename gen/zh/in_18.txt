@@ -1,0 +1,250 @@
+6	新娘	xīn niáng	bride
+6	新颖	xīn yǐng	lit. new bud; fig. new and original
+6	薪水	xīn shuǐ	salary; wage
+6	信赖	xìn lài	to trust; to have confidence in; to have faith in
+6	信念	xìn niàn	faith; belief; conviction
+6	信仰	xìn yǎng	to believe in (a religion); firm belief; conviction
+6	信誉	xìn yù	prestige; distinction; reputation
+6	腥	xīng	fishy (smell)
+6	刑事	xíng shì	criminal; penal
+6	行列	háng liè	formation; array; (fig.) ranks (as in "join the ranks of ...")
+6	行政	xíng zhèng	administration; (attributive) administrative; executive
+6	形态	xíng tài	shape; form; pattern
+6	兴高采烈	xìng gāo cǎi liè	happy and excited (idiom); in high spirits; in great delight
+6	兴隆	Xīng lóng | xīng lóng	Xinglong county in Chengde 德, Hebei; prosperous; thriving
+6	兴旺	xīng wàng	prosperous; thriving; to prosper
+6	兴致勃勃	xìng zhì bó bó	to become exhilarated (idiom); in high spirits; full of zest
+6	幸好	xìng hǎo	fortunately
+6	性感	xìng gǎn	sex appeal; eroticism; sexuality
+6	性命	xìng mìng	life
+6	性能	xìng néng	function; performance; behavior
+6	性情	xìng qíng	nature; temperament
+6	凶恶	xiōng è	fierce; ferocious; fiendish
+6	凶手	xiōng shǒu	murderer; assassin
+6	胸怀	xiōng huái	one's bosom (the seat of emotions); breast; broad-minded and open
+6	胸膛	xiōng táng	chest
+6	雄厚	xióng hòu	substantial; robust; ample; abundant
+6	休养	xiū yǎng	to recuperate; to recover; to convalesce
+6	修复	xiū fù	to restore; to renovate; (computing) to repair (a corrupted file etc)
+6	修建	xiū jiàn	to build; to construct
+6	修理	xiū lǐ	to repair; to fix; to prune
+6	羞耻	xiū chǐ	(a feeling of) shame
+6	绣	xiù	variant of 绣; to embroider; embroidery
+6	嗅觉	xiù jué	sense of smell
+6	须知	xū zhī	key information; instructions; it must be borne in mind
+6	虚假	xū jiǎ	false; phony; pretense
+6	虚荣	xū róng	vanity
+6	虚伪	xū wěi	false; hypocritical; artificial
+6	需求	xū qiú	requirement; to require; (economics) demand
+6	许可	xǔ kě	to allow; to permit
+6	序言	xù yán	preface; introductory remarks; preamble
+6	酗酒	xù jiǔ	heavy drinking; to get drunk; to drink to excess
+6	宣誓	xuān shì	to swear an oath (of office); to make a vow
+6	宣扬	xuān yáng	to publicize; to advertise; to spread far and wide
+6	悬挂	xuán guà	to suspend; to hang; (vehicle) suspension
+6	悬念	xuán niàn	suspense in a movie, play etc; concern for sb's welfare
+6	悬崖峭壁	xuán yá qiào bì	sheer cliffs and precipitous rock faces (idiom)
+6	旋律	xuán lǜ	melody
+6	旋转	xuán zhuǎn	to rotate; to revolve; to spin
+6	选拔	xuǎn bá	to select the best
+6	选手	xuǎn shǒu	athlete; contestant
+6	削弱	xuē ruò	to weaken; to impair; to cripple
+6	学历	xué lì	educational background; academic qualifications
+6	学说	xué shuō	theory; doctrine
+6	学位	xué wèi	academic degree; place in school
+6	雪上加霜	xuě shàng jiā shuāng	(idiom) to make matters even worse; to add insult to injury
+6	血压	xuè yā	blood pressure
+6	熏陶	xūn táo	to seep in; to influence; to nurture
+6	寻觅	xún mì	to look for
+6	巡逻	xún luó	to patrol (police, army or navy)
+6	循环	xún huán	to cycle; to circulate; circle
+6	循序渐进	xún xù jiàn jìn	in sequence, step by step (idiom); to make steady progress incrementally
+6	压迫	yā pò	to oppress; to repress; to constrict
+6	压岁钱	yā suì qián	money given to children as a gift on Chinese New Year's Eve
+6	压缩	yā suō	to compress; compression
+6	压抑	yā yì	to constrain or repress emotions; oppressive; stifling
+6	压榨	yā zhà	to press; to squeeze; to extract juice, oil etc by squeezing
+6	压制	yā zhì	to suppress; to inhibit; to stifle
+6	押金	yā jīn	deposit; down payment
+6	亚军	yà jūn	second place (in a sports contest); runner-up
+6	烟花	yān huā	fireworks; prostitute (esp. in Yuan theater)
+6	淹没	yān mò	to submerge; to drown; to flood
+6	延期	yán qī	to delay; to extend; to postpone
+6	延伸	yán shēn	to extend; to spread
+6	延续	yán xù	to continue; to go on; to last
+6	严寒	yán hán	bitter cold; severe winter
+6	严禁	yán jìn	to strictly prohibit
+6	严峻	yán jùn	grim; severe; rigorous
+6	严厉	yán lì	severe; strict
+6	严密	yán mì	strict; tight (organization, surveillance etc)
+6	言论	yán lùn	expression of opinion; views; remarks
+6	岩石	yán shí	rock
+6	沿海	yán hǎi	coastal
+6	炎热	yán rè	blistering hot; sizzling hot (weather)
+6	掩盖	yǎn gài	to conceal; to hide behind; to cover up
+6	掩护	yǎn hù	to screen; to shield; to cover
+6	掩饰	yǎn shì	to cover up; to conceal; to mask
+6	眼光	yǎn guāng	gaze; insight; foresight
+6	眼色	yǎn sè	signal made with one's eyes; meaningful glance
+6	眼神	yǎn shén	expression or emotion showing in one's eyes; meaningful glance; wink
+6	眼下	yǎn xià	now; at present; subocular (medicine)
+6	演变	yǎn biàn	to develop; to evolve; development
+6	演讲	yǎn jiǎng	lecture; to make a speech
+6	演习	yǎn xí	maneuver; exercise; practice
+6	演绎	yǎn yì	(of a story etc) to unfold; to play out; to develop (a technique etc)
+6	演奏	yǎn zòu	to perform on a musical instrument
+6	厌恶	yàn wù	to loathe; to hate; disgusted with sth
+6	验收	yàn shōu	to inspect and accept; acceptance
+6	验证	yàn zhèng	to inspect and verify; experimental verification; to validate (a theory)
+6	氧气	yǎng qì	oxygen
+6	样品	yàng pǐn	sample; specimen
+6	谣言	yáo yán	rumor
+6	摇摆	yáo bǎi	to sway; to wobble; to waver
+6	摇滚	yáo gǔn	rock 'n' roll (music); to rock; to fall off
+6	摇晃	yáo huàng	to rock; to shake; to sway
+6	遥控	yáo kòng	to direct operations from a remote location; to remotely control
+6	遥远	yáo yuǎn	distant; remote
+6	咬牙切齿	yǎo yá qiè chǐ	(idiom) to gnash one's teeth; to fume with rage
+6	要不然	yào bù rán	otherwise; or else; or
+6	要点	yào diǎn	main point; essential
+6	要命	yào mìng	to cause sb's death; extremely; terribly; (used in complaining about sth) to be a nuisance
+6	要素	yào sù	essential factor; key constituent
+6	耀眼	yào yǎn	to dazzle; dazzling
+6	野蛮	yě mán	barbarous; uncivilized
+6	野心	yě xīn	ambition; wild schemes; careerism
+6	一度	yī dù	for a time; at one time; one time
+6	一帆风顺	yī fān fēng shùn	propitious wind throughout the journey (idiom); plain sailing; to go smoothly
+6	一贯	yī guàn	consistent; constant; from start to finish
+6	一举两得	yī jǔ liǎng dé	one move, two gains (idiom); two birds with one stone
+6	一流	yī liú	top quality; front ranking
+6	一律	yī lǜ	same; uniformly; all
+6	一目了然	yī mù liǎo rán	obvious at a glance (idiom)
+6	一如既往	yī rú jì wǎng	just as in the past (idiom); as before; continuing as always
+6	一丝不苟	yī sī bù gǒu	not one thread loose (idiom); strictly according to the rules; meticulous; not one hair ou
+6	一向	yī xiàng	always (previously); a period of time in the recent past
+6	一再	yī zài	repeatedly
+6	衣裳	yī shang	(coll.) clothes
+6	依次	yī cì	in order; in succession
+6	依旧	yī jiù	as before; still
+6	依据	yī jù	according to; basis; foundation
+6	依靠	yī kào	to rely on sth (for support etc); to depend on
+6	依赖	yī lài	to depend on; to be dependent on
+6	依托	yī tuō	to rely on; to depend on; support
+6	仪器	yí qì	instrument; apparatus
+6	仪式	yí shì	ceremony
+6	遗产	yí chǎn	heritage; legacy; inheritance
+6	遗传	yí chuán	heredity; to inherit (a trait); to pass on (to one's offspring)
+6	遗留	yí liú	to leave behind; to hand down
+6	遗失	yí shī	to lose; to leave behind (inadvertently)
+6	疑惑	yí huò	to doubt; to distrust; unconvincing
+6	以便	yǐ biàn	so that; so as to; in order to
+6	以免	yǐ miǎn	in order to avoid; so as not to
+6	以往	yǐ wǎng	in the past; formerly
+6	以至	yǐ zhì	down to; up to; to such an extent as to ...
+6	以致	yǐ zhì	to such an extent as to; down to; up to
+6	亦	yì	also
+6	异常	yì cháng	unusual; abnormal; extremely; exceptionally
+6	抑制	yì zhì	to inhibit; to keep down; to suppress
+6	意料	yì liào	to anticipate; to expect; expectations
+6	意识	yì shí	consciousness; awareness; to be aware
+6	意图	yì tú	intent; intention; to intend
+6	意味着	yì wèi zhe	to signify; to mean; to imply
+6	意向	yì xiàng	intention; purpose; intent
+6	意志	yì zhì	will; willpower; determination
+6	毅力	yì lì	perseverance; willpower
+6	毅然	yì rán	firmly; resolutely; without hesitation
+6	翼	Yì | yì	surname Yi; alternative name for 绛 capital of the Jin State during the Spring and Autumn P
+6	阴谋	yīn móu	to conspire; to plot; a conspiracy; a plot
+6	音响	yīn xiǎng	sound; acoustics; audio
+6	引导	yǐn dǎo	to guide; to lead (around); to conduct
+6	引擎	yǐn qíng	engine (loanword)
+6	引用	yǐn yòng	to quote; to cite; to recommend
+6	饮食	yǐn shí	eating and drinking; food and drink; diet
+6	隐蔽	yǐn bì	to conceal; to hide; covert
+6	隐患	yǐn huàn	a danger concealed within sth; hidden damage; misfortune not visible from the surface
+6	隐瞒	yǐn mán	to conceal; to hide (a taboo subject); to cover up the truth
+6	隐私	yǐn sī	secrets; private business; privacy
+6	隐约	yǐn yuē	vague; faint; indistinct
+6	印刷	yìn shuā	to print; printing
+6	应酬	yìng chou	to engage in social activities; to socialize; dinner party; banquet; social engagement
+6	应邀	yìng yāo	at sb's invitation; on invitation
+6	英明	yīng míng	wise; brilliant
+6	英勇	yīng yǒng	heroic; gallant; valiant
+6	婴儿	yīng ér	infant; baby; lead (Pb)
+6	迎面	yíng miàn	directly; head-on (collision); in one's face (of wind)
+6	盈利	yíng lì	profit; gain; to make profits
+6	荧屏	yíng píng	fluorescent screen; TV screen
+6	拥护	yōng hù	to endorse; to support
+6	拥有	yōng yǒu	to have; to possess
+6	庸俗	yōng sú	vulgar; tacky; tawdry
+6	永恒	yǒng héng	eternal; everlasting; fig. to pass into eternity (i.e. to die)
+6	勇于	yǒng yú	to dare to; to be brave enough to
+6	涌现	yǒng xiàn	to emerge in large numbers; to spring up; to emerge prominently
+6	踊跃	yǒng yuè	to leap; to jump; eager
+6	用功	yòng gōng	diligent; industrious (in one's studies); to study hard
+6	用户	yòng hù	user; consumer; subscriber
+6	优胜劣汰	yōu shèng liè tài	survival of the fittest (idiom)
+6	优先	yōu xiān	to have priority; to take precedence
+6	优异	yōu yì	exceptional; outstandingly good
+6	优越	yōu yuè	superior; superiority
+6	忧郁	yōu yù	sullen; depressed; melancholy; dejected
+6	犹如	yóu rú	similar to; like
+6	油腻	yóu nì	greasy food; oily food; (of food) greasy; oily; fatty; (neologism c. 2017) (of a middle-ag
+6	油漆	yóu qī	oil paints; lacquer; to paint
+6	有条不紊	yǒu tiáo bù wěn	regular and thorough (idiom); methodically arranged
+6	幼稚	yòu zhì	young; childish; puerile
+6	诱惑	yòu huò	to entice; to lure; to induce
+6	渔民	yú mín	fisherman; fisher folk
+6	愚蠢	yú chǔn	silly; stupid
+6	愚昧	yú mèi	ignorant; uneducated; ignorance
+6	舆论	yú lùn	public opinion
+6	与日俱增	yǔ rì jù zēng	to increase steadily; to grow with each passing day
+6	予以	yǔ yǐ	to give; to impose; to apply
+6	羽绒服	yǔ róng fú	down-filled garment
+6	预料	yù liào	to forecast; to anticipate; expectation
+6	预期	yù qī	to expect; to anticipate
+6	预赛	yù sài	preliminary competition; to hold preliminary heats
+6	预算	yù suàn	budget
+6	预先	yù xiān	beforehand; in advance
+6	预言	yù yán	to predict; prophecy
+6	预兆	yù zhào	omen; sign (of sth yet to occur); prior indication
+6	欲望	yù wàng	desire; longing; appetite; craving
+6	寓言	yù yán	fable
+6	愈	yù	the more...(the more...); to recover; to heal
+6	冤枉	yuān wang	to accuse wrongly; to treat unjustly; injustice
+6	元首	yuán shǒu	head of state
+6	元素	yuán sù	element (key component of sth); (chemistry) element; (math.) element (member of a set)
+6	元宵节	Yuán xiāo jié	Lantern Festival, the final event of the Spring Festival 春节, on 15th of first month of the
+6	园林	yuán lín	gardens; park; landscape garden
+6	原告	yuán gào	complainant; plaintiff
+6	原理	yuán lǐ	principle; theory
+6	原始	yuán shǐ	first; original; primitive
+6	原先	yuán xiān	originally; original; former
+6	圆满	yuán mǎn	satisfactory; consummate; perfect
+6	源泉	yuán quán	fountainhead; well-spring; water source
+6	约束	yuē shù	to restrict; to limit to; to constrain
+6	岳父	yuè fù	wife's father, father-in-law
+6	孕育	yùn yù	to be pregnant; to produce offspring; to nurture (a development, school of thought, artwor
+6	运算	yùn suàn	to perform calculations; (mathematical) operation
+6	运行	yùn xíng	to move along one's course (of celestial bodies etc); (fig.) to function; to be in operati
+6	酝酿	yùn niàng	(of alcohol) to ferment; (of a crisis) to be brewing; to mull over (an issue)
+6	熨	yù | yùn	reconciled; smooth; an iron
+6	蕴藏	yùn cáng	to hold in store; to contain (untapped reserves etc)
+6	杂技	zá jì	acrobatics
+6	杂交	zá jiāo	to hybridize; to crossbreed; promiscuity
+6	砸	zá	to smash; to pound; to fail
+6	咋	zǎ | zé | zhà	dialectal equivalent of 怎么; gnaw; loud noise
+6	灾难	zāi nàn	disaster; catastrophe
+6	栽培	zāi péi	to grow; to cultivate; to train
+6	宰	zǎi	to slaughter; to butcher; to kill (animals etc); (coll.) to fleece; to rip off; to overcha
+6	再接再厉	zài jiē zài lì	to continue the struggle (idiom); to persist; unremitting efforts
+6	在乎	zài hu	to care about; equivalent of 在于
+6	在意	zài yì	to care about; to mind
+6	攒	cuán | zǎn	to bring together; to collect; to hoard
+6	暂且	zàn qiě	for now; for the time being; temporarily
+6	赞叹	zàn tàn	to exclaim in admiration
+6	赞同	zàn tóng	to approve of; to endorse; (vote) in favor
+6	赞扬	zàn yáng	to praise; to approve of; to show approval
+6	赞助	zàn zhù	to support; to assist; to sponsor
+6	遭受	zāo shòu	to suffer; to sustain (loss, misfortune)
+6	遭殃	zāo yāng	to suffer a calamity

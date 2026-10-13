@@ -1,0 +1,250 @@
+1	爱	ài	to love; to be fond of; to like; affection; to be inclined (to do sth); to tend to (happen
+1	八	bā	eight; 8
+1	爸爸	bà ba	(coll.) father; dad
+1	杯子	bēi zi	cup; glass
+1	北京	Běi jīng	Beijing, capital of the People's Republic of China
+1	本	běn	root; stem; origin
+1	不	bù	no; not so; (bound form) not; un-
+1	不客气	bù kè qi	you're welcome; don't mention it; impolite
+1	菜	cài	dish (type of food); vegetable; cuisine
+1	茶	chá	tea; tea plant
+1	吃	chī	to eat; to consume; to eat at (a cafeteria etc); to eradicate; to destroy
+1	出租车	chū zū chē	taxi; (Tw) rental car
+1	打电话	dǎ diàn huà	to make a telephone call
+1	大	dà | dài	big; large; great; older (than another person); eldest (as in 姐)
+1	的	de | dī | dí | dì	of; ~'s (possessive particle); (used after an attribute); (used to form a nominal expressi
+1	点	diǎn	point; dot; drop
+1	电脑	diàn nǎo	computer
+1	电视	diàn shì	television; TV
+1	电影	diàn yǐng	movie; film
+1	东西	dōng xī | dōng xi	east and west; thing; stuff
+1	都	Dū | dōu | dū	surname Du; all; both; entirely; (used for emphasis) even
+1	读	dòu | dú	comma; phrase marked by pause; to read out; to read aloud
+1	对不起	duì bu qǐ	I'm sorry; excuse me; I beg your pardon; to let (sb) down; to disappoint
+1	多	duō	many; much; too many; in excess; (after a numeral) ... odd
+1	多少	duō shǎo | duō shao	number; amount; somewhat
+1	儿子	ér zi	son
+1	二	èr	two; 2; (Beijing dialect) stupid
+1	饭馆	fàn guǎn	restaurant
+1	飞机	fēi jī	airplane
+1	分钟	fēn zhōng	minute
+1	高兴	gāo xìng	happy; glad; willing (to do sth)
+1	个	gě | gè	used in 自个儿; (classifier used before a noun that has no specific classifier); (bound form)
+1	工作	gōng zuò	to work; (of a machine) to operate; job
+1	狗	gǒu	dog
+1	汉语	Hàn yǔ	Chinese language
+1	好	hǎo | hào	good; appropriate; proper; all right!
+1	喝	hē | hè	to drink; variant of 嗬; to shout
+1	和	hé | Hé | hè | hú | huó | huò	old variant of 和; surname He; (joining two nouns) and; together with; with (Taiwan pr. [hà
+1	很	hěn	(adverb of degree); quite; very
+1	后面	hòu mian	the back; the rear; the last bit; behind; near the end; at the back; later; afterwards
+1	回	huí	to circle; to go back; to turn around
+1	会	huì | kuài	can; to have the skill; to know how to; to be likely to; to be sure to; to meet; to get to
+1	火车站	huǒ chē zhàn	train station
+1	几	jī | jǐ	small table; almost; how much
+1	家	jiā	used in 家伙 and 家俱; home; family
+1	叫	jiào	to shout; to call; to order
+1	今天	jīn tiān	today; at the present; now
+1	九	jiǔ	nine; 9
+1	开	kāi	to open (transitive or intransitive); (of ships, vehicles, troops etc) to start; to turn o
+1	看	kān | kàn	to look after; to take care of; to watch
+1	看见	kàn jiàn	to see; to catch sight of
+1	块	kuài	lump; chunk; piece; classifier for pieces of cloth, cake, soap etc; (coll.) classifier for
+1	来	lái	to come; (used as a substitute for a more specific verb); hither (directional complement f
+1	老师	lǎo shī	teacher
+1	了	le | liǎo | liào	(completed action marker); (modal particle indicating change of state, situation now); (mo
+1	冷	Lěng | lěng	surname Leng; cold
+1	里	lǐ | Lǐ	variant of 里; lining; interior
+1	零	líng	zero; nought; zero sign
+1	六	liù	six; 6
+1	妈妈	mā ma	mama; mommy; mother
+1	吗	má | mǎ | ma	(coll.) what?; used in 吗啡; (question particle for "yes-no" questions)
+1	买	mǎi	to buy; to purchase
+1	猫	māo	cat; (dialect) to hide oneself; (coll.) modem
+1	没	méi | mò	(negative prefix for verbs) have not; not; drowned; to end
+1	没关系	méi guān xi	it doesn't matter
+1	米饭	mǐ fàn	(cooked) rice
+1	名字	míng zi	name (of a person or thing)
+1	明天	míng tiān	tomorrow
+1	哪	nǎ | na | né | něi	how; which; (emphatic sentence-final particle, used instead of 啊 after a word ending in "n
+1	那	Nā | Nuó | nǎ | nà | nuó	surname Na; surname Nuo; variant of 哪
+1	呢	ne | ní	particle indicating that a previously asked question is to be applied to the preceding wor
+1	能	Néng | néng	surname Neng; can; to be able to
+1	你	nǐ	you (informal, as opposed to courteous 您); you (Note: In Taiwan, 妳 is used to address fema
+1	年	Nián | nián	surname Nian; year; grain
+1	女儿	nǚ ér	daughter
+1	朋友	péng you	friend
+1	漂亮	piào liang	pretty; beautiful
+1	苹果	píng guǒ	apple
+1	七	qī	seven; 7
+1	前面	qián miàn	ahead; in front; preceding
+1	钱	Qián | qián	surname Qian; coin; money
+1	请	qǐng	to ask; to invite; please (do sth)
+1	去	qù	to go; to go to (a place); (of a time etc) last
+1	热	rè	to warm up; to heat up; hot (of weather)
+1	人	rén	person; people
+1	认识	rèn shi	to know; to recognize; to be familiar with
+1	日	Rì | rì	abbr. for 本, Japan; sun; day
+1	三	Sān | sān	surname San; three; 3
+1	商店	shāng diàn	store; shop
+1	上	shǎng | shàng	used in 上声; (bound form) up; upper; above; previous; first (of multiple parts)
+1	上午	shàng wǔ	morning
+1	少	shǎo | shào	few; less; to lack
+1	什么	shén me	what?; something; anything
+1	十	shí	ten; 10
+1	时候	shí hou	time; length of time; moment
+1	是	shì	to be (followed by substantives only); correct; right; true; (respectful acknowledgement o
+1	书	Shū | shū	abbr. for 书经; book; letter
+1	谁	shéi	who; also pr. [shuí]
+1	水	Shuǐ | shuǐ	surname Shui; water; river
+1	水果	shuǐ guǒ	fruit
+1	睡觉	shuì jiào	to go to bed; to sleep
+1	说话	shuō huà	to speak; to say; to talk
+1	四	sì	four; 4
+1	岁	suì	variant of 岁, year; years old; classifier for years (of age)
+1	他	tā	he; him (used for either sex when the sex is unknown or unimportant); (used before sb's na
+1	她	tā	she
+1	太	tài	highest; greatest; too (much)
+1	天气	tiān qì	weather
+1	听	yǐn | tīng	smile (archaic); to listen to; to hear; to heed; to obey
+1	同学	tóng xué	to study at the same school; fellow student; classmate
+1	喂	wéi | wèi	hello (when answering the phone); hey; to feed (an animal, baby, invalid etc)
+1	我	wǒ	I; me; my
+1	我们	wǒ men	we; us; ourselves
+1	五	wǔ	five; 5
+1	喜欢	xǐ huan	to like; to be fond of
+1	下	xià	down; downwards; below
+1	下午	xià wǔ	afternoon; p.m.
+1	下雨	xià yǔ	to rain
+1	先生	xiān sheng	teacher; gentleman; sir; mister (Mr.); husband
+1	现在	xiàn zài	now; at present; at the moment
+1	想	xiǎng	to think (about); to think of; to devise; to think (that); to believe (that)
+1	小	xiǎo	small; tiny; few
+1	小姐	xiǎo jie	young lady; miss; (slang) prostitute
+1	些	xiē	classifier indicating a small amount or small number greater than 1: some, a few, several
+1	写	xiě	to write
+1	谢谢	xiè xie	to thank; thanks; thank you
+1	星期	xīng qī	week; day of the week; Sunday
+1	学生	xué sheng	student; schoolchild
+1	学习	xué xí	to learn; to study
+1	学校	xué xiào	school
+1	一	yī	one; single; a (article)
+1	衣服	yī fu	clothes
+1	医生	yī shēng	doctor
+1	医院	yī yuàn	hospital
+1	椅子	yǐ zi	chair
+1	有	yǒu	to have; there is; (bound form) having; with; -ful; -ed; -al (as in 意 intentional)
+1	月	yuè	moon; month; monthly
+1	再见	zài jiàn	goodbye; see you again later
+1	在	zài	to exist; to be alive; (of sb or sth) to be (located) at; (used before a verb to indicate 
+1	怎么	zěn me	how?; what?; why?
+1	怎么样	zěn me yàng	how?; how about?; how was it?
+1	这	zhè	(pronoun) this; these; (bound form) this; the (followed by a noun); (bound form) this; the
+1	中国	Zhōng guó	China
+1	中午	zhōng wǔ	noon; midday
+1	住	zhù	to live; to dwell; to stay
+1	桌子	zhuō zi	table; desk
+1	字	zì	letter; symbol; character
+1	昨天	zuó tiān	yesterday
+1	坐	Zuò | zuò	surname Zuo; to sit; to take a seat
+1	做	zuò	to make; to produce; to write; to compose; to do; to engage in; to hold (a party etc)
+2	吧	bā | ba | biā	bar (loanword) (serving drinks, or providing Internet access etc); to puff (on a pipe etc)
+2	白	Bái | bái	surname Bai; white; snowy
+2	百	Bǎi | bǎi	surname Bai; hundred; numerous
+2	帮助	bāng zhù	assistance; aid; to help; to assist
+2	报纸	bào zhǐ	newspaper; newsprint
+2	比	Bǐ | bī | bǐ	Belgium; Belgian; abbr. for 比利时
+2	便宜	biàn yí | pián yi	convenient; cheap; inexpensive
+2	别	Bié | bié | biè	surname Bie; to leave; to part (from); (literary) to differentiate; to distinguish
+2	唱歌	chàng gē	to sing a song
+2	出	chū	to go out; to come out; to occur
+2	穿	chuān	to wear; to put on; to dress
+2	船	chuán	variant of 船; boat; vessel
+2	次	cì	next in sequence; second; the second (day, time etc)
+2	从	cóng | Cóng	variant of 从; surname Cong; from
+2	错	Cuò | cuò	surname Cuo; mistake; wrong
+2	打篮球	dǎ lán qiú	to play basketball
+2	大家	dà jiā	everyone; influential family; great expert
+2	但是	dàn shì	but; however
+2	到	dào	to reach; to arrive; to leave for; to go to; to (a place); until (a time); up to (a point)
+2	得	dé | de | děi	to obtain; to get; to gain
+2	弟弟	dì di	younger brother
+2	第一	dì yī	first; number one; primary
+2	懂	dǒng	to understand; to comprehend
+2	房间	fáng jiān	room
+2	非常	fēi cháng	very; really; unusual; extraordinary
+2	服务员	fú wù yuán	waiter; waitress; attendant
+2	高	Gāo | gāo	surname Gao; high; tall
+2	告诉	gào sù | gào su	to press charges; to file a complaint; to tell; to inform; to let know
+2	哥哥	gē ge	older brother
+2	给	gěi | jǐ	to; for; for the benefit of
+2	公共汽车	gōng gòng qì chē	bus
+2	公斤	gōng jīn	kilogram (kg)
+2	公司	gōng sī	company; firm; corporation
+2	贵	guì	expensive; noble; precious
+2	还	Huán | hái | huán	surname Huan; still; still in progress
+2	孩子	hái zi	child
+2	好吃	hǎo chī | hào chī	tasty; delicious; to be fond of eating
+2	号	háo | hào	roar; cry; ordinal number
+2	黑	Hēi | hēi	abbr. for Heilongjiang province 黑龙江; black; dark
+2	红	Hóng | hóng	surname Hong; red; popular
+2	欢迎	huān yíng	to welcome; welcome
+2	回答	huí dá	to reply; to answer; reply; answer
+2	机场	jī chǎng	airport; airfield; (slang) service provider for Shadowsocks or similar software for circum
+2	鸡蛋	jī dàn	(chicken) egg; hen's egg
+2	件	jiàn	item; component; classifier for events, things, clothes etc
+2	教室	jiào shì	classroom
+2	介绍	jiè shào	to introduce (sb to sb); to give a presentation; to present (sb for a job etc)
+2	姐姐	jiě jie	older sister
+2	近	jìn	near; close to; approximately
+2	进	jìn	to go forward; to advance; to go in
+2	就	jiù	(after a suppositional clause) in that case; then; (after a clause of action) as soon as; 
+2	觉得	jué de	to think that ...; to feel that ...; to feel (uncomfortable etc)
+2	咖啡	kā fēi	coffee (loanword)
+2	开始	kāi shǐ	to begin; beginning; to start
+2	考试	kǎo shì	to take an exam; exam
+2	可能	kě néng	might (happen); possible; probable
+2	可以	kě yǐ	can; may; possible
+2	课	kè	subject; course; class
+2	快	kuài	rapid; quick; speed
+2	快乐	kuài lè	happy; joyful
+2	累	lěi | lèi | Léi | léi	to accumulate; to involve or implicate (Taiwan pr. [lèi]); continuous
+2	离	chī | Lí | lí	mythical beast (archaic); surname Li; to leave
+2	两	liǎng	two; both; some
+2	路	Lù | lù	surname Lu; road; journey
+2	旅游	lǚ yóu	trip; journey; tourism
+2	卖	mài	to sell; to betray; to spare no effort
+2	慢	màn	slow
+2	忙	máng	busy; hurriedly; to hurry
+2	每	měi	each; every
+2	妹妹	mèi mei	younger sister; young woman
+2	门	Mén | mén	surname Men; gate; door
+2	男人	nán rén	a man; a male; men
+2	您	nín	you (courteous, as opposed to informal 你)
+2	牛奶	niú nǎi	cow's milk
+2	女人	nǚ rén | nǚ ren	woman; wife
+2	旁边	páng biān	side; adjacent place
+2	跑步	pǎo bù	to run; to jog; (military) to march at the double
+2	票	piào	ticket; ballot; banknote
+2	妻子	qī zǐ | qī zi	wife and children; wife
+2	起床	qǐ chuáng	to get out of bed; to get up
+2	千	qiān	thousand; see 秋千
+2	晴	qíng	clear; fine (weather)
+2	去年	qù nián	last year
+2	让	ràng	to yield; to permit; to let sb do sth
+2	上班	shàng bān	to go to work; to be on duty; to start work
+2	身体	shēn tǐ	the body; one's health; in person
+2	生病	shēng bìng	to fall ill
+2	生日	shēng rì	birthday
+2	时间	shí jiān	time; period
+2	事情	shì qing	affair; matter; thing; business
+2	手表	shǒu biǎo	wristwatch
+2	手机	shǒu jī	cell phone; mobile phone
+2	送	sòng	to send; to deliver; to transmit; to give (as a present); to see (sb) off
+2	所以	suǒ yǐ	therefore; as a result; so
+2	它	tā	it
+2	踢	tī	to kick; to play (e.g. soccer); (slang) butch (in a lesbian relationship)
+2	题	Tí | tí	surname Ti; topic; problem for discussion
+2	跳舞	tiào wǔ	to dance
+2	外	wài	outside; in addition; foreign
+2	完	wán	to finish; to be over; whole

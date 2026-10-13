@@ -1,308 +1,287 @@
   /* =========================================================
-   * 우리 반 (반 만들기 · 초대 코드 · 과제 · 학생 현황 · 결과 제출)
+   * 영어사전 · 오늘의 단어 · 단어 시험지
    * ======================================================= */
-  const clOk = () => !!(cloudMode && window.Cloud && Cloud.call && currentUser);
-  const CL_ERR = {
-    no_class: '그 코드의 반을 찾지 못했어요. 코드를 다시 확인해 주세요.', own_class: '내가 만든 반이에요. 학생 계정으로 참여해 주세요.',
-    too_many: '더 만들거나 참여할 수 없어요. 쓰지 않는 반을 먼저 정리해 주세요.', full: '이 반은 인원이 꽉 찼어요(200명).',
-    no_assign: '과제를 찾지 못했어요. 선생님이 지웠을 수 있어요.', bad_input: '입력한 내용을 다시 확인해 주세요.',
-    auth: '로그인이 만료됐어요. 다시 로그인해 주세요.', missing: '우리 반 기능은 아직 준비 중이에요. 운영자가 서버 설정을 마치면 바로 쓸 수 있어요.',
-    network: '서버에 연결하지 못했어요. 인터넷 연결을 확인해 주세요.', too_many_tries: '틀린 코드를 너무 많이 넣었어요. 내일 다시 시도하거나 선생님께 코드를 확인해 주세요.'
-  };
-  const clMsg = e => CL_ERR[e && e.code] || '잠시 후 다시 시도해 주세요.';
-  const CL_KIND = { test: '시험', study: '단어 학습' };
-  const clKey = () => 'vocapro_cls:' + currentUser;
-  const clCache = () => loadJson(clKey()) || { joined: 0, pending: 0 };
-  let CL = null, CLV = { id: null, tab: 'stu', open: null, data: null };
-  const clDate = s => { if (!s) return ''; const d = new Date(s); return isNaN(d) ? '' : d.toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' }); };
-  const clDue = due => { if (!due) return ''; const left = Math.round((new Date(due + 'T23:59:59').getTime() - Date.now()) / DAY); return left < 0 ? '마감 지남' : left === 0 ? '오늘 마감' : `${clDate(due)}까지`; };
-  const clLoading = t => `<div class="cl-load">${MASCOT('think')}<span>${t || '불러오는 중...'}</span></div>`;
-  function clFail(e, back) { $('sheetBody').innerHTML = `<div class="cl-load">${MASCOT('sleep')}<span>${esc(clMsg(e))}</span></div>${back ? `<button class="btn btn-soft btn-block" data-act="${back}">돌아가기</button>` : ''}`; }
-
-  function classEntryHtml() {
-    if (!clOk()) return '';
-    const c = clCache(), p = !isTeacher() && c.pending > 0;
-    const sub = isTeacher() ? '반 만들기, 과제 내기, 학생별 학습 현황' : c.joined ? (p ? `남은 과제 ${c.pending}개` : '과제와 결과를 확인해요') : '선생님께 받은 코드로 반에 참여해요';
-    return `<button class="mg-entry${p ? ' cl-hot' : ''}" data-act="class-open"><span class="mg-ico i-sun">${IC.users}</span><span class="mg-txt"><b>우리 반</b><small>${sub}</small></span>${p ? `<span class="cl-badge">${c.pending}</span>` : ''}<span class="mg-chev"></span></button>`;
+  let dictView = null, dictTimer = 0, dictSeq = 0;
+  function dictOpen(q) {
+    dictView = null;
+    openSheet(LN() + '사전', `<div class="dsearch">${IC.search}<input type="search" id="dictQ" placeholder="${isZh() ? '한자, 병음, 한글 뜻 (예: 学习, xuexi, 공부)' : '영어 단어를 입력하세요 (예: happy, went)'}" autocomplete="off" autocapitalize="none" spellcheck="false" enterkeyhint="search" value="${esc(q || '')}" data-input="dict" data-enter="dict"></div>
+      <div id="dictOut" class="dict-out"><div class="dict-hint">뜻, 발음, 예문, 비슷한 단어를 바로 보여줘요.<br>앱에 들어 있는 사전이라 인터넷이 느려도 빨라요.</div></div>`);
+    setTimeout(() => { const i = $('dictQ'); if (!i) return; if (q) dictType(true); else i.focus(); }, 60);
   }
-  function clSaveCache(r) {
-    const pending = (r.joined || []).reduce((s, c) => s + c.assignments.filter(a => !a.mine && !(a.due && clDue(a.due) === '마감 지남')).length, 0);
-    try { LS.setItem(clKey(), JSON.stringify({ joined: (r.joined || []).length, pending })); } catch (e) {}
+  function dictType(now) {
+    clearTimeout(dictTimer);
+    dictTimer = setTimeout(dictSearch, now ? 0 : 160);
   }
-
-  ACTIONS['class-open'] = async () => {
-    if (!clOk()) return say(kidMode ? '이 기기에만 저장하는 계정(만 14세 미만)은 반에 참여할 수 없어요.' : '우리 반은 로그인한 서버 계정에서만 쓸 수 있어요.');
-    openSheet('우리 반', clLoading());
-    try { CL = await Cloud.call('voca_class_mine'); } catch (e) { return clFail(e); }
-    clSaveCache(CL); clHome();
-    if (CL.joined.length) clReport(true);
-  };
-  function clHome() {
-    const r = CL || { owned: [], joined: [] }, teach = isTeacher();
+  async function dictSearch() {
+    const inp = $('dictQ'), out = $('dictOut'); if (!inp || !out) return;
+    const raw = inp.value.trim(), q = raw.toLowerCase(), seq = ++dictSeq;
+    if (!q) { out.innerHTML = '<div class="dict-hint">뜻, 발음, 예문, 비슷한 단어를 바로 보여줘요.</div>'; dictView = null; return; }
+    if (isZh()) return dictSearchZh(raw, out, seq);
+    if (!/^[a-z][a-z' .-]*$/i.test(q)) { out.innerHTML = '<div class="dict-hint">영어 단어로 찾아 주세요. 한글 뜻으로 찾을 때는 위의 번역 버튼을 써 보세요.</div>'; return; }
+    const c = dictLetter(q), shard = c ? await dictShard(c) : {};
+    const hit = await dictGet(q);
+    if (seq !== dictSeq || !$('dictOut')) return;
+    const keys = Object.keys(shard), stem = hit && hit.base ? hit.base : q;
+    const sug = keys.filter(k => k !== q && k.startsWith(q) && !k.includes(' ') && Array.isArray(shard[k])).slice(0, 8);
+    const phr = q.includes(' ') ? keys.filter(k => k !== q && k.startsWith(q) && Array.isArray(shard[k])).slice(0, 12) : keys.filter(k => k.startsWith(stem + ' ') && Array.isArray(shard[k])).sort((x, y) => (/ (a|b|one's|oneself|sb|sth)( |$)/.test(x) - / (a|b|one's|oneself|sb|sth)( |$)/.test(y)) || x.length - y.length).slice(0, 12);
+    dictView = hit ? { ...hit, word: raw.replace(/\s+/g, ' ') } : null;
     let h = '';
-    if (teach || r.owned.length) {
-      h += `<div class="cl-sec"><h4 class="syn-h">내가 만든 반</h4>${r.owned.length ? `<div class="menu-list">${r.owned.map(c => `<button data-act="cl-class" data-id="${c.id}"><span class="cl-li"><b>${esc(c.name)}</b><small>학생 ${c.members}명 · 과제 ${c.assignments}개 · 코드 ${esc(c.code)}</small></span></button>`).join('')}</div>` : '<p class="muted cl-p">아직 만든 반이 없어요.</p>'}
-        <div class="cl-new"><input type="text" id="clName" maxlength="40" placeholder="반 이름 (예: 2학년 3반 영어)"><button class="btn btn-primary" data-act="cl-create">반 만들기</button></div></div>`;
+    if (hit) {
+      const syns = String(hit.synonyms || '').split(',').map(x => x.trim()).filter(Boolean);
+      const pr = pronText(hit);
+      const books = categories.map(b => `<option value="${esc(b.id)}"${b.id === currentCategoryId ? ' selected' : ''}>${esc(b.name)}</option>`).join('');
+      h += `<div class="dict-card">
+        <div class="dict-head"><div><b class="dict-w">${esc(dictView.word)}</b>${pr ? `<div class="q-pron">${esc(pr)}</div>` : ''}</div><button class="dict-sp" data-act="speak" data-text="${esc(dictView.word)}" aria-label="발음 듣기">${IC.speaker}</button></div>
+        <div class="dict-m">${esc(hit.meaning)}</div>
+        ${hit.base ? `<button class="link-btn" data-act="dict-go" data-word="${esc(hit.base)}">원형 ${esc(hit.base)} 보기</button>` : ''}
+        ${hit.example ? `<div class="syn-ex"><div>${esc(hit.example)}</div>${hit.exampleKo ? `<small>${esc(hit.exampleKo)}</small>` : ''}</div>` : ''}
+        ${syns.length ? `<h4 class="syn-h">비슷한 단어</h4><div class="syn-chips">${syns.map(x => `<button class="syn" data-act="dict-go" data-word="${esc(x)}">${esc(x)}</button>`).join('')}</div>` : ''}
+        <div class="dict-add"><select id="dictBook" aria-label="담을 단어장">${books}<option value="__new">새 단어장: 사전에서 담은 단어</option></select><button class="btn btn-primary" data-act="dict-add">담기</button></div>
+      </div>`;
+    } else if (!sug.length && !phr.length) {
+      h += `<div class="dict-none"><b>'${esc(raw)}'은(는) 내장 사전에 없어요.</b>${aiReady() ? '<button class="btn btn-soft" data-act="dict-ai">AI로 뜻 찾기</button>' : '<span class="muted">철자를 확인해 보세요.</span>'}</div>`;
     }
-    if (!teach || r.joined.length) {
-      h += r.joined.map(c => `<div class="cl-sec card cl-cls"><div class="cl-head"><div><b>${esc(c.name)}</b><small>${esc([c.school, c.teacher && c.teacher + ' 선생님'].filter(Boolean).join(' · '))}</small></div><button class="btn btn-sm btn-soft" data-act="cl-leave" data-id="${c.id}">나가기</button></div>
-        ${c.assignments.length ? c.assignments.map(a => `<button class="cl-asg" data-act="cl-do" data-id="${a.id}"><span class="cl-li"><b>${esc(a.title)}</b><small>${CL_KIND[a.kind] || ''} · ${a.count}단어${a.due ? ' · ' + clDue(a.due) : ''}</small></span>${a.mine ? `<span class="cl-done">${a.mine.score}점</span>` : '<span class="cl-todo">시작</span>'}</button>`).join('') : '<p class="muted cl-p">아직 과제가 없어요.</p>'}</div>`).join('');
-      h += `<div class="cl-sec"><h4 class="syn-h">반 참여하기</h4><div class="cl-new"><input type="text" id="clCode" maxlength="6" placeholder="초대 코드 6자리" autocapitalize="characters" autocomplete="off"><button class="btn btn-primary" data-act="cl-join">참여</button></div>
-        <label class="cl-agree"><input type="checkbox" id="clAgree"> 이 반 선생님에게 내 이름${isTeacher() ? '' : ', 학번'}, 학습 요약(학습한 단어 수, 정답률, 연속 학습, 많이 틀린 단어, 최근 시험 점수), 과제 결과, 앱을 켜 두는 동안의 접속 상태와 지금 하는 학습을 보여 주는 데 동의해요. 반에서 나가면 선생님 화면에서 바로 지워져요.</label></div>`;
-    }
-    $('sheetTitle').textContent = '우리 반';
-    $('sheetBody').innerHTML = `<div class="form-stack cl">${h}</div>`;
+    if (phr.length) h += `<div class="dict-sug"><h4 class="syn-h">${q.includes(' ') ? '이어지는 숙어' : esc(stem) + ' 관련 숙어'}</h4>${phr.map(k => `<button class="dict-row" data-act="dict-go" data-word="${esc(k)}"><b>${esc(shard[k][0])}</b><span>${esc(shard[k][1])}</span></button>`).join('')}</div>`;
+    if (sug.length) h += `<div class="dict-sug"><h4 class="syn-h">${hit ? '이런 단어도 있어요' : '혹시 이 단어인가요?'}</h4>${sug.map(k => `<button class="dict-row" data-act="dict-go" data-word="${esc(k)}"><b>${esc(shard[k][0])}</b><span>${esc(shard[k][1])}</span></button>`).join('')}</div>`;
+    out.innerHTML = h;
   }
-  ACTIONS['cl-home'] = () => ACTIONS['class-open']();
-  ACTIONS['cl-create'] = async el => {
-    const name = (($('clName') || {}).value || '').trim(); if (!name) return toast('반 이름을 적어 주세요.');
-    const p = config.profile || {}; el.disabled = true;
-    try { const r = await Cloud.call('voca_class_create', { p_name: name, p_teacher: p.name || '', p_school: p.school || '' }); toast(`'${r.name}' 반을 만들었어요. 초대 코드는 ${r.code}예요.`); clDetail(r.id); }
-    catch (e) { el.disabled = false; say(clMsg(e)); }
-  };
-  ACTIONS['cl-join'] = async el => {
-    const code = (($('clCode') || {}).value || '').trim().toUpperCase();
-    if (!/^[A-Z0-9]{6}$/.test(code)) return toast('초대 코드 6자리를 적어 주세요.');
-    if (!($('clAgree') || {}).checked) return toast('선생님에게 보여 주는 정보에 동의해야 참여할 수 있어요.');
-    const p = config.profile || {}; el.disabled = true;
-    try { const r = await Cloud.call('voca_class_join', { p_code: code, p_name: p.name || currentLabel || '', p_sno: isTeacher() ? '' : (p.sno || '') }); toast(`'${r.name}' 반에 참여했어요.`); await ACTIONS['class-open'](); }
-    catch (e) { el.disabled = false; say(clMsg(e)); }
-  };
-  ACTIONS['cl-leave'] = async el => {
-    if (!await ask('이 반에서 나갈까요?\n선생님 화면에서 내 학습 현황과 과제 결과가 지워져요.', { ok: '나가기', danger: true })) return;
-    try { await Cloud.call('voca_class_leave', { p_class: +el.dataset.id }); toast('반에서 나왔어요.'); ACTIONS['class-open'](); } catch (e) { say(clMsg(e)); }
-  };
-
-  /* ----- 선생님: 반 상세 ----- */
-  async function clDetail(id, keep) {
-    CLV.id = id; if (!keep) { CLV.tab = 'stu'; CLV.open = null; }
-    openSheet('우리 반', clLoading());
-    try { CLV.data = await Cloud.call('voca_class_detail', { p_class: id }); } catch (e) { return clFail(e, 'cl-home'); }
-    clDraw();
+  // 중국어 사전 찾기: 한자(앞부분), 병음(성조 없이도), 한글 뜻으로 HSK 단어 목록에서 찾아요.
+  async function dictSearchZh(raw, out, seq) {
+    const idx = await zhLoad(); if (seq !== dictSeq || !$('dictOut')) return;
+    if (!idx.length) { out.innerHTML = '<div class="dict-hint">단어 목록을 불러오지 못했어요. 인터넷을 확인해 주세요.</div>'; return; }
+    const q = raw.replace(/\s+/g, ''), han = HAN.test(q), hg = HANGUL.test(q), pq = pyPlain(q);
+    const hit = han ? await dictGet(q) : null; if (seq !== dictSeq || !$('dictOut')) return;
+    let list;
+    if (han) list = idx.filter(e => e[0] !== q && e[0].startsWith(q.charAt(0))).sort((a, b) => b[0].startsWith(q) - a[0].startsWith(q) || a[3] - b[3] || a[0].length - b[0].length);
+    else if (hg) list = idx.filter(e => e[2].replace(/\s+/g, '').includes(q)).sort((a, b) => a[3] - b[3]);
+    else if (pq) list = idx.filter(e => pyPlain(e[1]).startsWith(pq)).sort((a, b) => (pyPlain(b[1]) === pq) - (pyPlain(a[1]) === pq) || a[3] - b[3]);
+    else list = [];
+    list = list.slice(0, 30);
+    dictView = hit ? { ...hit, word: q } : null;
+    let h = '';
+    if (hit) h += dictCardHtml(dictView);
+    else if (!list.length) h += `<div class="dict-none"><b>'${esc(raw)}'은(는) HSK 단어에 없어요.</b>${han && aiReady() ? '<button class="btn btn-soft" data-act="dict-ai">AI로 뜻 찾기</button>' : '<span class="muted">한자, 병음(예: xuexi), 한글 뜻으로 찾아 보세요.</span>'}</div>`;
+    if (list.length) h += `<div class="dict-sug"><h4 class="syn-h">${hit ? '이 글자로 시작하는 단어' : '찾은 단어'}</h4>${list.map(e => `<button class="dict-row" data-act="dict-go" data-word="${esc(e[0])}"><b>${esc(e[0])}</b><span><i class="rec-py">${esc(e[1])}</i> ${esc(e[2])} <em class="hsk-tag">HSK ${e[3]}</em></span></button>`).join('')}</div>`;
+    out.innerHTML = h;
   }
-  ACTIONS['cl-class'] = el => clDetail(+el.dataset.id);
-  ACTIONS['cl-tab'] = el => { CLV.tab = el.dataset.t; clDraw(); };
-  ACTIONS['cl-stu'] = el => { CLV.open = CLV.open === el.dataset.uid ? null : el.dataset.uid; clDraw(); };
-  function clWeakTop(lists, n) {
-    const m = new Map();
-    lists.forEach(l => (Array.isArray(l) ? l : []).forEach(x => { const w = Array.isArray(x) ? x[0] : x; if (!w) return; const k = String(w).toLowerCase(); const o = m.get(k) || { w: String(w), mean: Array.isArray(x) ? x[1] || '' : '', c: 0 }; o.c++; m.set(k, o); }));
-    return [...m.values()].sort((a, b) => b.c - a.c).slice(0, n);
+  function dictCardHtml(d) {
+    const syns = String(d.synonyms || '').split(',').map(x => x.trim()).filter(Boolean), pr = pronText(d);
+    const books = categories.map(b => `<option value="${esc(b.id)}"${b.id === currentCategoryId ? ' selected' : ''}>${esc(b.name)}</option>`).join('');
+    return `<div class="dict-card">
+        <div class="dict-head"><div><b class="dict-w">${esc(d.word)}</b>${pr ? `<div class="q-pron">${esc(pr)}</div>` : ''}</div>${d.hsk ? `<em class="hsk-tag">HSK ${esc(d.hsk)}급</em>` : ''}<button class="dict-sp" data-act="speak" data-text="${esc(d.word)}" aria-label="발음 듣기">${IC.speaker}</button></div>
+        <div class="dict-m">${esc(d.meaning)}</div>
+        ${d.example ? `<div class="syn-ex"><div>${esc(d.example)} <button class="ex-say" data-act="speak" data-text="${esc(d.example)}" aria-label="예문 듣기">${IC.speaker}</button></div>${exPyHtml(d)}${d.exampleKo ? `<small>${esc(d.exampleKo)}</small>` : ''}</div>` : ''}
+        ${syns.length ? `<h4 class="syn-h">비슷한 단어</h4><div class="syn-chips">${syns.map(x => `<button class="syn" data-act="dict-go" data-word="${esc(x)}">${esc(x)}</button>`).join('')}</div>` : ''}
+        <div class="dict-add"><select id="dictBook" aria-label="담을 단어장">${books}<option value="__new">새 단어장: 사전에서 담은 단어</option></select><button class="btn btn-primary" data-act="dict-add">담기</button></div>
+      </div>`;
   }
-  function clDraw() {
-    const d = CLV.data, c = d.class, mem = d.members, asg = d.assignments;
-    $('sheetTitle').textContent = c.name;
-    const head = `<div class="cl-code"><div><small>초대 코드</small><b>${esc(c.code)}</b></div><button class="btn btn-sm btn-soft" data-act="cl-copy" data-code="${esc(c.code)}">복사</button></div>
-      <button class="btn btn-primary btn-block lv-open" data-act="cl-live"><i class="lv-dot"></i>실시간 보기 (누가 들어와서 무엇을 하는지)</button>
-      <p class="muted cl-p">학생은 홈의 '우리 반'에서 이 코드를 넣으면 들어와요. 만 14세 미만(이 기기에만 저장하는 계정)은 참여할 수 없어요.</p>
-      <div class="seg"><button class="${CLV.tab === 'stu' ? 'on' : ''}" data-act="cl-tab" data-t="stu">학생 ${mem.length}명</button><button class="${CLV.tab === 'asg' ? 'on' : ''}" data-act="cl-tab" data-t="asg">과제 ${asg.length}개</button></div>`;
-    let body = '';
-    if (CLV.tab === 'stu') {
-      const weak = clWeakTop(mem.map(m => (m.progress && m.progress.weak) || []), 10);
-      body = mem.length ? `${weak.length ? `<div class="cl-weak"><h4 class="syn-h">반에서 많이 틀린 단어</h4><div class="cl-chips">${weak.map(x => `<span>${esc(x.w)}${x.mean ? ` <small>${esc(x.mean)}</small>` : ''} <b>${x.c}명</b></span>`).join('')}</div></div>` : ''}
-        <div class="cl-table"><div class="cl-tr cl-th"><span>이름</span><span>최근 학습</span><span>7일 단어</span><span>정답률</span><span>과제</span></div>
-        ${mem.map(m => { const p = m.progress || {}; const open = CLV.open === m.uid; return `<button class="cl-tr${open ? ' on' : ''}" data-act="cl-stu" data-uid="${esc(m.uid)}"><span><b>${esc(m.name || '이름 없음')}</b>${m.sno ? `<small>${esc(m.sno)}</small>` : ''}</span><span>${p.last ? clDate(p.last) : '-'}</span><span>${p.n7 != null ? esc(p.n7) : '-'}</span><span>${p.acc7 != null ? esc(p.acc7) + '%' : '-'}</span><span>${esc(m.done)}/${asg.length}</span></button>${open ? clStuHtml(m) : ''}`; }).join('')}</div>`
-        : `<div class="cl-load">${MASCOT('happy')}<span>아직 들어온 학생이 없어요. 초대 코드를 칠판에 적어 주세요.</span></div>`;
-    } else {
-      body = `<button class="btn btn-primary btn-block" data-act="cl-anew">${IC.plus} 과제 내기</button>
-        ${asg.length ? `<div class="menu-list">${asg.map(a => `<button data-act="cl-ares" data-id="${a.id}"><span class="cl-li"><b>${esc(a.title)}</b><small>${CL_KIND[a.kind]} · ${a.count}단어${a.kind === 'test' ? ` · ${a.n}문제` : ''}${a.due ? ' · ' + clDue(a.due) : ''} · 제출 ${a.subs}/${mem.length}${a.avg != null ? ` · 평균 ${a.avg}점` : ''}</small></span></button>`).join('')}</div>` : '<p class="muted cl-p">아직 낸 과제가 없어요.</p>'}`;
-    }
-    $('sheetBody').innerHTML = `<div class="form-stack cl">${head}${body}<div class="row cl-foot"><button class="btn btn-soft" data-act="cl-home">반 목록</button><button class="btn btn-soft cl-danger" data-act="cl-delete">반 삭제</button></div></div>`;
-  }
-  function clStuHtml(m) {
-    const p = m.progress || {};
-    const tests = (Array.isArray(p.tests) ? p.tests : []).filter(Array.isArray).map(t => `<span>${esc(t[2] || '')} <b>${esc(t[1])}점</b> <small>${clDate(t[0])}</small></span>`).join('');
-    return `<div class="cl-stu">${p.at ? `<div class="cl-kv"><span>전체 단어 <b>${esc(p.total || 0)}</b></span><span>마스터 <b>${esc(p.mastered || 0)}</b></span><span>연속 학습 <b>${esc(p.streak || 0)}일</b></span><span>오늘 <b>${esc(p.today || 0)}</b></span></div>
-      ${Array.isArray(p.weak) && p.weak.length ? `<h4 class="syn-h">많이 틀린 단어</h4><div class="cl-chips">${p.weak.filter(Array.isArray).map(x => `<span>${esc(x[0])} <small>${esc(x[1] || '')}</small> <b>${esc(x[2])}회</b></span>`).join('')}</div>` : ''}
-      ${tests ? `<h4 class="syn-h">최근 시험</h4><div class="cl-chips">${tests}</div>` : ''}<p class="muted cl-p">${clDate(p.at)} 기준</p>` : '<p class="muted cl-p">아직 학습 기록이 올라오지 않았어요. 학생이 앱을 열면 올라와요.</p>'}
-      <button class="btn btn-sm btn-soft cl-danger" data-act="cl-kick" data-uid="${esc(m.uid)}" data-name="${esc(m.name)}">반에서 내보내기</button></div>`;
-  }
-  ACTIONS['cl-copy'] = async el => { try { await navigator.clipboard.writeText(el.dataset.code); toast('초대 코드를 복사했어요.'); } catch (e) { toast('코드: ' + el.dataset.code); } };
-  ACTIONS['cl-kick'] = async el => {
-    if (!await ask(`${el.dataset.name || '이 학생'} 학생을 반에서 내보낼까요?\n이 반의 과제 결과도 함께 지워져요.`, { ok: '내보내기', danger: true })) return;
-    try { await Cloud.call('voca_class_kick', { p_class: CLV.id, p_uid: el.dataset.uid }); CLV.open = null; clDetail(CLV.id, true); } catch (e) { say(clMsg(e)); }
-  };
-  ACTIONS['cl-delete'] = async () => {
-    if (!await ask(`'${CLV.data.class.name}' 반을 삭제할까요?\n학생 목록, 과제, 제출 결과가 모두 지워지고 되돌릴 수 없어요.`, { ok: '삭제', danger: true })) return;
-    try { await Cloud.call('voca_class_delete', { p_class: CLV.id }); toast('반을 삭제했어요.'); ACTIONS['class-open'](); } catch (e) { say(clMsg(e)); }
-  };
-
-  /* ----- 선생님: 과제 내기 · 결과 ----- */
-  ACTIONS['cl-anew'] = () => {
-    const books = categories.filter(c => c.words.length);
-    if (!books.length) return toast('먼저 단어장에 단어를 담아 주세요. 기초 · 중학교 · 고등학교 · 수능 단어에서 바로 담을 수 있어요.');
-    const due = new Date(Date.now() + 7 * DAY), dv = `${due.getFullYear()}-${String(due.getMonth() + 1).padStart(2, '0')}-${String(due.getDate()).padStart(2, '0')}`;
-    $('sheetTitle').textContent = '과제 내기';
-    $('sheetBody').innerHTML = `<div class="form-stack cl">
-      <label class="setting-label" for="caBook">단어장</label>
-      <select id="caBook">${books.map(c => `<option value="${esc(c.id)}"${c.id === currentCategoryId ? ' selected' : ''}>${esc(c.name)} (${c.words.length}개)</option>`).join('')}</select>
-      <label class="setting-label" for="caTitle">과제 이름 (비우면 단어장 이름)</label>
-      <input type="text" id="caTitle" maxlength="60" placeholder="예: Day 3 단어 시험">
-      <label class="setting-label">종류</label>
-      <div class="seg" id="caKind"><button class="on" data-act="pt-opt" data-g="caKind" data-v="test">시험 (점수 제출)</button><button data-act="pt-opt" data-g="caKind" data-v="study">단어 학습 (뜻 고르기)</button></div>
-      <label class="setting-label">시험 문제 수</label>
-      <div class="seg" id="caNum">${[10, 20, 30, 50].map(k => `<button class="${k === 20 ? 'on' : ''}" data-act="pt-opt" data-g="caNum" data-v="${k}">${k}문제</button>`).join('')}</div>
-      <label class="setting-label" for="caDue">마감일</label>
-      <input type="date" id="caDue" value="${dv}">
-      <p class="muted cl-p">학생은 단어장을 그대로 받아 풀고, 끝나면 점수와 틀린 단어가 자동으로 제출돼요. 여러 번 풀면 가장 높은 점수가 남아요.</p>
-      <div class="row"><button class="btn btn-soft" data-act="cl-back">취소</button><button class="btn btn-primary" data-act="cl-acreate">과제 내기</button></div></div>`;
-  };
-  ACTIONS['cl-back'] = () => clDetail(CLV.id, true);
-  ACTIONS['cl-acreate'] = async el => {
-    const cat = categories.find(c => c.id === ($('caBook') || {}).value); if (!cat) return;
-    const kind = (document.querySelector('#caKind .on') || { dataset: { v: 'test' } }).dataset.v, n = +(document.querySelector('#caNum .on') || { dataset: { v: 20 } }).dataset.v;
-    const words = cat.words.slice(0, 500).map(w => [w.word.slice(0, 80), (w.meaning || '').slice(0, 120)]);
-    el.disabled = true;
+  ACTIONS['dict-open'] = el => dictOpen(el && el.dataset && el.dataset.word || '');
+  ACTIONS['dict-go'] = el => { const i = $('dictQ'); if (!i) return dictOpen(el.dataset.word); i.value = el.dataset.word; dictType(true); const sh = document.querySelector('.sheet'); if (sh) sh.scrollTop = 0; };
+  ACTIONS['dict-ai'] = async el => {
+    const q = (($('dictQ') || {}).value || '').trim(); if (!q) return;
+    el.disabled = true; el.textContent = '찾는 중...';
     try {
-      await Cloud.call('voca_assign_create', { p_class: CLV.id, p_title: (($('caTitle') || {}).value || '').trim() || cat.name, p_kind: kind, p_n: n, p_due: ($('caDue') || {}).value || null, p_words: words });
-      toast(cat.words.length > 500 ? '과제를 냈어요. 앞의 500단어만 들어갔어요.' : '과제를 냈어요.'); CLV.tab = 'asg'; clDetail(CLV.id, true);
-    } catch (e) { el.disabled = false; say(clMsg(e)); }
+      const r = await lookupWord(q, true); if (!$('dictOut')) return;
+      dictView = { ...r, word: q };
+      $('dictOut').innerHTML = `<div class="dict-card"><div class="dict-head"><div><b class="dict-w">${esc(q)}</b><div class="q-pron">${esc(pronText(r))}</div></div><button class="dict-sp" data-act="speak" data-text="${esc(q)}" aria-label="발음 듣기">${IC.speaker}</button></div><div class="dict-m">${esc(r.meaning)}</div>${r.example ? `<div class="syn-ex"><div>${esc(r.example)}</div><small>${esc(r.exampleKo || '')}</small></div>` : ''}<div class="dict-add"><select id="dictBook">${categories.map(b => `<option value="${esc(b.id)}">${esc(b.name)}</option>`).join('')}<option value="__new">새 단어장: 사전에서 담은 단어</option></select><button class="btn btn-primary" data-act="dict-add">담기</button></div></div>`;
+    } catch (e) { el.disabled = false; el.textContent = 'AI로 뜻 찾기'; toast(String(e.message || '뜻을 찾지 못했어요.').split('\n')[0]); }
   };
-  ACTIONS['cl-ares'] = async el => {
-    const id = +el.dataset.id; openSheet('과제 결과', clLoading());
-    let r; try { r = await Cloud.call('voca_assign_results', { p_assign: id }); } catch (e) { return clFail(e, 'cl-back'); }
-    const a = r.assign, done = r.rows.filter(x => x.score != null), left = r.rows.filter(x => x.score == null);
-    const avg = done.length ? Math.round(done.reduce((s, x) => s + x.score, 0) / done.length) : null;
-    const weak = clWeakTop(done.map(x => x.wrong), 10);
-    $('sheetTitle').textContent = a.title;
-    $('sheetBody').innerHTML = `<div class="form-stack cl">
-      <div class="cl-kv"><span>${CL_KIND[a.kind]}</span><span>${a.count}단어</span>${a.due ? `<span>${clDue(a.due)}</span>` : ''}<span>제출 <b>${done.length}/${r.rows.length}</b></span>${avg != null ? `<span>평균 <b>${avg}점</b></span>` : ''}</div>
-      ${weak.length ? `<h4 class="syn-h">많이 틀린 단어</h4><div class="cl-chips">${weak.map(x => `<span>${esc(x.w)} <b>${x.c}명</b></span>`).join('')}</div>` : ''}
-      ${done.length ? `<div class="cl-table"><div class="cl-tr cl-th"><span>이름</span><span>점수</span><span>정답</span><span>시간</span><span>횟수</span></div>${done.sort((x, y) => y.score - x.score).map(x => `<div class="cl-tr"><span><b>${esc(x.name || '이름 없음')}</b>${x.sno ? `<small>${esc(x.sno)}</small>` : ''}</span><span><b>${x.score}</b></span><span>${x.ok}/${x.n}</span><span>${x.sec >= 60 ? Math.floor(x.sec / 60) + '분' : x.sec + '초'}</span><span>${x.tries}회</span></div>`).join('')}</div>` : '<p class="muted cl-p">아직 제출한 학생이 없어요.</p>'}
-      ${left.length ? `<h4 class="syn-h">아직 안 한 학생 ${left.length}명</h4><div class="cl-chips">${left.map(x => `<span>${esc(x.name || '이름 없음')}${x.sno ? ` <small>${esc(x.sno)}</small>` : ''}</span>`).join('')}</div>` : ''}
-      <div class="row cl-foot"><button class="btn btn-soft" data-act="cl-back">돌아가기</button><button class="btn btn-soft cl-danger" data-act="cl-adel" data-id="${a.id}">과제 삭제</button></div></div>`;
-  };
-  ACTIONS['cl-adel'] = async el => {
-    if (!await ask('이 과제를 삭제할까요?\n학생들의 제출 결과도 함께 지워져요.', { ok: '삭제', danger: true })) return;
-    try { await Cloud.call('voca_assign_delete', { p_assign: +el.dataset.id }); CLV.tab = 'asg'; clDetail(CLV.id, true); } catch (e) { say(clMsg(e)); }
+  ACTIONS['dict-add'] = () => {
+    if (!dictView) return;
+    const sel = $('dictBook'), v = sel ? sel.value : '__new';
+    let cat = v === '__new' ? null : categories.find(c => c.id === v);
+    if (!cat) { const nm = '사전에서 담은 단어'; cat = categories.find(c => c.name === nm); if (!cat) { cat = { id: 'c' + uid(), name: nm, words: [] }; categories.push(cat); } }
+    if (cat.words.some(w => w.word.toLowerCase() === dictView.word.toLowerCase())) return toast(`'${cat.name}'에 이미 있어요.`);
+    const { base, ...d } = dictView;
+    cat.words.unshift(sanitizeWord({ ...d, id: uid() }));
+    syncStorage(); toast(`'${cat.name}'에 담았어요.`);
+    try { if (curTab === 'paneBook') renderBookDynamic(); else if (curTab === 'tabHome' || curTab === 'tabBooks') go(curTab); } catch (e) {}
   };
 
-  /* ----- 학생: 과제 풀기 · 결과 제출 ----- */
-  ACTIONS['cl-do'] = async el => {
-    const id = +el.dataset.id; el.disabled = true;
-    let a; try { a = await Cloud.call('voca_assign_get', { p_assign: id }); } catch (e) { el.disabled = false; return say(clMsg(e)); }
-    const list = (Array.isArray(a.words) ? a.words : []).filter(x => Array.isArray(x) && x[0] && x[1]);
-    if (!list.length) { el.disabled = false; return say('과제에 단어가 없어요.'); }
-    const name = `${a.class} · ${a.title}`.slice(0, 60);
-    let cat = categories.find(c => c.name === name);
-    if (!cat) {
-      el.textContent = '단어장 준비 중...';
-      await dictPreload(list.map(x => x[0]));
-      cat = { id: 'c' + uid(), name, words: [] }; const seen = new Set();
-      for (const [w, m] of list) {
-        const k = String(w).toLowerCase(); if (seen.has(k)) continue; seen.add(k);
-        let full = null; try { full = await dictGet(w); } catch (e) {}
-        cat.words.push(sanitizeWord({ ...(full || {}), id: uid(), word: String(w), meaning: String(m) }));
-      }
-      categories.push(cat); syncStorage();
-    }
+  // 오늘의 단어: 내 학년 추천 단어 중에서 날마다 하나씩
+  function wotdPick() {
+    const list = isZh() ? ['hsk1', 'hsk2', 'hsk3'].flatMap(gradeWords) : gradeWords(GRADE_NAMES[config.grade] ? config.grade : 'm1'); if (!list.length) return null;
+    const d = new Date(), n = Math.floor(new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime() / 864e5);
+    return list[(n * 37) % list.length];
+  }
+  function wotdHtml() {
+    const e = wotdPick(); if (!e) return '';
+    return `<div class="card wotd"><div class="wotd-top"><span class="wotd-tag">오늘의 단어</span><button class="wotd-sp" data-act="speak" data-text="${esc(e.w)}" aria-label="발음 듣기">${IC.speaker}</button></div>
+      <button class="wotd-body" data-act="dict-open" data-word="${esc(e.w)}"><b>${esc(e.w)}</b>${e.p ? `<i class="rec-py">${esc(e.p)}</i>` : ''}<span>${esc(e.m)}</span></button><div class="wotd-ex" id="wotdEx"></div></div>`;
+  }
+  async function wotdFill() {
+    const e = wotdPick(); if (!e || !$('wotdEx')) return;
+    try { const d = await dictGet(e.w); const el = $('wotdEx'); if (d && d.example && el) el.innerHTML = `${esc(d.example)}${exPyHtml(d)}<small>${esc(d.exampleKo || '')}</small>`; } catch (err) {}
+  }
+
+  // 단어 시험지: 인쇄하거나 PDF로 저장해요
+  ACTIONS['book-print'] = () => {
+    const cat = curCat(); if (!cat) return;
+    if (!cat.words.length) return toast('단어를 먼저 담아 주세요.');
+    const n = cat.words.length;
+    openSheet('단어 시험지', `<div class="form-stack">
+      <label class="setting-label">문제 유형</label>
+      <div class="seg" id="ptType"><button class="on" data-act="pt-opt" data-g="ptType" data-v="m">뜻 쓰기</button><button data-act="pt-opt" data-g="ptType" data-v="w">단어 쓰기</button><button data-act="pt-opt" data-g="ptType" data-v="x">섞어서</button></div>
+      <label class="setting-label">문제 수 (전체 ${n}개)</label>
+      <div class="seg" id="ptNum">${[20, 30, 50].filter(k => k < n).map(k => `<button data-act="pt-opt" data-g="ptNum" data-v="${k}">${k}개</button>`).join('')}<button class="on" data-act="pt-opt" data-g="ptNum" data-v="${n}">전체</button></div>
+      <label class="switch-row"><input type="checkbox" id="ptShuffle" checked> 순서 섞기</label>
+      <label class="switch-row"><input type="checkbox" id="ptKey" checked> 마지막 장에 정답 넣기</label>
+      <button class="btn btn-primary btn-block" data-act="pt-go">${IC.print} 인쇄 · PDF 저장</button>
+      <p class="muted" style="font-size:.78rem;line-height:1.6;margin:0;">인쇄 창에서 대상을 'PDF로 저장'으로 바꾸면 파일로 받을 수 있어요.</p></div>`);
+  };
+  ACTIONS['pt-opt'] = el => { const g = $(el.dataset.g); if (!g) return; g.querySelectorAll('button').forEach(b => b.classList.toggle('on', b === el)); };
+  ACTIONS['pt-go'] = () => {
+    const cat = curCat(); if (!cat) return;
+    const pick = id => { const b = document.querySelector(`#${id} .on`); return b ? b.dataset.v : ''; };
+    const type = pick('ptType') || 'm', num = parseInt(pick('ptNum'), 10) || cat.words.length;
+    let ws = cat.words.slice(); if ($('ptShuffle') && $('ptShuffle').checked) ws = shuffled(ws);
+    ws = ws.slice(0, num);
+    const qs = ws.map((w, i) => ({ w, ask: type === 'x' ? (i % 2 ? 'w' : 'm') : type }));
+    const row = (q, i, key) => `<li><span class="pt-q">${esc(q.ask === 'm' ? q.w.word : q.w.meaning)}</span><span class="pt-a">${key ? esc(q.ask === 'm' ? q.w.meaning : q.w.word) : ''}</span></li>`;
+    const head = `<div class="pt-head"><h1>${esc(cat.name)}</h1><div class="pt-meta">${config.profile && config.profile.school ? `<span>${esc(config.profile.school)}</span>` : ''}<span>학번 __________</span><span>이름 ________________</span><span>날짜 ____________</span><span>점수 ______ / ${qs.length}</span></div><p class="pt-guide">${type === 'm' ? `${LN()} 단어의 뜻을 쓰세요.` : type === 'w' ? `우리말 뜻에 맞는 ${LN()} 단어를 쓰세요.` : `${LN()} 단어는 뜻을, 우리말은 ${LN()} 단어를 쓰세요.`}</p></div>`;
+    let el = $('printArea'); if (!el) { el = document.createElement('div'); el.id = 'printArea'; document.body.appendChild(el); }
+    el.innerHTML = `${head}<ol class="pt-list">${qs.map((q, i) => row(q, i, false)).join('')}</ol>` +
+      ($('ptKey') && $('ptKey').checked ? `<div class="pt-key"><div class="pt-head"><h1>${esc(cat.name)} · 정답</h1></div><ol class="pt-list key">${qs.map((q, i) => row(q, i, true)).join('')}</ol></div>` : '') +
+      '<div class="pt-foot">VocaPro 단어 시험지</div>';
     closeSheet();
-    if (allWords().length < 4) return say('시험과 뜻 고르기는 전체 단어가 4개 이상 있어야 해요.');
-    if (a.kind === 'test') startSession('test', { type: 'cat', id: cat.id }, Math.min(a.n || 20, cat.words.length));
-    else startSession('choice', { type: 'cat', id: cat.id }, 0);
-    if (S.active) S.assign = { id: a.id, title: a.title };
+    document.body.classList.add('printing');
+    const done = () => { document.body.classList.remove('printing'); window.removeEventListener('afterprint', done); };
+    window.addEventListener('afterprint', done);
+    setTimeout(() => { try { window.print(); } catch (e) { toast('이 기기에서는 인쇄를 열 수 없어요.'); } setTimeout(done, 1500); }, 80);
   };
-  async function clSubmit(asg, ok, n, sec, wrong) {
-    const box = document.createElement('div'); box.className = 'cl-sub'; box.textContent = `'${asg.title}' 결과를 선생님에게 보내는 중...`;
-    const res = document.querySelector('#stBody .result'); if (res) res.insertBefore(box, res.firstChild);
-    try {
-      const r = await Cloud.call('voca_assign_submit', { p_assign: asg.id, p_ok: ok, p_n: Math.max(1, n), p_sec: sec, p_wrong: wrong.slice(0, 100) });
-      box.classList.add('ok'); box.textContent = `과제를 제출했어요. 이번 ${r.score}점${r.tries > 1 ? `, 최고 ${r.best}점(${r.tries}번째)` : ''}`;
-      const c = clCache(); if (r.tries === 1 && c.pending > 0) { c.pending--; try { LS.setItem(clKey(), JSON.stringify(c)); } catch (e) {} }
-      clReport(true);
-    } catch (e) { box.classList.add('bad'); box.textContent = '제출하지 못했어요. ' + clMsg(e) + ' 과제를 다시 풀면 다시 제출돼요.'; }
-  }
-
-  /* ----- 학생: 학습 요약 올리기 ----- */
-  let clLastReport = 0;
-  async function clReport(force) {
-    if (!clOk() || isTeacher() && !force) return;
-    if (!clCache().joined) return;
-    if (!force && Date.now() - clLastReport < 180000) return;
-    clLastReport = Date.now();
-    const c = counts(); let n7 = 0, ok7 = 0, last = '';
-    for (let i = 0; i < 7; i++) { const d = stats.days[dayKey(addDays(startOfDay(), -i))]; if (d) { n7 += d.n || 0; ok7 += d.ok || 0; } }
-    Object.keys(stats.days).forEach(k => { if ((stats.days[k].n || 0) > 0 && k > last) last = k; });
-    const weak = allWords().filter(x => x.w.miss > 0).sort((a, b) => b.w.miss - a.w.miss).slice(0, 10).map(x => [x.w.word.slice(0, 60), (x.w.meaning || '').slice(0, 40), x.w.miss]);
-    const tests = (stats.tests || []).slice(-5).reverse().map(t => [t.d, Math.round(t.ok / t.n * 100), String(t.src || '').slice(0, 40)]);
-    const p = { total: c.total, mastered: c.mastered, due: c.due, streak: streak(), today: (stats.days[dayKey()] || { n: 0 }).n, n7, acc7: n7 ? Math.round(ok7 / n7 * 100) : null, last, weak, tests, at: Date.now() };
-    try { await Cloud.call('voca_class_report', { p_progress: p }); } catch (e) {}
-  }
 
   /* =========================================================
-   * 우리 반 실시간 (학생 접속·학습 상태 -> 선생님 실시간 화면)
+   * 선생님 수업 도구 · 수업용 큰 화면
    * ======================================================= */
-  let clPingAt = 0, clPingOff = false;
-  function clLiveState() {
-    const t = (stats.days[dayKey()] || { n: 0 }).n;
-    if (document.visibilityState === 'hidden') return { s: 'away', t };
-    if (S && S.active) {
-      const base = { m: S.mode, i: Math.min(S.idx, S.total), n: S.total, ok: S.ok, no: S.no, src: String(srcLabel(S.src) || '').slice(0, 40), a: S.assign ? String(S.assign.title).slice(0, 60) : '' };
-      return Object.assign({ s: S.finished ? 'done' : 'study', t }, base);
-    }
-    return { s: 'app', t };
+  const TEACH = [
+    ['present', IC.play, 'i-mint', '수업용 큰 화면', '칠판이나 TV에 단어를 크게 띄워요'],
+    ['book-print', IC.print, 'i-teal', '단어 시험지 만들기', '인쇄하거나 PDF로 나눠 줘요'],
+    ['book-share', IC.book, 'i-grape', '단어장 링크 공유', '학생들이 링크 하나로 받아 가요'],
+    ['exam-open', IC.trophy, 'i-coral', '실전 시험 미리 풀기', '학생이 보는 시험을 직접 확인해요']
+  ];
+  function teachToolsHtml() {
+    return `<div class="section-title"><span>수업 도구</span></div>${classEntryHtml() ? `<div class="tool-list cl-entry">${classEntryHtml()}</div>` : ''}<div class="teach-grid">${TEACH.map(([k, ic, c, t, d]) => `<button class="teach-card" data-act="teach" data-next="${k}"><span class="mg-ico ${c}">${ic}</span><b>${t}</b><small>${d}</small></button>`).join('')}</div>`;
   }
-  async function clPing(force) {
-    if (clPingOff || !clOk() || isTeacher() || !clCache().joined) return;
-    const now = Date.now(); if (!force && now - clPingAt < 5000) return; clPingAt = now;
-    try { await Cloud.call('voca_class_ping', { p_live: clLiveState() }); }
-    catch (e) { if (e && e.code === 'missing') clPingOff = true; }
-  }
-  setInterval(() => { if (document.visibilityState !== 'hidden') clPing(true); }, 15000);
-  document.addEventListener('visibilitychange', () => clPing(true));
-
-  let LV = null;
-  const LV_MODE = m => (MODES[m] && MODES[m].name) || '학습';
-  function lvStatus(m) {
-    const l = m.live || {}, ago = m.ago;
-    if (ago == null) return { k: 'off', t: '아직 접속 기록 없음' };
-    if (ago > 60 || l.s === 'away') return { k: ago > 60 ? 'off' : 'away', t: ago > 3600 ? (ago > 86400 ? `${Math.floor(ago / 86400)}일 전 접속` : `${Math.floor(ago / 3600)}시간 전 접속`) : ago > 60 ? `${Math.floor(ago / 60)}분 전 접속` : '잠시 다른 화면' };
-    if (l.s === 'study') return { k: 'study', t: `${l.a ? l.a + ' · ' : ''}${LV_MODE(l.m)} ${l.i}/${l.n}`, p: l.n ? l.i / l.n : 0, ok: l.ok, no: l.no };
-    if (l.s === 'done') { const f = (l.ok || 0) + (l.no || 0); return { k: 'on', t: `${l.a ? l.a + ' · ' : ''}${LV_MODE(l.m)} 끝냄${f ? ` · 정답 ${Math.round((l.ok || 0) / f * 100)}%` : ''}` }; }
-    return { k: 'on', t: '앱을 보고 있어요' };
-  }
-  ACTIONS['cl-live'] = async () => {
-    const id = CLV.id; if (!id) return;
-    closeSheet();
-    const ov = document.createElement('div'); ov.id = 'lvOv'; ov.className = 'pv lv'; document.body.appendChild(ov); document.body.classList.add('no-scroll');
-    LV = { id, seen: new Map(), feed: [], timer: null, first: true };
-    ov.innerHTML = `<div class="cl-load">${MASCOT('think')}<span>학생들을 불러오는 중...</span></div>`;
-    await lvTick();
-    LV && (LV.timer = setInterval(lvTick, 5000));
+  ACTIONS.teach = el => {
+    const next = el.dataset.next, books = categories.filter(c => c.words.length);
+    if (next === 'exam-open') return ACTIONS['exam-open']();
+    if (!books.length) return toast('먼저 단어장에 단어를 담아 주세요. 기초 · 중학교 · 고등학교 · 수능 단어에서 바로 담을 수 있어요.');
+    const t = TEACH.find(x => x[0] === next);
+    openSheet(t ? t[3] : '단어장 고르기', `<p class="muted" style="margin:0 0 12px;font-size:.88rem;">어떤 단어장으로 할까요?</p><div class="menu-list">${books.map(c => `<button data-act="teach-go" data-id="${esc(c.id)}" data-next="${esc(next)}">${esc(c.name)} <span class="muted">· ${c.words.length}개</span></button>`).join('')}</div>`);
   };
-  function lvClose() { if (!LV) return; clearInterval(LV.timer); LV = null; const o = $('lvOv'); if (o) o.remove(); document.body.classList.remove('no-scroll'); }
-  ACTIONS['lv-close'] = () => { const id = CLV.id; lvClose(); if (id) clDetail(id, true); };
-  document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('lvOv') && !document.querySelector('.dlg-ov')) { e.stopImmediatePropagation(); ACTIONS['lv-close'](); } }, true);
-  async function lvTick() {
-    if (!LV) return; const lv = LV;
-    let r; try { r = await Cloud.call('voca_class_live', { p_class: lv.id }); }
-    catch (e) {
-      if (LV !== lv) return;
-      const o = $('lvOv'); if (o && (lv.first || e.code === 'missing')) { clearInterval(lv.timer); o.innerHTML = `<div class="lv-top"><b>실시간 보기</b><button class="icon-btn" data-act="lv-close" aria-label="닫기">${IC.x}</button></div><div class="cl-load">${MASCOT('sleep')}<span>${esc(e.code === 'missing' ? '실시간 보기는 서버 설정(supabase_update_v7.sql)을 마치면 쓸 수 있어요.' : clMsg(e))}</span></div>`; }
-      return;
-    }
-    if (LV !== lv) return;
-    const list = r.members.map(m => Object.assign(m, { st: lvStatus(m) }));
-    list.forEach(m => {
-      const was = lv.seen.get(m.uid), on = m.st.k === 'on' || m.st.k === 'study';
-      if (!lv.first && on && was !== true) { m.arrive = true; lv.feed.unshift([Date.now(), `${m.name || '학생'} 학생이 들어왔어요`]); }
-      if (!lv.first && m.st.k === 'study' && m.live.i === 0 && m.live.n) { const k = 'start:' + m.uid + ':' + m.live.a + m.live.m; if (!lv.seen.has(k)) { lv.seen.set(k, 1); lv.feed.unshift([Date.now(), `${m.name || '학생'} 학생 '${m.live.a || LV_MODE(m.live.m)}' 시작`]); } }
-      lv.seen.set(m.uid, on);
-    });
-    lv.feed = lv.feed.slice(0, 6); lv.first = false;
-    const on = list.filter(m => m.st.k === 'on' || m.st.k === 'study').length, study = list.filter(m => m.st.k === 'study').length;
-    const order = { study: 0, on: 1, away: 2, off: 3 };
-    list.sort((a, b) => order[a.st.k] - order[b.st.k] || String(a.sno).localeCompare(String(b.sno)) || String(a.name).localeCompare(String(b.name)));
-    const c = r.class, o = $('lvOv'); if (!o) return;
-    o.innerHTML = `<div class="lv-top"><div class="lv-title"><small>${esc(c.school || '')}</small><b>${esc(c.name)} 실시간</b></div>
-        <div class="lv-nums"><span><b>${on}</b>접속</span><span><b>${study}</b>공부 중</span><span><b>${list.length}</b>전체</span></div>
-        <div class="lv-code"><small>초대 코드</small><b>${esc(c.code)}</b></div>
-        <button class="icon-btn" data-act="lv-close" aria-label="닫기">${IC.x}</button></div>
-      ${lv.feed.length ? `<div class="lv-feed">${lv.feed.map(([t, s]) => `<span>${esc(s)} <small>${new Date(t).toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit' })}</small></span>`).join('')}</div>` : ''}
-      ${list.length ? `<div class="lv-grid">${list.map(m => `<div class="lv-card k-${m.st.k}${m.arrive ? ' arrive' : ''}"><div class="lv-name"><i></i><b>${esc(m.name || '이름 없음')}</b><small>${esc(m.sno || '')}</small></div>
-          <div class="lv-act">${esc(m.st.t)}</div>
-          ${m.st.k === 'study' ? `<div class="lv-bar"><div style="width:${Math.round(m.st.p * 100) || 0}%"></div></div><div class="lv-ok"><span class="ok">맞음 ${esc(m.st.ok || 0)}</span><span class="no">틀림 ${esc(m.st.no || 0)}</span></div>` : ''}
-          <div class="lv-today">오늘 ${Math.max(+m.today || 0, +(m.live && m.live.t) || 0)}단어</div></div>`).join('')}</div>`
-        : `<div class="cl-load">${MASCOT('happy')}<span>아직 들어온 학생이 없어요. 초대 코드 <b>${esc(c.code)}</b>를 칠판에 적어 주세요.</span></div>`}
-      <div class="lv-foot">5초마다 새로 고쳐요. 학생 앱이 열려 있으면 '접속'으로 보여요.</div>`;
+  ACTIONS['teach-go'] = el => { currentCategoryId = el.dataset.id; closeSheet(); const f = ACTIONS[el.dataset.next]; setTimeout(() => f && f(), 60); };
+
+  let PV = null;
+  ACTIONS.present = () => {
+    const cat = curCat(); if (!cat || !cat.words.length) return toast('단어를 먼저 담아 주세요.');
+    PV = { name: cat.name, list: cat.words.slice(), i: 0, show: false };
+    const ov = document.createElement('div'); ov.id = 'pvOv'; ov.className = 'pv'; document.body.appendChild(ov); document.body.classList.add('no-scroll');
+    try { const d = document.documentElement; if (d.requestFullscreen && matchMedia('(min-width: 900px)').matches) d.requestFullscreen().catch(() => {}); } catch (e) {}
+    pvDraw();
+  };
+  function pvDraw() {
+    const ov = $('pvOv'); if (!ov || !PV) return;
+    const w = PV.list[PV.i], n = PV.list.length;
+    ov.innerHTML = `<div class="pv-top"><span class="pv-name">${esc(PV.name)}</span><span class="pv-n">${PV.i + 1} / ${n}</span><button class="pv-x" data-pv="x" aria-label="닫기">${IC.x}</button></div>
+      <div class="pv-bar"><i style="width:${(PV.i + 1) / n * 100}%"></i></div>
+      <div class="pv-main" data-pv="flip">
+        <div class="pv-word">${esc(w.word)}</div>
+        <div class="pv-pron">${esc(pronText(w))}</div>
+        <div class="pv-back ${PV.show ? 'on' : ''}">${PV.show ? `<div class="pv-mean">${esc(w.meaning)}</div>${w.example ? `<div class="pv-ex">${esc(w.example)}${w.exampleKo ? `<small>${esc(w.exampleKo)}</small>` : ''}</div>` : ''}` : '<div class="pv-hint">눌러서 뜻 보기</div>'}</div>
+      </div>
+      <div class="pv-foot"><button data-pv="prev" aria-label="이전">${IC.prev}</button><button data-pv="say" aria-label="발음 듣기">${IC.speaker}</button><button class="pv-main-btn" data-pv="flip">${PV.show ? '뜻 숨기기' : '뜻 보기'}</button><button data-pv="mix" aria-label="섞기">${IC.shuffle}</button><button data-pv="next" aria-label="다음">${IC.next}</button></div>
+      <div class="pv-keys"><span><kbd>Space</kbd>뜻</span><span><kbd>← →</kbd>이동</span><span><kbd>S</kbd>발음</span><span><kbd>Esc</kbd>닫기</span></div>`;
   }
+  function pvDo(k) {
+    if (!PV) return;
+    if (k === 'x') { const ov = $('pvOv'); if (ov) ov.remove(); PV = null; if (!$('sheetOv').classList.contains('open') && !S.active) document.body.classList.remove('no-scroll'); try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) {} return; }
+    if (k === 'flip') PV.show = !PV.show;
+    else if (k === 'next') { if (PV.i < PV.list.length - 1) { PV.i++; PV.show = false; } else return toast('마지막 단어예요.'); }
+    else if (k === 'prev') { if (PV.i > 0) { PV.i--; PV.show = false; } }
+    else if (k === 'mix') { PV.list = shuffled(PV.list); PV.i = 0; PV.show = false; toast('순서를 섞었어요.'); }
+    else if (k === 'say') { playAudio(PV.list[PV.i].word); return; }
+    pvDraw();
+  }
+  document.addEventListener('click', e => { const b = e.target.closest('[data-pv]'); if (b && $('pvOv')) { e.preventDefault(); pvDo(b.dataset.pv); } });
+  document.addEventListener('keydown', e => {
+    if (!$('pvOv') || e.ctrlKey || e.metaKey || e.altKey) return;
+    const m = { Escape: 'x', ' ': 'flip', Enter: 'flip', ArrowRight: 'next', ArrowLeft: 'prev', ArrowDown: 'flip', ArrowUp: 'flip', s: 'say', S: 'say' }[e.key];
+    if (m) { e.preventDefault(); e.stopImmediatePropagation(); pvDo(m); }
+  }, true);
+
+  /* =========================================================
+   * 단어장 공유 (링크 하나로 반 친구, 선생님과 나눠요)
+   * ======================================================= */
+  const b64u = u8 => { let s = ''; for (let i = 0; i < u8.length; i += 8192) s += String.fromCharCode.apply(null, u8.subarray(i, i + 8192)); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
+  const unb64u = t => { const s = atob(t.replace(/-/g, '+').replace(/_/g, '/')); const u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return u; };
+  async function zipBytes(u8, inflate) {
+    const cs = inflate ? new DecompressionStream('deflate-raw') : new CompressionStream('deflate-raw');
+    return new Uint8Array(await new Response(new Blob([u8]).stream().pipeThrough(cs)).arrayBuffer());
+  }
+  async function shareEncode(cat) {
+    const raw = new TextEncoder().encode(JSON.stringify({ n: cat.name, w: cat.words.map(w => [w.word, w.meaning]) }));
+    if (typeof CompressionStream === 'function') { try { return 'z' + b64u(await zipBytes(raw)); } catch (e) {} }
+    return 'j' + b64u(raw);
+  }
+  async function shareDecode(code) {
+    const t = String(code || ''), body = unb64u(t.slice(1));
+    const raw = t[0] === 'z' ? await zipBytes(body, true) : body;
+    const o = JSON.parse(new TextDecoder().decode(raw));
+    const words = (Array.isArray(o.w) ? o.w : []).filter(a => Array.isArray(a) && a[0] && a[1]).slice(0, 2000).map(a => [String(a[0]).slice(0, 80), String(a[1]).slice(0, 200)]);
+    if (!words.length) throw new Error('empty');
+    return { name: String(o.n || '공유받은 단어장').slice(0, 40), words };
+  }
+  ACTIONS['book-share'] = async () => {
+    const cat = curCat(); if (!cat) return;
+    if (!cat.words.length) return toast('단어를 먼저 담아 주세요.');
+    const url = location.origin + location.pathname + '#s=' + await shareEncode(cat);
+    openSheet('단어장 공유', `<div class="form-stack">
+      <div class="share-card"><span class="mg-ico i-mint">${IC.book}</span><div><b>${esc(cat.name)}</b><small>단어 ${cat.words.length}개 · 받는 사람도 VocaPro에서 바로 공부할 수 있어요</small></div></div>
+      <input id="shareUrl" readonly value="${esc(url)}" data-act="select-all">
+      <div class="row"><button class="btn btn-soft" data-act="share-copy">링크 복사</button>${navigator.share ? '<button class="btn btn-primary" data-act="share-send">보내기</button>' : ''}</div>
+      <p class="muted" style="font-size:.78rem;line-height:1.6;margin:0;">링크 안에 단어와 뜻이 들어 있어요. 서버에 따로 저장되지 않고, 학습 기록은 함께 보내지 않아요.${url.length > 8000 ? ' 단어가 많아서 링크가 길어요. 메신저에 따라 잘릴 수 있으니 CSV 내보내기도 함께 써 보세요.' : ''}</p></div>`);
+  };
+  ACTIONS['share-copy'] = async () => { const i = $('shareUrl'); if (!i) return; try { await navigator.clipboard.writeText(i.value); toast('링크를 복사했어요.'); } catch (e) { i.select(); toast('링크를 길게 눌러 복사해 주세요.'); } };
+  ACTIONS['share-send'] = async () => { const i = $('shareUrl'), cat = curCat(); if (!i) return; try { await navigator.share({ title: 'VocaPro 단어장', text: `${cat ? cat.name : '단어장'} (VocaPro)`, url: i.value }); } catch (e) {} };
+
+  // 공유 링크로 들어오면: 로그인 뒤에 담을지 물어봐요
+  const SHARE_KEY = 'vocapro_share_in';
+  (function shareCapture() {
+    try {
+      const m = location.hash.match(/^#s=([A-Za-z0-9_-]+)$/); if (!m) return;
+      sessionStorage.setItem(SHARE_KEY, m[1]); history.replaceState(null, '', location.pathname + location.search);
+    } catch (e) {}
+  })();
+  let shareWait = 0;
+  function shareCheck() {
+    let code = ''; try { code = sessionStorage.getItem(SHARE_KEY) || ''; } catch (e) {}
+    if (!code || !currentUser) return;
+    clearTimeout(shareWait);
+    if ($('pfOv') || $('obOv') || $('ltOv') || document.querySelector('#recOv.show') || $('sheetOv').classList.contains('open') || S.active) { shareWait = setTimeout(shareCheck, 800); return; }
+    shareDecode(code).then(d => {
+      shareIn = d;
+      openSheet('공유받은 단어장', `<div class="form-stack">
+        <div class="share-card"><span class="mg-ico i-mint">${IC.book}</span><div><b>${esc(d.name)}</b><small>단어 ${d.words.length}개</small></div></div>
+        <div class="share-prev">${d.words.slice(0, 8).map(([w, m]) => `<div><b>${esc(w)}</b><span>${esc(m)}</span></div>`).join('')}${d.words.length > 8 ? `<div class="muted">외 ${d.words.length - 8}개</div>` : ''}</div>
+        <button class="btn btn-primary btn-block" data-act="share-take">내 단어장으로 담기</button>
+        <button class="btn btn-soft btn-block" data-act="share-skip">담지 않기</button></div>`);
+    }).catch(() => { try { sessionStorage.removeItem(SHARE_KEY); } catch (e) {} toast('공유 링크를 읽지 못했어요. 링크가 잘리지 않았는지 확인해 주세요.'); });
+  }
+  let shareIn = null;
+  ACTIONS['share-skip'] = () => { try { sessionStorage.removeItem(SHARE_KEY); } catch (e) {} shareIn = null; closeSheet(); };
+  ACTIONS['share-take'] = async el => {
+    const d = shareIn; if (!d) return; el.disabled = true; el.textContent = '담는 중...';
+    try { sessionStorage.removeItem(SHARE_KEY); } catch (e) {}
+    await dictPreload(d.words.map(a => a[0]));
+    let nm = d.name, k = 2; while (categories.some(c => c.name === nm)) nm = `${d.name} (${k++})`;
+    const cat = { id: 'c' + uid(), name: nm, words: [] }, seen = new Set();
+    for (const [w, m] of d.words) {
+      if (seen.has(w.toLowerCase())) continue; seen.add(w.toLowerCase());
+      let full = null; try { full = await dictGet(w); } catch (e) {}
+      cat.words.push(sanitizeWord({ ...(full || {}), id: uid(), word: w, meaning: m }));
+    }
+    categories.push(cat); syncStorage(); shareIn = null; closeSheet();
+    toast(`'${nm}' 단어장에 ${cat.words.length}개를 담았어요.`);
+    try { openBook(cat.id); } catch (e) { go('tabBooks'); }
+  };
 

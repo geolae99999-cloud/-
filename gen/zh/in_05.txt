@@ -1,0 +1,250 @@
+5	不得了	bù dé liǎo	desperately serious; disastrous; extremely
+5	不断	bù duàn	unceasing; uninterrupted; continuous
+5	不好意思	bù hǎo yì si	to feel embarrassed; to find it embarrassing; to be sorry (for inconveniencing sb)
+5	不见得	bù jiàn de	not necessarily; not likely
+5	不免	bù miǎn	inevitably
+5	不耐烦	bù nài fán	impatient; to lose patience
+5	不然	bù rán	not so; no; or else
+5	不如	bù rú	not equal to; not as good as; inferior to
+5	不要紧	bù yào jǐn	unimportant; not serious; it doesn't matter
+5	不足	bù zú	insufficient; lacking; deficiency
+5	布	bù	variant of 布; to announce; to spread
+5	步骤	bù zhòu	procedure; step
+5	部门	bù mén	department; branch; section
+5	财产	cái chǎn	property; assets; estate
+5	采访	cǎi fǎng	to interview; to gather news; to hunt for and collect
+5	采取	cǎi qǔ	to adopt or carry out (measures, policies, course of action); to take
+5	彩虹	cǎi hóng	rainbow
+5	踩	cǎi	variant of 踩; to step on; to tread
+5	参考	cān kǎo	consultation; reference; to consult
+5	参与	cān yù	to participate (in sth)
+5	餐厅	cān tīng	dining hall; dining room; restaurant
+5	残疾	cán jí	disabled; handicapped; deformity on a person or animal
+5	惭愧	cán kuì	ashamed
+5	操场	cāo chǎng	playground; sports field; drill ground
+5	操心	cāo xīn	to worry about
+5	册	cè	book; booklet; classifier for books
+5	厕所	cè suǒ	toilet; lavatory
+5	测验	cè yàn	test; to test
+5	曾经	céng jīng	once; already; former
+5	叉子	chā zi	fork
+5	插	chā	to insert; stick in; pierce
+5	差别	chā bié	difference; distinction; disparity
+5	拆	chāi	to tear open; to tear down; to tear apart
+5	产品	chǎn pǐn	goods; merchandise; product
+5	产生	chǎn shēng	to arise; to come into being; to come about; to give rise to; to bring into being; to brin
+5	常识	cháng shí	common sense; general knowledge
+5	抄	chāo	to make a copy; to plagiarize; to search and seize
+5	朝	Cháo | cháo | zhāo	abbr. for 朝鲜 Korea; imperial or royal court; government
+5	朝代	cháo dài	dynasty; reign (of a king)
+5	吵架	chǎo jià	to quarrel; to have a row; quarrel
+5	炒	chǎo	to sauté; to stir-fry; to speculate
+5	车库	chē kù	garage
+5	车厢	chē xiāng	carriage
+5	彻底	chè dǐ	thorough; thoroughly; complete
+5	沉默	chén mò	taciturn; uncommunicative; silent
+5	趁	chèn	to avail oneself of; to take advantage of; old variant of 趁
+5	称呼	chēng hu	to call; to address as; form of address; appellation
+5	称赞	chēng zàn	to praise; to acclaim; to commend
+5	成分	chéng fèn	composition; ingredient; element; component; one's social status
+5	成果	chéng guǒ	result; achievement; gain
+5	成就	chéng jiù	accomplishment; success; achievement
+5	成立	chéng lì	to establish; to set up; to be tenable
+5	成语	chéng yǔ	Chinese set expression, typically of 4 characters, often alluding to a story or historical
+5	成长	chéng zhǎng	to mature; to grow; growth
+5	承担	chéng dān	to undertake; to assume (responsibility etc)
+5	承认	chéng rèn	to admit; to concede; to recognize
+5	承受	chéng shòu	to bear; to support; to inherit
+5	诚恳	chéng kěn	sincere; honest; cordial
+5	乘	Chéng | chéng | shèng	surname Cheng; to ride; to mount
+5	程度	chéng dù	degree; level; extent
+5	程序	chéng xù	procedures; sequence; order
+5	吃亏	chī kuī	to suffer losses; to come to grief; to lose out
+5	池子	chí zi	pond; bathhouse pool; dance floor of a ballroom
+5	持续	chí xù	to continue; to persist; to last
+5	尺子	chǐ zi	ruler (measuring instrument)
+5	翅膀	chì bǎng	wing
+5	充电器	chōng diàn qì	battery charger
+5	充分	chōng fèn	ample; sufficient; adequate
+5	充满	chōng mǎn	full of; brimming with; very full
+5	冲	chōng | chòng	(of water) to dash against; to mix with water; to infuse
+5	宠物	chǒng wù	house pet
+5	抽屉	chōu ti	drawer
+5	抽象	chōu xiàng	abstract; abstraction
+5	丑	Chǒu | chǒu	surname Chou; clown; 2nd earthly branch: 1-3 a.m., 12th solar month (6th January to 3rd Fe
+5	臭	chòu | xiù	stench; smelly; to smell (bad)
+5	出版	chū bǎn	to publish
+5	出口	chū kǒu	an exit; to speak; to export
+5	出色	chū sè	remarkable; outstanding
+5	出席	chū xí	to attend; to participate; present
+5	初级	chū jí	junior; primary
+5	除	chú	to get rid of; to remove; to exclude
+5	除非	chú fēi	only if (..., or otherwise, ...); only when; only in the case that
+5	除夕	Chú xī	lunar New Year's Eve
+5	处理	chǔ lǐ	to handle; to deal with; to punish; to treat sth by a special process; to process
+5	传播	chuán bō	to disseminate; to propagate; to spread
+5	传递	chuán dì	to transmit; to pass on to sb else; (math.) transitive
+5	传染	chuán rǎn	to infect; contagious
+5	传说	chuán shuō	legend; folk tale; to repeat from mouth to mouth; they say that...
+5	传统	chuán tǒng	tradition; traditional; convention
+5	窗帘	chuāng lián	window curtains
+5	闯	chuǎng	to rush; to charge; to dash
+5	创造	chuàng zào	to create; to bring about; to produce
+5	吹	chuī	to blow; to play a wind instrument; to blast
+5	辞职	cí zhí	to resign
+5	磁带	cí dài	magnetic tape
+5	此外	cǐ wài	besides; in addition; moreover
+5	次要	cì yào	secondary
+5	刺激	cì jī	to provoke; to irritate; to upset; to stimulate; to excite; irritant
+5	匆忙	cōng máng	hasty; hurried
+5	从此	cóng cǐ	from now on; since then; henceforth
+5	从而	cóng ér	thus; thereby
+5	从前	cóng qián	previously; formerly; once upon a time
+5	从事	cóng shì	to go for; to engage in; to undertake
+5	促进	cù jìn	to promote (an idea or cause); to advance; boost
+5	促使	cù shǐ	to induce; to promote; to urge
+5	醋	cù	vinegar; jealousy (in love rivalry)
+5	催	cuī	to urge; to press; to prompt
+5	存	cún	to exist; to deposit; to store
+5	存在	cún zài	to exist; to be; existence
+5	措施	cuò shī	measure; step
+5	错误	cuò wù	mistaken; false; wrong; error; mistake
+5	达到	dá dào	to reach; to achieve; to attain
+5	答应	dā ying	to answer; to respond; to answer positively; to agree; to accept; to promise
+5	打工	dǎ gōng	to work a temporary or casual job; (of students) to have a job outside of class time, or d
+5	打交道	dǎ jiāo dào	to come into contact with; to have dealings
+5	打喷嚏	dǎ pēn tì	to sneeze
+5	打听	dǎ ting	to ask about; to make some inquiries; to ask around
+5	打招呼	dǎ zhāo hu	to greet sb by word or action; to give prior notice
+5	大方	dà fāng | dà fang	expert; scholar; mother earth
+5	大象	dà xiàng	elephant
+5	大型	dà xíng	large; large-scale
+5	呆	dāi	foolish; stupid; expressionless
+5	待遇	dài yù	treatment; pay; salary
+5	贷款	dài kuǎn	a loan; to provide a loan (e.g. bank); to raise a loan (from e.g. a bank)
+5	单纯	dān chún	simple; pure; unsophisticated
+5	单调	dān diào	monotonous
+5	单独	dān dú	alone; by oneself; on one's own
+5	单位	dān wèi	unit (of measure); unit (group of people as a whole); work unit (place of employment, esp.
+5	单元	dān yuán	unit (forming an entity); element; (in a residential building) entrance or staircase
+5	担任	dān rèn	to hold a governmental office or post; to assume office of; to take charge of
+5	耽误	dān wu	to delay; to hold up; to waste time
+5	胆小鬼	dǎn xiǎo guǐ	coward
+5	淡	dàn	insipid; diluted; weak
+5	当代	dāng dài	the present age; the contemporary era
+5	挡	dǎng | dàng	to resist; to obstruct; to hinder
+5	导演	dǎo yǎn	to direct; director (film etc)
+5	导致	dǎo zhì	to lead to; to create; to cause
+5	岛	dǎo	variant of 岛; island
+5	到达	dào dá	to reach; to arrive
+5	倒	dǎo | dào	to fall; to collapse; to lie horizontally; to fail; to go bankrupt; to overthrow
+5	倒霉	dǎo méi	to have bad luck; to be out of luck
+5	道德	dào dé	virtue; morality; ethics
+5	道理	dào li	reason; argument; sense
+5	地道	dì dào | dì dao	tunnel; causeway; authentic
+5	地理	dì lǐ	geography
+5	地区	dì qū	local; regional; district (not necessarily formal administrative unit)
+5	地毯	dì tǎn	carpet; rug
+5	地位	dì wèi	position; status; place
+5	地震	dì zhèn	earthquake
+5	的确	dí què	really; indeed
+5	登机牌	dēng jī pái	boarding pass
+5	登记	dēng jì	to register (one's name)
+5	等待	děng dài	to wait; to wait for
+5	等候	děng hòu	to wait; to wait for
+5	等于	děng yú	to equal; to be tantamount to
+5	滴	dī	a drop; to drip
+5	敌人	dí rén	enemy
+5	递	dì	to hand over; to pass on; to deliver; (bound form) progressively; in the proper order
+5	点头	diǎn tóu	to nod
+5	点心	diǎn xin	light refreshments; pastry; dim sum (in Cantonese cooking)
+5	电池	diàn chí	battery
+5	电台	diàn tái	transmitter-receiver; broadcasting station; radio station
+5	钓	diào	to fish with a hook and bait
+5	调皮	tiáo pí	naughty; mischievous; unruly
+5	调整	tiáo zhěng	to adjust; adjustment; revision
+5	丁	Dīng | dīng	surname Ding; male adult; the 4th of the 10 Heavenly Stems 干
+5	顶	dǐng	apex; crown of the head; top
+5	动画片	dòng huà piàn	animated film
+5	冻	dòng	to freeze; to feel very cold; aspic or jelly
+5	洞	dòng	cave; hole; zero (unambiguous spoken form when spelling out numbers)
+5	豆腐	dòu fu	tofu; bean curd
+5	逗	dòu	to tease (playfully); to entice; (coll.) to joke; (coll.) funny; amusing
+5	独立	dú lì	independent; independence; to stand alone
+5	独特	dú tè	unique; distinctive
+5	度过	dù guò	to pass; to spend (time); to survive
+5	短信	duǎn xìn	text message; SMS
+5	堆	duī	to pile up; to heap up; a mass
+5	对比	duì bǐ	to contrast; contrast; ratio
+5	对待	duì dài	to treat; treatment
+5	对方	duì fāng	the other person; the other side; the other party
+5	对手	duì shǒu	opponent; rival; competitor
+5	对象	duì xiàng	target; object; partner; boyfriend; girlfriend
+5	对于	duì yú	regarding; as far as (sth) is concerned; with regard to
+5	吨	dūn	ton (loanword); Taiwan pr. [dùn]
+5	蹲	dūn	to crouch; to squat; to stay (somewhere)
+5	多亏	duō kuī	thanks to; luckily
+5	多余	duō yú	superfluous; unnecessary; surplus
+5	躲藏	duǒ cáng	to conceal oneself; to go into hiding; to take cover
+5	恶劣	è liè	vile; nasty; of very poor quality
+5	发表	fā biǎo	to issue; to publish
+5	发愁	fā chóu	to worry; to fret; to be anxious
+5	发达	fā dá	well-developed; flourishing; to develop; to promote; to expand; (literary) to achieve fame
+5	发抖	fā dǒu	to tremble; to shake; to shiver
+5	发挥	fā huī	to display; to exhibit; to bring out implicit or innate qualities
+5	发明	fā míng	to invent; an invention
+5	发票	fā piào	invoice; receipt or bill for purchase
+5	发言	fā yán	to make a speech; statement; utterance
+5	罚款	fá kuǎn	to fine; penalty; fine (monetary)
+5	法院	fǎ yuàn	court of law; court
+5	翻	fān	to turn over; to flip over; to overturn
+5	凡是	fán shì	each and every; every; all
+5	繁荣	fán róng	prosperous; booming (economy)
+5	反而	fǎn ér	on the contrary; instead
+5	反复	fǎn fù	variant of 反复; repeatedly; over and over
+5	反应	fǎn yìng	to react; to respond; reaction
+5	反正	fǎn zhèng	anyway; in any case; to come over from the enemy's side
+5	方	Fāng | fāng	surname Fang; square; power or involution (math.)
+5	方案	fāng àn	plan; program (for action etc); proposal
+5	方式	fāng shì	way; manner; style; mode; pattern
+5	妨碍	fáng ài	to hinder; to obstruct
+5	房东	fáng dōng	landlord
+5	仿佛	fǎng fú	variant of 仿佛; to seem; as if
+5	放松	fàng sōng	to relax; to slacken; to loosen
+5	非	Fēi | fēi	abbr. for 洲, Africa; to not be; not; wrong; incorrect
+5	肥皂	féi zào	soap
+5	废话	fèi huà	nonsense; rubbish; superfluous words
+5	肺	fèi	lung
+5	费用	fèi yòng	cost; expenditure; expense
+5	分别	fēn bié	to part; to leave each other; to distinguish; to tell apart; difference; distinction
+5	分布	fēn bù	to scatter; to distribute; to be distributed (over an area etc)
+5	分配	fēn pèi	to distribute; to assign; to allocate
+5	分析	fēn xī	to analyze; analysis
+5	纷纷	fēn fēn	one after another; in succession; one by one
+5	奋斗	fèn dòu	to strive; to struggle
+5	愤怒	fèn nù	angry; indignant; wrath
+5	风格	fēng gé	style
+5	风俗	fēng sú	social custom
+5	风险	fēng xiǎn	risk; hazard
+5	疯狂	fēng kuáng	crazy; frenzied; wild
+5	讽刺	fěng cì	to satirize; to mock; irony
+5	否定	fǒu dìng	to negate; to deny; to reject
+5	否认	fǒu rèn	to declare to be untrue; to deny
+5	扶	fú	to support with the hand; to help sb up; to support oneself by holding onto something
+5	服从	fú cóng	to obey (an order); to comply; to defer
+5	服装	fú zhuāng	dress; clothing; costume
+5	幅	fú	width; roll; classifier for textiles or pictures
+5	辅导	fǔ dǎo	to give guidance; to mentor; to counsel
+5	付款	fù kuǎn	to pay a sum of money; payment
+5	妇女	fù nǚ	woman
+5	复制	fù zhì	to duplicate; to make a copy of; to copy
+5	改革	gǎi gé	reform; to reform
+5	改进	gǎi jìn	to improve; to make better; improvement
+5	改善	gǎi shàn	to make better; to improve
+5	改正	gǎi zhèng	to correct; to amend; to put right
+5	盖	Gě | gài	surname Ge; lid; top
+5	概括	gài kuò	to summarize; to generalize; briefly; in broad outline
+5	概念	gài niàn	concept; idea
+5	赶紧	gǎn jǐn	hurriedly; without delay
+5	赶快	gǎn kuài	quickly; at once
+5	感激	gǎn jī	to be grateful; to appreciate; thankful

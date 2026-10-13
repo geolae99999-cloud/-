@@ -1,0 +1,250 @@
+5	看来	kàn lai	apparently; it seems that
+5	抗议	kàng yì	to protest; protest
+5	烤鸭	kǎo yā	roast duck
+5	颗	kē	classifier for small spheres, pearls, corn grains, teeth, hearts, satellites etc
+5	可见	kě jiàn	it can clearly be seen (that this is the case); it is (thus) clear; clear
+5	可靠	kě kào	reliable
+5	可怕	kě pà	awful; dreadful; fearful
+5	克	Kè | kè	abbr. for 克罗地亚, Croatia; (Tw) abbr. for 克罗埃西亚, Croatia; to be able to
+5	克服	kè fú	(try to) overcome (hardships etc); to conquer; to put up with
+5	刻苦	kè kǔ	hardworking; assiduous
+5	客观	kè guān	objective; impartial
+5	客厅	kè tīng	drawing room (room for arriving guests); living room
+5	课程	kè chéng	course; academic program
+5	空间	kōng jiān	space; room; (fig.) scope; leeway; (astronomy) outer space
+5	空闲	kòng xián	idle; free time; leisure
+5	恐怖	kǒng bù	terrible; frightful; frightening
+5	控制	kòng zhì	to control
+5	口味	kǒu wèi	a person's preferences; tastes (in food); flavor
+5	夸	kuā	used in 克; to boast; to exaggerate; to praise
+5	矿泉水	kuàng quán shuǐ	mineral water
+5	蜡烛	là zhú	candle
+5	辣椒	là jiāo	hot pepper; chili
+5	来自	lái zì	to come from (a place); From: (in email header)
+5	拦	lán	to block sb's path; to obstruct; to flag down (a taxi)
+5	烂	làn	soft; mushy; well-cooked and soft; to rot; to decompose
+5	狼	láng	wolf
+5	劳动	láo dòng	work; toil; physical labor
+5	劳驾	láo jià	excuse me
+5	老百姓	lǎo bǎi xìng	ordinary people; the "person in the street"
+5	老板	lǎo bǎn | Lǎo bǎn	variant of 老板; Robam (brand); boss
+5	老实	lǎo shi	honest; sincere; well-behaved; naive; gullible
+5	老鼠	lǎo shǔ	rat; mouse
+5	姥姥	lǎo lao	(coll.) mother's mother; maternal grandmother
+5	乐观	lè guān	optimistic; hopeful
+5	了不起	liǎo bu qǐ	amazing; terrific; extraordinary
+5	雷	Léi | léi	surname Lei; thunder; (bound form) (military) mine, as in 雷 land mine
+5	类	lèi	kind; type; class
+5	厘米	lí mǐ	centimeter
+5	离婚	lí hūn	to divorce
+5	梨	lí	pear
+5	礼拜天	Lǐ bài tiān	Sunday
+5	理论	lǐ lùn	theory; to argue; to take notice of
+5	理由	lǐ yóu	reason; grounds; justification
+5	力量	lì liang	power; force; strength
+5	立方	lì fāng	cube (math.); abbr. for 立方体; abbr. for 米
+5	立即	lì jí	immediately
+5	立刻	lì kè	forthwith; immediate; prompt
+5	利润	lì rùn	profits
+5	利息	lì xī	interest (on a loan)
+5	利益	lì yì	benefit; (in sb's) interest
+5	利用	lì yòng	to exploit; to make use of; to use
+5	粒	lì	grain; granule; classifier for small round things (peas, bullets, peanuts, pills, grains e
+5	连忙	lián máng	promptly; at once
+5	连续剧	lián xù jù	serialized drama; dramatic series; show in parts
+5	联合	lián hé	to combine; to join; unite
+5	恋爱	liàn ài	(romantic) love; in love; to have an affair
+5	良好	liáng hǎo	good; favorable; well
+5	粮食	liáng shi	foodstuff; cereals
+5	临时	lín shí	as the time draws near; at the last moment; temporary
+5	灵活	líng huó	flexible; nimble; agile
+5	铃	líng	(small) bell
+5	零件	líng jiàn	part; component
+5	零钱	líng qián	change (of money); small change; pocket money
+5	零食	líng shí	between-meal nibbles; snacks
+5	领导	lǐng dǎo	lead; leading; to lead
+5	领域	lǐng yù	domain; sphere; field
+5	浏览	liú lǎn	to skim over; to browse
+5	流传	liú chuán	to spread; to circulate; to hand down
+5	龙	Lóng | lóng	surname Long; dragon; imperial
+5	漏	lòu	to leak; to divulge; to leave out by mistake
+5	陆地	lù dì	dry land (as opposed to the sea)
+5	陆续	lù xù	in turn; successively; one after the other
+5	录取	lù qǔ	to accept an applicant (prospective student, employee etc) who passes an entrance exam; to
+5	录音	lù yīn	to record (sound); sound recording
+5	露	Lù | lòu | lù	surname Lu; to show; to reveal
+5	轮流	lún liú	to alternate; to take turns
+5	论文	lùn wén	paper; treatise; thesis
+5	逻辑	luó ji	logic (loanword)
+5	落后	luò hòu	to fall behind; to lag (in technology etc); backward
+5	骂	mà	to scold; to abuse; to curse
+5	麦克风	mài kè fēng	microphone (loanword)
+5	馒头	mán tou	steamed roll; steamed bun; steamed bread
+5	满足	mǎn zú	to satisfy; to meet (the needs of); satisfied
+5	毛	Máo | máo	surname Mao; hair; feather
+5	毛病	máo bìng	fault; defect; shortcomings
+5	矛盾	máo dùn	contradiction; conflicting views; contradictory
+5	冒险	mào xiǎn	to take risks; to take chances; foray
+5	贸易	mào yì	(commercial) trade
+5	眉毛	méi mao	eyebrow
+5	煤炭	méi tàn	coal
+5	美术	měi shù	art; fine arts; painting
+5	魅力	mèi lì	charm; fascination; glamor
+5	迷路	mí lù	to lose the way; lost; labyrinth
+5	谜语	mí yǔ	riddle; conundrum
+5	秘密	mì mì	secret; private; confidential; clandestine; a secret
+5	秘书	mì shū	secretary
+5	密切	mì qiè	close; familiar; intimate
+5	蜜蜂	mì fēng	bee; honeybee
+5	棉花	mián hua	cotton
+5	面对	miàn duì	to face; to confront
+5	面积	miàn jī	area (of a floor, piece of land etc); surface area; tract of land
+5	面临	miàn lín	to face sth; to be confronted with
+5	苗条	miáo tiao	(of a woman) slim; slender; graceful
+5	描写	miáo xiě	to describe; to depict; to portray
+5	秒	miǎo	second (unit of time); arc second (angular measurement unit); (coll.) instantly
+5	民主	mín zhǔ	democracy
+5	名牌	míng pái	famous brand; nameplate; name tag
+5	名片	míng piàn	(business) card
+5	名胜	míng shèng	a place famous for its scenery or historical relics; scenic spot
+5	明确	míng què	clear-cut; definite; explicit; to clarify; to specify; to make definite
+5	明显	míng xiǎn	clear; distinct; obvious
+5	明信片	míng xìn piàn	postcard
+5	明星	míng xīng	star; celebrity
+5	命令	mìng lìng	order; command
+5	命运	mìng yùn	fate; destiny
+5	摸	mō | mó	to feel with the hand; to touch; to stroke
+5	模仿	mó fǎng	to imitate; to copy; to emulate
+5	模糊	mó hu	vague; indistinct; fuzzy
+5	摩托车	mó tuō chē	(loanword) motorbike; motorcycle
+5	陌生	mò shēng	strange; unfamiliar
+5	某	mǒu	some; a certain; sb or sth indefinite
+5	木头	mù tou	slow-witted; blockhead; log (of wood, timber etc)
+5	目标	mù biāo	target; goal; objective
+5	目录	mù lù	catalog; table of contents; directory (on computer hard drive)
+5	目前	mù qián	at the present time; currently
+5	哪怕	nǎ pà	even; even if; even though
+5	难怪	nán guài	(it's) no wonder (that...); (it's) not surprising (that)
+5	难看	nán kàn	ugly; unsightly
+5	脑袋	nǎo dai	head; skull; brains
+5	内科	nèi kē	internal medicine; general medicine
+5	嫩	nèn	young and tender; (of food) tender; lightly cooked; (of color) light
+5	能干	néng gàn	capable; competent
+5	能源	néng yuán	energy; power source
+5	年代	nián dài	a decade of a century (e.g. the Sixties); age; era
+5	年纪	nián jì	age
+5	念	niàn	variant of 念, to read aloud; to read; to study (a subject)
+5	宁可	nìng kě	preferably; one would prefer to...(or not to...); would rather
+5	牛仔裤	niú zǎi kù	jeans
+5	农民	nóng mín	peasant; farmer
+5	农业	nóng yè	agriculture; farming
+5	浓	nóng	concentrated; dense; strong (smell etc)
+5	女士	nǚ shì	lady; madam; Miss
+5	偶然	ǒu rán	incidentally; occasional; occasionally
+5	拍	pāi	to pat; to clap; to slap
+5	排队	pái duì	to line up
+5	排球	pái qiú	volleyball
+5	派	pài	clique; school; group
+5	盼望	pàn wàng	to hope for; to look forward to
+5	培养	péi yǎng	to cultivate; to breed; to foster
+5	赔偿	péi cháng	to compensate
+5	佩服	pèi fú	to admire
+5	配合	pèi hé	matching; fitting in with; compatible with
+5	盆	pén	basin; flower pot; unit of volume equal to 12 斗 and 8 升, approx 128 liters
+5	碰见	pèng jiàn	to run into; to meet (unexpectedly); to bump into
+5	批	pī	to ascertain; to act on; to criticize
+5	批准	pī zhǔn	to approve; to ratify
+5	披	pī	to drape over one's shoulders; to open; to unroll
+5	皮鞋	pí xié	leather shoes
+5	疲劳	pí láo	fatigue; wearily; weariness
+5	匹	pī | pǐ	mate; one of a pair; classifier for horses, mules etc
+5	片	piān | piàn	disk; sheet; thin piece
+5	片面	piàn miàn	unilateral; one-sided
+5	飘	piāo	variant of 飘; to float
+5	频道	pín dào	frequency; (television) channel
+5	品种	pǐn zhǒng	breed; variety
+5	平	Píng | píng	surname Ping; flat; level
+5	平常	píng cháng	ordinary; common; usually
+5	平等	píng děng	equal; equality
+5	平方	píng fāng	square (as in square foot, square mile, square root)
+5	平衡	píng héng	balance; equilibrium
+5	平静	píng jìng	tranquil; undisturbed; serene
+5	平均	píng jūn	average; on average; evenly; in equal proportions
+5	评价	píng jià	to evaluate; to assess
+5	凭	píng	variant of 凭; to lean against; to rely on
+5	迫切	pò qiè	urgent; pressing
+5	破产	pò chǎn	to go bankrupt; to become impoverished; bankruptcy
+5	破坏	pò huài	destruction; damage; to wreck
+5	朴素	pǔ sù	plain and simple; unadorned; simple living
+5	期待	qī dài	to look forward to; to await; expectation
+5	期间	qī jiān	period of time; time; time period
+5	其余	qí yú	the rest; the others; remaining
+5	奇迹	qí jì	miracle; miraculous; wonder
+5	企图	qǐ tú	to attempt; to try; attempt
+5	企业	qǐ yè	company; firm; enterprise; corporation
+5	启发	qǐ fā	to enlighten; to explain (a text etc); to stimulate (a mental attitude)
+5	气氛	qì fēn	atmosphere; mood
+5	汽油	qì yóu	gasoline
+5	牵	qiān	to lead along; to pull (an animal on a tether); (bound form) to involve
+5	谦虚	qiān xū	modest; self-effacing; to make modest remarks
+5	签字	qiān zì	to sign (one's name); signature
+5	前途	qián tú	prospects; future outlook; journey
+5	浅	jiān | qiǎn	sound of moving water; shallow; light (color)
+5	欠	qiàn	to owe; to lack; (literary) to be deficient in
+5	枪	Qiāng | qiāng	surname Qiang; gun; firearm
+5	强调	qiáng diào	to emphasize (a statement); to stress
+5	强烈	qiáng liè	strong; intense
+5	抢	qiāng | qiǎng	(literary) to knock against (esp. to knock one's head on the ground in grief or rage); opp
+5	悄悄	qiāo qiāo	quiet; making little or no noise; surreptitious; stealthy; anxious; worried
+5	瞧	qiáo	to look at; to see; to see (a doctor)
+5	巧妙	qiǎo miào	ingenious; clever; ingenuity; artifice
+5	切	qiē | qiè	to cut; to slice; to carve; (math) tangential; definitely; absolutely (not)
+5	亲爱	qīn ài	dear; beloved; darling
+5	亲切	qīn qiè	amiable; cordial; close and dear
+5	亲自	qīn zì	personally; in person; oneself
+5	侵略	qīn lu:è	to invade; invasion
+5	勤奋	qín fèn	hardworking; diligent
+5	勤劳	qín láo	hardworking; industrious; diligent
+5	青	Qīng | qīng	abbr. for 海, Qinghai Province; green; blue
+5	青春	qīng chūn	youth; youthfulness
+5	青少年	qīng shào nián	adolescent; youth; teenager
+5	轻视	qīng shì	contempt; contemptuous; to despise
+5	清淡	qīng dàn	light (of food, not greasy or strongly flavored); insipid; slack (sales)
+5	情景	qíng jǐng	scene; spectacle; circumstances
+5	情绪	qíng xù	mood; state of mind; moodiness
+5	请求	qǐng qiú	to request; to ask; request
+5	庆祝	qìng zhù	to celebrate
+5	球迷	qiú mí	fan (ball sports)
+5	趋势	qū shì	trend; tendency
+5	取消	qǔ xiāo	to cancel; cancellation
+5	娶	qǔ	to take a wife; to marry (a woman)
+5	去世	qù shì	to pass away; to die
+5	圈	juān | juàn | quān	to confine; to lock up; to pen in
+5	全面	quán miàn	all-around; comprehensive; total
+5	权力	quán lì	power; authority
+5	权利	quán lì	right (i.e. an entitlement to sth); (classical) power and wealth
+5	劝	quàn	to advise; to urge; to try to persuade
+5	缺乏	quē fá	to lack; to be short of
+5	确定	què dìng	definite; certain; fixed
+5	确认	què rèn	to confirm; to verify; confirmation
+5	燃烧	rán shāo	to ignite; to combust; to burn
+5	嚷	rǎng	to shout; to bellow; to make a big deal of sth
+5	绕	rào	to wind; to coil (thread); to rotate around
+5	热爱	rè ài	to love ardently; to adore
+5	热烈	rè liè	enthusiastic; ardent; warm
+5	热心	rè xīn	enthusiastic; ardent; zealous
+5	人才	rén cái	talent; talented person; looks
+5	人口	rén kǒu	population; people
+5	人类	rén lèi	humanity; human race; mankind
+5	人生	rén shēng	life (one's time on earth)
+5	人事	rén shì	personnel; human resources; human affairs
+5	人物	rén wù	person; personage; figure (esp. sb of importance); character (in a play, novel etc); figur
+5	人员	rén yuán	staff; crew; personnel
+5	忍不住	rěn bu zhù	cannot help; unable to bear
+5	日常	rì cháng	day-to-day; daily; everyday
+5	日程	rì chéng	schedule; itinerary
+5	日历	rì lì	calendar
+5	日期	rì qī	date
+5	日用品	rì yòng pǐn	articles for daily use
+5	荣幸	róng xìng	honored (to have the privilege of ...)
+5	荣誉	róng yù	honor; credit; glory

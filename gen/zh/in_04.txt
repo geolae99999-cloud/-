@@ -1,0 +1,250 @@
+4	速度	sù dù	speed; rate; velocity
+4	塑料袋	sù liào dài	plastic bag
+4	酸	suān	sour; tart; sick at heart
+4	算	suàn	to regard as; to figure; to calculate
+4	随便	suí biàn	as one wishes; as one pleases; at random
+4	随着	suí zhe	along with; in the wake of; following
+4	孙子	Sūn zǐ | sūn zi	Sun Tzu, also known as Sun Wu 孙武 (c. 500 BC, dates of birth and death uncertain), general,
+4	所有	suǒ yǒu	all; to have; to possess; to own
+4	台	Tái | tái	Taiwan (abbr.); surname Tai; (classical) you (in letters)
+4	抬	tái	to lift; to raise; (of two or more persons) to carry
+4	态度	tài du	manner; bearing; attitude
+4	谈	Tán | tán	surname Tan; to speak; to talk
+4	汤	Tāng | shāng | tāng	surname Tang; rushing current; soup
+4	躺	tǎng	to recline; to lie down
+4	趟	tāng | tàng	old variant of 趟; to wade; to trample
+4	讨论	tǎo lùn	to discuss; to talk over
+4	讨厌	tǎo yàn	to dislike; to loathe; disagreeable
+4	特点	tè diǎn	characteristic (feature); trait; feature
+4	提供	tí gōng	to offer; to supply; to provide
+4	提前	tí qián	to shift to an earlier date; to do sth ahead of time; in advance
+4	提醒	tí xǐng	to remind; to call attention to; to warn of
+4	填空	tián kòng	to fill a job vacancy; to fill in a blank (e.g. on questionnaire or exam paper)
+4	条件	tiáo jiàn	condition; circumstance; term; factor; requirement; prerequisite; qualification; situation
+4	停止	tíng zhǐ	to stop; to halt; to cease
+4	挺	tǐng	straight; erect; to stick out (a part of the body)
+4	通过	tōng guò	to pass through; to get through; to adopt (a resolution); to pass (legislation); to pass (
+4	通知	tōng zhī	to notify; to inform; notice
+4	同情	tóng qíng	to sympathize with; sympathy
+4	推	tuī	to push; to cut; to refuse
+4	推迟	tuī chí	to postpone; to put off; to defer
+4	脱	tuō	to shed; to take off; to escape
+4	袜子	wà zi	socks; stockings
+4	完全	wán quán	complete; whole; totally; entirely
+4	网球	wǎng qiú	tennis; tennis ball
+4	网站	wǎng zhàn	website; network station; node
+4	往	wǎng	to go (in a direction); to; towards
+4	往往	wǎng wǎng	usually; in many cases; more often than not
+4	危险	wēi xiǎn	danger; dangerous
+4	味道	wèi dao	flavor; taste; (fig.) feeling (of ...); sense (of ...); hint (of ...); (fig.) interest; de
+4	温度	wēn dù	temperature
+4	文章	wén zhāng	article; essay; literary works
+4	握手	wò shǒu	to shake hands
+4	污染	wū rǎn	to pollute; to contaminate (lit. and fig.)
+4	无	wú	not to have; no; none
+4	无聊	wú liáo	bored; boring; senseless
+4	无论	wú lùn	no matter what or how; regardless of whether...
+4	误会	wù huì	to misunderstand; to mistake; misunderstanding
+4	吸引	xī yǐn	to attract; to appeal to; to fascinate
+4	洗衣机	xǐ yī jī	washing machine; washer
+4	西红柿	xī hóng shì	tomato
+4	咸	Xián | xián	surname Xian; all; everyone
+4	现代	Xiàn dài | xiàn dài	Hyundai, South Korean company; modern times; modern age
+4	限制	xiàn zhì	to restrict; to limit; to confine
+4	羡慕	xiàn mù	to envy; to admire
+4	相反	xiāng fǎn	opposite; contrary
+4	香	xiāng	fragrant; sweet smelling; aromatic
+4	详细	xiáng xì	detailed; in detail; minute
+4	响	xiǎng	echo; sound; noise
+4	消息	xiāo xi	news; information
+4	小说	xiǎo shuō	novel; fiction
+4	效果	xiào guǒ	result; effect; efficacy
+4	笑话	xiào hua	joke; jest; to laugh at; to mock
+4	心情	xīn qíng	mood; frame of mind
+4	辛苦	xīn kǔ	exhausting; hard; tough
+4	信任	xìn rèn	to trust; to have confidence in
+4	信心	xìn xīn	confidence; faith (in sb or sth)
+4	信用卡	xìn yòng kǎ	credit card
+4	行	háng | xíng	row; line; commercial firm
+4	醒	xǐng	to wake up; to be awake; to become aware
+4	兴奋	xīng fèn	excited; excitement; (physiology) excitation
+4	幸福	xìng fú	happiness; happy; blessed
+4	性别	xìng bié	gender; sex
+4	性格	xìng gé	nature; disposition; temperament
+4	修	Xiū | xiū	surname Xiu; to decorate; to embellish
+4	许多	xǔ duō	many; a lot of; much
+4	血	xuè	blood; colloquial pr. [xiě]
+4	压力	yā lì	pressure
+4	牙膏	yá gāo	toothpaste
+4	亚洲	Yà zhōu	Asia (abbr. for 亚细亚洲)
+4	呀	ya	(particle equivalent to 啊 after a vowel, expressing surprise or doubt)
+4	严格	yán gé	strict; stringent; tight
+4	严重	yán zhòng	grave; serious; severe
+4	研究生	yán jiū shēng	graduate student; postgraduate student; research student
+4	盐	yán	salt
+4	演出	yǎn chū	to act (in a play); to perform; to put on (a performance)
+4	演员	yǎn yuán	actor or actress; performer
+4	阳光	yáng guāng	sunshine; (of personality) upbeat; energetic; transparent (open to public scrutiny)
+4	养成	yǎng chéng	to cultivate; to raise; to form (a habit)
+4	样子	yàng zi	appearance; manner; pattern
+4	邀请	yāo qǐng	to invite; invitation
+4	钥匙	yào shi	key
+4	也许	yě xǔ	perhaps; maybe
+4	叶子	yè zi	leaf; (slang) marijuana
+4	页	xié | yè	head; page; leaf
+4	一切	yī qiè	everything; every; all
+4	以	yǐ | Yǐ	old variant of 以; abbr. for Israel 列; to use
+4	亿	yì	100 million
+4	艺术	yì shù	art
+4	意见	yì jiàn	idea; opinion; suggestion
+4	因此	yīn cǐ	thus; consequently; as a result
+4	引起	yǐn qǐ	to give rise to; to lead to; to cause; to arouse
+4	饮料	yǐn liào	drink; beverage
+4	印象	yìn xiàng	impression (sth that stays in one's mind); a memory
+4	赢	yíng	to beat; to win; to profit
+4	硬	yìng	hard; stiff; solid; (fig.) strong; firm; resolutely; uncompromisingly
+4	永远	yǒng yuǎn	forever; eternal
+4	勇敢	yǒng gǎn	brave; courageous
+4	优点	yōu diǎn	merit; benefit; strong point
+4	优秀	yōu xiù	outstanding; excellent
+4	幽默	yōu mò	(loanword) humor; humorous
+4	尤其	yóu qí	especially; particularly
+4	由	yóu	to follow; from; because of; due to
+4	由于	yóu yú	due to; as a result of; thanks to
+4	有趣	yǒu qù	interesting; fascinating; amusing
+4	友好	Yǒu hǎo | yǒu hǎo	Youhao district of Yichun city 市, Heilongjiang; friendly; amicable; close friend
+4	友谊	yǒu yì	companionship; fellowship; friendship
+4	于是	yú shì	thereupon; as a result; consequently; thus; hence
+4	愉快	yú kuài	cheerful; cheerily; delightful
+4	与	yú | yǔ | yù	variant of 欤; and; to give
+4	羽毛球	yǔ máo qiú	shuttlecock; badminton
+4	语法	yǔ fǎ	grammar
+4	语言	yǔ yán	language
+4	预习	yù xí	to prepare a lesson
+4	原来	yuán lái	original; former; originally
+4	原谅	yuán liàng	to excuse; to forgive; to pardon
+4	原因	yuán yīn	cause; origin; root cause
+4	圆	yuán	circle; round; circular
+4	约会	yuē huì	appointment; engagement; date
+4	阅读	yuè dú	to read; reading
+4	允许	yǔn xǔ	to permit; to allow
+4	杂志	zá zhì	magazine
+4	咱们	zán men	we or us (including both the speaker and the person(s) spoken to); (dialect) I or me; (dia
+4	暂时	zàn shí	temporary; provisional; for the time being
+4	脏	zàng | zāng	viscera; (anatomy) organ; dirty
+4	责任	zé rèn	responsibility; blame; duty
+4	增加	zēng jiā	to raise; to increase
+4	增长	zēng zhǎng	to grow; to increase
+4	窄	zhǎi	narrow; narrow-minded; badly off
+4	长城	Cháng chéng	the Great Wall
+4	长江	Cháng Jiāng	Yangtze River, or Chang Jiang
+4	招聘	zhāo pìn	to invite applications for a job; to recruit
+4	著名	zhù míng	famous; noted; well-known
+4	真正	zhēn zhèng	genuine; real; true; really; indeed
+4	整理	zhěng lǐ	to arrange; to tidy up; to sort out
+4	整齐	zhěng qí	orderly; neat; even
+4	正常	zhèng cháng	regular; normal; ordinary
+4	正好	zhèng hǎo	just (in time); just right; just enough
+4	正确	zhèng què	correct; sound; right; proper
+4	正式	zhèng shì	formal; official
+4	证明	zhèng míng	proof; certificate; identification
+4	之	zhī	(possessive particle, literary equivalent of 的); him; her
+4	支持	zhī chí	to be in favor of; to support; to back
+4	知识	zhī shi	knowledge; intellectual
+4	直接	zhí jiē	direct (opposite: indirect 间接); immediate; straightforward
+4	值得	zhí de	to be worth; to deserve
+4	职业	zhí yè	occupation; profession; vocation; professional
+4	植物	zhí wù	plant; vegetation
+4	只好	zhǐ hǎo	to have no other option but to ...; to have to; to be forced to
+4	只要	zhǐ yào	if only; so long as
+4	指	zhǐ	finger; to point at or to; to indicate or refer to
+4	至少	zhì shǎo	at least; (to say the) least
+4	制造	zhì zào	to manufacture; to make
+4	质量	zhì liàng	quality; (physics) mass
+4	中文	Zhōng wén	Chinese language
+4	重点	chóng diǎn | zhòng diǎn	to recount (e.g. results of election); to re-evaluate; important point; main point; focus
+4	重视	zhòng shì	to attach importance to sth; to value
+4	重新	chóng xīn	again; once more; re-
+4	周围	zhōu wéi	environs; surroundings; periphery
+4	猪	zhū	hog; pig; swine
+4	逐渐	zhú jiàn	gradually
+4	主动	zhǔ dòng	to take the initiative; to do sth of one's own accord; spontaneous
+4	主意	zhǔ yi	plan; idea; decision
+4	祝贺	zhù hè	to congratulate; congratulations
+4	专门	zhuān mén	specialist; specialized; customized
+4	专业	zhuān yè	specialty; specialized field; main field of study (at university)
+4	赚	zhuàn | zuàn	to earn; to make a profit; to cheat
+4	撞	zhuàng	to knock against; to bump into; to run into
+4	准确	zhǔn què	accurate; exact; precise
+4	准时	zhǔn shí	on time; punctual; on schedule
+4	仔细	zǐ xì	careful; attentive; cautious; to be careful; to look out
+4	自然	zì rán	nature; natural; naturally
+4	总结	zǒng jié	to sum up; to conclude; summary
+4	租	zū	to hire; to rent; to charter
+4	组成	zǔ chéng	to form; to make up; to constitute
+4	组织	zǔ zhī	to organize; organization; (biology) tissue
+4	嘴	zuǐ	mouth; beak; nozzle
+4	最好	zuì hǎo	best; (you) had better (do what we suggest)
+4	最后	zuì hòu	final; last; finally
+4	尊重	zūn zhòng	to esteem; to respect; to honor
+4	作者	zuò zhě	author; writer
+4	座	zuò	seat; base; stand
+4	座位	zuò wèi	seat
+4	做生意	zuò shēng yì	to do business
+5	唉	āi | ài	interjection or grunt of agreement or recognition (e.g. yes, it's me!); to sigh; alas
+5	爱护	ài hù	to cherish; to treasure; to take care of
+5	爱惜	ài xī	to cherish; to treasure; to use sparingly
+5	爱心	ài xīn	compassion; kindness; care for others
+5	安慰	ān wèi	to comfort; to console
+5	安装	ān zhuāng	to install; to erect; to fix
+5	岸	àn	variant of 岸; bank; shore; beach; coast
+5	把握	bǎ wò	to grasp (also fig.); to seize; to hold
+5	摆	bǎi	to arrange; to exhibit; to move to and fro
+5	班主任	bān zhǔ rèn	teacher in charge of a class
+5	办理	bàn lǐ	to handle; to transact; to conduct
+5	傍晚	bàng wǎn	in the evening; when night falls; towards evening
+5	棒	bàng	stick; club; cudgel
+5	包裹	bāo guǒ	to wrap up; to bind up; bundle
+5	包含	bāo hán	to contain; to embody; to include
+5	包子	bāo zi	bao (steamed stuffed bun)
+5	薄	Bó | báo | bó | bò	surname Bo; thin; cold in manner
+5	宝贝	bǎo bèi	treasured object; treasure; darling
+5	宝贵	bǎo guì	valuable; precious; to value
+5	保持	bǎo chí	to keep; to maintain; to hold
+5	保存	bǎo cún	to conserve; to preserve; to keep
+5	保留	bǎo liú	to keep; to retain; to have reservations (about sth)
+5	保险	bǎo xiǎn	insurance; to insure; safe
+5	报告	bào gào	to inform; to report; to make known
+5	悲观	bēi guān	pessimistic
+5	背	bēi | bèi	variant of 背; to be burdened; to carry on the back or shoulder
+5	背景	bèi jǐng	background; backdrop; context; (fig.) powerful backer
+5	被子	bèi zi	quilt
+5	本科	běn kē	undergraduate course; undergraduate (attributive)
+5	本领	běn lǐng	skill; ability; capability
+5	本质	běn zhì	essence; nature; innate character
+5	比例	bǐ lì	proportion; scale
+5	比如	bǐ rú	for example; for instance; such as
+5	彼此	bǐ cǐ	each other; one another
+5	必然	bì rán	inevitable; certain; necessity
+5	必需	bì xū	to need; to require; essential
+5	必要	bì yào	necessary; essential; indispensable
+5	毕竟	bì jìng	after all; all in all; when all is said and done
+5	避免	bì miǎn	to avert; to prevent; to avoid
+5	编辑	biān jí	to edit; to compile; editor
+5	鞭炮	biān pào	firecrackers; string of small firecrackers
+5	便	biàn | pián	plain; informal; suitable
+5	辩论	biàn lùn	debate; argument; to argue over
+5	标点	biāo diǎn	punctuation; a punctuation mark; to punctuate
+5	标志	biāo zhì	sign; mark; symbol
+5	表面	biǎo miàn	surface; face; outside
+5	表明	biǎo míng	to make clear; to make known; to state clearly
+5	表情	biǎo qíng	(facial) expression; to express one's feelings
+5	表现	biǎo xiàn	to show; to show off; to display
+5	丙	bǐng	third of the ten Heavenly Stems 干; third in order; letter "C" or Roman "III" in list "A, B
+5	病毒	bìng dú	virus
+5	玻璃	bō li	glass; (slang) male homosexual
+5	脖子	bó zi	neck
+5	博物馆	bó wù guǎn	museum
+5	补充	bǔ chōng	to replenish; to supplement; to complement
+5	不安	bù ān	unpeaceful; unstable; uneasy
+5	不必	bù bì	need not; does not have to; not necessarily
