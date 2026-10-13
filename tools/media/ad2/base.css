@@ -1,0 +1,17 @@
+@font-face { font-family: P; src: url(__FONT__) format('woff2'); font-weight: 100 900; }
+__FONT_SC__
+:root { --blue: #3182f6; --blue2: #1b64da; --blueSoft: #e8f3ff; --ink: #191f28; --sub: #4e5968; --mute: #8b95a1; --line: #e5e8eb; --bg: #f2f4f6; --navy: #0a1224; --red: #f04452; --green: #03b26c; --orange: #ff9f00; --purple: #8b5cf6; --teal: #0aa5b4; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { overflow: hidden; background: #000; font-family: P, Pretendard, 'Apple SD Gothic Neo', sans-serif; color: var(--ink); letter-spacing: -0.025em; -webkit-font-smoothing: antialiased; }
+html.land, html.land body { width: 1920px; height: 1080px; }
+html.vert, html.vert body { width: 1080px; height: 1920px; }
+.zh, .zh * { font-family: 'Noto Sans SC', P, sans-serif; letter-spacing: 0; }
+#stage { position: absolute; inset: 0; overflow: hidden; }
+.scene { position: absolute; inset: 0; overflow: hidden; visibility: hidden; }
+.abs { position: absolute; }
+.ln { display: block; overflow: hidden; padding: .06em 0 .12em; margin: -.06em 0 -.12em; }
+.ln > span { display: inline-block; will-change: transform; }
+.ch { display: inline-block; white-space: pre; }
+.mascot { display: block; width: 100%; height: 100%; overflow: visible; }
+.mascot-box svg { width: 100%; height: 100%; overflow: visible; }
+.logoMark { display: inline-flex; align-items: center; justify-content: center; background: #fff; color: var(--blue); font-weight: 900; }

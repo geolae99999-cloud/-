@@ -6,3 +6,4 @@ node_modules/
 __pycache__/
 *.pyc
 .wrangler/
+tools/media/ad2/out/
