@@ -157,14 +157,18 @@
     ['present', IC.play, 'i-mint', '수업용 큰 화면', '칠판이나 TV에 단어를 크게 띄워요'],
     ['book-print', IC.print, 'i-teal', '단어 시험지 만들기', '인쇄하거나 PDF로 나눠 줘요'],
     ['book-share', IC.book, 'i-grape', '단어장 링크 공유', '학생들이 링크 하나로 받아 가요'],
-    ['exam-open', IC.trophy, 'i-coral', '실전 시험 미리 풀기', '학생이 보는 시험을 직접 확인해요']
+    ['exam-open', IC.trophy, 'i-coral', '실전 시험 미리 풀기', '학생이 보는 시험을 직접 확인해요'],
+    ['quizshow', IC.sparkle, 'i-sun', '퀴즈 쇼', '4지선다를 크게 띄우고 팀 점수를 매겨요'],
+    ['bingo', IC.grid, 'i-mint', '단어 빙고판', '학생마다 배치가 다른 빙고판을 인쇄해요'],
+    ['picker', IC.users, 'i-grape', '발표자 뽑기 · 모둠', '번호나 반 명단에서 무작위로 뽑아요'],
+    ['ctimer', IC.clock, 'i-teal', '수업 타이머', '활동 시간을 크게 띄우고 끝나면 알려요']
   ];
   function teachToolsHtml() {
     return `<div class="section-title"><span>수업 도구</span></div>${classEntryHtml() ? `<div class="tool-list cl-entry">${classEntryHtml()}</div>` : ''}<div class="teach-grid">${TEACH.map(([k, ic, c, t, d]) => `<button class="teach-card" data-act="teach" data-next="${k}"><span class="mg-ico ${c}">${ic}</span><b>${t}</b><small>${d}</small></button>`).join('')}</div>`;
   }
   ACTIONS.teach = el => {
     const next = el.dataset.next, books = categories.filter(c => c.words.length);
-    if (next === 'exam-open') return ACTIONS['exam-open']();
+    if (next === 'exam-open' || next === 'picker' || next === 'ctimer') return ACTIONS[next]();
     if (!books.length) return toast('먼저 단어장에 단어를 담아 주세요. 기초 · 중학교 · 고등학교 · 수능 단어에서 바로 담을 수 있어요.');
     const t = TEACH.find(x => x[0] === next);
     openSheet(t ? t[3] : '단어장 고르기', `<p class="muted" style="margin:0 0 12px;font-size:.88rem;">어떤 단어장으로 할까요?</p><div class="menu-list">${books.map(c => `<button data-act="teach-go" data-id="${esc(c.id)}" data-next="${esc(next)}">${esc(c.name)} <span class="muted">· ${c.words.length}개</span></button>`).join('')}</div>`);
@@ -208,80 +212,4 @@
     const m = { Escape: 'x', ' ': 'flip', Enter: 'flip', ArrowRight: 'next', ArrowLeft: 'prev', ArrowDown: 'flip', ArrowUp: 'flip', s: 'say', S: 'say' }[e.key];
     if (m) { e.preventDefault(); e.stopImmediatePropagation(); pvDo(m); }
   }, true);
-
-  /* =========================================================
-   * 단어장 공유 (링크 하나로 반 친구, 선생님과 나눠요)
-   * ======================================================= */
-  const b64u = u8 => { let s = ''; for (let i = 0; i < u8.length; i += 8192) s += String.fromCharCode.apply(null, u8.subarray(i, i + 8192)); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
-  const unb64u = t => { const s = atob(t.replace(/-/g, '+').replace(/_/g, '/')); const u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return u; };
-  async function zipBytes(u8, inflate) {
-    const cs = inflate ? new DecompressionStream('deflate-raw') : new CompressionStream('deflate-raw');
-    return new Uint8Array(await new Response(new Blob([u8]).stream().pipeThrough(cs)).arrayBuffer());
-  }
-  async function shareEncode(cat) {
-    const raw = new TextEncoder().encode(JSON.stringify({ n: cat.name, w: cat.words.map(w => [w.word, w.meaning]) }));
-    if (typeof CompressionStream === 'function') { try { return 'z' + b64u(await zipBytes(raw)); } catch (e) {} }
-    return 'j' + b64u(raw);
-  }
-  async function shareDecode(code) {
-    const t = String(code || ''), body = unb64u(t.slice(1));
-    const raw = t[0] === 'z' ? await zipBytes(body, true) : body;
-    const o = JSON.parse(new TextDecoder().decode(raw));
-    const words = (Array.isArray(o.w) ? o.w : []).filter(a => Array.isArray(a) && a[0] && a[1]).slice(0, 2000).map(a => [String(a[0]).slice(0, 80), String(a[1]).slice(0, 200)]);
-    if (!words.length) throw new Error('empty');
-    return { name: String(o.n || '공유받은 단어장').slice(0, 40), words };
-  }
-  ACTIONS['book-share'] = async () => {
-    const cat = curCat(); if (!cat) return;
-    if (!cat.words.length) return toast('단어를 먼저 담아 주세요.');
-    const url = location.origin + location.pathname + '#s=' + await shareEncode(cat);
-    openSheet('단어장 공유', `<div class="form-stack">
-      <div class="share-card"><span class="mg-ico i-mint">${IC.book}</span><div><b>${esc(cat.name)}</b><small>단어 ${cat.words.length}개 · 받는 사람도 VocaPro에서 바로 공부할 수 있어요</small></div></div>
-      <input id="shareUrl" readonly value="${esc(url)}" data-act="select-all">
-      <div class="row"><button class="btn btn-soft" data-act="share-copy">링크 복사</button>${navigator.share ? '<button class="btn btn-primary" data-act="share-send">보내기</button>' : ''}</div>
-      <p class="muted" style="font-size:.78rem;line-height:1.6;margin:0;">링크 안에 단어와 뜻이 들어 있어요. 서버에 따로 저장되지 않고, 학습 기록은 함께 보내지 않아요.${url.length > 8000 ? ' 단어가 많아서 링크가 길어요. 메신저에 따라 잘릴 수 있으니 CSV 내보내기도 함께 써 보세요.' : ''}</p></div>`);
-  };
-  ACTIONS['share-copy'] = async () => { const i = $('shareUrl'); if (!i) return; try { await navigator.clipboard.writeText(i.value); toast('링크를 복사했어요.'); } catch (e) { i.select(); toast('링크를 길게 눌러 복사해 주세요.'); } };
-  ACTIONS['share-send'] = async () => { const i = $('shareUrl'), cat = curCat(); if (!i) return; try { await navigator.share({ title: 'VocaPro 단어장', text: `${cat ? cat.name : '단어장'} (VocaPro)`, url: i.value }); } catch (e) {} };
-
-  // 공유 링크로 들어오면: 로그인 뒤에 담을지 물어봐요
-  const SHARE_KEY = 'vocapro_share_in';
-  (function shareCapture() {
-    try {
-      const m = location.hash.match(/^#s=([A-Za-z0-9_-]+)$/); if (!m) return;
-      sessionStorage.setItem(SHARE_KEY, m[1]); history.replaceState(null, '', location.pathname + location.search);
-    } catch (e) {}
-  })();
-  let shareWait = 0;
-  function shareCheck() {
-    let code = ''; try { code = sessionStorage.getItem(SHARE_KEY) || ''; } catch (e) {}
-    if (!code || !currentUser) return;
-    clearTimeout(shareWait);
-    if ($('pfOv') || $('obOv') || $('ltOv') || document.querySelector('#recOv.show') || $('sheetOv').classList.contains('open') || S.active) { shareWait = setTimeout(shareCheck, 800); return; }
-    shareDecode(code).then(d => {
-      shareIn = d;
-      openSheet('공유받은 단어장', `<div class="form-stack">
-        <div class="share-card"><span class="mg-ico i-mint">${IC.book}</span><div><b>${esc(d.name)}</b><small>단어 ${d.words.length}개</small></div></div>
-        <div class="share-prev">${d.words.slice(0, 8).map(([w, m]) => `<div><b>${esc(w)}</b><span>${esc(m)}</span></div>`).join('')}${d.words.length > 8 ? `<div class="muted">외 ${d.words.length - 8}개</div>` : ''}</div>
-        <button class="btn btn-primary btn-block" data-act="share-take">내 단어장으로 담기</button>
-        <button class="btn btn-soft btn-block" data-act="share-skip">담지 않기</button></div>`);
-    }).catch(() => { try { sessionStorage.removeItem(SHARE_KEY); } catch (e) {} toast('공유 링크를 읽지 못했어요. 링크가 잘리지 않았는지 확인해 주세요.'); });
-  }
-  let shareIn = null;
-  ACTIONS['share-skip'] = () => { try { sessionStorage.removeItem(SHARE_KEY); } catch (e) {} shareIn = null; closeSheet(); };
-  ACTIONS['share-take'] = async el => {
-    const d = shareIn; if (!d) return; el.disabled = true; el.textContent = '담는 중...';
-    try { sessionStorage.removeItem(SHARE_KEY); } catch (e) {}
-    await dictPreload(d.words.map(a => a[0]));
-    let nm = d.name, k = 2; while (categories.some(c => c.name === nm)) nm = `${d.name} (${k++})`;
-    const cat = { id: 'c' + uid(), name: nm, words: [] }, seen = new Set();
-    for (const [w, m] of d.words) {
-      if (seen.has(w.toLowerCase())) continue; seen.add(w.toLowerCase());
-      let full = null; try { full = await dictGet(w); } catch (e) {}
-      cat.words.push(sanitizeWord({ ...(full || {}), id: uid(), word: w, meaning: m }));
-    }
-    categories.push(cat); syncStorage(); shareIn = null; closeSheet();
-    toast(`'${nm}' 단어장에 ${cat.words.length}개를 담았어요.`);
-    try { openBook(cat.id); } catch (e) { go('tabBooks'); }
-  };
 
