@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' data: https://cdn.jsdelivr.net; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' https://*.supabase.co https://generativelanguage.googleapis.com https://api.openai.com https://api.x.ai https://api.anthropic.com https://api.mymemory.translated.net; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' data: https://cdn.jsdelivr.net; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' https://*.supabase.co https://generativelanguage.googleapis.com https://api.openai.com https://api.x.ai https://api.anthropic.com https://api.mymemory.translated.net https://translate.googleapis.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#f2f4f6">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -75,12 +75,11 @@
           <option value="50">50개</option><option value="100">100개</option>
         </select>
       </div>
-      <div class="setting-item">
-        <span class="setting-label">발음 읽기 속도</span>
-        <select id="cfgTtsRate" data-change="tts-rate">
-          <option value="0.8">0.8x (천천히)</option><option value="0.9">0.9x (자연스럽게)</option><option value="1">1.0x (보통)</option>
-        </select>
-      </div>
+    </div>
+
+    <div class="settings-card">
+      <div class="settings-title">읽어주기 · 목소리</div>
+      <div id="ttsBox" class="tts-box"></div>
     </div>
 
     <details class="settings-card adv">
@@ -230,5 +229,7 @@
   <script src="app13.js"></script>
   <script src="app14.js"></script>
   <script src="app15.js"></script>
+  <script src="app16.js"></script>
+  <script src="app17.js"></script>
 </body>
 </html>

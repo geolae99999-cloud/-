@@ -201,7 +201,7 @@
   const aicSet = (w, r) => { const c = aicAll(); c[String(w).toLowerCase()] = r; const ks = Object.keys(c); if (ks.length > 600) delete c[ks[0]]; try { LS.setItem(AIC_KEY, JSON.stringify(c)); } catch (e) {} };
   // 내장 사전: dict/<첫 글자>.json 을 필요할 때만 불러와요. [단어, 뜻, 발음기호, 한글 발음, 예문, 예문 해석, 유의어]
   // 중국어 사전은 dict/zh/<0-f>.json (첫 글자 코드 % 16) 이고 뒤에 [예문 병음, HSK 급수] 가 더 붙어요.
-  const DICT_KEYS = ['word', 'meaning', 'phonetic', 'koreanPron', 'example', 'exampleKo', 'synonyms', 'exPy', 'hsk'];
+  const DICT_KEYS = ['word', 'meaning', 'phonetic', 'koreanPron', 'example', 'exampleKo', 'synonyms', 'exPy', 'hsk', 'hsk3'];
   const dictShards = {};
   function dictShard(c) {
     if (!dictShards[c]) dictShards[c] = fetch(`dict/${c}.json`).then(r => r.ok ? r.json() : null).catch(() => null)
@@ -209,12 +209,14 @@
     return dictShards[c];
   }
   const dictLetter = w => { const s = String(w || '').trim(); if (isHanWord(s)) return 'zh/' + (s.codePointAt(0) % 16).toString(16); const c = s.charAt(0).toLowerCase(); return c >= 'a' && c <= 'z' ? c : ''; };
-  // 중국어 단어 목록 (HSK 1~6급): [단어, 병음, 뜻, 급수]. 중국어로 바꿀 때 한 번만 받아요.
+  // 중국어 단어 목록: [단어, 병음, 뜻, 옛 HSK 급수(1~6, 없으면 0), 신HSK 급수(1~7, 7은 7~9급, 없으면 0)]. 중국어로 바꿀 때 한 번만 받아요.
+  const zhLv = e => e[3] || (e[4] ? 6 + e[4] / 10 : 9);
+  const zhTag = (old, nw) => old ? `HSK ${old}급` : nw ? `신HSK ${+nw === 7 ? '7~9' : nw}급` : '';
   let zhIdx = null, zhIdxP = null, zhMap = null;
   function zhLoad() {
     if (!zhIdxP) zhIdxP = fetch('dict/zh/index.json').then(r => r.ok ? r.json() : null).catch(() => null).then(d => {
       if (!Array.isArray(d)) { zhIdxP = null; return []; }
-      zhIdx = d; zhMap = new Map(d.map(e => [e[0], e])); dictMap = null; gwCache = {};
+      zhIdx = d; zhMap = new Map(d.map(e => [e[0], e])); dictMap = null; gwCache = {}; zhTok = null;
       if (isZh() && currentUser && curTab === 'tabHome' && !S.active) { try { renderHome(); } catch (e) {} }
       return d;
     });

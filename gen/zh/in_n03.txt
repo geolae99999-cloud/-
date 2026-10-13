@@ -1,0 +1,250 @@
+3	实际上	shí jì shàng	in fact; in reality; as a matter of fact
+3	实验室	shí yàn shì	laboratory
+3	世界杯	Shì jiè bēi	World Cup
+3	事实上	shì shí shàng	in fact; in reality; actually
+3	试题	shì tí	exam question; test topic
+3	室	Shì | shì	surname Shi; room; work unit
+3	适用	shì yòng	to be applicable
+3	收费	shōu fèi	to charge a fee
+3	收看	shōu kàn	to watch (a TV program)
+3	收听	shōu tīng	to listen to (a radio broadcast)
+3	受	shòu	to receive; to accept; to suffer
+3	熟人	shú rén	acquaintance; friend
+3	属	shǔ | zhǔ	category; genus (taxonomy); family members
+3	随	Suí | suí	surname Sui; to follow; to comply with
+3	所长	suǒ cháng | suǒ zhǎng	what one is good at; head of an institute etc
+3	谈话	tán huà	to talk (with sb); to have a conversation; talk
+3	跳	tiào	to jump; to hop; to skip over
+3	跳高	tiào gāo	high jump (athletics)
+3	跳远	tiào yuǎn	long jump (athletics)
+3	铁	Tiě | tiě	surname Tie; iron (metal); arms
+3	铁路	tiě lù	railroad; railway
+3	听力	tīng lì	hearing; listening ability
+3	听众	tīng zhòng	audience; listeners
+3	通信	tōng xìn	to correspond (by letter etc); to communicate; communication
+3	痛	tòng	ache; pain; sorrow
+3	头脑	tóu nǎo	brains; mind; skull
+3	图	tú	diagram; picture; drawing
+3	图画	tú huà	drawing; picture
+3	土	Tǔ | tǔ	Tu (ethnic group); surname Tu; earth
+3	推动	tuī dòng	to push (e.g. for acceptance of a plan); to promote; to give impetus to
+3	推进	tuī jìn	to impel; to carry forward; to push on
+3	推开	tuī kāi	to push open (a gate etc); to push away; to reject
+3	退出	tuì chū	to withdraw; to abort; to quit
+3	外面	wài miàn	outside (also pr. [wài mian] for this sense); surface; exterior
+3	外文	wài wén	foreign language (written)
+3	围	Wéi | wéi	surname Wei; to encircle; to surround
+3	卫生	wèi shēng	health; hygiene; sanitation
+3	文字	wén zì	character; script; writing
+3	舞台	wǔ tái	(lit. and fig.) stage; arena
+3	西部	xī bù	western part
+3	下来	xià lai	to come down; (completed action marker); (after verb of motion, indicates motion down and 
+3	下面	xià miàn	below; under; next
+3	下去	xià qù	to go down; to descend; to go on
+3	现代化	xiàn dài huà	modernization
+3	线	xiàn	variant of 线; thread; string
+3	相比	xiāng bǐ	to compare
+3	相互	xiāng hù	each other; mutual
+3	心	xīn	heart; mind; intention
+3	行李	xíng li	luggage
+3	性	xìng	nature; character; property
+3	学费	xué fèi	tuition fee; tuition
+3	压	yā | yà	to press; to push down; to keep under (control)
+3	烟	yān	cigarette or pipe tobacco; smoke; mist
+3	眼前	yǎn qián	before one's eyes; now; at present
+3	演	yǎn	to develop; to evolve; to practice
+3	演唱	yǎn chàng	sung performance; to sing for an audience
+3	演唱会	yǎn chàng huì	vocal recital or concert
+3	羊	Yáng | yáng	surname Yang; sheep; goat
+3	一方面	yī fāng miàn	on the one hand
+3	衣架	yī jià	clothes hanger; clothes rack
+3	已	yǐ	already; to stop; then
+3	银牌	yín pái	silver medal
+3	应当	yīng dāng	should; ought to
+3	影视	yǐng shì	movies and television
+3	邮件	yóu jiàn	mail; post; email
+3	邮票	yóu piào	(postage) stamp
+3	邮箱	yóu xiāng	mailbox; post office box; email
+3	游	Yóu | yóu	surname You; to swim; variant of 游
+3	有的是	yǒu de shì	have plenty of; there's no lack of
+3	有效	yǒu xiào	effective; in effect; valid
+3	预计	yù jì	to forecast; to predict; to estimate
+3	员	yuán	person; employee; member
+3	员工	yuán gōng	staff; personnel; employee
+3	约	yāo | yuē	to weigh in a balance or on a scale; to make an appointment; to invite
+3	早已	zǎo yǐ	for a long time; long since; (dialect) in the past
+3	造	zào	to make; to build; to manufacture
+3	长处	cháng chù	good aspects; strong points
+3	长期	cháng qī	long term; long time; long range (of a forecast)
+3	照	zhào	variant of 照; to shine; to illuminate
+3	者	zhě	(after a verb or adjective) one who (is) ...; (after a noun) person involved in ...; -er
+3	争	zhēng	to strive for; to vie for; to argue or debate
+3	整	zhěng	exactly; in good order; whole
+3	整天	zhěng tiān	all day long; whole day
+3	整整	zhěng zhěng	whole; full
+3	证	zhèng	to admonish; variant of 证; certificate
+3	支付	zhī fù	to pay (money)
+3	直到	zhí dào	until
+3	值	zhí	value; (to be) worth; to happen to
+3	职工	zhí gōng	workers; staff
+3	只是	zhǐ shì	merely; only; just; nothing but; simply; but; however
+3	只有	zhǐ yǒu	only have ...; there is only ...; (used in combination with 才) it is only if one ... (that
+3	指出	zhǐ chū	to indicate; to point out
+3	志愿	zhì yuàn	aspiration; ambition; to volunteer
+3	志愿者	zhì yuàn zhě	volunteer
+3	中部	zhōng bù	middle part; central section
+3	中华民族	Zhōng huá mín zú	the Chinese nation; the Chinese people (collective reference to all the ethnic groups in C
+3	重大	zhòng dà	great; important; major
+3	主任	zhǔ rèn	director; head
+3	抓	zhuā	to grab; to catch; to arrest
+3	抓住	zhuā zhù	to grab hold of; to capture
+3	转	zhuǎi | zhuǎn | zhuàn	see 转文; to turn; to change direction
+3	追	duī | zhuī	to sculpt; to carve; musical instrument (old)
+3	准	zhǔn	to allow; to grant; in accordance with
+3	自身	zì shēn	itself; oneself; one's own
+3	子女	zǐ nǚ	children; sons and daughters
+3	总	zǒng	general; overall; to sum up; in every case; always; invariably
+3	足够	zú gòu	enough; sufficient
+3	足球	zú qiú	soccer ball; a football; soccer
+3	做客	zuò kè	to be a guest or visitor
+4	矮小	ǎi xiǎo	short and small; low and small; undersized
+4	爱国	ài guó	to love one's country; patriotic
+4	安	Ān | ān	surname An; (bound form) calm; peaceful; to calm; to set at ease
+4	巴士	bā shì	bus (loanword); motor coach
+4	百货	bǎi huò	general merchandise
+4	摆动	bǎi dòng	to sway; to swing; to move back and forth
+4	败	bài	to defeat; to damage; to lose (to an opponent)
+4	办事	bàn shì	to handle (affairs); to work
+4	宝	bǎo	variant of 宝; jewel; gem
+4	宝宝	bǎo bao	darling; baby
+4	宝石	bǎo shí	precious stone; gem
+4	被迫	bèi pò	to be compelled; to be forced
+4	比分	bǐ fēn	score
+4	毕业生	bì yè shēng	graduate
+4	避	bì	to avoid; to shun; to flee
+4	编	biān	to weave; to plait; to organize
+4	冰	bīng	ice; to chill sth; (of an object or substance) to feel cold
+4	冰雪	bīng xuě	ice and snow
+4	兵	bīng	soldiers; a force; an army
+4	不在乎	bù zài hu	not to care
+4	步行	bù xíng	to go on foot; to walk
+4	测	cè	to survey; to measure; to conjecture
+4	测试	cè shì	to test (machinery etc); to test (a person's skill in a particular area); a test
+4	曾	Zēng | céng | zēng	surname Zeng; once; already
+4	茶叶	chá yè	tea; tea leaves
+4	唱片	chàng piàn	gramophone record; LP; music CD
+4	抄写	chāo xiě	to copy; to transcribe
+4	潮	cháo	tide; damp; moist; humid; fashionable; trendy
+4	沉	chén	to submerge; to immerse; to sink
+4	成人	chéng rén	adult
+4	诚信	chéng xìn	genuine; honest; in good faith
+4	尺	chě | chǐ	one of the characters used to represent a musical note in gongche notation, 工尺谱; a Chinese
+4	尺寸	chǐ cun	size; dimensions; measurements (esp. of clothes); (coll.) propriety
+4	充电	chōng diàn	to recharge (a battery); (fig.) to recharge one's batteries (through leisure); to update o
+4	虫子	chóng zi	insect; bug; worm
+4	抽	chōu	to draw out; to pull out from in between; to remove part of the whole
+4	抽奖	chōu jiǎng	to draw a prize; a lottery; a raffle
+4	出售	chū shòu	to sell; to offer for sale; to put on the market
+4	处	chǔ | chù	to reside; to live; to dwell
+4	处于	chǔ yú	to be in (some state, position, or condition)
+4	穿上	chuān shang	to put on (clothes etc)
+4	窗台	chuāng tái	window sill; window ledge
+4	窗子	chuāng zi	window
+4	春季	chūn jì	springtime
+4	纯	chún	pure; simple; unmixed
+4	纯净水	chún jìng shuǐ	purified water
+4	此	cǐ	this; these
+4	粗	cū	coarse; rough; thick (for cylindrical objects)
+4	促销	cù xiāo	to promote sales
+4	打败	dǎ bài	to defeat; to overpower; to beat
+4	打雷	dǎ léi	to rumble with thunder; clap of thunder
+4	大巴	dà bā	(coll.) large bus; coach; (abbr. for 大型巴士)
+4	大多	dà duō	for the most part; many; most
+4	大哥	dà gē	eldest brother; big brother (polite address for a man of about the same age as oneself); g
+4	大规模	dà guī mó	large scale; extensive; wide scale
+4	大会	dà huì	general assembly; general meeting; convention
+4	大姐	dà jiě	big sister; elder sister; older sister (also polite term of address for a girl or woman sl
+4	大楼	dà lóu	building (a relatively large, multistory one)
+4	大陆	Dà lù | dà lù	mainland China (reference to the PRC); continent; mainland
+4	大妈	dà mā	father's elder brother's wife; aunt (affectionate term for an elderly woman)
+4	大爷	dà yé | dà ye	arrogant idler; self-centered show-off; (coll.) father's older brother
+4	大众	Dà zhòng | dà zhòng	Volkswagen (automobile manufacturer); the masses; the great bulk of the population
+4	袋	dài	pouch; bag; sack
+4	单	Shàn | dān	surname Shan; bill; list
+4	倒车	dǎo chē | dào chē	to change buses, trains etc; to reverse (a vehicle); to drive backwards
+4	地面	dì miàn	floor; ground; surface
+4	地下	dì xià	underground; subterranean; covert
+4	灯光	dēng guāng	(stage) lighting; light
+4	登	dēng	to scale (a height); to ascend; to mount
+4	登山	dēng shān	to climb a mountain; climbing; mountaineering
+4	点名	diǎn míng	roll call; to mention sb by name; (to call or praise or criticize sb) by name
+4	电灯	diàn dēng	electric light
+4	电动车	diàndòngchē	Electric vehicle
+4	定	dìng	to set; to fix; to determine
+4	冬季	dōng jì	winter
+4	动摇	dòng yáo	to sway; to waver; to rock
+4	独自	dú zì	alone
+4	堵	dǔ	to block up (a road, pipe etc); to stop up (a hole); (fig.) (of a person) choked up with a
+4	多次	duō cì	many times; repeatedly
+4	多年	duō nián	many years; for many years; longstanding
+4	多样	duō yàng	diverse; diversity; manifold
+4	多种	duō zhǒng	many kinds of; multiple; diverse; multi-
+4	而是	ér shì	rather
+4	耳机	ěr jī	headphones; earphones; telephone receiver
+4	二手	èr shǒu	indirectly acquired; second-hand (information, equipment etc); assistant
+4	法	fǎ | Fǎ	variant of 法; France; French
+4	法官	fǎ guān	judge (in court)
+4	烦	fán	to feel vexed; to bother; to trouble
+4	反	fǎn	contrary; in reverse; inside out or upside down
+4	肥	féi	fat; fertile; loose-fitting or large
+4	分为	fēn wéi	to divide sth into (parts); to subdivide
+4	付出	fù chū	to pay; to expend; to invest (energy or time)
+4	夫妻	fū qī	husband and wife; married couple
+4	感兴趣	gǎn xìng qù	to be interested
+4	高价	gāo jià	high price
+4	高铁	gāo tiě	high speed rail
+4	隔	gé	to separate; to partition; to stand or lie between
+4	隔开	gé kāi	to separate
+4	各个	gè gè	every; various; separately, one by one
+4	工程	gōng chéng	engineering; an engineering project; project
+4	供应	gōng yìng	to supply; to provide; to offer
+4	共	gòng	common; general; to share
+4	构造	gòu zào	structure; composition; tectonic (geology)
+4	购买	gòu mǎi	to purchase; to buy
+4	瓜	guā	melon; gourd; squash
+4	怪	guài	bewildering; odd; strange
+4	归	Guī | guī	surname Gui; to return; to go back to
+4	海水	hǎi shuǐ	seawater
+4	含	hán	to keep in the mouth; to contain
+4	含量	hán liàng	content; quantity contained
+4	含有	hán yǒu	to contain; including
+4	寒冷	hán lěng	cold (climate); frigid; very cold
+4	毫升	háo shēng	milliliter
+4	好友	hǎo yǒu	close friend; pal; (social networking website) friend
+4	黑暗	hēi àn	dark; darkly; darkness
+4	后头	hòu tou	behind; the back; the rear
+4	户	hù	a household; door; family
+4	划	huá | huà	to row; to paddle; profitable
+4	回复	huí fù	to reply; to recover; to return (to a previous condition)
+4	汇	huì	to remit; to converge (of rivers); to exchange
+4	伙	huǒ	meals (abbr. for 食); variant of 伙; companion
+4	货	huò	goods; money; commodity
+4	获	huò	(literary) to catch; to capture; (literary) to get; to obtain; to win; (bound form) to rea
+4	获奖	huò jiǎng	to win an award
+4	获取	huò qǔ	to gain; to get; to acquire
+4	季	Jì | jì	surname Ji; season; the last month of a season
+4	既	jì	already; since; both... (and...)
+4	加入	jiā rù	to become a member; to join; to mix into
+4	减	jiǎn	to lower; to decrease; to reduce
+4	检测	jiǎn cè	to detect; to test; detection
+4	健身	jiàn shēn	to exercise; to keep fit; to work out
+4	渐渐	jiàn jiàn	gradually
+4	江	Jiāng | jiāng	surname Jiang; river
+4	奖	jiǎng	prize; award; encouragement
+4	奖学金	jiǎng xué jīn	scholarship
+4	降	jiàng | xiáng	to drop; to fall; to come down
+4	降价	jiàng jià	to cut the price; to drive down the price; to get cheaper
+4	降温	jiàng wēn	to become cooler; to lower the temperature; cooling
+4	结	jiē | jié	(of a plant) to produce (fruit or seeds); Taiwan pr. [jié]; knot
+4	姐妹	jiě mèi	sisters; siblings; sister (school, city etc)
+4	居民	jū mín	resident; inhabitant

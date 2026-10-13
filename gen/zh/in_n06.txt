@@ -1,0 +1,250 @@
+5	所在	suǒ zài	place; location; (after a noun) place where it is located
+5	抬头	tái tóu	to raise one's head; to gain ground; account name, or space for writing the name on checks
+5	逃跑	táo pǎo	to flee from sth; to run away; to escape
+5	逃走	táo zǒu	to escape; to flee; to run away
+5	桃花	táo huā	peach blossom; (fig.) love affair
+5	桃树	táo shù	peach tree
+5	特性	tè xìng	property; characteristic
+5	特有	tè yǒu	specific (to); characteristic (of); distinctive
+5	提起	tí qǐ	to mention; to speak of; to lift
+5	体力	tǐ lì	physical strength; physical power
+5	厅	tīng	(reception) hall; living room; office
+5	停留	tíng liú	to stay somewhere temporarily; to stop over
+5	偷	tōu	to steal; to pilfer; to snatch
+5	偷偷	tōu tōu	stealthily; secretly; covertly
+5	兔	tù	variant of 兔; rabbit
+5	团长	tuán zhǎng	regimental command; head of a delegation; group buy organizer; group-buying coordinator
+5	推行	tuī xíng	to put into effect; to carry out
+5	完了	wán le	to be finished; to be done for; ruined
+5	微博	wēi bó	microblogging; microblog
+5	违法	wéi fǎ	illegal; to break the law
+5	违规	wéi guī	to violate the rules
+5	为止	wéi zhǐ	until; (used in combination with words like 到 or 至 in constructs of the form 到...到...为止)
+5	为主	wéi zhǔ	to rely mainly on; to attach most importance to
+5	握	wò	to hold; to grasp; to clench (one's fist); (bound form) to have in one's control
+5	污水	wū shuǐ	sewage
+5	屋	wū	(bound form) house; (bound form) room
+5	无疑	wú yí	undoubtedly; without doubt; for sure
+5	舞	wǔ	to dance; to wield; to brandish
+5	物价	wù jià	(commodity) prices
+5	物业	wù yè	property; real estate; abbr. for 物业管理, property management
+5	喜剧	xǐ jù	comedy
+5	戏	xì	variant of 戏; trick; drama
+5	西装	xī zhuāng	suit; Western-style clothes
+5	先后	xiān hòu	early or late; priority; in succession
+5	闲	xián	enclosure; (variant of 闲) idle; unoccupied
+5	显	xiǎn	to make visible; to reveal; prominent
+5	现有	xiàn yǒu	currently existing; currently available
+5	献	xiàn	to offer; to present; to dedicate
+5	乡	xiāng	country or countryside; native place; home village or town
+5	乡村	xiāng cūn	rustic; village; countryside
+5	相声	xiàng sheng	comic dialogue; sketch; crosstalk
+5	香肠	xiāng cháng	sausage
+5	向前	xiàng qián	forward; onward
+5	向上	xiàng shàng	upward; up; to advance
+5	消费者	xiāo fèi zhě	consumer
+5	小偷儿	xiǎotōur5	Thief
+5	协议书	xié yì shū	contract; protocol
+5	信箱	xìn xiāng	mailbox; post office box
+5	行驶	xíng shǐ	to travel along a route (of vehicles etc)
+5	熊	Xióng | xióng	surname Xiong; bear; (coll.) to scold
+5	修养	xiū yǎng	accomplishment; training; self-cultivation
+5	选修	xuǎn xiū	(at a school) to take as an elective; an elective; elective (subject)
+5	学科	xué kē	subject; branch of learning; course
+5	学者	xué zhě	scholar
+5	寻求	xún qiú	to seek; to look for
+5	鸭子	yā zi	duck; male prostitute (slang)
+5	言语	yán yǔ | yán yu	words; speech; (spoken) language
+5	研究所	yán jiū suǒ	research institute; graduate studies; graduate school
+5	摇头	yáo tóu	to shake one's head
+5	也好	yě hǎo	that's fine; may as well; (reduplicated) regardless of whether ... or ...
+5	夜间	yè jiān	nighttime; evening or night (e.g. classes)
+5	一带	yī dài	region; district
+5	一句话	yī jù huà	in a word; in short
+5	一口气	yī kǒu qì	one breath; in one breath; at a stretch
+5	一身	yī shēn	whole body; from head to toe; single person
+5	一下子	yī xià zi	in a short while; all at once; all of a sudden
+5	依法	yī fǎ	legal (proceedings); according to law
+5	依照	yī zhào	according to; in light of
+5	用不着	yòng bu zháo	not need; have no use for
+5	用来	yòng lái	to be used for
+5	用于	yòng yú	to use in; to use on; to use for
+5	由此	yóu cǐ	hereby; from this
+5	游泳池	yóu yǒng chí	swimming pool
+5	有毒	yǒu dú	poisonous
+5	有害	yǒu hài	destructive; harmful; damaging
+5	有力	yǒu lì	powerful; forceful; vigorous
+5	有利于	yǒu lì yú	to be advantageous to; to be beneficial for
+5	有着	yǒu zhe	to have; to possess
+5	雨水	Yǔ shuǐ | yǔ shuǐ	Yushui or Rain Water, 2nd of the 24 solar terms 二十四节气 19th February-5th March; rainwater; 
+5	预备	yù bèi	to prepare; to make ready; preparation
+5	原有	yuán yǒu	original; former
+5	远处	yuǎn chù	distant place
+5	怨	yuàn	to blame; (bound form) resentment; hatred; grudge
+5	愿	yuàn	honest; prudent; variant of 愿
+5	月饼	yuè bǐng	mooncake (esp. for the Mid-Autumn Festival)
+5	月球	yuè qiú	the moon
+5	阅览室	yuè lǎn shì	reading room
+5	运	yùn	to move; to transport; to use
+5	灾	zāi	disaster; calamity; variant of 灾
+5	灾区	zāi qū	disaster area; stricken region
+5	再次	zài cì	one more time; again; one more
+5	再也	zài yě	(not) any more
+5	在场	zài chǎng	to be present; to be on the scene
+5	在内	zài nèi	(included) in it; among them
+5	暂停	zàn tíng	to suspend; time-out (e.g. in sports); stoppage
+5	糟	zāo	dregs; draff; pickled in wine
+5	早期	zǎo qī	early period; early phase; early stage
+5	增	zēng	(bound form) to increase; to augment; to add to
+5	增产	zēng chǎn	to increase production
+5	增大	zēng dà	to enlarge; to amplify; to magnify
+5	增多	zēng duō	to increase; to grow in number
+5	增强	zēng qiáng	to increase; to strengthen
+5	赠	zèng	to give as a present; to repel; to bestow an honorary title after death (old)
+5	长度	cháng dù	length
+5	长寿	Cháng shòu | cháng shòu	Changshou suburban district of Chongqing municipality, formerly in Sichuan; longevity; lon
+5	涨价	zhǎng jià	to appreciate (in value); to increase in price
+5	招生	zhāo shēng	to enroll new students; to get students
+5	招手	zhāo shǒu	to wave; to beckon
+5	真诚	zhēn chéng	sincere; genuine; true
+5	挣	zhēng | zhèng	used in 挣扎; to struggle to get free; to strive to acquire
+5	正版	zhèng bǎn	genuine; legal; see also 盗版
+5	正如	zhèng rú	just as; precisely as
+5	之内	zhī nèi	inside; within
+5	之外	zhī wài	outside; excluding
+5	之下	zhī xià	under; beneath; less than
+5	之中	zhī zhōng	inside; among; in the midst of (doing sth)
+5	直线	zhí xiàn	straight line; sharply (rise or fall)
+5	只不过	zhǐ bu guò	only; merely; nothing but
+5	只见	zhǐ jiàn	to see (the same thing) over and over again; to see, to one's surprise, (sth happen sudden
+5	至	zhì	to arrive; most; to
+5	制成	zhì chéng	to manufacture; to turn out (a product)
+5	中毒	zhòng dú	to be poisoned
+5	中秋节	Zhōng qiū jié	the Mid-Autumn Festival on 15th of 8th lunar month
+5	中药	zhōng yào	traditional Chinese medicine
+5	众多	zhòng duō	numerous
+5	主体	zhǔ tǐ	main part; bulk; body
+5	专辑	zhuān jí	album; record (music); special collection of printed or broadcast material
+5	转化	zhuǎn huà	to change; to transform; isomerization (chemistry)
+5	转换	zhuǎn huàn	to change; to switch; to convert
+5	转向	zhuǎn xiàng | zhuàn xiàng	to change direction; fig. to change one's stance; to get lost
+5	自杀	zì shā	to kill oneself; to commit suicide; to attempt suicide
+5	总数	zǒng shù	total; sum; aggregate
+5	总体	zǒng tǐ	completely; totally; total
+6	挨打	ái dǎ	to take a beating; to get thrashed; to come under attack
+6	挨着	āi zhe	near
+6	安检	ān jiǎn	security check (abbr. for 安全检查); to do a security check
+6	罢了	bà le | bà liǎo	a modal particle indicating (that's all, only, nothing much); a modal particle indicating 
+6	白领	bái lǐng	white-collar; white-collar worker
+6	办公	bàn gōng	to handle official business; to work (esp. in an office)
+6	办事处	bàn shì chù	office; agency
+6	办学	bàn xué	to run a school
+6	半决赛	bàn jué sài	semifinals
+6	保健	bǎo jiàn	health protection; health care; to maintain in good health
+6	报刊	bào kān	newspapers and periodicals; the press
+6	报考	bào kǎo	to enter oneself for an examination
+6	暴风雨	bào fēng yǔ	rainstorm; storm; tempest
+6	暴雨	bào yǔ	torrential rain; rainstorm
+6	爆	bào	to explode or burst; to quick fry or quick boil
+6	背心	bèi xīn	sleeveless garment (vest, waistcoat, singlet, tank top etc)
+6	背着	bēi zhe | bèi zhe	carrying on one's back; turning one's back to (sth or sb); keeping sth secret from (sb)
+6	奔跑	bēn pǎo	to run
+6	本地	běn dì	local; this locality
+6	本期	běn qī	the current period; this term (usually in finance)
+6	本土	běn tǔ	one's native country; native; local
+6	逼	bī	variant of 逼; to compel; to pressure
+6	笔试	bǐ shì	written examination; paper test (for an applicant)
+6	必将	bì jiāng	inevitably
+6	必修	bì xiū	(of an academic course) required; compulsory
+6	闭	bì	to close; to stop up; to shut
+6	编制	biān zhì	to establish (a unit or department); staffing structure (excluding temporary and casual st
+6	变更	biàn gēng	to change; to alter; to modify
+6	变换	biàn huàn	to transform; to convert; to vary
+6	变形	biàn xíng	to become deformed; to change shape; to morph
+6	便是	biàn shì	(emphasizes that sth is precisely or exactly as stated); precisely; exactly
+6	遍地	biàn dì	everywhere; all over
+6	表面上	biǎo miàn shang	outwardly; superficially; on the face of it
+6	病房	bìng fáng	ward (of a hospital); sickroom
+6	病情	bìng qíng	state of an illness; patient's condition
+6	波动	bō dòng	to undulate; to fluctuate; wave motion
+6	播	bō	to sow; to scatter; to spread
+6	补考	bǔ kǎo	to sit for a makeup exam; to resit an exam; makeup exam
+6	补课	bǔ kè	to make up missed lesson; to reschedule a class
+6	补习	bǔ xí	to take extra lessons in a cram school or with a private tutor
+6	补助	bǔ zhù	to subsidize; subsidy; allowance
+6	捕	bǔ	to catch; to seize; to capture
+6	不便	bù biàn	inconvenient; inappropriate; unsuitable
+6	不成	bù chéng	won't do; unable to; (at the end of a rhetorical question) can that be?
+6	不见	bù jiàn	not to see; not to meet; to have disappeared
+6	不仅仅	bù jǐn jǐn	not only; not just
+6	不通	bù tōng	to be obstructed; to be blocked up; to be impassable
+6	不再	bù zài	no more; no longer
+6	不怎么	bù zěn me	not very; not particularly
+6	不怎么样	bù zěn me yàng	not up to much; very indifferent; nothing great about it
+6	不值	bù zhí	not worth
+6	不至于	bù zhì yú	unlikely to go so far as to; not as bad as
+6	布满	bù mǎn	to be covered with; to be filled with
+6	部队	bù duì	army; armed forces; troops
+6	参赛	cān sài	to compete; to take part in a competition
+6	参展	cān zhǎn	to exhibit at or take part in a trade show etc
+6	餐	cān	meal; to eat; classifier for meals
+6	残疾人	cán jí rén	disabled person
+6	惨	cǎn	miserable; wretched; cruel
+6	藏	Zàng | cáng | zàng	Tibet; abbr. for Xizang or Tibet Autonomous Region 藏; to conceal
+6	侧	cè | zhāi	the side; to incline towards; to lean
+6	测定	cè dìng	to determine (by measuring or surveying)
+6	层面	céng miàn	aspect; facet; level (political, psychological, spiritual etc)
+6	查出	chá chū	to find out; to discover
+6	查看	chá kàn	to look over; to examine; to check up
+6	差异	chā yì	difference; discrepancy
+6	拆迁	chāi qiān	to demolish a building and relocate the inhabitants
+6	产量	chǎn liàng	output
+6	常规	cháng guī	code of conduct; conventions; common practice
+6	厂商	chǎng shāng	manufacturer; producer
+6	场地	chǎng dì	space; site; place
+6	场馆	chǎng guǎn	sporting venue; arena
+6	场景	chǎng jǐng	scene; scenario; situation; setting
+6	超	chāo	to exceed; to overtake; to surpass
+6	超出	chāo chū	to exceed; to overstep; to go too far
+6	炒股	chǎo gǔ	(coll.) to speculate in stocks
+6	炒作	chǎo zuò	to hype; to promote (in the media)
+6	车号	chē hào	vehicle number (license plate number, taxi number, bus number, train car number)
+6	车牌	chē pái	license plate
+6	车展	chē zhǎn	motor show
+6	撤离	chè lí	to withdraw from; to evacuate
+6	撑	chēng	to support; to prop up; to push or move with a pole
+6	成品	chéng pǐn	finished goods; a finished product
+6	城区	chéng qū	city district; urban area
+6	城乡	chéng xiāng	city and countryside
+6	城镇	chéng zhèn	town; cities and towns
+6	持有	chí yǒu	to hold (passport, views etc)
+6	出场	chū chǎng	(of a performer) to come onto the stage to perform; (of an athlete) to enter the arena to 
+6	出动	chū dòng	to start out on a trip; to dispatch troops
+6	出访	chū fǎng	to go and visit in an official capacity or for investigation
+6	出面	chū miàn	to appear personally; to step in; to step forth
+6	出名	chū míng	well-known for sth; to become well known; to make one's mark
+6	出入	chū rù	to go out and come in; entrance and exit; expenditure and income
+6	出事	chū shì	to have an accident; to meet with a mishap
+6	出台	chū tái	to officially launch (a policy, program etc); to appear on stage; to appear publicly
+6	出行	chū xíng	to go out somewhere (relatively short trip); to set off on a journey (longer trip)
+6	初等	chū děng	elementary (i.e. easy)
+6	厨师	chú shī	cook; chef
+6	处处	chù chù	everywhere; in all respects
+6	处长	chù zhǎng	department head; section chief
+6	传出	chuán chū	to transmit outwards; to disseminate; efferent (nerve)
+6	传媒	chuán méi	media
+6	传输	chuán shū	to transmit; transmission
+6	传言	chuán yán	rumor; hearsay
+6	船员	chuán yuán	sailor; crew member
+6	船长	chuán zhǎng	captain (of a boat); skipper
+6	船只	chuán zhī	ship; boat; vessel
+6	窗口	chuāng kǒu	window; opening providing restricted access (e.g. customer service window); computer opera
+6	创办	chuàng bàn	to establish; to found; to launch
+6	创建	chuàng jiàn	to found; to establish
+6	创意	chuàng yì	creative; creativity
+6	此处	cǐ chù	this place; here (literary)
+6	此次	cǐ cì	this time
+6	此前	cǐ qián	before this; before then; previously
+6	此事	cǐ shì	this matter
+6	此致	cǐ zhì	(used at the end of a letter to introduce a polite salutation)
+6	次数	cì shù	number of times; frequency; order number (in a series)

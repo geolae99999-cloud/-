@@ -97,6 +97,7 @@
     document.body.appendChild(ov);
   };
   ACTIONS['about-video-close'] = () => { const o = document.querySelector('.vid-ov'); if (o) o.remove(); };
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') ACTIONS['about-video-close'](); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.querySelector('.vid-ov')) { e.stopImmediatePropagation(); ACTIONS['about-video-close'](); } }, true);
   function showAuth() {
     authMode = cloudMode ? 'login' : (Object.keys(getUsers()).length ? 'login' : 'signup');
@@ -268,7 +269,7 @@
   async function cloudPush() {
     clearTimeout(cloudTimer); cloudTimer = null;
     if (!cloudMode || !window.Cloud || !currentUser || !Cloud.user()) return;
-    const json = JSON.stringify({ ...dataBlob(), cfg: { ttsRate: config.ttsRate, goal: config.goal, darkMode: config.darkMode, provider: config.provider, grade: config.grade, role: config.role || '', profile: config.profile || cleanProfile() } });
+    const json = JSON.stringify({ ...dataBlob(), cfg: { ...ttsCfgOut(), goal: config.goal, darkMode: config.darkMode, provider: config.provider, grade: config.grade, role: config.role || '', profile: config.profile || cleanProfile() } });
     if (json.length > 900000) toast('데이터가 서버 저장 한도(약 1MB)에 가까워요. 단어장을 줄이거나 백업해 두세요.');
     try { await Cloud.save({ data: json, updated: +LS.getItem(KEY_DATA + ':ts') || Date.now() }); clReport(); }
     catch (e) { toast('서버 저장에 실패했어요. 인터넷을 확인하세요. (' + (e.code || e.message) + ')'); }
@@ -277,7 +278,7 @@
     const d = JSON.parse(r.data);
     useBlob(d);
     if (d.cfg) {
-      config.ttsRate = parseFloat(d.cfg.ttsRate) || config.ttsRate; config.goal = parseInt(d.cfg.goal, 10) || config.goal;
+      config.ttsRate = parseFloat(d.cfg.ttsRate) || config.ttsRate; ttsCfgIn(config, d.cfg); config.goal = parseInt(d.cfg.goal, 10) || config.goal;
       config.darkMode = !!d.cfg.darkMode; if (PROVIDERS[d.cfg.provider]) config.provider = d.cfg.provider;
       if (GRADE_NAMES[d.cfg.grade]) config.grade = d.cfg.grade;
       if (d.cfg.role !== undefined) config.role = d.cfg.role === 'teacher' ? 'teacher' : '';

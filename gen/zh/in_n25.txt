@@ -1,0 +1,229 @@
+7	征	zhēng	journey; trip; expedition
+7	征集	zhēng jí	to collect; to recruit
+7	蒸	zhēng	to evaporate; (of cooking) to steam; torch made from hemp stalks or bamboo (old)
+7	拯救	zhěng jiù	to save; to rescue
+7	整合	zhěng hé	to conform; to integrate
+7	整洁	zhěng jié	neatly; tidy
+7	整数	zhěng shù	whole number; integer (math.); round figure
+7	正面	zhèng miàn	front; obverse side; right side
+7	正能量	zhèng néng liàng	positive energy; positivity
+7	正视	zhèng shì	to face squarely; to meet head on; to face up to
+7	正直	zhèng zhí	upright; upstanding; honest
+7	正宗	zhèng zōng	orthodox school; fig. traditional; old school
+7	证人	zhèng rén	witness
+7	症结	zhēng jié	hard lump in the abdomen (in Chinese medicine); crux of an issue; main point in an argumen
+7	之所以	zhī suǒ yǐ	(after a noun N and before a predicate P) the reason why N P; Example: 我之所以讨厌他 "the reason
+7	汁	zhī	juice
+7	芝麻	zhī ma	sesame (seed)
+7	芝士	zhī shì	cheese (loanword)
+7	知己	zhī jǐ	to know oneself; to be intimate or close; intimate friend
+7	知名度	zhī míng dù	reputation; profile; familiarity in the public consciousness
+7	知识分子	zhī shi fèn zǐ	intellectual; intelligentsia; learned person
+7	知足	zhī zú	content with one's situation; to know contentment (hence happiness)
+7	肢体	zhī tǐ	limb; limbs and trunk; body
+7	执法	zhí fǎ	to enforce a law; law enforcement
+7	执意	zhí yì	to be determined to; to insist on
+7	执着	zhí zhuó	to be strongly attached to; to be dedicated; to cling to
+7	直奔	zhí bèn	to go straight to; to make a beeline for
+7	直达	zhí dá	to reach (a place) directly; (transportation) to reach the destination without changing se
+7	直观	zhí guān	direct observation; directly perceived through the senses; intuitive
+7	直径	zhí jìng	diameter
+7	直觉	zhí jué	intuition
+7	直视	zhí shì	to look straight at
+7	直至	zhí zhì	lasting until; up till (the present)
+7	值钱	zhí qián	valuable; costly; expensive
+7	职权	zhí quán	authority; power over others
+7	职业病	zhí yè bìng	occupational disease
+7	职员	zhí yuán	office worker; staff member
+7	止步	zhǐ bù	to halt; to stop; to go no farther
+7	止咳	zhǐ ké	to suppress coughing
+7	止血	zhǐ xuè	to staunch (bleeding); hemostatic (drug)
+7	旨在	zhǐ zài	to have as its purpose; to be intended to; to aim to (do sth)
+7	指点	zhǐ diǎn	to point out; to indicate; to give directions
+7	指教	zhǐ jiào	to give advice or comments
+7	指南	zhǐ nán	to guide; guidebook
+7	指手画脚	zhǐ shǒu huà jiǎo	to gesticulate while talking (idiom); to explain by waving one's hands; to criticize or gi
+7	指向	zhǐ xiàng	to point towards; aimed at; facing
+7	指引	zhǐ yǐn	to guide; to show; to point (the way)
+7	至此	zhì cǐ	up until now; so far
+7	至关重要	zhì guān zhòng yào	extremely important; vital; crucial
+7	制	zhì	system; to control; to regulate
+7	制品	zhì pǐn	products; goods
+7	治学	zhì xué	scholarship; high-level study; to do scholarly research
+7	治愈	zhì yù	to cure; to restore to health; uplifting; heartwarming
+7	质地	zhì dì	texture; background (texture); grain
+7	质朴	zhì pǔ	simple; plain; unadorned
+7	质问	zhì wèn	to question; to ask questions; to inquire
+7	质疑	zhì yí	to call into question; to question (truth or validity)
+7	致	zhì	(bound form) fine; delicate; exquisite; to send; to devote
+7	致富	zhì fù	to become rich
+7	致敬	zhì jìng	to salute; to pay one's respects to; to pay tribute to
+7	致命	zhì mìng	fatal; mortal; deadly
+7	窒息	zhì xī	to choke; to stifle; to suffocate
+7	滞后	zhì hòu	to lag behind
+7	置	zhì	to install; to place; to put
+7	中国画	Zhōng guó huà	Chinese painting
+7	中途	zhōng tú	midway
+7	中型	zhōng xíng	medium sized
+7	中性	zhōng xìng	neutral
+7	中庸	Zhōng yōng | zhōng yōng	the Doctrine of the Mean, one of the Four Books 四书; golden mean (Confucianism); (literary)
+7	中止	zhōng zhǐ	to cease; to suspend; to break off
+7	忠于	zhōng yú	to be loyal to
+7	忠贞	zhōng zhēn	loyal and dependable
+7	终结	zhōng jié	end; conclusion; to come to an end; to terminate (sth)
+7	终生	zhōng shēng	throughout one's life; lifetime; lifelong
+7	仲裁	zhòng cái	arbitration
+7	众人	zhòng rén	everyone
+7	众志成城	zhòng zhì chéng chéng	unity of will is an impregnable stronghold (idiom)
+7	重播	chóng bō	to replay; to rerun; (agriculture) to reseed
+7	重创	zhòng chuāng	to inflict heavy losses; to inflict serious damage
+7	重返	chóng fǎn	to return to
+7	重合	chóng hé	to match up; to coincide
+7	重量级	zhòng liàng jí	heavyweight (boxing etc)
+7	重任	zhòng rèn	heavy responsibility
+7	重伤	zhòng shāng	seriously hurt; serious injury
+7	重申	chóng shēn	to reaffirm; to reiterate
+7	重现	chóng xiàn	to reappear
+7	重型	zhòng xíng	heavy; heavy duty; large caliber
+7	重中之重	zhòng zhōng zhī zhòng	of the utmost importance; of highest priority
+7	周旋	zhōu xuán	to mix with others; to socialize; to deal with
+7	皱	zhòu	to wrinkle; wrinkled; to crease
+7	骤然	zhòu rán	suddenly; abruptly
+7	朱红	zhū hóng	vermilion
+7	诸多	zhū duō	(used for abstract things) a good deal, a lot of
+7	诸如此类	zhū rú cǐ lèi	things like this (idiom); and so on; and the rest; etc
+7	竹竿	zhú gān	bamboo; bamboo pole
+7	主	zhǔ	owner; master; host
+7	主编	zhǔ biān	editor in chief
+7	主妇	zhǔ fù	housewife; woman of senior authority in a household; the lady of the house
+7	主力	zhǔ lì	main force; main strength of an army
+7	主人公	zhǔ rén gōng	hero (of a novel or film); main protagonist
+7	主食	zhǔ shí	staple food
+7	主题歌	zhǔ tí gē	theme song
+7	主演	zhǔ yǎn	to act the leading role (in a movie or a play); to star; lead actor
+7	主页	zhǔ yè	home page
+7	主义	zhǔ yì	-ism; ideology
+7	主宰	zhǔ zǎi	to dominate; to rule; to dictate
+7	瞩目	zhǔ mù	to focus attention upon
+7	住处	zhù chù	residence; dwelling
+7	住户	zhù hù	household; inhabitant; householder
+7	住宿	zhù sù	to stay at; lodging; accommodation
+7	住址	zhù zhǐ	address
+7	助威	zhù wēi	to cheer for; to encourage; to boost the morale of
+7	注	zhù	to inject; to pour into; to concentrate
+7	注定	zhù dìng	to foreordain; to be bound to; to be destined to
+7	注入	zhù rù	to pour into; to empty into
+7	贮藏	zhù cáng	to store up; to hoard; deposits
+7	筑	Zhù | zhù	short name for Guiyang 贵阳; five-string lute; Taiwan pr. [zhú]
+7	专柜	zhuān guì	sales counter dedicated to a certain kind of product (e.g. alcohol)
+7	专栏	zhuān lán	special column
+7	专卖店	zhuān mài diàn	specialty store
+7	专人	zhuān rén	specialist; person appointed for specific task
+7	专著	zhuān zhù	monograph; specialized text
+7	专职	zhuān zhí	special duty; assigned full time to a task
+7	专制	zhuān zhì	autocracy; dictatorship
+7	专注	zhuān zhù	to focus; to concentrate; to give one's full attention
+7	砖	zhuān	variant of 砖; brick
+7	转播	zhuǎn bō	relay; broadcast (on radio or TV)
+7	转机	zhuǎn jī	(to take) a turn for the better; to change planes
+7	转交	zhuǎn jiāo	to pass on to sb; to carry and give to sb else
+7	转型	zhuǎn xíng	to undergo fundamental change; to transition; to transform; to update (to a new model of p
+7	转学	zhuǎn xué	to change schools; to transfer to another college
+7	转眼	zhuǎn yǎn	in a flash; in the blink of an eye; to glance
+7	转悠	zhuàn you	to roll; to wander around; to appear repeatedly
+7	转载	zhuǎn zǎi	to forward (a shipment); to reprint sth published elsewhere; Taiwan pr. [zhuǎn zài]
+7	转折点	zhuǎn zhé diǎn	turning point; breaking point
+7	撰写	zhuàn xiě	to write; to compose
+7	庄稼	zhuāng jia	farm crop
+7	庄园	zhuāng yuán	manor; feudal land; villa and park
+7	桩	zhuāng	stump; stake; pile
+7	装扮	zhuāng bàn	to decorate; to adorn; to dress up
+7	壮	Zhuàng | zhuàng	Zhuang ethnic group of Guangxi, the PRC's second most numerous ethnic group; to strengthen
+7	壮大	zhuàng dà	to expand; to strengthen
+7	壮胆	zhuàng dǎn	to get one’s courage up; to embolden
+7	壮实	zhuàng shi	robust; sturdy
+7	状元	zhuàng yuán	top scorer in the palace examination (highest rank of the Imperial examination system); se
+7	撞击	zhuàng jī	to strike; to hit; to ram
+7	追悼会	zhuī dào huì	memorial service; funeral service
+7	追赶	zhuī gǎn	to pursue; to chase after; to accelerate
+7	追溯	zhuī sù	lit. to go upstream; to trace sth back to; to date from
+7	追随	zhuī suí	to follow; to accompany
+7	追尾	zhuī wěi	to tailgate; to hit the car in front as a result of tailgating
+7	追问	zhuī wèn	to question closely; to investigate in detail; to examine minutely
+7	追逐	zhuī zhú	to chase; to pursue vigorously
+7	追踪	zhuī zōng	to follow a trail; to trace; to pursue
+7	坠	zhuì	to fall; to drop; to weigh down
+7	准许	zhǔn xǔ	to allow; to grant; to permit
+7	拙劣	zhuō liè	clumsy; botched
+7	捉迷藏	zhuō mí cáng	to play hide-and-seek
+7	灼热	zhuó rè	burning hot; scorching
+7	酌情	zhuó qíng	to use discretion; to take circumstances into account; to make allowances pertinent to a s
+7	兹	zī	now; here; this
+7	资本主义	zī běn zhǔ yì	capitalism
+7	资历	zī lì	qualifications; experience; seniority
+7	资讯	zī xùn	information
+7	滋润	zī rùn	moist; humid; to moisten
+7	字迹	zì jì	handwriting
+7	字体	zì tǐ	calligraphic style; typeface; font
+7	字眼	zì yǎn	wording
+7	自称	zì chēng	to call oneself; to claim to be; to profess
+7	自费	zì fèi	at one's own expense; self-funded
+7	自负	zì fù	conceited; to take responsibility
+7	自理	zì lǐ	to take care of oneself; to provide for oneself
+7	自立	zì lì	independent; self-reliant; self-sustaining
+7	自强不息	zì qiáng bù xī	to strive unremittingly; self-improvement
+7	自然而然	zì rán ér rán	involuntary; automatically
+7	自然界	zì rán jiè	nature; the natural world
+7	自如	zì rú	unobstructed; unconstrained; smoothly
+7	自始至终	zì shǐ zhì zhōng	from start to finish (idiom)
+7	自私自利	zì sī zì lì	everything for self and selfish profit (idiom); with no regard for others; selfish; mercen
+7	自卫	zì wèi	to defend oneself; self-defense
+7	自相矛盾	zì xiāng máo dùn	to contradict oneself; self-contradictory; inconsistent
+7	自信心	zì xìn xīn	self-confidence
+7	自行	zì xíng	voluntary; autonomous; by oneself
+7	自以为是	zì yǐ wéi shì	to believe oneself infallible (idiom); to be opinionated
+7	自由自在	zì yóu zì zài	free and easy (idiom); carefree; leisurely
+7	自责	zì zé	to blame oneself
+7	自助	zì zhù	self-service
+7	自尊	zì zūn	self-respect; self-esteem; ego
+7	自尊心	zì zūn xīn	self-respect; self-esteem; ego
+7	子弟	zǐ dì	child; the younger generation
+7	子孙	zǐ sūn	offspring; posterity
+7	宗	Zōng | zōng	surname Zong; school; sect
+7	综上所述	zōng shàng suǒ shù	to summarize; to sum up
+7	总的来说	zǒng de lái shuō	generally speaking; to sum up; in summary
+7	总额	zǒng é	total (amount or value)
+7	总计	zǒng jì	(grand) total
+7	纵观	zòng guān	to survey comprehensively; an overall survey
+7	纵横交错	zòng héng jiāo cuò	criss-crossed (idiom)
+7	纵然	zòng rán	even if; even though
+7	纵容	zòng róng	to indulge; to connive at
+7	纵深	zòng shēn	depth (from front to rear); depth (into a territory); span (of time)
+7	粽子	zòng zi	glutinous rice and choice of filling wrapped in leaves and steamed or boiled
+7	走过场	zǒu guò chǎng	to go through the motions
+7	走后门	zǒu hòu mén	lit. to enter by the back door; fig. to gain influence by pull or unofficial channels; bac
+7	走近	zǒu jìn	to approach; to draw near to
+7	走投无路	zǒu tóu wú lù	to be at an impasse (idiom); in a tight spot; at the end of one's rope
+7	走弯路	zǒu wān lù	to take an indirect route; to waste one's time by using an inappropriate method
+7	奏效	zòu xiào	to show results; to be effective
+7	足迹	zú jì	footprint; track; spoor
+7	足智多谋	zú zhì duō móu	resourceful; full of stratagems
+7	阻挡	zǔ dǎng	to stop; to resist; to obstruct
+7	阻力	zǔ lì	resistance; drag
+7	组建	zǔ jiàn	to organize; to set up; to establish
+7	组装	zǔ zhuāng	to assemble; to put together
+7	祖传	zǔ chuán	passed on from ancestors; handed down from generation to generation
+7	祖籍	zǔ jí	ancestral hometown; original domicile (and civil registration)
+7	祖宗	zǔ zōng	ancestor; forebear
+7	钻空子	zuān kòng zi	to take advantage of a loophole; to exploit an advantage; to seize the opportunity (esp. t
+7	罪魁祸首	zuì kuí huò shǒu	criminal ringleader, main offender (idiom); main culprit; fig. main cause of a disaster
+7	尊贵	zūn guì	respected; respectable; honorable
+7	遵照	zūn zhào	in accordance with; to follow (the rules)
+7	左顾右盼	zuǒ gù yòu pàn	glancing to left and right (idiom); to look all around
+7	佐料	zuǒ liào	condiments; seasoning
+7	作对	zuò duì	to set oneself against; to oppose; to make a pair
+7	作客	zuò kè	to live somewhere as a visitor; to stay with sb as a guest; to sojourn
+7	作物	zuò wù	crop
+7	坐落	zuò luò	to be situated; to be located (of a building)
+7	座谈	zuò tán	to have an informal discussion
+7	做证	zuò zhèng	variant of 作证

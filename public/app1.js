@@ -136,16 +136,18 @@
   Object.assign(ON.change, {
     grade: el => setGrade(el.value),
     goal: el => { config.goal = parseInt(el.value, 10) || 20; syncStorage(); },
-    'tts-rate': el => { config.ttsRate = parseFloat(el.value); syncStorage(); },
+    'tts-voice': el => { config.voice = Object.assign({ en: '', zh: '', ko: '' }, config.voice); config.voice[el.dataset.l] = el.value; syncStorage(); ttsTry(el.dataset.l); },
+    'tts-match': el => { config.matchVoice = el.checked; syncStorage(); },
     provider: el => onProviderChange(el.value),
     rm: () => rmSave(),
     'import-backup': (el, e) => importBackup(e),
     'import-csv': (el, e) => importCsv(e),
     'listen-ex': el => { L.example = el.checked; },
+    'listen-exko': el => { L.exKo = el.checked; },
     'auth-role': () => authRoleChange(),
     'pq-role': () => pqRoleChange()
   });
-  Object.assign(ON.input, { search: el => onSearch(el.value), dict: () => dictType() });
+  Object.assign(ON.input, { 'tts-range': el => ttsSet(el.dataset.k, el.value, true), search: el => onSearch(el.value), dict: () => dictType() });
   Object.assign(ON.enter, { 'add-book': () => ACTIONS['add-book'](), 'ai-fill': () => executeFastAi(), dict: () => dictType(true) });
   ACTIONS['test-conn'] = () => testConnection();
   ACTIONS['ai-fill'] = () => executeFastAi();
@@ -168,7 +170,8 @@
     keys: { gemini: '', xai: '', openai: '', anthropic: '' },
     models: { gemini: '', xai: '', openai: '', anthropic: '' },
     modelLists: { gemini: [], xai: [], openai: [], anthropic: [] },
-    ttsRate: 0.9, goal: 20, darkMode: false, grade: '', lang: 'en'
+    ttsRate: 0.9, koRate: 1, ttsPitch: 1, gap: 0.9, wordRep: 1, matchVoice: true, voice: { en: '', zh: '', ko: '' },
+    goal: 20, darkMode: false, grade: '', lang: 'en'
   };
 
   function sanitizeNote(n) {
@@ -236,12 +239,22 @@
   ];
 
   const cleanProfile = p => ({ name: String((p && p.name) || '').trim().slice(0, 20), school: String((p && p.school) || '').trim().slice(0, 30), sno: String((p && p.sno) || '').trim().slice(0, 12) });
+  // 읽어주기 설정(속도·높이·쉬는 시간·목소리)을 저장본에서 안전하게 읽어요.
+  function ttsCfgIn(cfg, d) {
+    if (!d) return;
+    const n = (k, lo, hi) => { const x = parseFloat(d[k]); if (isFinite(x)) cfg[k] = Math.min(hi, Math.max(lo, x)); };
+    n('ttsRate', .5, 2); n('koRate', .5, 2); n('ttsPitch', .5, 1.5); n('gap', 0, 5); n('wordRep', 1, 3);
+    if (typeof d.matchVoice === 'boolean') cfg.matchVoice = d.matchVoice;
+    if (d.voice && typeof d.voice === 'object') cfg.voice = { en: String(d.voice.en || '').slice(0, 200), zh: String(d.voice.zh || '').slice(0, 200), ko: String(d.voice.ko || '').slice(0, 200) };
+  }
+  const ttsCfgOut = () => ({ ttsRate: config.ttsRate, koRate: config.koRate, ttsPitch: config.ttsPitch, gap: config.gap, wordRep: config.wordRep, matchVoice: config.matchVoice });
   function loadConfig() {
     const cfg = JSON.parse(JSON.stringify(DEFAULT_CFG));
     const saved = loadJson(KEY_CFG);
     if (saved) {
       cfg.provider = saved.provider || cfg.provider;
       cfg.ttsRate = saved.ttsRate || cfg.ttsRate;
+      ttsCfgIn(cfg, saved);
       cfg.goal = saved.goal || cfg.goal;
       cfg.darkMode = !!saved.darkMode;
       cfg.lang = saved.lang === 'zh' ? 'zh' : 'en';

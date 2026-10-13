@@ -2,8 +2,10 @@
 """중국어 사전: gen/zh/in_*.txt + out_*_p*.tsv -> public/dict/zh/
 사용: python3 tools/build_zh.py gen/zh public      (pypinyin 필요: python3 -m pip install pypinyin)
 
-- index.json      [단어, 병음, 뜻, HSK 급수] 전체 목록 (HSK 단어장, 중국어 사전 찾기)
-- <0-f>.json      {단어: [단어, 뜻, 병음, 한글 발음, 예문, 예문 해석, 비슷한 단어, 예문 병음, 급수]}
+- index.json      [단어, 병음, 뜻, 옛 HSK 급수(1~6, 없으면 0), 신HSK 3.0 급수(1~7, 7=7~9급, 없으면 0)] 전체 목록
+- <0-f>.json      {단어: [단어, 뜻, 병음, 한글 발음, 예문, 예문 해석, 비슷한 단어, 예문 병음, 옛 급수, 신 급수]}
+in_<번호>.txt 는 옛 HSK(2.0) 단어(첫 칸 = 옛 급수), in_n<번호>.txt 는 신HSK에만 있는 단어(첫 칸 = 신 급수).
+신 급수는 hsk30_levels.tsv 에서 가져와요.
                   첫 글자 코드 % 16 으로 나눠요 (앱의 dictLetter 와 같아요).
 병음은 원본(HSK 목록)에서 고른 것만 쓰고, 한글 발음과 예문 병음은 여기서 규칙으로 만들어요."""
 import sys, os, glob, json, re, unicodedata
@@ -13,7 +15,7 @@ gen, out = sys.argv[1], os.path.join(sys.argv[2], 'dict', 'zh')
 TONE = {'̄': 1, '́': 2, '̌': 3, '̀': 4}
 
 def fix(p):
-    return p.replace('u:', 'ü').replace('U:', 'Ü')
+    return re.sub(r'(?<=[a-zA-Zü])[0-5](?=\b|$|\s)', '', p.replace('u:', 'ü').replace('U:', 'Ü'))
 
 MARK = {1: '\u0304', 2: '\u0301', 3: '\u030c', 4: '\u0300'}
 def retone(s):
@@ -125,11 +127,16 @@ def ex_py(ex, word, wpy):
     return re.sub(r'\s+', ' ', out).strip() or ' '.join(py)
 
 # ----- 읽기 -----
+NEW = {}
+for l in open(os.path.join(gen, 'hsk30_levels.tsv'), encoding='utf-8'):
+    a = l.rstrip('\n').split('\t')
+    if len(a) == 2 and not l.startswith('#'): NEW.setdefault(a[0], int(a[1]))
 inputs = {}
 for f in sorted(glob.glob(os.path.join(gen, 'in_*.txt'))):
+    only_new = os.path.basename(f).startswith('in_n')
     for l in open(f, encoding='utf-8'):
         a = l.rstrip('\n').split('\t')
-        if len(a) == 4: inputs[a[1]] = (int(a[0]), [x.strip() for x in a[2].split(' | ')])
+        if len(a) == 4 and a[1] not in inputs: inputs[a[1]] = (0 if only_new else int(a[0]), [x.strip() for x in a[2].split(' | ')])
 D, bad = {}, []
 for f in sorted(glob.glob(os.path.join(gen, 'out_*_p*.tsv'))):
     for l in open(f, encoding='utf-8'):
@@ -143,16 +150,19 @@ for f in sorted(glob.glob(os.path.join(gen, 'out_*_p*.tsv'))):
         if w not in ex: bad.append('example ' + w); ex = exk = ''
         syn = ', '.join(x.strip() for x in re.split('[,，、]', syn) if x.strip() and x.strip() != w)
         if w in D: continue
-        D[w] = [w, m, joined(p), kor(p), ex, exk, syn, ex_py(ex, w, p) if ex else '', lv]
+        D[w] = [w, m, joined(p), kor(p), ex, exk, syn, ex_py(ex, w, p) if ex else '', lv, NEW.get(w, 0)]
 missing = [w for w in inputs if w not in D]
 os.makedirs(out, exist_ok=True)
 for f in glob.glob(os.path.join(out, '*.json')): os.remove(f)
-order = sorted(D.values(), key=lambda e: (e[8], list(inputs).index(e[0])))
-json.dump([[e[0], e[2], e[1], e[8]] for e in order], open(os.path.join(out, 'index.json'), 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
+pos = {w: i for i, w in enumerate(inputs)}
+order = sorted(D.values(), key=lambda e: (e[8] or 9, e[9] or 9, pos[e[0]]))
+json.dump([[e[0], e[2], e[1], e[8], e[9]] for e in order], open(os.path.join(out, 'index.json'), 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
 shards = {}
 for e in order: shards.setdefault('%x' % (ord(e[0][0]) % 16), {})[e[0]] = e
 for k, v in shards.items():
     json.dump(v, open(os.path.join(out, k + '.json'), 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
 noko = [e[0] for e in D.values() if not e[3]]
+from collections import Counter
+print('신HSK 급수별', sorted(Counter(e[9] for e in D.values()).items()))
 print(f'중국어 사전 {len(D)}개 (입력 {len(inputs)}개), 빠짐 {len(missing)}, 문제 {len(bad)}, 한글 발음 없음 {len(noko)}')
 for x in (bad + ['missing ' + w for w in missing] + ['noko ' + w for w in noko])[:40]: print('  ', x)

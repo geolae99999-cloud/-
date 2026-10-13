@@ -1,0 +1,250 @@
+2	银行卡	yín háng kǎ	bank card; ATM card
+2	英文	Yīng wén	English (language)
+2	英语	Yīng yǔ	English (language)
+2	影片	yǐng piàn	a copy of a film; film; motion picture; movie
+2	油	yóu	oil; fat; grease
+2	游客	yóu kè	traveler; tourist; (online gaming) guest player
+2	有点儿	yǒu diǎn r	slightly; a little; somewhat
+2	有空儿	yǒukòngr5	available
+2	有人	yǒu rén	someone; people; anyone
+2	有一点儿	yǒu yī diǎn r	a bit; a little
+2	有意思	yǒu yì si	interesting; meaningful; enjoyable
+2	院	yuàn	courtyard; institution
+2	院长	yuàn zhǎng	the head of an institution whose name ends in 院; chair of a board; president of a universi
+2	院子	yuàn zi	courtyard; garden; yard
+2	月份	yuè fèn	month
+2	越来越	yuè lái yuè	more and more
+2	咱	zán | zá	variant of 咱; see 咱; I or me
+2	早餐	zǎo cān	breakfast
+2	早晨	zǎo chén	early morning; also pr. [zǎo chen]
+2	早就	zǎo jiù	already at an earlier time
+2	怎么办	zěn me bàn	what's to be done
+2	怎样	zěn yàng	how; what kind
+2	占	zhàn | zhān	variant of 占; to observe; to divine
+2	站住	zhàn zhù	to stand
+2	长大	zhǎng dà	to grow up
+2	找出	zhǎo chū	to find; to search out
+2	照相	zhào xiàng	to take a photograph
+2	这么	zhè me	so much; this much; how much?
+2	这时	zhè shí	at this time; at this moment
+2	这时候	zhè shíhòu	At this moment
+2	这样	zhè yàng	this kind of; so; this way
+2	正是	zhèng shì	is precisely
+2	只能	zhǐ néng	can only; obliged to do sth; to have no other choice
+2	纸	zhǐ	variant of 纸; paper; classifier for documents, letter etc
+2	中餐	zhōng cān	lunch; Chinese meal; Chinese food
+2	中级	zhōng jí	middle level (in a hierarchy)
+2	中年	zhōng nián	middle age
+2	中小学	zhōng xiǎo xué	middle and elementary school
+2	中医	Zhōng yī	traditional Chinese medical science; a doctor trained in Chinese medicine
+2	周	Zhōu | zhōu	surname Zhou; Zhou Dynasty (1046-256 BC); to make a circuit
+2	住房	zhù fáng	housing
+2	住院	zhù yuàn	to be in hospital; to be hospitalized
+2	走过	zǒu guò	to walk past; to pass by
+2	走进	zǒu jìn	to enter
+2	走开	zǒu kāi	to leave; to walk away; to beat it
+2	组长	zǔ zhǎng	group leader
+2	作家	zuò jiā	author
+2	做到	zuò dào	to accomplish; to achieve
+2	做法	zuò fǎ	way of handling sth; method for making; work method
+2	做饭	zuò fàn	to prepare a meal; to cook
+3	按	àn	to press; to push; to leave aside or shelve
+3	白菜	bái cài	Chinese cabbage; pak choi
+3	班级	bān jí	class (group of students); grade (in school)
+3	搬家	bān jiā	to move house; to relocate; to remove (sth)
+3	板	bǎn | pàn	board; plank; plate
+3	保	Bǎo | bǎo	Bulgaria; Bulgarian; abbr. for 保加利亚
+3	保安	bǎo ān	to ensure public security; to ensure safety (for workers engaged in production); public se
+3	报	bào	to announce; to inform; report
+3	北部	běi bù	northern part
+3	背后	bèi hòu	behind; at the back; in the rear
+3	变为	biàn wéi	to change into
+3	并	bìng | Bīng	and; furthermore; also
+3	播出	bō chū	to broadcast; to air (a TV program etc)
+3	补	bǔ	to repair; to patch; to mend
+3	不光	bù guāng	not the only one; not only
+3	不论	bù lùn	whatever; no matter what (who, how etc); regardless of
+3	步	Bù | bù	surname Bu; a step; a pace
+3	部	bù	ministry; department; section
+3	部长	bù zhǎng	head of a (government etc) department; section chief; section head
+3	才能	cái néng	talent; ability; capacity
+3	采用	cǎi yòng	to adopt; to employ; to use
+3	彩色	cǎi sè	color; multicolored
+3	厂	hǎn | chǎng	"cliff" radical in Chinese characters (Kangxi radical 27), occurring in 原, 历, 压 etc; facto
+3	衬衣	chèn yī	shirt
+3	称为	chēng wéi	to be called; to be known as; to call it "..."
+3	城	chéng	city walls; city; town
+3	初	chū	at first; (at the) beginning; first
+3	初一	chū yī	first day of lunar month; New Year's Day; first year in junior middle school
+3	初中	chū zhōng	junior high school (abbr. for 初级中学)
+3	传	chuán | zhuàn	to pass on; to spread; to transmit
+3	传来	chuán lái	(of a sound) to come through; to be heard; (of news) to arrive
+3	村	cūn	village; variant of 村
+3	打破	dǎ pò	to break; to smash
+3	代	dài	to substitute; to act on behalf of others; to replace
+3	代表团	dài biǎo tuán	delegation
+3	带动	dài dòng	to spur; to provide impetus; to drive
+3	当中	dāng zhōng	among; in the middle; in the center
+3	得分	dé fēn	to score
+3	底下	dǐ xia	the location below sth; afterwards
+3	电视剧	diàn shì jù	TV series; TV drama
+3	电视台	diàn shì tái	television station
+3	电子邮件	diàn zǐ yóu jiàn	email
+3	调	diào | tiáo	to transfer; to move (troops or cadres); to investigate
+3	订	dìng	to agree; to conclude; to draw up
+3	东部	dōng bù	the east; eastern part
+3	动人	dòng rén	touching; moving
+3	读者	dú zhě	reader
+3	短处	duǎn chù	shortcoming; defect; fault
+3	短裤	duǎn kù	short pants; shorts
+3	短期	duǎn qī	short term; short-term
+3	队员	duì yuán	team member
+3	发出	fā chū	to issue (an order, decree etc); to send out; to dispatch; to produce (a sound); to let ou
+3	发送	fā sòng	to transmit; to dispatch; to issue (an official document or credential)
+3	防	fáng	to protect; to defend; to guard against
+3	房屋	fáng wū	house; building
+3	房租	fáng zū	rent for a room or house
+3	放到	fàng dào	Put in
+3	飞行	fēi xíng	(of planes etc) to fly; flying; flight
+3	费	Fèi | fèi	surname Fei; to cost; to spend
+3	分组	fēn zǔ	to divide into groups; group (formed from a larger group); subgroup
+3	福	Fú | fú	surname Fu; abbr. for Fujian province 省; good fortune
+3	父母	fù mǔ	father and mother; parents
+3	付	Fù | fù	surname Fu; to pay; to hand over to
+3	改造	gǎi zào	to transform; to reform; to remodel
+3	赶	gǎn	to overtake; to catch up with; to hurry; to rush; to try to catch (the bus etc)
+3	赶到	gǎn dào	to hurry (to some place)
+3	干吗	gàn má	see 干嘛
+3	高速公路	gāo sù gōng lù	expressway; highway; freeway
+3	歌迷	gē mí	fan of a singer
+3	歌声	gē shēng	singing voice; fig. original voice of a poet
+3	歌手	gē shǒu	singer
+3	各地	gè dì	in all parts of (a country); various regions
+3	各位	gè wèi	everybody; all (guests, colleagues etc); all of you
+3	各种	gè zhǒng	every kind of; all kinds of; various
+3	公共	gōng gòng	public; common; communal
+3	公务员	gōng wù yuán	functionary; office-bearer
+3	共有	gòng yǒu	to have altogether; in all
+3	古	Gǔ | gǔ	surname Gu; ancient; old
+3	关注	guān zhù	to pay attention to; to follow sth closely; to follow (on social media)
+3	观看	guān kàn	to watch; to view
+3	管	guǎn | Guǎn	variant of 管; surname Guan; to take care (of)
+3	国内	guó nèi	domestic; internal (to a country); civil
+3	国庆	Guó qìng	National Day
+3	哈哈	hā hā	(onom.) laughing out loud
+3	好好	hǎo hǎo	well; carefully; nicely
+3	合	gě | hé	100 ml; one-tenth of a peck; measure for dry grain equal to one-tenth of sheng 升 or liter,
+3	红茶	hóng chá	black tea
+3	红酒	hóng jiǔ	red wine
+3	后年	hòu nián	the year after next
+3	华人	Huá rén	ethnic Chinese person or people
+3	化	huā | huà	variant of 花; to make into; to change into
+3	话剧	huà jù	stage play; modern drama
+3	环	Huán | huán	surname Huan; ring; hoop
+3	环保	huán bǎo	environmental protection; environmentally friendly; abbr. for 环境保护
+3	会员	huì yuán	member
+3	活	huó	to live; alive; living
+3	积极性	jī jí xìng	zeal; initiative; enthusiasm
+3	基本上	jī běn shang	basically; on the whole
+3	极了	jí le	extremely; exceedingly
+3	加快	jiā kuài	to accelerate; to speed up
+3	加强	jiā qiáng	to reinforce; to strengthen; to enhance
+3	价钱	jià qian	price
+3	架	jià	to support; frame; rack
+3	建	jiàn	to establish; to found; to set up
+3	建成	jiàn chéng	to establish; to build
+3	交费	jiāo fèi	to pay a fee
+3	交警	jiāo jǐng	traffic police (abbr. for 察)
+3	较	jiào	to compare; to dispute; compared to
+3	解开	jiě kāi	to untie; to undo; to solve (a mystery)
+3	金	Jīn | jīn	surname Jin; surname Kim (Korean); Jurchen Jin dynasty (1115-1234)
+3	金牌	jīn pái	gold medal
+3	仅	jǐn	barely; only; merely
+3	仅仅	jǐn jǐn	barely; only; merely
+3	近期	jìn qī	near in time; in the near future; very soon
+3	进一步	jìn yī bù	to go a step further; (develop, understand, improve etc) more; further
+3	静	jìng	still; calm; quiet
+3	就是	jiù shì	exactly; precisely; only; simply; just; (used correlatively with 也) even; even if
+3	具有	jù yǒu	to have; to possess
+3	剧场	jù chǎng	theater
+3	开业	kāi yè	to open a business; to open a practice; open (for business)
+3	看起来	kàn qǐ lai	seemingly; apparently; looks as if
+3	看上去	kàn shang qu	it would appear; it seems (that)
+3	科技	kē jì	science and technology
+3	可乐	kě lè	amusing; entertaining; (loanword) cola
+3	空	kōng | kòng	empty; air; sky
+3	空儿	kòng r	spare time; free time
+3	快速	kuài sù	fast; high-speed; rapid
+3	老太太	lǎo tài tai	elderly lady (respectful); esteemed mother
+3	老头儿	lǎo tóu r	see 老头子
+3	乐	Lè | Yuè | lè | yuè	surname Le; surname Yue; happy
+3	乐队	yuè duì	band; pop group
+3	里面	lǐ miàn	inside; interior; also pr. [lǐ mian]
+3	力	Lì | lì	surname Li; power; force
+3	连续	lián xù	continuous; in a row; serial
+3	联合国	Lián hé guó	United Nations
+3	凉水	liáng shuǐ	cool water; unboiled water
+3	领	lǐng	neck; collar; to lead
+3	另一方面	lìng yī fāng miàn	on the other hand; another aspect
+3	录	lù | Lù	to carve wood; surname Lu; diary
+3	路线	lù xiàn	itinerary; route; political line (e.g. right revisionist road)
+3	旅馆	lǚ guǎn	hotel
+3	旅行社	lǚ xíng shè	travel agency
+3	绿茶	lǜ chá	green tea; (slang) (of a girl) seemingly innocent and charming but actually calculating an
+3	慢慢	màn màn	slowly
+3	没用	méi yòng	useless
+3	美	Měi | měi	(bound form) the Americas (abbr. for 洲); (bound form) USA (abbr. for 美国); beautiful
+3	美好	měi hǎo	beautiful; fine
+3	美食	měi shí	culinary delicacy; fine food; gourmet food
+3	美元	Měi yuán	American dollar; US dollar
+3	迷	mí	to bewilder; crazy about; fan
+3	奶茶	nǎi chá	milk tea
+3	男子	nán zǐ	a man; a male
+3	南部	nán bù	southern part
+3	难度	nán dù	degree of difficulty
+3	内心	nèi xīn	heart; innermost being; (math.) incenter
+3	能不能	néng bùnéng	Can you
+3	年初	nián chū	beginning of the year
+3	年底	nián dǐ	the end of the year; year-end
+3	牛	Niú | niú	surname Niu; ox; cow
+3	女子	nǚ zǐ	woman; female
+3	排名	pái míng	to rank (1st, 2nd etc); ranking
+3	牌子	pái zi	sign; trademark; brand
+3	配	pèi	to join; to fit; to mate
+3	皮	Pí | pí	surname Pi; leather; skin
+3	皮包	pí bāo	handbag; briefcase
+3	票价	piào jià	ticket price; fare; admission fee
+3	期	qī	variant of 期; period; cycle
+3	齐	Qí | qí	(name of states and dynasties at several different periods); surname Qi; neat
+3	前后	qián hòu	around; from beginning to end; all around
+3	前进	qián jìn	to go forward; to forge ahead; to advance
+3	前往	qián wǎng	to leave for; to proceed towards; to go to
+3	强	Qiáng | jiàng | qiáng | qiǎng	surname Qiang; stubborn; unyielding
+3	强大	qiáng dà	large; formidable; powerful
+3	巧	qiǎo	opportunely; coincidentally; as it happens
+3	亲	qīn | qìng	parent; one's own (flesh and blood); relative
+3	亲人	qīn rén	one's close relatives
+3	情感	qíng gǎn	feeling; emotion; to move (emotionally)
+3	区	Oū | qū	surname Ou; area; region
+3	全场	quán chǎng	everyone present; the whole audience; across-the-board
+3	全球	quán qiú	entire; total; global
+3	缺	quē	deficiency; lack; scarce
+3	人民	rén mín	the people
+3	人群	rén qún	crowd
+3	认出	rèn chū	recognition; to recognize
+3	认得	rèn de	to recognize; to remember sth (or sb) on seeing it; to know
+3	任	Rén | rèn	surname Ren; Ren County 任县 in Hebei; to assign
+3	仍	réng	still; yet; to remain; (literary) frequently; often
+3	沙子	shā zi	sand; grit
+3	伤	shāng	to injure; injury; wound
+3	上来	shàng lái	to come up; to approach; (verb complement indicating success)
+3	上面	shàng miàn	on top of; above-mentioned; also pr. [shàng mian]
+3	上去	shàng qù	to go up
+3	上升	shàng shēng	to rise; to go up; to ascend
+3	上衣	shàng yī	jacket; upper outer garment
+3	身份证	shēn fèn zhèng	identity card; ID
+3	深入	shēn rù	to penetrate deeply; thorough
+3	生意	shēng yì | shēng yi	life force; vitality; business
+3	生长	shēng zhǎng	to grow; to grow up; to be brought up
+3	胜	shèng	victory; success; to beat
+3	时	shí | Shí	old variant of 时; surname Shi; o'clock

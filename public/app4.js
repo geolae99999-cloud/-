@@ -12,7 +12,7 @@
     speak:   { name: '말하기', ico: IC.mic, desc: '소리 내어 발음 확인' },
     lchoice: { name: '듣고 고르기', ico: IC.headphones, desc: '발음만 듣고 뜻 맞히기' },
     scramble:{ name: '철자 퍼즐', ico: IC.shuffle, desc: '글자 조각을 눌러 단어 완성' },
-    mix:     { name: '섞어 풀기', ico: IC.sparkle, desc: '5가지 문제 유형을 섞어서' },
+    mix:     { name: '섞어 풀기', ico: IC.sparkles, desc: '5가지 문제 유형을 섞어서' },
     test:    { name: '실전 시험', ico: IC.trophy, desc: '섞인 문제를 풀고 점수 받기' }
   };
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;

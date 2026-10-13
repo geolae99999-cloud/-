@@ -1,0 +1,250 @@
+2	词	cí	old variant of 词; word; statement
+2	从小	cóng xiǎo	from childhood; from a young age
+2	大部分	dà bù fen	in large part; the greater part; the majority
+2	大大	dà dà	greatly; enormously; (dialect) dad
+2	大多数	dà duō shù	(great) majority
+2	大海	dà hǎi	sea; ocean
+2	大量	dà liàng	great amount; large quantity; bulk
+2	大门	Dà mén | dà mén	the Doors, US rock band; entrance; door
+2	大人	dà ren	adult; grownup; title of respect toward superiors
+2	大声	dà shēng	loud voice; in a loud voice; loudly
+2	大小	dà xiǎo	dimension; magnitude; size
+2	大衣	dà yī	overcoat; topcoat; cloak
+2	大自然	dà zì rán	nature (the natural world)
+2	带来	dài lái	to bring; (fig.) to bring about; to produce
+2	但	dàn	but; yet; however; still; merely; only; just
+2	蛋	Dàn | dàn	variant of 蜑; egg; oval-shaped thing
+2	道	dào	road; path; principle
+2	道路	dào lù	road; path; way
+2	地铁站	dì tiě zhàn	subway station
+2	的话	de huà	if (coming after a conditional clause)
+2	得出	dé chū	to obtain (a result); to arrive at (a conclusion)
+2	等到	děng dào	to wait until; by the time when (sth is ready etc)
+2	店	diàn	inn; old-style hotel; (bound form) shop; store
+2	东北	Dōng běi | dōng běi	Northeast China; Manchuria; northeast
+2	东方	Dōng fāng | dōng fāng	the East; the Orient; two-character surname Dongfang
+2	东南	dōng nán	southeast
+2	冬天	dōng tiān	winter
+2	懂得	dǒng de	to understand; to know; to comprehend
+2	动物园	dòng wù yuán	zoo
+2	读音	dú yīn	pronunciation; literary (rather than colloquial) pronunciation of a Chinese character
+2	度	dù | duó	to pass; to spend (time); measure
+2	队	duì	squadron; team; group
+2	队长	duì zhǎng	captain; team leader
+2	多久	duō jiǔ	(of time) how long?; (not) a long time
+2	多数	duō shù	majority; most
+2	多云	duō yún	cloudy (meteorology)
+2	方便面	fāng biàn miàn	instant noodles
+2	放下	fàng xià	to lay down; to put down; to let go of
+2	分开	fēn kāi	to separate; to part
+2	分数	fēn shù	(exam) grade; mark; score
+2	封	Fēng | fēng	surname Feng; to confer; to grant
+2	服务	fú wù	to serve; service
+2	该	gāi	should; ought to; probably
+2	改	gǎi	to change; to alter; to transform
+2	感到	gǎn dào	to feel; to sense; to perceive
+2	刚	gāng	hard; firm; strong
+2	高中	gāo zhōng | gāo zhòng	senior high school; abbr. for 高级中学; to pass brilliantly (used in congratulatory fashion)
+2	公交车	gōng jiāo chē	public transport vehicle; town bus
+2	公路	gōng lù	highway; road
+2	关机	guān jī	to turn off (a machine or device); to finish shooting a film
+2	过来	guò lái | guò lai	to come over; to manage; to handle
+2	过年	guò nián	to celebrate the Chinese New Year
+2	海	Hǎi | hǎi	surname Hai; ocean; sea
+2	海边	hǎi biān	coast; seaside; seashore
+2	好多	hǎo duō	many; quite a lot; much better
+2	好久	hǎo jiǔ	quite a while
+2	好人	hǎo rén	good person; healthy person; person who tries not to offend anyone, even at the expense of
+2	好事	hǎo shì | hào shì	good action, deed, thing or work (also sarcastic, "a fine thing indeed"); charity; happy o
+2	黑色	hēi sè	black
+2	红色	hóng sè	red (color); revolutionary
+2	湖	hú	lake
+2	画儿	huà r	picture; drawing; painting
+2	画家	huà jiā	painter
+2	坏处	huài chu	harm; troubles
+2	坏人	huài rén	bad person; villain
+2	黄色	huáng sè	yellow (color); pornographic
+2	回国	huí guó	to return to one's home country
+2	或	huò	maybe; perhaps; might
+2	鸡	jī	fowl; chicken; (slang) prostitute
+2	级	jí	level; grade; rank
+2	急	jí	urgent; pressing; rapid
+2	计算机	jì suàn jī	computer; (Tw) calculator
+2	加	Jiā | jiā	Canada (abbr. for 大); surname Jia; to add
+2	加油	jiā yóu	to add oil; to top up with gas; to refuel
+2	家长	jiā zhǎng	head of a household; family head; patriarch
+2	假期	jià qī	vacation
+2	见到	jiàn dào	to see
+2	见过	jiànguò	seen
+2	讲话	jiǎng huà	a speech; to speak; to talk
+2	交给	jiāo gěi	to give; to deliver; to hand over
+2	交朋友	jiāo péng you	to make friends; (dialect) to start an affair with sb
+2	叫作	jiào zuò	to call; to be called
+2	教师	jiào shī	teacher
+2	教学	jiāo xué | jiào xué	to teach (as a professor); teaching; instruction
+2	接到	jiē dào	to receive (letter etc)
+2	接下来	jiē xià lái	to accept; to take; next
+2	街	jiē	street
+2	今后	jīn hòu	hereafter; henceforth; in the future
+2	斤	jīn	catty; (PRC) weight equal to 500 g; (Tw) weight equal to 600 g
+2	进入	jìn rù	to enter; to join; to go into
+2	酒	jiǔ	wine (esp. rice wine); liquor; spirits
+2	酒店	jiǔ diàn	wine shop; pub (public house); hotel
+2	就要	jiù yào	will; shall; to be going to
+2	举手	jǔ shǒu	to raise a hand; to put up one's hand (as signal)
+2	句	gōu | jù	variant of 勾; sentence; clause
+2	卡	kǎ | qiǎ	to stop; to block; (computing) (coll.) slow
+2	开机	kāi jī	to start an engine; to boot up (a computer); to press Ctrl-Alt-Delete
+2	开学	kāi xué	foundation of a University or College; school opening; the start of a new term
+2	考生	kǎo shēng	exam candidate; student whose name has been put forward for an exam
+2	靠	kào	to lean against or on; to stand by the side of; to come near to
+2	科	kē	branch of study; administrative section; division
+2	科学家	kē xué jiā	scientist
+2	课堂	kè táng	classroom
+2	快餐	kuài cān	fast food; snack; quick meal
+2	快点儿	kuài diǎn r	erhua variant of 快点; to do smh more quickly; Hurry up!
+2	快要	kuài yào	nearly at the point of (doing sth); about to (do sth)
+2	蓝色	lán sè	blue (color)
+2	篮球	lán qiú	basketball
+2	老年	lǎo nián	elderly; old age; autumn of one's years
+2	老朋友	lǎo péng you	old friend; (slang) period; menstruation
+2	老是	lǎo shi	always
+2	里头	lǐ tou	inside; interior
+2	例子	lì zi	case; (for) instance; example
+2	练	liàn	to practice; to train; to drill
+2	凉	Liáng | liáng | liàng	the five Liang of the Sixteen Kingdoms, namely: Former Liang 前凉 (314-376), Later Liang 后凉 
+2	零下	líng xià	below zero
+2	流	liú	to flow; to disseminate; to circulate or spread
+2	留下	liú xià	to leave behind; to stay behind; to remain
+2	留学生	liú xué shēng	student studying abroad; (foreign) exchange student
+2	路边	lù biān	curb; roadside; wayside
+2	旅客	lǚ kè	traveler; tourist
+2	旅行	lǚ xíng	to travel; journey; trip
+2	绿色	lǜ sè	green
+2	面	miàn	face; side; surface
+2	面前	miàn qián	in front of; facing; (in the) presence (of)
+2	名	míng	name; noun (part of speech); place (e.g. among winners)
+2	名称	míng chēng	name (of a thing); name (of an organization)
+2	名单	míng dān	list of names
+2	拿出	ná chū	to take out; to put out; to provide
+2	拿到	ná dào	to get; to obtain
+2	那会儿	nà huì r	at that time (in the past or the future); also pr. [nèi huì r]
+2	那么	nà me	like that; in that way; or so
+2	那时	nà shí	then; at that time; in those days
+2	那时候	nà shí hou	at that time
+2	那样	nà yàng	that kind; that sort
+2	南方	nán fāng	south; the southern part of the country; the South
+2	难题	nán tí	difficult problem
+2	难听	nán tīng	unpleasant to hear; coarse; vulgar
+2	能够	néng gòu	to be capable of; to be able to; can
+2	爬	pá	to crawl; to climb; to get up or sit up
+2	怕	Pà | pà	surname Pa; to be afraid; to fear
+2	排	pái	a row; a line; to set in order
+2	碰	pèng	variant of 碰; to touch; to meet with
+2	碰到	pèng dào	to come across; to run into; to meet
+2	平安	píng ān	safe and sound; well; without mishap
+2	瓶	píng	bottle; vase; pitcher
+2	普通	pǔ tōng	common; ordinary; general
+2	骑车	qí chē	to ride a bike (motorbike or bicycle)
+2	气	qì	gas; air; smell; weather
+2	气温	qì wēn	air temperature
+2	千克	qiān kè	kilogram
+2	前年	qián nián	the year before last
+2	青年	qīng nián	youth; youthful years; young person
+2	晴天	qíng tiān	clear sky; sunny day
+2	秋天	qiū tiān	autumn
+2	求	qiú	to seek; to look for; to request
+2	球场	qiú chǎng	stadium; sports ground; court
+2	球队	qiú duì	sports team (basketball, soccer, football etc)
+2	球鞋	qiú xié	athletic shoes
+2	取得	qǔ dé	to acquire; to get; to obtain
+2	全	Quán | quán	surname Quan; all; whole
+2	全国	quán guó	whole nation; nationwide; countrywide
+2	全家	quán jiā	whole family
+2	全年	quán nián	the whole year; all year long
+2	全身	quán shēn	the whole body; (typography) em
+2	全体	quán tǐ	all; entire
+2	人们	rén men	people
+2	人数	rén shù	number of people
+2	日报	rì bào	daily newspaper
+2	日子	rì zi	day; a (calendar) date; days of one's life
+2	商人	shāng rén	merchant; businessman
+2	上周	shàng zhōu	last week
+2	少年	shào nián	early youth; youngster; (literary) youth
+2	少数	shǎo shù	small number; few; minority
+2	身边	shēn biān	at one's side; on hand
+2	什么样	shén me yàng	what kind?; what sort?
+2	生	shēng	to be born; to give birth; life
+2	生词	shēng cí	new word (in textbook); word that is unfamiliar or not yet studied
+2	市	shì	market; city
+2	市长	shì zhǎng	mayor
+2	收到	shōu dào	to receive
+2	熟	shú	ripe; mature; thoroughly cooked; done; familiar; acquainted
+2	送到	sòng dào	Deliver
+2	送给	sòng gěi	to send; to give as a present
+2	它们	tā men	they (for inanimate objects)
+2	提出	tí chū	to raise (an issue); to propose; to put forward
+2	提到	tí dào	to mention; to raise (a subject); to refer to
+2	体育场	tǐ yù chǎng	stadium
+2	体育馆	tǐ yù guǎn	gym; gymnasium; stadium
+2	天上	tiān shàng	celestial; heavenly
+2	听讲	tīng jiǎng	to attend a lecture; to listen to a talk
+2	听说	tīng shuō	to hear (sth said); one hears (that); hearsay
+2	停	tíng	to stop; to halt; to park (a car)
+2	停车	tíng chē	to pull up (stop one's vehicle); to park; (of a machine) to stop working
+2	停车场	tíng chē chǎng	parking lot; car park
+2	挺好	tǐng hǎo	very good
+2	通	tōng | tòng	to go through; to know well; (suffix) expert
+2	同样	tóng yàng	same; equal; equivalent
+2	头	tóu | tou	head; hair style; the top
+2	图片	tú piàn	picture; photograph
+2	外地	wài dì	parts of the country other than where one is
+2	外卖	wài mài	(of a restaurant) to provide a takeout or home delivery meal; takeout (business); takeout 
+2	晚安	wǎn ān	Good night!; Good evening!
+2	晚报	wǎn bào	evening newspaper; (in a newspaper's name) Evening News
+2	晚餐	wǎn cān	evening meal; dinner
+2	晚会	wǎn huì	evening party
+2	网	wǎng	net; network
+2	问路	wèn lù	to ask for directions; to ask the way (to some place)
+2	午餐	wǔ cān	lunch; luncheon
+2	午睡	wǔ shuì	to take a nap; siesta
+2	西北	Xī běi | xī běi	Northwest China (Shaanxi, Gansu, Qinghai, Ningxia, Xinjiang); northwest
+2	西餐	xī cān	Western-style food
+2	西方	Xī fāng	the West; the Occident; Western countries
+2	西南	xī nán	southwest
+2	西医	xī yī	Western medicine; a doctor trained in Western medicine
+2	下雪	xià xuě	to snow
+2	下周	xià zhōu	next week
+2	夏天	xià tiān	summer
+2	相机	xiàng jī	camera (abbr. for 照相机); at the opportune moment; as the circumstances allow
+2	想到	xiǎng dào	to think of; to call to mind; to anticipate
+2	想法	xiǎng fǎ	way of thinking; opinion; notion; to think of a way (to do sth)
+2	想起	xiǎng qǐ	to recall; to think of; to call to mind
+2	小声	xiǎo shēng	in a low voice; (speak) in whispers
+2	小时候	xiǎo shí hou	in one's childhood
+2	小组	xiǎo zǔ	group
+2	校园	xiào yuán	campus
+2	笑话儿	xiàohuar5	Joke
+2	心里	xīn li	chest; heart; mind
+2	心中	xīn zhōng	central point; in one's thoughts; in one's heart
+2	星星	xīng xing	(coll.) a star; the stars in the sky
+2	姓名	xìng míng	surname and given name; full name
+2	休假	xiū jià	to go on vacation; to have a holiday; to take leave
+2	选	xuǎn	to choose; to pick; to select
+2	眼	yǎn	eye; small hole; crux (of a matter)
+2	养	yǎng	to raise (animals); to bring up (children); to keep (pets)
+2	药店	yào diàn	pharmacy
+2	药片	yào piàn	a (medicine) pill or tablet
+2	药水	Yào shuǐ | yào shuǐ	Yaksu in North Korea, near the border with Liaoning and Jiling province; medicine in liqui
+2	夜里	yè li	during the night; at night; nighttime
+2	一部分	yī bù fen	portion; part of; subset
+2	一点点	yī diǎn diǎn	a little bit
+2	一路平安	yī lù píng ān	to have a pleasant journey; Bon voyage!
+2	一路顺风	yī lù shùn fēng	to have a pleasant journey (idiom)
+2	一生	yī shēng	all one's life; throughout one's life
+2	以上	yǐ shàng	that level or higher; that amount or more; the above-mentioned
+2	以外	yǐ wài	apart from; other than; except for
+2	以下	yǐ xià	that level or lower; that amount or less; the following
+2	阴天	yīn tiān	cloudy day; overcast sky
+2	音节	yīn jié	syllable
+2	音乐会	yīn yuè huì	concert

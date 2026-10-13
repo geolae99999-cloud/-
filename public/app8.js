@@ -19,7 +19,7 @@
     { const p = config.profile || cleanProfile(); $('pfName').value = p.name; $('pfSchool').value = p.school; $('pfSno').value = p.sno; $('pfSno').style.display = isTeacher() ? 'none' : ''; }
     document.querySelectorAll('#cfgLang button').forEach(b => b.classList.toggle('on', b.dataset.l === LANG));
     $('cfgProvider').value = config.provider;
-    $('cfgTtsRate').value = String(config.ttsRate);
+    ttsUI();
     $('cfgGoal').value = String(config.goal);
     $('cfgGrade').innerHTML = `<option value="">선택 안 함</option>${roleOptions(isTeacher() ? 'teacher' : config.grade)}`;
     onProviderChange(config.provider, true);
@@ -75,7 +75,7 @@
 
   /* ----- 백업 ----- */
   ACTIONS['export-json'] = () => {
-    const data = { app: 'VocaPro', version: 13, settings: { ttsRate: config.ttsRate, darkMode: config.darkMode, goal: config.goal, grade: config.grade }, ...dataBlob() };
+    const data = { app: 'VocaPro', version: 13, settings: { ...ttsCfgOut(), darkMode: config.darkMode, goal: config.goal, grade: config.grade }, ...dataBlob() };
     download(`VocaPro_${dayKey()}.json`, JSON.stringify(data, null, 2), 'application/json');
     toast('백업 파일을 내려받았어요. API 키는 포함되지 않아요.');
   };
@@ -95,6 +95,7 @@
         useBlob({ categories: cats, stats: res.stats || now.stats, zh: res.zh || now.zh });
         if (res.settings) {
           if (res.settings.ttsRate) config.ttsRate = parseFloat(res.settings.ttsRate) || config.ttsRate;
+          ttsCfgIn(config, res.settings);
           if (res.settings.goal) config.goal = parseInt(res.settings.goal, 10) || config.goal;
           if (typeof res.settings.darkMode === 'boolean') config.darkMode = res.settings.darkMode;
           if (GRADE_NAMES[res.settings.grade]) config.grade = res.settings.grade;
@@ -138,16 +139,31 @@
     setTimeout(() => inp.focus(), 80);
   }
   // toKo: 외국어 → 한국어. 외국어는 글자를 보고(한자면 중국어), 한국어 → 외국어는 지금 학습 언어로 옮겨요.
+  // 순서: Google 번역(빠르고 정확, 단어면 다른 뜻까지) → AI → MyMemory
+  const POS_KO = { noun: '명사', verb: '동사', adjective: '형용사', adverb: '부사', preposition: '전치사', pronoun: '대명사', conjunction: '접속사', interjection: '감탄사', abbreviation: '약어', phrase: '구', article: '관사', prefix: '접두사', suffix: '접미사', particle: '조사' };
+  async function gtxTranslate(text, from, to) {
+    const G = { en: 'en', ko: 'ko', zh: 'zh-CN' }, ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 10000);
+    try {
+      const res = await fetch('https://translate.googleapis.com/translate_a/single?client=gtx&hl=ko&sl=' + G[from] + '&tl=' + G[to] + '&dt=t&dt=bd&q=' + encodeURIComponent(text), { signal: ctl.signal });
+      if (!res.ok) throw new Error('fail');
+      const j = await res.json();
+      const t = (Array.isArray(j && j[0]) ? j[0] : []).map(x => (x && typeof x[0] === 'string') ? x[0] : '').join('').trim();
+      if (!t) throw new Error('empty');
+      const alts = Array.isArray(j[1]) ? j[1].map(x => ({ pos: POS_KO[x && x[0]] || String(x && x[0] || ''), terms: (Array.isArray(x && x[1]) ? x[1] : []).filter(y => typeof y === 'string' && y.trim()).slice(0, 8) })).filter(x => x.terms.length).slice(0, 4) : [];
+      return { t, alts, by: 'Google 번역' };
+    } finally { clearTimeout(tm); }
+  }
   async function translateText(text, toKo) {
-    const fl = toKo ? (HAN.test(text) ? 'zh' : 'en') : LANG, NAME = { en: 'English', zh: 'Simplified Chinese', ko: 'Korean' };
+    const fl = toKo ? (HAN.test(text) && !/[A-Za-z]{2}/.test(text) ? 'zh' : 'en') : LANG, NAME = { en: 'English', zh: 'Simplified Chinese', ko: 'Korean' };
     const from = toKo ? fl : 'ko', to = toKo ? 'ko' : fl;
-    // 결과가 엉뚱한 언어로 오면(예: 서버가 아직 중국어를 모를 때) 기본 번역으로 넘어가요.
-    const looksOk = t => to === 'ko' ? HANGUL.test(t) : to === 'zh' ? HAN.test(t) : /[A-Za-z]/.test(t);
+    // 결과가 엉뚱한 언어로 오면 다음 방법으로 넘어가요.
+    const looksOk = t => to === 'ko' ? HANGUL.test(t) || /^[\d\s.,:;!?%+\-()]+$/.test(t) : to === 'zh' ? HAN.test(t) : /[A-Za-z]/.test(t);
+    try { const r = await gtxTranslate(text, from, to); if (looksOk(r.t)) return r; } catch (e) { /* 다음 방법으로 */ }
     if (aiReady()) {
       try {
-        const r = await callAi(`Translate the text below from ${NAME[from]} to ${NAME[to]}. Natural and accurate; keep the meaning and tone. Reply with JSON only, no markdown: {"t":"<translation>"}\n\nTEXT: ${JSON.stringify(text)}`,
+        const r = await callAi(`Translate the text below from ${NAME[from]} to ${NAME[to]}. Natural and accurate; keep the meaning and tone. If it is a single word, give its most common meaning(s), separated by ", ". Reply with JSON only, no markdown: {"t":"<translation>"}\n\nTEXT: ${JSON.stringify(text)}`,
           o => (o && typeof o.t === 'string' && o.t.trim() && looksOk(o.t) ? { t: o.t.trim() } : null), { task: 'translate', text, to, from });
-        return { t: r.t, by: 'AI 번역' };
+        return { t: r.t, alts: [], by: 'AI 번역' };
       } catch (e) { /* 기본 번역으로 대체 */ }
     }
     const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 12000), MM = { en: 'en', ko: 'ko', zh: 'zh-CN' };
@@ -157,8 +173,8 @@
       let t = j && j.responseData && j.responseData.translatedText;
       if (!res.ok || !t || String(j.responseStatus) !== '200' || /MYMEMORY WARNING|INVALID/i.test(t)) throw new Error('fail');
       const d = document.createElement('textarea'); d.innerHTML = t; t = d.value.trim();
-      if (!t) throw new Error('empty');
-      return { t, by: '기본 번역' };
+      if (!t || !looksOk(t)) throw new Error('empty');
+      return { t, alts: [], by: '기본 번역' };
     } finally { clearTimeout(tm); }
   }
   ACTIONS['tr-close'] = closeTranslator;
@@ -176,13 +192,21 @@
       const fz = isHanWord(trLast.en.trim());
       // 한 단어면 단어장에 담을 수 있어요. 지금 학습 언어와 같은 언어일 때만.
       const single = fz ? isZh() && /^[\u3400-\u9fff]{1,8}$/.test(trLast.en.trim()) : !isZh() && WORDRE.test(trLast.en.trim());
+      let dh = null;
+      if (single) { try { dh = await dictGet(trLast.en.trim()); } catch (e) {} if (!$('trOut')) return; }
+      const alts = (r.alts || []).map(x => `<div class="tr-alt"><em>${esc(x.pos)}</em>${x.terms.map(y => toKo ? `<span>${esc(y)}</span>` : `<button class="syn" data-act="tr-pick" data-w="${esc(y)}">${esc(y)}</button>`).join('')}</div>`).join('');
       $('trOut').innerHTML = `<div class="tr-lang">${toKo ? 'KOREAN' : fz ? 'CHINESE' : 'ENGLISH'} · ${esc(r.by)}</div><div class="tr-text">${esc(r.t)}</div>
+        ${alts ? `<div class="tr-alts"><h4 class="syn-h">${toKo ? '다른 뜻' : '이런 단어도 써요'}</h4>${alts}</div>` : ''}
+        ${dh ? `<div class="tr-dict"><h4 class="syn-h">${IC.book} 사전</h4><b>${esc(dh.word || trLast.en)}</b> <span class="q-pron">${esc(pronText(dh))}</span><div>${esc(dh.meaning)}</div>${dh.example ? `<small>${esc(dh.example)}${dh.exampleKo ? ' · ' + esc(dh.exampleKo) : ''}</small>` : ''}</div>` : ''}
         <div class="tr-actions"><button class="btn btn-soft" data-act="tr-speak">${IC.speaker} ${fz ? '중국어' : '영어'} 발음</button><button class="btn btn-soft" data-act="tr-copy">복사</button></div>
         ${single ? `<div class="tr-add"><select id="trBook">${categories.map(c => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('')}</select><button class="btn btn-primary" data-act="tr-add">단어장에 추가</button></div>` : ''}`;
+      if (dh && dh.meaning && toKo) trLast.ko = dh.meaning;
     } catch (e) { if ($('trOut')) $('trOut').innerHTML = '<div class="tr-err">번역하지 못했어요. 인터넷을 확인하거나 잠시 뒤 다시 시도해 주세요.</div>'; }
     finally { trBusy = false; const b = $('trGo'); if (b) { b.disabled = false; b.textContent = '번역하기'; } }
   };
   ACTIONS['tr-speak'] = () => { if (trLast) playAudio(trLast.en); };
+  // 한국어 → 외국어 번역에서 다른 후보 단어를 누르면 그 단어로 바꿔 담을 수 있게 해요.
+  ACTIONS['tr-pick'] = el => { if (!trLast) return; const i = $('trIn'); if (i) { i.value = el.dataset.w; i.dispatchEvent(new Event('input')); } ACTIONS['tr-go'](); };
   ACTIONS['tr-copy'] = async () => { try { await navigator.clipboard.writeText(trLast.t); toast('복사했어요.'); } catch (e) { toast('복사하지 못했어요. 직접 선택해서 복사해 주세요.'); } };
   ACTIONS['tr-add'] = () => {
     const sel = $('trBook'), cat = sel && categories.find(c => c.id === sel.value); if (!cat || !trLast) return;

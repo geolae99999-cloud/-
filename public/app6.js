@@ -77,29 +77,125 @@
   /* =========================================================
    * TTS
    * ======================================================= */
-  function voiceFor(lang) {
+  // 목소리는 기기마다 늦게 들어와요(voiceschanged). 한 번 모아 두고, 언어마다 고른 목소리를 써요.
+  // 뜻(한국어)은 단어를 읽은 목소리와 같은 회사·같은 성별 목소리를 골라서 목소리가 확 바뀌지 않게 해요.
+  let VOICES = [];
+  const vLang = v => String(v.lang || '').toLowerCase().replace('_', '-');
+  const vId = v => v.voiceURI || v.name;
+  function loadVoices() { try { const v = window.speechSynthesis.getVoices(); if (v && v.length) VOICES = v; } catch (e) {} return VOICES; }
+  if ('speechSynthesis' in window) {
+    loadVoices();
+    try { window.speechSynthesis.addEventListener('voiceschanged', () => { loadVoices(); if ($('ttsBox') && curTab === 'tabSettings') ttsUI(); }); } catch (e) {}
+  }
+  const VQ = /natural|neural|online|google|siri|premium|enhanced|multilingual/i;
+  const VF = /samantha|aria|jenny|ava\b|allison|zira|emma|michelle|susan|karen|moira|tessa|serena|kate|victoria|sunhi|sun-hi|yuna|heami|seoyeon|jimin|soonbok|seohyeon|xiaoxiao|xiaoyi|xiaohan|xiaomo|xiaochen|tingting|ting-ting|huihui|yaoyao|lili|meijia|sinji|female|여성|google/i;
+  const VM = /daniel|alex\b|guy\b|davis|andrew|brian|christopher|eric\b|roger|steffan|fred\b|tom\b|aaron|arthur|ryan|injoon|hyunsu|bongjin|gookmin|yunxi|yunjian|yunyang|yunze|kangkang|liang|male|남성/i;
+  const VJUNK = /novelty|whisper|bells|bad news|bahh|boing|bubbles|cellos|jester|organ|superstar|trinoids|wobble|zarvox|albert|grandma|grandpa|eddy|flo\b|reed|rocko|sandy|shelley|good news|hysterical|deranged|pipe/i;
+  const vGender = v => !v ? '' : VM.test(v.name) ? 'm' : VF.test(v.name) ? 'f' : '';
+  const vVendor = v => /google/i.test(v.name) ? 'g' : /microsoft/i.test(v.name) ? 'ms' : /siri|com\.apple/i.test(v.name + ' ' + v.voiceURI) ? 'a' : v.localService ? 'local' : 'net';
+  const vFam = lang => String(lang || '').slice(0, 2).toLowerCase();
+  function voicesOf(fam) {
+    const ok = fam === 'zh' ? v => /^(zh|cmn|yue)/.test(vLang(v)) : v => vLang(v).startsWith(fam);
+    return loadVoices().filter(ok);
+  }
+  function voiceFor(lang, ref) {
     try {
-      const vs = window.speechSynthesis.getVoices(), L2 = lang.toLowerCase(), n = v => (v.lang || '').toLowerCase().replace('_', '-');
-      const exact = vs.filter(v => n(v) === L2);
-      if (L2 === 'zh-cn') return exact.find(v => /tingting|xiaoxiao|google|natural|siri|yaoyao|huihui/i.test(v.name)) || exact[0] || vs.find(v => /^(zh-hans|cmn)/.test(n(v))) || vs.find(v => n(v).startsWith('zh')) || null;
-      if (L2 === 'en-us') return exact.find(v => /samantha|google us|aria|jenny|ava|allison|zira|natural|siri/i.test(v.name)) || exact[0] || null;
-      return exact[0] || vs.find(v => n(v).startsWith(L2.slice(0, 2))) || null;
+      const L2 = String(lang || '').toLowerCase(), fam = vFam(L2), list = voicesOf(fam), pick = config.voice && config.voice[fam];
+      if (pick) { const v = list.find(x => vId(x) === pick); if (v) return v; }
+      const match = config.matchVoice !== false;
+      // 여러 언어를 읽는 목소리(예: Microsoft …Multilingual)면 뜻도 같은 목소리로 읽어요.
+      if (fam === 'ko' && ref && match && /multilingual/i.test(ref.name)) return ref;
+      let best = null, bs = -1e9;
+      for (const v of list) {
+        let sc = 0;
+        if (vLang(v) === L2) sc += 6; else if (fam === 'zh' && /^zh-(hans|cn)|^cmn/.test(vLang(v))) sc += 5;
+        if (VQ.test(v.name)) sc += 3;
+        if (VJUNK.test(v.name)) sc -= 30;
+        if (ref && match) {
+          if (vVendor(v) === vVendor(ref)) sc += 4;
+          const g = vGender(ref), gv = vGender(v);
+          if (g && gv === g) sc += 5; else if (g && gv && gv !== g) sc -= 5;
+          if (!!v.localService === !!ref.localService) sc += 1;
+        } else if (vGender(v) === 'f') sc += 1;
+        if (v.default) sc += .5;
+        if (sc > bs) { bs = sc; best = v; }
+      }
+      return best;
     } catch (e) { return null; }
   }
-  function speak(text, lang) {
+  const clampN = (x, lo, hi, d) => { x = parseFloat(x); return isFinite(x) ? Math.min(hi, Math.max(lo, x)) : d; };
+  const ttsRateFor = lang => vFam(lang) === 'ko' ? clampN(config.koRate, .5, 2, 1) : clampN(config.ttsRate, .5, 2, .9);
+  // o: { rate, voice, ref, keep(앞 문장 안 끊기) }
+  function speak(text, lang, o) {
+    o = o || {};
     return new Promise(res => {
       if (!('speechSynthesis' in window) || !text) return res();
-      try { window.speechSynthesis.cancel(); } catch (e) {}
+      if (!o.keep) { try { window.speechSynthesis.cancel(); } catch (e) {} }
       const u = new SpeechSynthesisUtterance(text);
       u.lang = lang || 'en-US';
-      u.rate = parseFloat(config.ttsRate) || 0.9;
-      const v = voiceFor(u.lang); if (v) u.voice = v;
+      const rate = o.rate || ttsRateFor(u.lang);
+      u.rate = rate; u.pitch = clampN(config.ttsPitch, .5, 1.5, 1);
+      const v = o.voice || voiceFor(u.lang, o.ref); if (v) { try { u.voice = v; } catch (e) {} }
       let done = false;
       const fin = () => { if (!done) { done = true; res(); } };
       u.onend = fin; u.onerror = fin;
-      setTimeout(fin, 6000 + text.length * 160);
+      setTimeout(fin, (6000 + text.length * 160) / Math.min(1, rate));
       window.speechSynthesis.speak(u);
     });
   }
   function playAudio(text) { speak(text, ttsLang(text)); }
+  /* ----- 읽어주기 설정 화면 ----- */
+  const TTS_K = {
+    ttsRate: { label: '단어·예문 속도', min: .5, max: 2, step: .05, d: .9, fmt: x => x.toFixed(2) + 'x', chips: [.6, .75, .9, 1, 1.25, 1.5] },
+    koRate: { label: '한국어 뜻 속도', min: .5, max: 2, step: .05, d: 1, fmt: x => x.toFixed(2) + 'x', chips: [.8, 1, 1.2, 1.5] },
+    ttsPitch: { label: '목소리 높이', min: .5, max: 1.5, step: .05, d: 1, fmt: x => Math.abs(x - 1) < .001 ? '보통' : (x > 1 ? '높게 ' : '낮게 ') + x.toFixed(2) },
+    gap: { label: '듣기 모드 쉬는 시간', min: 0, max: 5, step: .1, d: .9, fmt: x => x.toFixed(1) + '초', chips: [.3, .9, 1.5, 3] },
+    wordRep: { label: '듣기 모드 단어 반복', min: 1, max: 3, step: 1, d: 1, fmt: x => x + '번' }
+  };
+  const ttsVal = k => clampN(config[k], TTS_K[k].min, TTS_K[k].max, TTS_K[k].d);
+  function ttsSet(k, v, fromRange) {
+    const t = TTS_K[k]; if (!t) return;
+    config[k] = Math.round(clampN(v, t.min, t.max, t.d) / t.step) * t.step;
+    config[k] = Math.round(config[k] * 100) / 100;
+    syncStorage();
+    const lab = $(`tts_${k}V`); if (lab) lab.textContent = t.fmt(config[k]);
+    const r = $(`tts_${k}`); if (r && !fromRange) r.value = config[k];
+    document.querySelectorAll(`[data-act="tts-chip"][data-k="${k}"]`).forEach(b => b.classList.toggle('on', Math.abs(+b.dataset.v - config[k]) < .001));
+    const fill = r && r.closest('.tts-row'); if (fill) fill.style.setProperty('--p', ((config[k] - t.min) / (t.max - t.min) * 100) + '%');
+  }
+  function ttsUI() {
+    const box = $('ttsBox'); if (!box) return;
+    const row = k => { const t = TTS_K[k], v = ttsVal(k); return `<div class="tts-row" style="--p:${(v - t.min) / (t.max - t.min) * 100}%">
+      <div class="tts-top"><span>${t.label}</span><b id="tts_${k}V">${t.fmt(v)}</b></div>
+      <div class="tts-ctl"><button class="tts-step" data-act="tts-step" data-k="${k}" data-d="-1" aria-label="${t.label} 줄이기">−</button><input type="range" id="tts_${k}" min="${t.min}" max="${t.max}" step="${t.step}" value="${v}" data-input="tts-range" data-k="${k}" aria-label="${t.label}"><button class="tts-step" data-act="tts-step" data-k="${k}" data-d="1" aria-label="${t.label} 늘리기">+</button></div>
+      ${t.chips ? `<div class="tts-chips">${t.chips.map(c => `<button class="chip${Math.abs(c - v) < .001 ? ' on' : ''}" data-act="tts-chip" data-k="${k}" data-v="${c}">${t.fmt(c)}</button>`).join('')}</div>` : ''}</div>`; };
+    const vsel = (fam, label) => {
+      const list = voicesOf(fam), pick = (config.voice || {})[fam] || '', auto = voiceFor(fam === 'en' ? 'en-US' : fam === 'zh' ? 'zh-CN' : 'ko-KR', fam === 'ko' ? voiceFor(LANG === 'zh' ? 'zh-CN' : 'en-US') : null);
+      return `<div class="tts-voice"><span>${label}</span><select data-change="tts-voice" data-l="${fam}" aria-label="${label}">
+        <option value="">자동${auto ? ' (' + esc(auto.name.replace(/^(Microsoft|Google)\s+/, '').slice(0, 28)) + ')' : ''}</option>
+        ${list.map(v => `<option value="${esc(vId(v))}"${vId(v) === pick ? ' selected' : ''}>${esc(v.name.slice(0, 40))} · ${esc(v.lang)}${vGender(v) ? (vGender(v) === 'f' ? ' · 여성' : ' · 남성') : ''}</option>`).join('')}
+      </select><button class="tts-play" data-act="tts-try" data-l="${fam}" aria-label="${label} 들어 보기">${IC.speaker}</button></div>`;
+    };
+    const has = 'speechSynthesis' in window;
+    box.innerHTML = `${has ? '' : '<p class="muted tts-note">이 브라우저는 소리 내어 읽기를 지원하지 않아요.</p>'}
+      ${row('ttsRate')}${row('koRate')}${row('ttsPitch')}
+      <div class="tts-sep"></div>
+      ${vsel(LANG === 'zh' ? 'zh' : 'en', LANG === 'zh' ? '중국어 목소리' : '영어 목소리')}${vsel('ko', '한국어(뜻) 목소리')}
+      <label class="switch-row tts-match"><input type="checkbox" data-change="tts-match" ${config.matchVoice !== false ? 'checked' : ''}> 뜻도 단어와 비슷한 목소리로 맞추기 <small class="muted">(같은 회사·같은 성별)</small></label>
+      ${VOICES.length ? '' : '<p class="muted tts-note">목소리 목록을 불러오는 중이에요. 잠시 뒤 다시 열면 고를 수 있어요.</p>'}
+      <div class="tts-sep"></div>
+      ${row('gap')}${row('wordRep')}
+      <div class="tts-btns"><button class="btn btn-soft" data-act="tts-reset">기본값으로</button><button class="btn btn-primary" data-act="tts-try" data-l="all">${IC.speaker} 단어와 뜻 들어 보기</button></div>`;
+  }
+  const TTS_SAMPLE = { en: ['apple', '사과'], zh: ['苹果', '사과'] };
+  async function ttsTry(fam) {
+    const f = LANG === 'zh' ? 'zh' : 'en', [w, m] = TTS_SAMPLE[f], wl = f === 'zh' ? 'zh-CN' : 'en-US', ref = voiceFor(wl);
+    if (fam === 'ko') return speak('안녕하세요. 이 목소리로 뜻을 읽어 드려요.', 'ko-KR', { ref });
+    await speak(w, wl, { ref });
+    if (fam === 'all') { await sleep(Math.max(200, ttsVal('gap') * 500)); await speak(m, 'ko-KR', { ref, keep: true }); }
+  }
+  ACTIONS['tts-step'] = el => { const k = el.dataset.k, t = TTS_K[k]; if (t) ttsSet(k, ttsVal(k) + (+el.dataset.d) * t.step); };
+  ACTIONS['tts-chip'] = el => ttsSet(el.dataset.k, +el.dataset.v);
+  ACTIONS['tts-try'] = el => ttsTry(el.dataset.l);
+  ACTIONS['tts-reset'] = () => { Object.keys(TTS_K).forEach(k => { config[k] = TTS_K[k].d; }); config.matchVoice = true; config.voice = { en: '', zh: '', ko: '' }; syncStorage(); ttsUI(); toast('읽어주기 설정을 기본값으로 돌렸어요.'); };
 

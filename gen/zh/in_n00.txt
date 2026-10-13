@@ -1,0 +1,250 @@
+1	爸	bà	father; dad; pa
+1	白天	bái tiān	daytime; during the day; day
+1	半年	bàn nián	half a year
+1	半天	bàn tiān	half of the day; a long time; quite a while
+1	帮	bāng	old variant of 帮; to help; to assist
+1	杯	bēi	cup; trophy cup; classifier for certain containers of liquids: glass, cup
+1	北	běi	north; (classical) to be defeated
+1	北边	běi biān	north; north side; northern part
+1	本子	běn zi	book; notebook; Japanese-style self-published comic (esp. an erotic one), aka "dōjinshi"
+1	别的	bié de	else; other
+1	病	bìng	illness; disease; to fall ill
+1	病人	bìng rén	sick person; patient; invalid
+1	不大	bù dà	not very; not too; not often
+1	不对	bù duì	incorrect; wrong; amiss
+1	不用	bù yòng	need not
+1	常	Cháng | cháng	surname Chang; always; ever
+1	常常	cháng cháng	frequently; often
+1	唱	chàng	to sing; to call loudly; to chant
+1	车	Chē | chē | jū	surname Che; car; vehicle
+1	车票	chē piào	ticket (for a bus or train)
+1	车上	chē shàng	Car
+1	车站	chē zhàn	rail station; bus stop
+1	吃饭	chī fàn	to have a meal; to eat; to make a living
+1	出来	chū lái | chu lai	to come out; to appear; to arise
+1	出去	chū qù	to go out
+1	床	chuáng	bed; couch; classifier for beds
+1	打	dá | dǎ	dozen (loanword); to beat; to strike
+1	打车	dǎ chē	to take a taxi (in town); to hitch a lift
+1	打开	dǎ kāi	to open; to show (a ticket); to turn on
+1	打球	dǎ qiú	to play ball; to play with a ball
+1	大学	Dà xué | dà xué	the Great Learning, one of the Four Books 四书 in Confucianism; university; college
+1	大学生	dà xué shēng	university student; college student
+1	地点	dì diǎn	place; site; location
+1	地上	dì shang	on the ground; on the floor
+1	得到	dé dào	to get; to obtain; to receive
+1	弟	dì | tì	younger brother; junior male; I (modest word in letter)
+1	第	dì	(prefix indicating ordinal number, as in 六 "sixth"); (literary) grades in which successful
+1	第二	dì èr	second; number two; next
+1	电	diàn	lightning; electricity; electric (bound form)
+1	电话	diàn huà	telephone; phone call; phone number
+1	电视机	diàn shì jī	television set
+1	电影院	diàn yǐng yuàn	cinema; movie theater
+1	东边	dōng bian	east; east side; eastern part
+1	动	dòng	(of sth) to move; to set in movement; to displace
+1	读书	dú shū	to read a book; to study; to attend school
+1	饭	fàn	cooked rice; meal; (loanword) fan
+1	饭店	fàn diàn	restaurant; hotel
+1	房子	fáng zi	house; building (single- or two-story); apartment
+1	放假	fàng jià	to have a holiday or vacation
+1	放学	fàng xué	to dismiss students at the end of the school day
+1	飞	fēi	to fly
+1	风	fēng	wind; news; style
+1	干什么	gàn shén me	what are you doing?; what's he up to?
+1	哥	gē	elder brother
+1	歌	gē	song; to sing; variant of 歌
+1	关上	guān shàng	to close (a door); to turn off (light, electrical equipment etc)
+1	国	Guó | guó	surname Guo; country; nation; state; (bound form) national
+1	国外	guó wài	abroad; external (affairs); overseas
+1	还有	hái yǒu	furthermore; in addition; still
+1	汉字	hàn zì	Chinese character; Japanese: kanji; Korean: hanja
+1	好看	hǎo kàn	good-looking; nice-looking; good (of a movie, book, TV show etc)
+1	好听	hǎo tīng	pleasant to hear
+1	好玩儿	hǎo wán r	erhua variant of 好玩; amusing; fun
+1	后	Hòu | hòu	surname Hou; empress; queen
+1	后边	hòu bian	the back; the rear; the last bit; behind; near the end; at the back; later; afterwards
+1	后天	hòu tiān	the day after tomorrow; life after birth (the period in which one develops through experie
+1	话	huà	dialect; language; spoken words
+1	回到	huí dào	to return to
+1	回家	huí jiā	to return home
+1	回来	huí lai	to return; to come back
+1	回去	huí qu	to return; to go back
+1	火车	huǒ chē	train
+1	机票	jī piào	air ticket; passenger ticket
+1	记	jì	to record; to note; to memorize
+1	记住	jì zhu	to remember; to bear in mind; to learn by heart
+1	家里	jiā lǐ	home
+1	家人	jiā rén	family member; (old) servant
+1	间	jiān | jiàn	between; among; within a definite time or space
+1	见	jiàn | xiàn	to see; to meet; to appear (to be sth)
+1	教学楼	jiào xué lóu	teaching block; school building
+1	姐	jiě	older sister
+1	今年	jīn nián	this year
+1	进来	jìn lái	to come in
+1	进去	jìn qù	to go in
+1	开车	kāi chē	to drive a car
+1	开会	kāi huì	to hold a meeting; to attend a meeting
+1	看病	kàn bìng	to visit a doctor; to see a patient
+1	看到	kàn dào	to see
+1	考	kǎo	to beat; to hit; variant of 考
+1	课本	kè běn	textbook
+1	课文	kè wén	text
+1	来到	lái dào	to arrive; to come
+1	老人	lǎo rén	old man or woman; the elderly; one's aged parents or grandparents
+1	里边	lǐ bian	inside
+1	楼上	lóu shàng	upstairs; (Internet slang) previous poster in a forum thread
+1	楼下	lóu xià	downstairs
+1	路口	lù kǒu	crossing; intersection (of roads)
+1	路上	lù shang	on the road; on a journey; road surface
+1	妈	mā	ma; mom; mother
+1	马路	mǎ lù	street; road
+1	没什么	méi shén me	nothing; it doesn't matter; it's nothing
+1	没事儿	méi shì r	to have spare time; free from work; it's not important
+1	没有	méi yǒu	haven't; hasn't; doesn't exist
+1	妹	mèi	younger sister
+1	门口	mén kǒu	doorway; gate
+1	门票	mén piào	ticket (for theater, cinema etc)
+1	们	men	plural marker for pronouns, and nouns referring to individuals
+1	面条儿	miàn tiáo r	erhua variant of 面条; noodles
+1	明年	míng nián	next year
+1	哪儿	nǎ r	where?; wherever; anywhere; somewhere; (used in rhetorical questions) how can ...?; how co
+1	哪里	nǎ lǐ	where?; somewhere; anywhere
+1	哪些	nǎ xiē	which ones?; who?; what?
+1	那边	nà bian	over there; yonder
+1	那儿	nà r	there
+1	那里	nà li	there; that place
+1	那些	nà xiē	those
+1	奶	nǎi	breast; milk; to breastfeed
+1	男	nán	male; Baron, lowest of five orders of nobility 位
+1	男孩儿	nán hái r	erhua variant of 男孩; boy
+1	男朋友	nán péng you	boyfriend
+1	男生	nán shēng	schoolboy; male student; boy
+1	南边	nán bian	south; south side; southern part
+1	你们	nǐ men	you (plural)
+1	女	nǚ | rǔ	female; woman; daughter
+1	女孩儿	nǚ hái r	erhua variant of 女孩; girl
+1	女朋友	nǚ péng you	girlfriend
+1	女生	nǚ shēng	schoolgirl; female student; girl
+1	跑	páo | pǎo	(of an animal) to paw (the ground); to run; to run away
+1	起	qǐ	to rise; to raise; to get up
+1	汽车	qì chē	car; automobile; bus
+1	前	qián	front; forward; ahead
+1	前边	qián bian	front; the front side; in front of
+1	前天	qián tiān	the day before yesterday
+1	钱包	qián bāo	purse; wallet
+1	请进	qǐng jìn	"please come in"
+1	请问	qǐng wèn	Excuse me, may I ask...?
+1	请坐	qǐng zuò	please, have a seat
+1	球	qiú	ball; sphere; globe
+1	肉	ròu	meat; flesh; pulp (of a fruit)
+1	山	Shān | shān	surname Shan; mountain; hill; (coll.) small bundle of straw for silkworms to spin cocoons 
+1	商场	shāng chǎng	shopping mall; shopping center; department store
+1	上边	shàng bian	the top; above; overhead
+1	上车	shàng chē	to get on or into (a bus, train, car etc)
+1	上次	shàng cì	last time
+1	上课	shàng kè	to go to class; to attend class; to go to teach a class
+1	上学	shàng xué	to go to school; to attend school
+1	身上	shēn shang	on the body; at hand; among
+1	事	shì	matter; thing; item
+1	是不是	shì bù shì	is or isn't; yes or no; whether or not
+1	手	shǒu	hand; (formal) to hold; person engaged in certain types of work
+1	书包	shū bāo	schoolbag; satchel; bookbag
+1	书店	shū diàn	bookstore
+1	睡	shuì	to sleep; to lie down
+1	说	shuì | shuō	to persuade; to speak; to talk; to say; to explain; to comment
+1	他们	tā men	they
+1	她们	tā men	they; them (for females)
+1	天	tiān	day; sky; heaven
+1	听到	tīng dào	to hear
+1	听见	tīng jiàn	to hear
+1	听写	tīng xiě	(of a pupil) to write down (in a dictation exercise); dictation; (music) to transcribe by 
+1	外边	wài bian	outside; outer surface; abroad
+1	外国	wài guó	foreign (country)
+1	外语	wài yǔ	foreign language
+1	玩儿	wán r	to play; to have fun; to hang out
+1	晚	wǎn	evening; night; late
+1	晚饭	wǎn fàn	evening meal; dinner; supper
+1	网上	wǎng shàng	online
+1	网友	wǎng yǒu	online friend; Internet user
+1	忘	wàng	to forget; to overlook; to neglect
+1	午饭	wǔ fàn	lunch
+1	西边	xī biān	west; west side; western part
+1	下班	xià bān	to finish work; to get off work
+1	下边	xià bian	under; the underside; below
+1	下车	xià chē	to get off or out of (a bus, train, car etc)
+1	下次	xià cì	next time
+1	下课	xià kè	to finish class; to get out of class; (fig.) (esp. of a sports coach) to be dismissed
+1	小孩儿	xiǎo hái r	erhua variant of 小孩; child
+1	小朋友	xiǎo péng yǒu	child
+1	小学	xiǎo xué	elementary school; primary school
+1	小学生	xiǎo xué shēng	primary school student; schoolchild; (fig.) beginner
+1	新年	xīn nián	New Year
+1	星期日	Xīng qī rì	Sunday
+1	星期天	Xīng qī tiān	Sunday
+1	学	xué	to learn; to study; to imitate
+1	学院	xué yuàn	college; educational institute; school
+1	一半	yī bàn	half
+1	一点儿	yī diǎn r	erhua variant of 一点; a bit; a little bit; (used in negative expressions) (not) the least b
+1	一块儿	yī kuài r	erhua variant of 一块; a piece; a chunk; (coll.) one yuan; one dollar
+1	一下儿	yī xià r	erhua variant of 一下; one time; once; all of sudden
+1	一些	yī xiē	some; a few; a little
+1	有的	yǒu de	(there are) some (who are...); some (exist)
+1	有时	yǒu shí	sometimes; now and then
+1	有时候	yǒu shí hou	sometimes
+1	有些	yǒu xiē	some; somewhat
+1	有一些	yǒu yī xiē	somewhat; rather; some
+1	有用	yǒu yòng	useful
+1	右	yòu	(bound form) right; right-hand side; (bound form) (politics) right of center; (bound form)
+1	雨	yǔ | yù	rain; (literary) to rain; (of rain, snow etc) to fall
+1	在家	zài jiā	to be at home; (at a workplace) to be in (as opposed to being away on official business 差)
+1	早	zǎo	early; morning; Good morning!
+1	早饭	zǎo fàn	breakfast
+1	找到	zhǎo dào	to find
+1	这边	zhè biān	this side; here
+1	这儿	zhè r	here
+1	这里	zhè lǐ	variant of 这里; here
+1	这些	zhè xiē	these
+1	真的	zhēn de	really, truly, indeed
+1	中	Zhōng | zhōng | zhòng	China; Chinese; surname Zhong
+1	中学	zhōng xué	middle school
+1	中学生	zhōng xué shēng	middle-school student; high school student
+1	子	zǐ | zi	son; child; seed
+1	走路	zǒu lù	to walk; to go on foot
+1	左	Zuǒ | zuǒ	surname Zuo; left; the Left (politics)
+1	坐下	zuò xia	to sit down
+2	爱人	ài ren	spouse (PRC); lover (non-PRC)
+2	白色	bái sè	white; fig. reactionary; anti-communist
+2	班长	bān zhǎng	class monitor; squad leader; team leader
+2	办	bàn	to do; to manage; to handle
+2	半夜	bàn yè	midnight; in the middle of the night
+2	比如说	bǐ rú shuō	for example
+2	笔	bǐ	pen; pencil; writing brush
+2	笔记	bǐ jì	to take down (in writing); notes; a type of literature consisting mainly of short sketches
+2	边	biān | bian	side; edge; margin
+2	变	biàn	to change; to become different; to transform
+2	变成	biàn chéng	to change into; to turn into; to become
+2	表	biǎo	exterior surface; family relationship via females; to show (one's opinion)
+2	不错	bù cuò	correct; right; not bad
+2	不够	bù gòu	not enough; insufficient; inadequate
+2	不久	bù jiǔ	not long (after); before too long; soon
+2	不满	bù mǎn	resentful; discontented; dissatisfied
+2	不少	bù shǎo	many; a lot; not few
+2	不太	bù tài	Not too
+2	不同	bù tóng	different; distinct; not the same
+2	不行	bù xíng	won't do; be out of the question; be no good
+2	不要	bù yào	don't!; must not
+2	不一定	bù yī dìng	not necessarily; maybe
+2	不一会儿	bù yīhuǐr5	Take a short while
+2	草地	cǎo dì	lawn; meadow; sod
+2	查	Zhā | chá | zhā	surname Zha; to research; to check
+2	常见	cháng jiàn	commonly seen; common; to see sth frequently
+2	常用	cháng yòng	in common usage
+2	车辆	chē liàng	vehicle
+2	称	chèn | chēng | chèng	to fit; balanced; suitable
+2	成	Chéng | chéng	surname Cheng; to succeed; to finish
+2	出国	chū guó	to go abroad; to leave the country
+2	出门	chū mén	to go out; to leave home; to go on a journey
+2	出院	chū yuàn	to leave hospital; to be discharged from hospital
+2	出租	chū zū	to rent
+2	春节	Chūn jié	Spring Festival (Chinese New Year)
+2	春天	chūn tiān	spring (season)

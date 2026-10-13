@@ -280,7 +280,7 @@
   function todayHtml() {
     const c = counts(); if (!c.total) return '';
     const n = Math.min(20, c.due + c.newW);
-    return `<button class="mg-entry today-entry" data-act="today-go"><span class="mg-ico i-mint">${IC.sparkle}</span><span class="mg-txt"><b>오늘의 학습</b><small>${n ? `복습 ${Math.min(c.due, 20)}개 + 새 단어, 5가지 문제로 ${n}개` : '오늘 할 단어를 다 했어요. 전체에서 20개를 섞어 풀어요'}</small></span><span class="mg-chev"></span></button>`;
+    return `<button class="mg-entry today-entry" data-act="today-go"><span class="mg-ico i-mint">${IC.sparkles}</span><span class="mg-txt"><b>오늘의 학습</b><small>${n ? `복습 ${Math.min(c.due, 20)}개 + 새 단어, 5가지 문제로 ${n}개` : '오늘 할 단어를 다 했어요. 전체에서 20개를 섞어 풀어요'}</small></span><span class="mg-chev"></span></button>`;
   }
   ACTIONS['today-go'] = () => { const c = counts(); startSession('mix', { type: c.due + c.newW ? 'today' : 'all' }, 20); };
 
@@ -634,9 +634,9 @@
   ACTIONS['exit-session'] = () => exitSession(false);
 
   /* ----- 듣기 모드 ----- */
-  let L = { token: 0, items: [], i: 0, playing: false, example: true };
+  let L = { token: 0, items: [], i: 0, playing: false, example: true, exKo: false };
   function startListen() {
-    L = { token: L.token + 1, items: S.queue, i: 0, playing: true, example: true };
+    L = { token: L.token + 1, items: S.queue, i: 0, playing: true, example: L.example !== false, exKo: !!L.exKo };
     renderListen();
     listenLoop(L.token);
   }
@@ -659,25 +659,34 @@
           <button class="play" data-act="l-toggle" aria-label="재생/일시정지">${L.playing ? IC.pause : IC.play}</button>
           <button data-act="l-next" aria-label="다음">${IC.next}</button>
         </div>
-        <label class="switch-row"><input type="checkbox" ${L.example ? 'checked' : ''} data-change="listen-ex"> 예문도 읽어주기</label>
+        <div class="l-speed" role="group" aria-label="읽기 속도">
+          <span>속도</span><button data-act="l-rate" data-d="-1" aria-label="느리게">−</button><b>${clampN(config.ttsRate, .5, 2, .9).toFixed(2)}x</b><button data-act="l-rate" data-d="1" aria-label="빠르게">+</button>
+          <i class="l-br"></i>${[.6, .8, 1, 1.2, 1.5].map(r => `<button class="chip${Math.abs(r - clampN(config.ttsRate, .5, 2, .9)) < .001 ? ' on' : ''}" data-act="l-rate" data-v="${r}">${r}x</button>`).join('')}
+        </div>
+        <div class="l-opts">
+          <label class="switch-row"><input type="checkbox" ${L.example ? 'checked' : ''} data-change="listen-ex"> 예문도 읽어주기</label>
+          <label class="switch-row"><input type="checkbox" ${L.exKo ? 'checked' : ''} data-change="listen-exko"> 예문 해석도</label>
+        </div>
       </div>`;
   }
   async function listenLoop(token) {
-    while (L.token === token && L.playing && L.i < L.items.length) {
-      const w = L.items[L.i].w;
+    const alive = () => L.token === token && L.playing;
+    while (alive() && L.i < L.items.length) {
+      const w = L.items[L.i].w, wl = ttsLang(w.word), ref = voiceFor(wl), gap = clampN(config.gap, 0, 5, .9) * 1000, rep = Math.round(clampN(config.wordRep, 1, 3, 1));
       renderListen();
-      await speak(w.word, ttsLang(w.word));
-      if (L.token !== token || !L.playing) return;
-      await sleep(450);
-      await speak(w.meaning.replace(/[()\[\]]/g, ' '), 'ko-KR');
-      if (L.token !== token || !L.playing) return;
+      for (let k = 0; k < rep && alive(); k++) { if (k) await sleep(Math.max(250, gap / 2)); await speak(w.word, wl, { ref }); }
+      if (!alive()) return;
+      await sleep(Math.max(200, gap / 2));
+      await speak(w.meaning.replace(/[()\[\]~]/g, ' ').replace(/;/g, ','), 'ko-KR', { ref });
+      if (!alive()) return;
       if (L.example && w.example) {
-        await sleep(350);
-        await speak(w.example, ttsLang(w.example));
-        if (L.token !== token || !L.playing) return;
+        await sleep(Math.max(200, gap / 2.5));
+        await speak(w.example, ttsLang(w.example), { ref });
+        if (!alive()) return;
+        if (L.exKo && w.exampleKo) { await sleep(Math.max(200, gap / 2.5)); await speak(w.exampleKo, 'ko-KR', { ref }); if (!alive()) return; }
       }
-      await sleep(900);
-      if (L.token !== token || !L.playing) return;
+      await sleep(gap);
+      if (!alive()) return;
       L.i++;
     }
     if (L.token === token && L.i >= L.items.length) {
@@ -693,6 +702,11 @@
     L.playing = !L.playing;
     if (!L.playing) { L.token++; try { window.speechSynthesis.cancel(); } catch (e) {} renderListen(); }
     else { L.token++; listenLoop(L.token); }
+  };
+  // 단어·예문 속도는 0.05씩, 한국어 뜻 속도도 같은 비율로 따라 움직여요.
+  ACTIONS['l-rate'] = el => {
+    const cur = clampN(config.ttsRate, .5, 2, .9), nx = el.dataset.v ? +el.dataset.v : Math.round((cur + (+el.dataset.d) * .05) * 100) / 100;
+    config.ttsRate = clampN(nx, .5, 2, .9); syncStorage(); renderListen();
   };
   ACTIONS['l-next'] = () => { if (L.i < L.items.length - 1) { L.i++; listenRestart(); } };
   ACTIONS['l-prev'] = () => { if (L.i > 0) { L.i--; listenRestart(); } };
