@@ -1,0 +1,20 @@
+/* S2 타이틀 + 카운트다운 */
+#sc-s2 { background: #ffffff; }
+.s2-lock { position: absolute; left: 0; top: 0; display: flex; align-items: center; white-space: nowrap; }
+.s2-mark { flex: none; box-shadow: 0 0 0 2px #e5e8eb, 0 8px 24px rgba(0, 27, 55, .12); letter-spacing: 0; line-height: 1; }
+.s2-wm { font-weight: 800; color: #191f28; letter-spacing: -0.035em; line-height: 1; }
+.s2-pill { display: inline-flex; align-items: center; justify-content: center; flex: none; border-radius: 999px; line-height: 1; letter-spacing: -0.01em; }
+.s2-new { background: #f04452; color: #fff; font-weight: 900; }
+.s2-free { background: #e8f3ff; color: #1b64da; font-weight: 800; }
+.s2-title { position: absolute; inset: 0; }
+.s2-t { position: absolute; left: 0; top: 0; white-space: nowrap; line-height: 1; font-weight: 900; color: #191f28; word-break: keep-all; }
+.s2-t1 .ch { transform-origin: 50% 100%; }
+.s2-t2 { color: #3182f6; }
+.s2-sub { position: absolute; left: 0; top: 0; white-space: nowrap; line-height: 1.1; font-weight: 700; color: #4e5968; letter-spacing: -0.02em; }
+.s2-probe { display: inline-block; width: 0; height: 0; vertical-align: baseline; }
+.s2-cd { position: absolute; left: 0; top: 0; background: #3182f6; }
+.s2-cdin { position: absolute; inset: 0; }
+.s2-ring { position: absolute; left: 50%; top: 50%; overflow: visible; }
+.s2-numbox { position: absolute; left: 0; right: 0; overflow: hidden; }
+.s2-strip { position: absolute; left: 0; right: 0; top: 0; }
+.s2-strip > div { text-align: center; color: #fff; font-weight: 900; font-variant-numeric: tabular-nums; letter-spacing: 0; white-space: nowrap; }

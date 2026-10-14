@@ -1,0 +1,39 @@
+/* S8 · 영어는 기본, 중국어까지 (EN/中 반반 화면) */
+#sc-s8 { background: #3182f6; color: #fff; font-variant-numeric: tabular-nums; }
+#sc-s8 .s8-half { position: absolute; inset: 0; }
+#sc-s8 .s8-zh { background: #f04452; }
+#sc-s8 .s8-content { position: absolute; inset: 0; }
+#sc-s8 .s8-wmbox { position: absolute; inset: 0; overflow: hidden; }
+#sc-s8 .s8-wm { position: absolute; left: 0; top: 0; line-height: 1; font-weight: 900; color: rgba(255, 255, 255, .07); white-space: nowrap; letter-spacing: 0; }
+#sc-s8 .s8-wm.zh { font-weight: 800; }
+#sc-s8 .s8-h, #sc-s8 .s8-w, #sc-s8 .s8-m { position: absolute; left: 0; top: 0; line-height: 1.1; white-space: nowrap; word-break: keep-all; will-change: transform; }
+#sc-s8 .s8-h { font-weight: 900; letter-spacing: -0.035em; }
+#sc-s8 .s8-w { font-weight: 800; letter-spacing: -0.05em; }
+#sc-s8 .s8-w.zh { font-weight: 800; letter-spacing: 0; }
+#sc-s8 .s8-m { font-weight: 700; color: rgba(255, 255, 255, .75); letter-spacing: -0.02em; }
+#sc-s8 .s8-m b { font-weight: 600; color: #fff; letter-spacing: 0; }
+#sc-s8 .s8-m em { font-style: normal; font-weight: 700; color: rgba(255, 255, 255, .75); }
+#sc-s8 .s8-probe { display: inline-block; width: 0; height: 0; vertical-align: baseline; }
+#sc-s8 .s8-chips { position: absolute; display: flex; align-items: stretch; }
+#sc-s8 .s8-chip { display: flex; align-items: center; border-radius: 999px; background: rgba(255, 255, 255, .16); color: #fff; font-weight: 700; letter-spacing: -0.02em; white-space: nowrap; line-height: 1; }
+#sc-s8 .s8-cnt { position: absolute; background: rgba(255, 255, 255, .16); border-radius: 32px; display: flex; white-space: nowrap; }
+#sc-s8 .s8-stack { flex-direction: column; justify-content: center; gap: 10px; }
+#sc-s8 .s8-line { flex-direction: row; align-items: center; gap: 18px; }
+#sc-s8 .s8-cnum { font-weight: 800; line-height: 1; letter-spacing: -0.02em; display: flex; }
+#sc-s8 .s8-clab { font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; color: #fff; }
+#sc-s8 .s8-cx { font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; color: rgba(255, 255, 255, .75); margin-top: 2px; }
+#sc-s8 .s8-odo { display: inline-flex; align-items: flex-start; }
+#sc-s8 .s8-dg { display: inline-block; height: 1.1em; overflow: hidden; position: relative; }
+#sc-s8 .s8-strip { display: flex; flex-direction: column; will-change: transform; }
+#sc-s8 .s8-strip i { display: block; font-style: normal; height: 1.1em; line-height: 1.1em; }
+#sc-s8 .s8-sep { display: inline-block; height: 1.1em; line-height: 1.1em; }
+#sc-s8 .s8-tog { position: absolute; z-index: 5; background: #fff; border-radius: 999px; box-shadow: 0 12px 36px rgba(10, 30, 80, .22); }
+#sc-s8 .s8-knob { position: absolute; display: block; border-radius: 999px; background: #3182f6; }
+#sc-s8 .s8-ten, #sc-s8 .s8-tzh { position: absolute; display: flex; align-items: center; justify-content: center; line-height: 1; }
+#sc-s8 .s8-ten { font-weight: 900; letter-spacing: -0.02em; }
+#sc-s8 .s8-tzh { font-weight: 800; }
+#sc-s8 .s8-rep { position: absolute; display: flex; align-items: center; background: #fff; border-radius: 28px; color: #191f28; white-space: nowrap; }
+#sc-s8 .s8-rep i { display: grid; place-items: center; flex: none; background: rgba(49, 130, 246, .12); color: #3182f6; }
+#sc-s8 .s8-rep i span { display: block; } #sc-s8 .s8-rep i svg { display: block; width: 100%; height: 100%; }
+#sc-s8 .s8-rep b { font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
+#sc-s8 .s8-ring { position: absolute; box-shadow: inset 0 0 0 4px #3182f6; pointer-events: none; }

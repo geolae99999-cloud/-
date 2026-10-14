@@ -1,0 +1,5 @@
+/* 브랜드 버그 (4.50-29.90): 흰 둥근 사각 + 파란 V + 'VocaPro' */
+#sc-overlay { pointer-events: none; background: transparent; }
+.ov-bug { position: absolute; display: flex; align-items: center; white-space: nowrap; }
+.ov-mark { flex: none; letter-spacing: 0; line-height: 1; }
+.ov-wm { font-weight: 800; line-height: 1; letter-spacing: -0.02em; white-space: nowrap; }

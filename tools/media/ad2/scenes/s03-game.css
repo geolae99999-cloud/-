@@ -1,0 +1,81 @@
+/* S3 · HERO 단어 맞추기 대결 */
+#sc-s3 { font-variant-numeric: tabular-nums; }
+#sc-s3 .s3-cam, #sc-s3 .s3-ui, #sc-s3 .s3-uif, #sc-s3 .s3-layer { position: absolute; inset: 0; }
+#sc-s3 .s3-pos { position: absolute; width: 0; height: 0; }
+#sc-s3 .s3-c { position: absolute; left: 0; top: 0; transform: translate(-50%, -50%); white-space: nowrap; }
+#sc-s3 .s3-bgw { font-weight: 900; color: #3182f6; letter-spacing: -0.05em; line-height: 1; }
+
+/* 상단: 닫기 · 시계 · 점수 */
+#sc-s3 .s3-x { position: absolute; background: #fff; border: 1.5px solid #e5e8eb; display: flex; align-items: center; justify-content: center; color: #4e5968; }
+#sc-s3 .s3-x svg { width: 100%; height: 100%; }
+#sc-s3 .s3-clock { display: flex; align-items: center; color: #191f28; font-weight: 800; }
+#sc-s3 .s3-clock .s3-cic { display: block; flex: none; }
+#sc-s3 .s3-clock .s3-cic svg { width: 100%; height: 100%; display: block; }
+#sc-s3 .s3-pen { position: absolute; left: 100%; top: 50%; color: #f04452; font-weight: 900; white-space: nowrap; letter-spacing: -0.02em; }
+#sc-s3 .s3-score { position: absolute; transform: translateY(-50%); color: #3182f6; font-weight: 800; white-space: nowrap; display: flex; align-items: baseline; letter-spacing: -0.02em; }
+
+/* 오도미터 숫자 */
+#sc-s3 .s3-odo { display: inline-flex; align-items: flex-start; height: 1.1em; line-height: 1.1em; letter-spacing: 0; }
+#sc-s3 .s3-oc { display: inline-block; overflow: hidden; height: 1.1em; flex: none; }
+#sc-s3 .s3-os { display: block; }
+#sc-s3 .s3-os i { display: block; height: 1.1em; font-style: normal; text-align: center; }
+#sc-s3 .s3-ocm { display: inline-block; overflow: hidden; flex: none; text-align: center; }
+
+/* 타이머 막대 */
+#sc-s3 .s3-track { position: absolute; background: #e5e8eb; }
+#sc-s3 .s3-blk { position: absolute; left: 0; top: 0; overflow: hidden; background: #3182f6; }
+#sc-s3 .s3-blk i { position: absolute; inset: 0; display: block; }
+#sc-s3 .s3-blkG { background: linear-gradient(90deg, #03b26c, #3182f6); }
+#sc-s3 .s3-blkL { background: linear-gradient(90deg, #f04452, #ff9f00); }
+#sc-s3 .s3-chunk { position: absolute; background: linear-gradient(90deg, #03b26c, #3182f6); }
+
+/* 콤보 알약 */
+#sc-s3 .s3-pill { display: flex; align-items: center; font-weight: 800; color: #8b95a1; background: #fff; box-shadow: 0 4px 16px rgba(0, 27, 55, .07); white-space: nowrap; letter-spacing: -0.02em; }
+#sc-s3 .s3-pill.on { color: #fff; background: linear-gradient(135deg, #ff9f00, #f04452); box-shadow: 0 8px 24px rgba(240, 68, 82, .25); }
+#sc-s3 .s3-pill .s3-fl { display: block; flex: none; }
+#sc-s3 .s3-pill .s3-fl svg { width: 100%; height: 100%; display: block; }
+#sc-s3 .s3-pill b { font-weight: 900; display: inline-flex; }
+#sc-s3 .s3-pill small { font-weight: 800; opacity: .9; }
+
+/* 문제 카드 */
+#sc-s3 .s3-card { position: absolute; background: #fff; overflow: hidden; box-shadow: 0 6px 24px rgba(0, 0, 0, .05); }
+#sc-s3 .s3-cq { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+#sc-s3 .s3-cq small { color: #8b95a1; font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; }
+#sc-s3 .s3-cq b { font-weight: 800; color: #191f28; line-height: 1.15; white-space: nowrap; }
+
+/* 보기 */
+#sc-s3 .s3-opt { position: absolute; }
+#sc-s3 .s3-face { position: absolute; inset: 0; background: #fff; border: 3px solid #e5e8eb; box-shadow: 0 6px 0 #dfe3e8; }
+#sc-s3 .s3-face.ok { background: #e5f8ef; border-color: #03b26c; box-shadow: 0 6px 0 #03b26c; }
+#sc-s3 .s3-face.bad { background: #ffeeee; border-color: #f04452; box-shadow: 0 6px 0 #f04452; }
+#sc-s3 .s3-clip { position: absolute; inset: 0; overflow: hidden; }
+#sc-s3 .s3-rip { position: absolute; border-radius: 50%; background: rgba(3, 178, 108, .25); }
+#sc-s3 .s3-chip { position: absolute; top: 50%; }
+#sc-s3 .s3-chip > i { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-style: normal; font-weight: 800; }
+#sc-s3 .s3-chip .n { background: #f2f4f6; color: #8b95a1; }
+#sc-s3 .s3-chip .k { background: #03b26c; color: #fff; }
+#sc-s3 .s3-chip .w { background: #f04452; color: #fff; }
+#sc-s3 .s3-chip svg { width: 62%; height: 62%; display: block; }
+#sc-s3 .s3-lm { position: absolute; top: 50%; overflow: hidden; height: 1.4em; margin-top: -.7em; }
+#sc-s3 .s3-lm span { position: absolute; left: 0; top: 0; line-height: 1.4em; font-weight: 700; color: #191f28; white-space: nowrap; letter-spacing: -0.02em; }
+#sc-s3 .s3-plus { position: absolute; top: 50%; font-weight: 900; color: #03b26c; white-space: nowrap; line-height: 1; letter-spacing: -0.02em; }
+
+/* 탭 표시 */
+#sc-s3 .s3-tap { position: absolute; left: 0; top: 0; width: 72px; height: 72px; margin: -36px 0 0 -36px; border-radius: 50%; border: 4px solid rgba(25, 31, 40, .35); background: rgba(25, 31, 40, .18); }
+
+/* 덮개들 */
+#sc-s3 .s3-vign { position: absolute; inset: 0; box-shadow: inset 0 0 120px rgba(240, 68, 82, .18), inset 0 0 40px rgba(240, 68, 82, .10); }
+#sc-s3 .s3-scrim { position: absolute; inset: 0; background: rgba(25, 31, 40, .45); }
+#sc-s3 .s3-rays { position: absolute; left: 0; top: 0; overflow: visible; }
+
+/* 규칙 자막 */
+#sc-s3 .s3-cap { text-align: center; line-height: 1.04; color: #191f28; font-weight: 800; }
+#sc-s3 .s3-cap .ln { padding: .08em .06em .14em; margin: -.08em -.06em -.14em; }
+#sc-s3 .s3-cap .co { color: #f04452; font-weight: 900; }
+#sc-s3 .s3-gr, #sc-s3 .s3-burst { background: linear-gradient(90deg, #ff9f00, #f04452); -webkit-background-clip: text; background-clip: text; color: transparent; }
+#sc-s3 .s3-burst { font-weight: 900; line-height: 1.1; letter-spacing: -0.035em; padding: 0 .06em; }
+
+/* 들어오기 */
+#sc-s3 .s3-shock { position: absolute; left: 0; top: 0; border-radius: 50%; border: 6px solid #fff; }
+#sc-s3 .s3-big { color: #fff; font-weight: 900; line-height: 1.1; display: inline-flex; letter-spacing: 0; }
+#sc-s3 .s3-num1 { color: #fff; font-weight: 900; line-height: 1; }

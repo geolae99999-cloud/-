@@ -1,0 +1,26 @@
+/* S7 · 간격 반복 복습 + 13가지 학습 (흰 바탕) */
+#sc-s7 { background: #fff; color: #191f28; }
+#sc-s7 .s7-a { position: absolute; left: 0; top: 0; }
+#sc-s7 .s7-chip { position: absolute; display: inline-flex; align-items: center; border-radius: 999px; background: #e8f3ff; color: #1b64da; font-weight: 700; letter-spacing: -0.02em; white-space: nowrap; line-height: 1; }
+#sc-s7 svg { display: block; flex: none; }
+#sc-s7 .s7-head { position: absolute; font-weight: 800; letter-spacing: -0.035em; line-height: 1.1; white-space: nowrap; color: #191f28; }
+#sc-s7 .s7-head b { color: #3182f6; font-weight: 800; }
+#sc-s7 .s7-tl { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+#sc-s7 .s7-track, #sc-s7 .s7-fill { position: absolute; border-radius: 99px; }
+#sc-s7 .s7-track { background: #e5e8eb; }
+#sc-s7 .s7-fill { background: #3182f6; }
+#sc-s7 .s7-mk { position: absolute; width: 32px; height: 32px; border-radius: 50%; background: #fff; box-shadow: inset 0 0 0 4px #d1d6db; }
+#sc-s7 .s7-mk i { position: absolute; inset: -4px; border-radius: 50%; background: #3182f6; color: #fff; display: flex; align-items: center; justify-content: center; }
+#sc-s7 .s7-today { position: absolute; color: #4e5968; font-weight: 700; letter-spacing: -0.02em; white-space: nowrap; line-height: 1; }
+#sc-s7 .s7-pill { position: absolute; display: inline-flex; align-items: center; border-radius: 999px; background: #e8f3ff; color: #1b64da; font-weight: 800; letter-spacing: -0.02em; white-space: nowrap; line-height: 1; }
+#sc-s7 .s7-card { position: absolute; left: 0; top: 0; background: #fff; overflow: hidden; will-change: transform; }
+#sc-s7 .s7-cw { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+#sc-s7 .s7-cw b { font-weight: 800; letter-spacing: -0.035em; line-height: 1; white-space: nowrap; color: #191f28; }
+#sc-s7 .s7-cw span { font-weight: 600; letter-spacing: -0.02em; line-height: 1; white-space: nowrap; color: #4e5968; }
+#sc-s7 .s7-carry { position: absolute; left: 0; top: 0; font-weight: 800; letter-spacing: -0.035em; line-height: 1; white-space: nowrap; color: #191f28; transform-origin: 0 0; will-change: transform; }
+#sc-s7 .s7-mode { position: absolute; background: #fff; overflow: hidden; will-change: transform; }
+#sc-s7 .s7-mi { position: absolute; inset: 0; display: flex; align-items: center; }
+#sc-s7 .s7-mi i { display: flex; align-items: center; justify-content: center; flex: none; }
+#sc-s7 .s7-mi b { font-weight: 700; letter-spacing: -0.02em; white-space: nowrap; line-height: 1; color: #191f28; }
+#sc-s7 .s7-sheen { position: absolute; top: 0; bottom: 0; left: 0; background: linear-gradient(100deg, rgba(232, 243, 255, 0) 0%, rgba(232, 243, 255, 1) 45%, rgba(232, 243, 255, 1) 55%, rgba(232, 243, 255, 0) 100%); }
+#sc-s7 .s7-mini { position: absolute; display: inline-flex; align-items: center; border-radius: 999px; background: #fff3e0; color: #ff9f00; font-weight: 800; letter-spacing: -0.02em; white-space: nowrap; line-height: 1; }

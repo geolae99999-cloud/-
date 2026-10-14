@@ -1,0 +1,37 @@
+/* S10 엔딩: 공부는 게임처럼, 실력은 진짜로 · VocaPro · 무료로 시작하기 */
+#sc-s10 { background: transparent; }
+#sc-s10.s10-on { background: #3182f6; }
+.s10-under { position: absolute; background: #f2f4f6; }
+.s10-stripes { position: absolute; inset: 0; }
+.s10-stripe { position: absolute; left: 0; top: 0; overflow: hidden; }
+.s10-ghost { position: absolute; left: 0; top: 0; bottom: 0; display: flex; align-items: center; white-space: nowrap; color: #fff; font-weight: 800; letter-spacing: -0.03em; line-height: 1; right: 0; }
+.s10-gic { flex: none; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: rgba(255, 255, 255, .2); }
+.s10-gic svg { width: 100%; height: 100%; display: block; }
+.s10-gname { position: absolute; top: 50%; transform: translateY(-50%); font-weight: 800; letter-spacing: -0.03em; white-space: nowrap; line-height: 1; }
+.s10-content { position: absolute; inset: 0; }
+.s10-c { position: absolute; left: 0; width: 100%; height: 0; display: flex; align-items: center; justify-content: center; }
+.s10-tag { color: rgba(255, 255, 255, .9); font-weight: 700; letter-spacing: -0.035em; line-height: 1.2; white-space: nowrap; word-break: keep-all; }
+.s10-gold { position: relative; display: inline-block; }
+.s10-uline { position: absolute; left: 0; top: 0; height: 8px; border-radius: 4px; background: #ffc93c; transform-origin: 0 50%; }
+.s10-logo { display: flex; align-items: center; white-space: nowrap; }
+.s10-mark { flex: none; letter-spacing: 0; line-height: 1; box-shadow: 0 16px 40px rgba(10, 30, 80, .22); }
+.s10-wm { color: #fff; font-weight: 800; line-height: 1; letter-spacing: -0.05em; white-space: nowrap; }
+.s10-wm .ch { will-change: transform; }
+.s10-cta { position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; background: #fff; border-radius: 999px; box-shadow: 0 24px 60px rgba(10, 30, 80, .35); overflow: hidden; white-space: nowrap; }
+.s10-ctaL { color: #1b64da; font-weight: 800; letter-spacing: -0.02em; line-height: 1; }
+.s10-arrow { flex: none; color: #1b64da; display: block; }
+.s10-arrow svg { display: block; width: 100%; height: 100%; }
+.s10-ripple { position: absolute; left: 0; top: 0; border-radius: 50%; background: rgba(49, 130, 246, .25); pointer-events: none; }
+.s10-pulse { position: absolute; left: 0; top: 0; border: 2px solid #fff; border-radius: 999px; pointer-events: none; }
+.s10-tap { position: absolute; z-index: 2; left: 0; top: 0; width: 72px; height: 72px; margin: -36px 0 0 -36px; border-radius: 50%; border: 4px solid rgba(25, 31, 40, .35); background: rgba(25, 31, 40, .18); }
+.s10-url { color: #fff; font-weight: 700; letter-spacing: 0; line-height: 1.15; white-space: nowrap; }
+.s10-foot { color: rgba(255, 255, 255, .75); font-weight: 600; letter-spacing: -0.02em; line-height: 1.2; white-space: nowrap; }
+.s10-rings { position: absolute; left: 0; top: 0; width: 0; height: 0; }
+.s10-ring { position: absolute; left: 0; top: 0; border-radius: 50%; border: 2px solid #fff; }
+.s10-mwrap { position: absolute; transform-origin: 50% 100%; }
+.s10-disc { position: absolute; inset: 0; border-radius: 50%; background: #fff; box-shadow: 0 16px 40px rgba(10, 30, 80, .22); }
+.s10-mascot { position: absolute; }
+.s10-mascot svg { display: block; width: 100%; height: 100%; overflow: visible; color: #3182f6; }
+.s10-mascot .s10-eye { transform-box: fill-box; transform-origin: 50% 50%; }
+.s10-bub { position: absolute; left: 0; top: 0; display: flex; align-items: center; justify-content: center; background: #fff; border-radius: 32px; color: #1b64da; font-weight: 800; letter-spacing: -0.02em; line-height: 1; white-space: nowrap; box-shadow: 0 16px 40px rgba(10, 30, 80, .22); }
+.s10-tail { position: absolute; width: 0; height: 0; }

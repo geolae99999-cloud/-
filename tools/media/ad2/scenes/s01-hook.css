@@ -1,0 +1,10 @@
+/* S1 훅: 우리 반 단어왕은 누구? */
+#sc-s1 { background: #ffffff; }
+.s1-block { position: absolute; inset: 0; background: #3182f6; clip-path: inset(100% 0 0 0); }
+.s1-shake { position: absolute; inset: 0; }
+.s1-w { position: absolute; left: 0; top: 0; white-space: nowrap; line-height: 1; font-weight: 900; color: #191f28; letter-spacing: -0.05em; word-break: keep-all; will-change: auto; }
+.s1-w .ch { display: inline-block; }
+.s1-probe { display: inline-block; width: 0; height: 0; vertical-align: baseline; }
+.s1-crown { position: absolute; left: 0; top: 0; }
+.s1-crown svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.s1-spark { position: absolute; left: 0; top: 0; width: 40px; height: 6px; margin: -3px 0 0 -20px; border-radius: 3px; background: #ffffff; }
