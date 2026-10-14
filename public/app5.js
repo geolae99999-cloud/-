@@ -327,39 +327,46 @@
 
   /* ----- 기기 음성 AI (영어): asr/vp-asr.js 를 Web Worker 로 돌려요. 처음 한 번 모델(약 57MB)을 받아 이 기기에 저장해요 ----- */
   const VPA = (() => {
-    let w = null, initP = null, ready = false, seq = 0, prog = 0; const wait = new Map(), subs = new Set();
-    const ok = () => typeof Worker === 'function' && typeof WebAssembly === 'object' && typeof BigInt64Array === 'function' && 'caches' in window;
+    // 언어마다 모델이 따로예요(영어 · 중국어). 쓰는 언어만 받아요
+    let w = null, seq = 0; const initP = {}, ready = {}, prog = { en: 0, zh: 0 }, wait = new Map(), subs = { en: new Set(), zh: new Set() };
+    const L = l => l === 'zh' ? 'zh' : 'en';
+    const ok = () => typeof Worker === 'function' && typeof WebAssembly === 'object' && typeof BigInt64Array === 'function' && 'caches' in window && typeof TextDecoder === 'function';
     function fail(msg) { const e = new Error(msg || '기기 음성 AI를 시작하지 못했어요.'); wait.forEach(x => x.no(e)); wait.clear(); return e; }
+    const tell = (l, p) => subs[l].forEach(f => { try { f(p); } catch (x) {} });
     function worker() {
       if (w) return w;
       w = new Worker('asr/vp-asr.js');
       w.onmessage = e => {
-        const m = e.data || {};
-        if (m.type === 'progress') { prog = m.p; subs.forEach(f => { try { f(m.p); } catch (x) {} }); }
-        else if (m.type === 'ready') { ready = true; prog = 100; subs.forEach(f => { try { f(100); } catch (x) {} }); const x = wait.get('init'); if (x) { wait.delete('init'); x.ok(); } }
+        const m = e.data || {}, l = L(m.lang);
+        if (m.type === 'progress') { prog[l] = m.p; tell(l, m.p); }
+        else if (m.type === 'ready') { ready[l] = true; prog[l] = 100; tell(l, 100); const x = wait.get('init:' + l); if (x) { wait.delete('init:' + l); x.ok(); } }
         else if (m.type === 'result' || m.type === 'error') {
-          const x = wait.get(m.id != null ? m.id : 'init'); if (!x) return; wait.delete(m.id != null ? m.id : 'init');
+          const k = m.id != null ? m.id : 'init:' + l, x = wait.get(k); if (!x) return; wait.delete(k);
           if (m.type === 'result') x.ok(m); else x.no(new Error(m.msg || '음성 AI 오류'));
         }
       };
-      w.onerror = () => { const e = fail(); try { w.terminate(); } catch (x) {} w = null; initP = null; ready = false; return e; };
+      w.onerror = () => { fail(); try { w.terminate(); } catch (x) {} w = null; for (const k of ['en', 'zh']) { initP[k] = null; ready[k] = false; } };
       return w;
     }
-    function init(onProg) {
-      if (onProg) { subs.add(onProg); onProg(prog); }
-      if (ready) return Promise.resolve();
+    function init(onProg, lang) {
+      const l = L(lang);
+      if (onProg) { subs[l].add(onProg); onProg(prog[l]); }
+      if (ready[l]) return Promise.resolve();
       if (!ok()) return Promise.reject(new Error('이 브라우저에서는 기기 음성 AI를 쓸 수 없어요. 최신 Chrome · Edge · Safari에서 열어 주세요.'));
-      if (!initP) initP = new Promise((res, rej) => { wait.set('init', { ok: res, no: rej }); worker().postMessage({ cmd: 'init' }); }).catch(e => { initP = null; throw e; });
-      return initP;
+      if (!initP[l]) initP[l] = new Promise((res, rej) => { wait.set('init:' + l, { ok: res, no: rej }); worker().postMessage({ cmd: 'init', lang: l }); }).catch(e => { initP[l] = null; throw e; });
+      return initP[l];
     }
-    // pcm: 16kHz Float32Array, items: [{ text, kind: 'w' | 's', idx }] -> { items: [{ score, acc, flu, comp, heard, tips, problems, words }], heard }
-    async function score(pcm, items) {
-      await init();
-      return new Promise((res, rej) => { const id = ++seq; wait.set(id, { ok: res, no: rej }); const y = new Float32Array(pcm); worker().postMessage({ cmd: 'score', id, pcm: y, items }, [y.buffer]); });
+    // pcm: 16kHz Float32Array, items: [{ text, kind: 'w' | 's', idx }], lang: 'en' | 'zh' -> { items: [{ score, acc, flu, comp, heard, tips, problems, words }], heard }
+    async function score(pcm, items, lang) {
+      const l = L(lang); await init(null, l);
+      return new Promise((res, rej) => { const id = ++seq; wait.set(id, { ok: res, no: rej }); const y = new Float32Array(pcm); worker().postMessage({ cmd: 'score', id, lang: l, pcm: y, items }, [y.buffer]); });
     }
-    return { ok, init, score, off: f => subs.delete(f), get ready() { return ready; } };
+    const off = (f, lang) => { if (lang) subs[L(lang)].delete(f); else { subs.en.delete(f); subs.zh.delete(f); } };
+    return { ok, init, score, off, isReady: lang => !!ready[L(lang)], get ready() { return !!ready.en; } };
   })();
-  const VPA_MB = 57;
+  // 처음 한 번 받는 크기(MB): 영어 모델 + 실행기 57, 중국어 모델 63(+ 실행기 11, 영어를 먼저 받았으면 빼요)
+  const vpaMB = lang => lang === 'zh' ? (VPA.isReady('en') ? 63 : 74) : (VPA.isReady('zh') ? 46 : 57);
+  const vpaLang = text => /[\u3400-\u9fff]/.test(String(text || '')) ? 'zh' : 'en';
   // 연습용 마이크: 말이 끝나면(0.7초 조용하면) 자동으로 멈춰요. 최대 maxSec 초
   const VPM = { ctx: null, stream: null, R: null };
   async function vpMicStart(maxSec, onLevel, onEnd) {
@@ -418,10 +425,10 @@
   const SPK_FATAL = { 'not-allowed': '마이크 사용이 막혀 있어요. 주소창의 자물쇠를 눌러 마이크를 허용해 주세요.', 'service-not-allowed': '이 브라우저는 음성 인식을 막아 두었어요.', network: '음성 인식 서버에 연결하지 못했어요.', 'audio-capture': '마이크를 찾지 못했어요.', 'language-not-supported': '이 기기는 이 언어의 음성 인식을 지원하지 않아요.' };
   let spkSelf = false;
   // 영어 단어는 기기 음성 AI로 들어요(서버 · 구글 음성 인식 없이). 중국어나 기기 AI를 못 쓰면 브라우저 음성 인식, 그것도 안 되면 스스로 확인
-  const spkLocal = w => !spkSelf && !isHanWord(w.word) && VPA.ok() && !S.vpaOff;
+  const spkLocal = w => !spkSelf && VPA.ok() && !S.vpaOff;
   function renderSpeak(item) {
     const w = item.w; S.tries = 0;
-    if (spkLocal(w)) VPA.init().catch(() => {}); // 미리 받아 둬요
+    if (spkLocal(w)) VPA.init(null, vpaLang(w.word)).catch(() => {}); // 미리 받아 둬요
     const self = !spkLocal(w) && (spkSelf || !SR);
     $('stBody').innerHTML = `
       <div class="q-wrap">
@@ -451,11 +458,12 @@
     const out = $('spkOut'), btn = $('micBtn'); if (!out || !btn) return;
     const mine = () => S.active && S.queue[S.idx] === item && !S.locked;
     if (VPM.R) { vpMicStop(); return; } // 말하는 중에 다시 누르면 바로 멈춰요
-    if (!VPA.ready) {
+    const lang = vpaLang(item.w.word);
+    if (!VPA.isReady(lang)) {
       btn.disabled = true;
-      const pg = p => { if (mine() && $('spkOut')) $('spkOut').innerHTML = `음성 AI 준비 중 <b>${p}%</b><br><small>처음 한 번만 받아요(약 ${VPA_MB}MB). 와이파이를 권해요.</small>`; };
+      const mb = vpaMB(lang), pg = p => { if (mine() && $('spkOut')) $('spkOut').innerHTML = `${lang === 'zh' ? '중국어 ' : ''}음성 AI 준비 중 <b>${p}%</b><br><small>처음 한 번만 받아요(약 ${mb}MB). 와이파이를 권해요.</small>`; };
       S.vpaProg = pg;
-      try { await VPA.init(pg); } catch (e) { VPA.off(pg); S.vpaProg = null; if (!mine()) return; btn.disabled = false; return spkLocalFail((e && e.message) || '음성 AI를 받지 못했어요.'); }
+      try { await VPA.init(pg, lang); } catch (e) { VPA.off(pg); S.vpaProg = null; if (!mine()) return; btn.disabled = false; return spkLocalFail((e && e.message) || '음성 AI를 받지 못했어요.'); }
       VPA.off(pg); S.vpaProg = null; if (!mine()) return;
       btn.disabled = false;
     }
@@ -466,7 +474,7 @@
         if (!mine() || !o) return;
         if (!pcm) { o.textContent = '소리가 들리지 않았어요. 마이크 가까이에서 다시 눌러 말해 주세요.'; return; }
         o.textContent = '듣고 확인하는 중...'; if (b) b.disabled = true;
-        let r; try { r = await VPA.score(pcm.y, [{ text: item.w.word, kind: /\s/.test(item.w.word.trim()) ? 's' : 'w' }]); }
+        let r; try { r = await VPA.score(pcm.y, [{ text: item.w.word, kind: /\s/.test(item.w.word.trim()) || (lang === 'zh' && [...item.w.word].length > 4) ? 's' : 'w' }], lang); }
         catch (e) { if (mine() && $('micBtn')) { $('micBtn').disabled = false; $('spkOut').textContent = '확인하지 못했어요. 다시 눌러 주세요.'; } return; }
         if (!mine()) return;
         if (b) b.disabled = false;

@@ -1,5 +1,5 @@
 // 기기 음성 AI 확인: 브라우저(Web Worker + wasm)에서 모델을 받아 채점하고, 말하기 연습이 가짜 마이크 소리를 듣고 맞다/틀리다를 정해요.
-// test/fixtures: yes-human.wav (Google Speech Commands, CC BY 4.0), 나머지는 시험용 합성 음성
+// test/fixtures: yes-human.wav (Google Speech Commands, CC BY 4.0), zh-human.wav · zh-two-sent.wav (sherpa-onnx 중국어 모델의 시험 녹음), 나머지는 시험용 합성 음성
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 const http = require('http'), fs = require('fs'), path = require('path');
 const root = path.join(__dirname, 'site'), fx = path.join(__dirname, 'fixtures');
@@ -35,10 +35,10 @@ async function signup(p) {
     ok(ready === true, `모델을 받아 준비 (${((Date.now() - t0) / 1000).toFixed(1)}초, 진행 ${prog.length}번, 마지막 ${prog[prog.length - 1]}%) ${ready}`);
     const cached = await p.evaluate(async () => (await (await caches.open('vp-asr-1')).keys()).length);
     ok(cached === 3, '모델 조각 3개를 이 기기(Cache)에 저장 ' + cached);
-    const grade = (file, items) => p.evaluate(async ([file, items]) => {
+    const grade = (file, items, lang) => p.evaluate(async ([file, items, lang]) => {
       const buf = await (await fetch('/fixtures/' + file)).arrayBuffer(); const d = await spDecode(buf);
-      const t = performance.now(); const r = await VPA.score(d.y, items); r.ms = Math.round(performance.now() - t); return r;
-    }, [file, items]);
+      const t = performance.now(); const r = await VPA.score(d.y, items, lang); r.ms = Math.round(performance.now() - t); return r;
+    }, [file, items, lang]);
     let r = await grade('yes-human.wav', [{ text: 'yes', kind: 'w' }]);
     ok(r.items[0].score >= 80 && /yes/.test(r.items[0].heard), `사람 목소리 "yes" -> ${r.items[0].score}점, 들은 말 "${r.items[0].heard}" (${r.ms}ms)`);
     r = await grade('yes-human.wav', [{ text: 'yet', kind: 'w' }]);
@@ -54,22 +54,39 @@ async function signup(p) {
       ok(e.items.length === 3 && e.items.every(x => x && typeof x.score === 'number') && e.items[0].score === 0 && e.items[1].score === 0 && e.items[2].idx === 2, '영어 글자가 없는 문항(2024, 한글)도 빈 값 대신 0점 결과 ' + e.items.map(x => x && x.score).join(',')); }
     const r2 = await grade('four-words.wav', ['apple', 'liver', 'trouble', 'library'].map((text, idx) => ({ text, kind: 'w', idx })));
     ok(JSON.stringify(r2.items.map(x => x.score)) === JSON.stringify(r.items.map(x => x.score)), '같은 소리는 몇 번을 해도 같은 점수');
+    // 중국어: 모델을 따로 받아(4조각) 글자마다 채점
+    const z0 = Date.now(), zp = [];
+    await p.exposeFunction('__zprog', x => zp.push(x));
+    const zr = await p.evaluate(() => VPA.init(x => window.__zprog(x), 'zh').then(() => true, e => e.message));
+    ok(zr === true, `중국어 모델을 받아 준비 (${((Date.now() - z0) / 1000).toFixed(1)}초, 마지막 ${zp[zp.length - 1]}%) ${zr}`);
+    ok(await p.evaluate(async () => (await (await caches.open('vp-asr-1')).keys()).length) === 7, '영어 3 + 중국어 4 조각을 이 기기에 저장');
+    const Z0 = '对我做了介绍那么我想说的是呢大家如果对我的研究感兴趣呢', Z1 = '重点呢想谈三个问题首先呢就是这一轮全球金融动荡的表现';
+    r = await grade('zh-human.wav', [{ text: Z0 + '。', kind: 's' }], 'zh');
+    ok(r.items[0].score >= 90 && r.items[0].heard === Z0, `중국어 사람 목소리 문장 -> ${r.items[0].score}점, 들은 말 "${r.items[0].heard}" (${r.ms}ms)`);
+    r = await grade('zh-human.wav', [{ text: Z1, kind: 's' }], 'zh');
+    ok(r.items[0].score < 20, `같은 소리를 다른 문장으로 채점하면 낮게 -> ${r.items[0].score}점`);
+    r = await grade('zh-two-sent.wav', [{ text: Z0, kind: 's', idx: 0 }, { text: '我每天早上七点起床', kind: 's', idx: 1 }, { text: Z1, kind: 's', idx: 2 }], 'zh');
+    ok(r.items[0].score >= 85 && r.items[1].score === 0 && r.items[2].score >= 85, `중국어 파일 하나에 문장 3개(2번을 빼먹음) -> ${r.items.map(x => x.score).join(', ')}점 (${r.ms}ms)`);
+    r = await grade('zh-human.wav', [{ text: 'abc 123', kind: 'w' }], 'zh');
+    ok(r.items[0].score === 0 && /한자/.test(r.items[0].tips), '한자가 없는 문항은 0점 결과');
+    r = await grade('yes-human.wav', [{ text: 'yes', kind: 'w' }]);
+    ok(r.items[0].score >= 80, '중국어를 쓴 뒤에도 영어 채점은 그대로 ' + r.items[0].score);
     await b.close();
   }
   // 2) 말하기 연습: 가짜 마이크가 "river"를 말해요
-  for (const [said, want] of [['river', true], ['liver', false]]) {
+  for (const [said, want, target] of [['river', true, 'river'], ['liver', false, 'river'], ['xuexi', true, '学习'], ['xuexi', false, '中国']]) {
     const b = await chromium.launch({ args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream', '--use-file-for-fake-audio-capture=' + path.join(fx, `say-${said}.wav`)] });
     const ctx = await b.newContext({ permissions: ['microphone'] }); const p = await ctx.newPage();
     p.on('pageerror', e => errs.push(e.message));
     await signup(p);
-    await p.evaluate(() => { categories.push({ id: 'cR', name: 'R', words: [sanitizeWord({ id: uid(), word: 'river', meaning: '강' }), sanitizeWord({ id: uid(), word: 'apple', meaning: '사과' })] }); syncStorage(); startSession('speak', { type: 'cat', id: 'cR' }, 2); });
+    await p.evaluate(tg => { categories.push({ id: 'cR', name: 'R', words: [sanitizeWord({ id: uid(), word: tg, meaning: '뜻' }), sanitizeWord({ id: uid(), word: /[一-鿿]/.test(tg) ? '苹果' : 'apple', meaning: '사과' })] }); syncStorage(); startSession('speak', { type: 'cat', id: 'cR' }, 2); }, target);
     await p.waitForSelector('#micBtn');
-    // river 가 먼저 나오게
-    await p.evaluate(() => { const i = S.queue.findIndex(x => x.w.word === 'river'); if (i !== S.idx) { const t = S.queue[S.idx]; S.queue[S.idx] = S.queue[i]; S.queue[i] = t; renderSpeak(S.queue[S.idx]); } });
+    // 목표 단어가 먼저 나오게
+    await p.evaluate(tg => { const i = S.queue.findIndex(x => x.w.word === tg); if (i !== S.idx) { const t = S.queue[S.idx]; S.queue[S.idx] = S.queue[i]; S.queue[i] = t; renderSpeak(S.queue[S.idx]); } }, target);
     await p.click('#micBtn');
     await p.waitForFunction(() => /정확해요|들렸어요|잘 들리지/.test((document.querySelector('#spkOut') || {}).textContent || ''), null, { timeout: 120000 }).catch(() => {});
     const txt = await p.textContent('#spkOut').catch(() => '');
-    ok(want ? /정확해요/.test(txt) : !/정확해요/.test(txt), `말하기 연습: 목표 river, 마이크로 "${said}" -> ${JSON.stringify(txt)}`);
+    ok(want ? /정확해요/.test(txt) : !/정확해요/.test(txt), `말하기 연습: 목표 ${target}, 마이크로 "${said}" -> ${JSON.stringify(txt)}`);
     await b.close();
   }
   ok(!errs.length, 'ERRORS: ' + (errs.join(' | ') || 'none'));

@@ -23,16 +23,18 @@
       catch (e) { if (k >= 2 || !(e && [0, 408, 502, 503, 504].includes(e.status)) || !ok()) throw e; await new Promise(r => setTimeout(r, k ? 9000 : 4000)); }
     }
   }
-  // 채점 AI: 기기 AI(무료, 이 컴퓨터에서 채점) 또는 Gemini(서버). 중국어는 Gemini만 돼요
+  // 채점 AI: 기기 AI(무료, 이 컴퓨터에서 채점, 영어 · 중국어) 또는 Gemini(서버)
   const SP_V12 = '기기 AI 채점 점수를 저장하려면 운영자(선생님)가 Supabase SQL Editor에서 supabase_update_v12.sql을 한 번 실행해야 해요. 그 전에는 위에서 채점 AI를 Gemini로 바꿔 쓰세요.';
   const spEngLocal = () => { if (!VPA.ok()) return false; try { return localStorage.getItem('vp_eng') !== 'ai'; } catch (e) { return true; } };
   const spEngHtml = () => VPA.ok() ? `<div class="sp-eng"><span>채점 AI</span><div class="seg"><button class="${spEngLocal() ? 'on' : ''}" data-act="sp-eng" data-v="local">기기 AI (무료)</button><button class="${spEngLocal() ? '' : 'on'}" data-act="sp-eng" data-v="ai">Gemini (서버)</button></div></div>` : '';
   ACTIONS['sp-eng'] = el => { const t = SPT; if (!t || t.q || t.frun) return; try { localStorage.setItem('vp_eng', el.dataset.v); } catch (e) {} spTDraw(); if (el.dataset.v === 'local') VPA.init().catch(() => {}); };
   // 기기 AI 진행률(처음 한 번 모델 받기)
   function spVpaProg(t) {
-    if (VPA.ready) return () => {};
-    const f = p => { const b = $('spEngP'); if (b && SPT === t) b.textContent = p < 100 ? `기기 AI 준비 중 ${p}% (처음 한 번만 약 ${VPA_MB}MB)` : ''; };
-    VPA.init(f).catch(() => {}); return () => { VPA.off(f); f(100); };
+    if (!SPT) return () => {};
+    const langs = [...new Set(spItems(t.r.assign).map(it => spLang(it)).concat(spfItems(t).map(x => x.lang)))].filter(l => !VPA.isReady(l));
+    if (!langs.length) return () => {};
+    const fs = langs.map(l => { const mb = vpaMB(l), f = p => { const b = $('spEngP'); if (b && SPT === t) b.textContent = p < 100 ? `${l === 'zh' ? '중국어 ' : ''}기기 AI 준비 중 ${p}% (처음 한 번만 약 ${mb}MB)` : ''; }; VPA.init(f, l).catch(() => {}); return [f, l]; });
+    return () => fs.forEach(([f, l]) => { VPA.off(f, l); f(100); });
   }
   const spBySno = (a, b) => String(a.sno || '~').localeCompare(String(b.sno || '~'), 'ko', { numeric: true }) || String(a.name || '').localeCompare(String(b.name || ''), 'ko');
   const spTime = s => { const d = new Date(s); return !s || isNaN(d) ? '' : `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
@@ -491,14 +493,13 @@
   async function spLocalOne(t, uid, all) {
     const m = (t.r.rows || []).find(x => x.uid === uid), its = spItems(t.r.assign);
     const recs = ((m && m.items) || []).filter(r => r.audio && its[r.idx] && its[r.idx][0] && (all || r.ai_score == null));
-    if (recs.some(r => spLang(its[r.idx]) === 'zh')) throw { msg: '중국어 문항은 기기 AI로 채점할 수 없어요. 채점 AI를 Gemini로 바꿔 주세요.' };
     if (!recs.length) return;
     const out = [];
     for (const r of recs) {
       if (SPT !== t) return;
       const x = await Cloud.call('voca_speak_audio', { p_assign: t.id, p_uid: uid, p_idx: r.idx });
       let d; try { d = await spDecode(spUnB64(x.b64).buffer); } catch (e) { continue; }
-      const it = its[r.idx], o = (await VPA.score(d.y, [{ text: String(it[0]).slice(0, 200), kind: it[3] === 's' ? 's' : 'w', idx: r.idx }])).items[0];
+      const it = its[r.idx], o = (await VPA.score(d.y, [{ text: String(it[0]).slice(0, 200), kind: it[3] === 's' ? 's' : 'w', idx: r.idx }], spLang(it))).items[0];
       out.push({ idx: r.idx, score: o.score, detail: { heard: String(o.heard || '').slice(0, 300), tips: String(o.tips || '').slice(0, 600), problems: (o.problems || []).slice(0, 8), acc: o.acc, flu: o.flu, comp: o.comp } });
     }
     if (!out.length) throw { msg: '녹음 파일을 읽지 못했어요.' };
@@ -521,7 +522,7 @@
     const list = (t.r.rows || []).filter(x => x.submitted && x.n > (x.ai_n || 0)).sort(spBySno);
     if (!list.length) return toast('채점할 녹음이 없어요.');
     const loc = spEngLocal();
-    if (!await ask(loc ? `제출한 학생 ${list.length}명의 녹음을 기기 AI로 채점할까요?\n이 컴퓨터에서 채점해서 AI 횟수를 쓰지 않아요(무료). 처음 한 번은 음성 AI(약 ${VPA_MB}MB)를 받아요. 이 화면을 열어 두세요.`
+    if (!await ask(loc ? `제출한 학생 ${list.length}명의 녹음을 기기 AI로 채점할까요?\n이 컴퓨터에서 채점해서 AI 횟수를 쓰지 않아요(무료). 처음 한 번은 음성 AI(약 ${vpaMB('en')}MB)를 받아요. 이 화면을 열어 두세요.`
       : `제출한 학생 ${list.length}명의 녹음을 AI로 채점할까요?\n학생마다 AI 1회씩 모두 ${list.length}회를 써요(선생님 하루 200회까지). ${SP_PAR}명씩 동시에 채점해서 30명이면 3~5분쯤 걸려요. 이 화면을 열어 두세요.`, { ok: '채점하기' }) || SPT !== t || t.q) return;
     const q = t.q = { list, i: 0, ok: 0, fail: 0, stop: false }; spTRender();
     let polled = 0; const done = loc ? spVpaProg(t) : () => {};
@@ -685,8 +686,9 @@
     const t = SPT; if (!t || t.frun) return;
     const q = spfItems(t); if (!q.length) return toast('채점할 문장을 넣어 주세요.');
     const list = t.files.filter(f => f.st === 'wait' || f.st === 'err'); if (!list.length) return;
-    const loc = spEngLocal() && !q.some(x => x.lang === 'zh');
-    if (spEngLocal() && !loc && !await ask('중국어 문항은 기기 AI로 채점할 수 없어서 이번에는 Gemini(서버)로 채점해요. 계속할까요?', { ok: '채점하기' })) return;
+    // 기기 AI는 파일 하나를 한 언어 모델로 들어요. 영어와 중국어가 섞여 있으면 이번에는 Gemini로
+    const langs = new Set(q.map(x => x.lang === 'zh' ? 'zh' : 'en')), loc = spEngLocal() && langs.size === 1, flang = langs.has('zh') ? 'zh' : 'en';
+    if (spEngLocal() && !loc && !await ask('영어와 중국어 문장이 섞여 있어서 이번에는 Gemini(서버)로 채점해요. 계속할까요?', { ok: '채점하기' })) return;
     if (list.length > 1 && (!await ask(loc ? `파일 ${list.length}개를 기기 AI로 채점할까요?\n이 컴퓨터에서 채점해서 AI 횟수를 쓰지 않아요(무료). 이 화면을 열어 두세요.` : `파일 ${list.length}개를 AI로 채점할까요?\n파일마다 AI 1회씩 모두 ${list.length}회를 써요(선생님 하루 200회까지). 이 화면을 열어 두세요.`, { ok: '채점하기' }) || SPT !== t || t.frun)) return;
     t.frun = { n: list.length, i: 0, stop: false }; spTDraw();
     const fr = t.frun, live = () => SPT === t && !fr.stop, done = loc ? spVpaProg(t) : () => {};
@@ -701,7 +703,7 @@
         if (loc) {
           if (!live()) { spfSet(f, 'wait'); return; }
           spfSet(f, 'grade');
-          const r = await VPA.score(d.y, q.map((x, idx) => ({ text: x.text, kind: x.kind, idx })));
+          const r = await VPA.score(d.y, q.map((x, idx) => ({ text: x.text, kind: x.kind, idx })), flang);
           Object.assign(f, { res: r.items.filter(x => x && typeof x === 'object'), q: q.map(x => x.text), at: Date.now(), long: d.sec > SP_FILE_SEC }); delete f.data;
           spfSet(f, 'done'); spfSave(t); fr.i++; return spfProg(t);
         }

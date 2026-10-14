@@ -140,6 +140,7 @@
         ['부칙', `이 약관은 ${I.effective}부터 시행합니다.`]]],
       oss: ['오픈소스 고지', '서비스는 다음 오픈소스 소프트웨어와 자료를 바꾸지 않고 함께 씁니다. 각 라이선스 전문은 아래 주소에서 볼 수 있습니다.', [
         ['기기 음성 AI', `- 음성 인식 모델: NVIDIA NeMo stt_en_conformer_ctc_small (CC BY 4.0, https://catalog.ngc.nvidia.com/orgs/nvidia/teams/nemo/models/stt_en_conformer_ctc_small). k2-fsa/sherpa-onnx가 ONNX로 바꾸고 int8로 줄인 파일을 씁니다(Apache-2.0, https://github.com/k2-fsa/sherpa-onnx).
+- 중국어 음성 인식 모델: k2-fsa icefall Zipformer CTC small (중국어, int8, sherpa-onnx-zipformer-ctc-small-zh-int8-2025-07-16, Apache-2.0, https://github.com/k2-fsa/sherpa-onnx)
 - ONNX Runtime Web 1.20.1 (Copyright (c) Microsoft Corporation, MIT License, https://github.com/microsoft/onnxruntime)`],
         ['녹음 · 파일', `- lamejs 1.2.1 (LGPL-3.0, https://github.com/zhuker/lamejs): 녹음을 MP3로 바꿉니다. 바꾸지 않은 파일을 따로 불러오며, 이용자는 이 파일을 다른 버전으로 바꿔 쓸 수 있습니다.
 - fflate 0.8.2 (MIT License, https://github.com/101arrowz/fflate): zip 파일을 풉니다.`],
