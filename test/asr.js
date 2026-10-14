@@ -47,7 +47,12 @@ async function signup(p) {
     r = await grade('three-sent-skip.wav', S.map((text, idx) => ({ text, kind: 's', idx })));
     const sc = r.items.map(x => x.score);
     ok(sc[0] >= 85 && sc[1] === 0 && sc[2] >= 85, `파일 하나에 문장 3개(2번을 빼먹음) -> ${sc.join(', ')}점 (${r.ms}ms)`);
-    ok(r.items.every(x => x.model === 'vocapro-local' && x.acc != null && x.flu != null && x.comp != null && typeof x.tips === 'string'), '결과에 정확도 · 유창성 · 완성도 · 조언');
+    ok(r.items.every(x => x.model === 'vocapro-local' && x.acc != null && x.flu != null && x.comp != null && Array.isArray(x.miss) && typeof x.tips === 'string'), '결과에 정확성 · 유창성 · 일치도 · 빠뜨린 자리 · 조언');
+    ok([0, 2].every(i => r.items[i].score === Math.round(r.items[i].acc * 0.7 + r.items[i].flu * 0.3) && r.items[i].comp === 100 && !r.items[i].miss.length) && r.items[1].comp === 0 && r.items[1].miss.length === 8,
+      '점수 = 정확성 70% + 유창성 30%, 다 읽은 문장은 일치도 100%, 빼먹은 문장은 0% ' + r.items.map(x => `${x.score}=${x.acc}/${x.flu}/${x.comp}%`).join(' '));
+    { const m = await grade('three-sent-skip.wav', [{ text: 'I eat an apple every single day.', kind: 's', idx: 0 }, { text: S[2], kind: 's', idx: 1 }]), x = m.items[0];
+      ok(x.comp === 86 && x.miss.join() === '5' && x.score < r.items[0].score && x.score === Math.round(x.acc * 0.7 + x.flu * 0.3) && /single/.test(x.tips),
+        `읽지 않은 단어(single)가 든 문장 -> 일치도 ${x.comp}%, 빠뜨린 자리 ${x.miss}, ${x.score}점 (다 읽으면 ${r.items[0].score}점) "${x.tips}"`); }
     r = await grade('four-words.wav', ['apple', 'liver', 'trouble', 'library'].map((text, idx) => ({ text, kind: 'w', idx })));
     ok(r.items[0].score >= 85 && r.items[3].score >= 85 && r.items[1].score < 60 && r.items[2].score < 30, `단어 4개 파일, 2·3번은 다른 단어로 채점 -> ${r.items.map(x => x.score).join(', ')}`);
     { const e = await grade('yes-human.wav', [{ text: '2024', kind: 'w', idx: 0 }, { text: '안녕하세요', kind: 's', idx: 1 }, { text: 'yes', kind: 'w', idx: 2 }]);
@@ -65,7 +70,10 @@ async function signup(p) {
     ok(r.items[0].score >= 90 && r.items[0].heard === Z0, `중국어 사람 목소리 문장 -> ${r.items[0].score}점, 들은 말 "${r.items[0].heard}" (${r.ms}ms)`);
     r = await grade('zh-human.wav', [{ text: Z1, kind: 's' }], 'zh');
     ok(r.items[0].score < 20, `같은 소리를 다른 문장으로 채점하면 낮게 -> ${r.items[0].score}점`);
+    { const m = await grade('zh-human.wav', [{ text: Z0.slice(0, 10) + '今天' + Z0.slice(10), kind: 's' }], 'zh'), x = m.items[0];
+      ok(x.miss.join() === '10,11' && x.comp === Math.round(Z0.length / (Z0.length + 2) * 100) && /今/.test(x.tips), `중국어 문장에 읽지 않은 글자(今天) -> 일치도 ${x.comp}%, 빠뜨린 자리 ${x.miss}, ${x.score}점`); }
     r = await grade('zh-two-sent.wav', [{ text: Z0, kind: 's', idx: 0 }, { text: '我每天早上七点起床', kind: 's', idx: 1 }, { text: Z1, kind: 's', idx: 2 }], 'zh');
+    ok(r.items[0].comp === 100 && r.items[1].comp === 0 && r.items[0].score === Math.round(r.items[0].acc * 0.7 + r.items[0].flu * 0.3), '중국어도 점수 = 정확성 70% + 유창성 30%, 일치도 ' + r.items.map(x => x.comp + '%').join(' '));
     ok(r.items[0].score >= 85 && r.items[1].score === 0 && r.items[2].score >= 85, `중국어 파일 하나에 문장 3개(2번을 빼먹음) -> ${r.items.map(x => x.score).join(', ')}점 (${r.ms}ms)`);
     r = await grade('zh-human.wav', [{ text: 'abc 123', kind: 'w' }], 'zh');
     ok(r.items[0].score === 0 && /한자/.test(r.items[0].tips), '한자가 없는 문항은 0점 결과');

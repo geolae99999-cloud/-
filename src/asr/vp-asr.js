@@ -170,10 +170,21 @@
     for (let i = 1; i <= tw.length; i++) for (let j = 1; j <= hw.length; j++) L[i][j] = same(tw[i - 1], hw[j - 1]) ? L[i - 1][j - 1] + 1 : Math.max(L[i - 1][j], L[i][j - 1]);
     return L[tw.length][hw.length] / tw.length;
   }
+  // 목표 단어 가운데 들은 말에서 찾은 자리(같은 비교로 되짚어요)
+  function matched(tw, hw) {
+    const same = (x, y) => x === y || LANG !== 'zh' && edit(x, y) <= Math.max(1, Math.floor(Math.max(x.length, y.length) / 3));
+    const L = Array.from({ length: tw.length + 1 }, () => new Array(hw.length + 1).fill(0));
+    for (let i = 1; i <= tw.length; i++) for (let j = 1; j <= hw.length; j++) L[i][j] = same(tw[i - 1], hw[j - 1]) ? L[i - 1][j - 1] + 1 : Math.max(L[i - 1][j], L[i][j - 1]);
+    const out = new Set();
+    for (let i = tw.length, j = hw.length; i > 0 && j > 0;) {
+      if (same(tw[i - 1], hw[j - 1]) && L[i][j] === L[i - 1][j - 1] + 1) { out.add(i - 1); i--; j--; } else if (L[i - 1][j] >= L[i][j - 1]) i--; else j--;
+    }
+    return out;
+  }
   const FRAME_SEC = 0.04;
   // 채점할 영어 단어가 없거나(숫자 · 한글만) 소리가 너무 짧으면 0점 결과(빈 값 대신)
   const NOWORD = () => LANG === 'zh' ? '읽을 한자가 없어서 채점하지 않았어요.' : '읽을 영어 단어가 없어서 채점하지 않았어요.';
-  const empty = (it, ii, tips) => ({ idx: it.idx != null ? it.idx : ii, score: 0, acc: 0, flu: 0, comp: 0, heard: '', tips, problems: [], words: [], model: 'vocapro-local' });
+  const empty = (it, ii, tips) => ({ idx: it.idx != null ? it.idx : ii, score: 0, acc: 0, flu: 0, comp: 0, miss: [], heard: '', tips, problems: [], words: [], model: 'vocapro-local' });
   function score(lp, C, T, items) {
     const seq = [], owner = [], W = items.map(it => words(it.text));
     W.forEach((ws, ii) => ws.forEach((w, wi) => tokWord(w).forEach((tok, k) => { seq.push({ tok, ws: k === 0, is: wi === 0 && k === 0 && items.length > 1 }); owner.push([ii, wi]); })));
@@ -204,26 +215,30 @@
       const heard = spanB >= 0 ? greedy(lp, C, Math.max(0, spanA - 2), Math.min(T, spanB + 3)) : '';
       const sc = wres.map(x => mapScore(x.c));
       const acc = clamp(sc.reduce((s, v) => s + v, 0) / sc.length);
-      // 유창성(문장): 단어 사이 0.6초 넘게 쉰 곳마다, 그리고 아주 느리면 깎아요. 단어 하나는 정확도와 같게
+      // 유창성(문장): 단어 사이 0.6초 넘게 쉰 곳마다, 그리고 아주 느리면 깎아요. 단어(중국어는 두 글자까지)는 정확성과 같게
+      const sent = it.kind === 's' || (LANG === 'zh' && ws.length > 2);
       let flu = acc;
-      if ((it.kind === 's' || LANG === 'zh') && wres.length > 1) {
+      if (sent && wres.length > 1) {
         let gaps = 0; for (let i = 1; i < wres.length; i++) if (wres[i].a >= 0 && wres[i - 1].b >= 0 && (wres[i].a - wres[i - 1].b) * FRAME_SEC > 0.6) gaps++;
         // 영어는 단어, 중국어는 글자 수로 빠르기를 재요(중국어 한 글자 = 한 음절이라 기준을 높게)
         const dur = (spanB - spanA + 1) * FRAME_SEC, rate = ws.length / Math.max(0.3, dur), slow = LANG === 'zh' ? 1.6 : 1.2;
         flu = clamp(100 - gaps * 15 - (rate < slow ? (slow - rate) * (LANG === 'zh' ? 30 : 40) : 0));
       }
-      const comp = completeness(ws, words(heard)), read = wres.some(x => x.c > 0.12);
-      const base = it.kind === 's' || (LANG === 'zh' && ws.length > 2) ? acc * 0.7 + flu * 0.3 : acc * 0.8 + flu * 0.2;
-      // 들은 말 비교(완성도)는 빠진 단어만 보도록 넉넉하게: 단어 확신도가 높으면 들은 말이 달라도 읽은 것으로 쳐요
-      const compAdj = Math.max(comp, wres.filter(x => x.c >= 0.45).length / ws.length);
-      // 단어 하나는 완성도로 다시 깎지 않아요(정확도에 이미 들어 있어요)
-      const total = !read ? 0 : ws.length === 1 ? clamp(base) : compAdj < 0.25 ? Math.min(Math.round(base * compAdj), 10) : clamp(base * Math.min(1, compAdj / 0.95));
+      const read = wres.some(x => x.c > 0.12);
+      // 일치도: 목표 문장 단어(중국어는 글자) 가운데 읽은 것의 비율. 들은 말에서 찾았거나, 그 자리 소리 확신도가 높으면 읽은 걸로 봐요
+      const hit = matched(ws, words(heard)); wres.forEach((x, i) => { if (x.c >= 0.45) hit.add(i); });
+      const comp = read ? hit.size / ws.length : 0, miss = ws.map((_, i) => i).filter(i => !read || !hit.has(i));
+      // 점수 = 정확성 70% + 유창성 30%. 빠진 단어는 정확성에서 이미 0점이에요. 일치도가 1/4도 안 되면 다른 말을 읽은 것으로 보고 10점까지
+      const base = acc * 0.7 + flu * 0.3;
+      const total = !read ? 0 : ws.length > 1 && comp < 0.25 ? Math.min(Math.round(base * comp), 10) : clamp(base);
       const weak = wres.map((x, i) => [x.w, sc[i]]).filter(x => x[1] < 60).sort((a, b) => a[1] - b[1]).slice(0, 3);
       const tips = !read ? '이 문항을 읽은 소리를 찾지 못했어요.'
+        : ws.length > 1 && comp < 0.25 ? '채점 문장과 다른 말을 읽은 것 같아요.'
+        : miss.length ? `빠뜨린 ${LANG === 'zh' ? '글자' : '단어'}가 있어요: ${miss.slice(0, 3).map(i => `'${ws[i]}'`).join(', ')}. 문장을 빠짐없이 읽어 보세요.`
         : total >= 88 ? '또렷하고 정확해요.'
         : weak.length ? `${weak.slice(0, 2).map(x => `'${x[0]}'`).join(', ')} ${LANG === 'zh' ? '발음과 성조를' : '발음을'} 원어민 소리와 비교해 다시 연습해요.`
         : it.kind === 's' && flu < 70 ? '단어 사이에서 오래 멈췄어요. 이어서 읽어 보세요.' : '조금 더 또렷하게 읽어 보세요.';
-      return { idx: it.idx != null ? it.idx : ii, score: total, acc: read ? acc : 0, flu: read ? flu : 0, comp: Math.round(compAdj * 100), heard, tips, problems: weak.map(x => x[0]), words: wres.map((x, i) => [x.w, Math.round(sc[i])]), spans: wres.map(x => [x.a, x.b]), model: 'vocapro-local' };
+      return { idx: it.idx != null ? it.idx : ii, score: total, acc: read ? acc : 0, flu: read ? flu : 0, comp: Math.round(comp * 100), miss, heard, tips, problems: weak.map(x => x[0]), words: wres.map((x, i) => [x.w, Math.round(sc[i])]), spans: wres.map(x => [x.a, x.b]), model: 'vocapro-local' };
     });
   }
 

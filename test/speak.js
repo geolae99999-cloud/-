@@ -406,12 +406,25 @@ const AI_KEYS = /"(ai_score|ai_detail|ai_avg|ai_n|heard|tips|problems)"/;
   const aacSt = await T.textContent('.sp-fr:last-child .sp-fs');
   ok(aacOk && (/이 파일은 읽지 못했어요/.test(aacSt) || /^\d+점$/.test(aacSt)), 'AAC m4a: 풀 수 있으면 채점, 못 풀면 "이 파일은 읽지 못했어요" (' + aacSt + ')');
   await T.click('.sp-fr:last-child [data-act="spf-x"]');
+  // 녹음을 넣을 때 그 파일만 다른 문장으로: 파일 줄의 '문장'에 적으면 그 문장으로 채점하고, 일치도 · 빠뜨린 단어를 보여요
+  { await T.setInputFiles('#spfIn', [FILES.wav]); await T.waitForFunction(() => document.querySelectorAll('.sp-fr').length === 6);
+    ok((await T.textContent('.sp-fr:last-child .sp-ftb')) === '문장', '파일 줄마다 "문장" 버튼');
+    await T.click('.sp-fr:last-child [data-act="spf-ft"]'); await T.waitForSelector('.sp-ftx');
+    await T.fill('.sp-ftx', 'I eat an apple every day.\nrice');
+    ok((await T.textContent('.sp-fr:last-child .sp-ftb')) === '문장 2' && await T.isEnabled('[data-act="spf-go"]'), '적으면 "문장 2"로 바뀌어요');
+    gemReqs = []; aiBodies = []; globalThis.HEARD = x => x.idx === 0 ? 'I eat apple every day' : x.text;
+    await T.click('[data-act="spf-go"]'); await T.waitForFunction(() => SPT && !SPT.frun, null, { timeout: 30000 }); globalThis.HEARD = null;
+    const fb2 = aiBodies.filter(x => x.file);
+    ok(fb2.length === 1 && fb2[0].items.map(x => x.text).join('|') === 'I eat an apple every day.|rice' && fb2[0].items[0].kind === 's', '그 파일은 적은 문장 2개로 채점(과제 문항 대신) ' + JSON.stringify(fb2.map(x => x.items.length)));
+    const dh = await T.evaluate(() => spFileDetHtml(SPT.files[SPT.files.length - 1]));
+    ok(/일치도 <b>83%<\/b>/.test(dh) && /<mark class="sp-miss" title="빠뜨린 말">an<\/mark>/.test(dh) && /빠뜨린 말 1개 \(줄 그어 표시\)/.test(dh) && /정확성 <b>\d+<\/b>/.test(dh) && /유창성 <b>\d+<\/b>/.test(dh), '결과: 정확성 · 유창성 · 일치도 83%, 빠뜨린 단어(an)에 표시');
+    await T.click('.sp-fr:last-child [data-act="spf-x"]'); }
   // 파일 채점도 기기 AI로: 서버 AI를 부르지 않고 점수
   { const ab = aiBodies.length; await T.click('[data-act="sp-eng"][data-v="local"]');
     await T.setInputFiles('#spfIn', [FILES.wav]); await T.waitForFunction(() => document.querySelectorAll('.sp-fr').length === 6);
     await T.click('[data-act="spf-go"]'); await T.waitForFunction(() => SPT && !SPT.frun, null, { timeout: 120000 });
     const st = await T.textContent('.sp-fr:last-child .sp-fs'), det = await T.evaluate(() => SPT.files[SPT.files.length - 1].res);
-    ok(/^\d+점$/.test(st) && aiBodies.length === ab && det.length > 0 && det.every(x => x.model === 'vocapro-local' && typeof x.score === 'number'), '파일 채점(기기 AI): 서버 AI 없이 문항마다 점수 ' + st);
+    ok(/^\d+점$/.test(st) && aiBodies.length === ab && det.length > 0 && det.every(x => x.model === 'vocapro-local' && typeof x.score === 'number' && typeof x.comp === 'number' && Array.isArray(x.miss) && (x.score === Math.max(0, Math.min(100, Math.round(x.acc * 0.7 + x.flu * 0.3))) || x.score <= 10)), '파일 채점(기기 AI): 서버 AI 없이 문항마다 점수 ' + st);
     await T.click('.sp-fr:last-child [data-act="spf-x"]'); await T.click('[data-act="sp-eng"][data-v="ai"]'); }
   // 결과 목록: 앱 제출 + 파일 결과가 학번 순으로 함께
   await T.click('[data-act="sp-tab"][data-t="list"]'); await T.waitForSelector('.sp-lr');
@@ -437,8 +450,8 @@ const AI_KEYS = /"(ai_score|ai_detail|ai_avg|ai_n|heard|tips|problems)"/;
   const [dl] = await Promise.all([T.waitForEvent('download'), T.click('[data-act="sp-csv"]')]);
   const csv = fs.readFileSync(await dl.path(), 'utf8').replace(/^\ufeff/, '').split('\r\n');
   const h = csv[0].split(','), rowOf = s => (csv.find(l => l.includes(s)) || '').split(',');
-  ok(dl.suggestedFilename().startsWith('발음 평가 1_발음평가_') && h.slice(0, 9).join('|') === '학번|이름|출처|제출 시각|녹음|AI 평균|선생님 점수|최종 점수|선생님 한마디' && h[9] === '1. apple' && csv.length === 11, 'CSV: 머리글 + 학생 10줄');
-  ok(rowOf('이지우')[0] === '20315' && rowOf('이지우')[2] === '앱' && rowOf('이지우')[7] === '88' && rowOf('이지우')[9] === '95' && /^파일 30211_김주원/.test(rowOf('김주원')[2]) && rowOf('김주원')[7] === '75', 'CSV: 앱 제출(최종 88, 1번 95) + 파일 결과(최종 75)');
+  ok(dl.suggestedFilename().startsWith('발음 평가 1_발음평가_') && h.slice(0, 10).join('|') === '학번|이름|출처|제출 시각|녹음|AI 평균|AI 일치도(%)|선생님 점수|최종 점수|선생님 한마디' && h[10] === '1. apple' && csv.length === 11, 'CSV: 머리글 + 학생 10줄');
+  ok(rowOf('이지우')[0] === '20315' && rowOf('이지우')[2] === '앱' && rowOf('이지우')[8] === '88' && rowOf('이지우')[10] === '95' && /^파일 30211_김주원/.test(rowOf('김주원')[2]) && rowOf('김주원')[8] === '75' && /^\d+$/.test(rowOf('김주원')[6]), 'CSV: 앱 제출(최종 88, 1번 95) + 파일 결과(최종 75)');
   // 반 CSV에도 발음 평가 점수
   await T.click('[data-act="cl-back"]'); await T.waitForSelector('[data-act="cl-csv"]');
   const [dl2] = await Promise.all([T.waitForEvent('download'), T.click('[data-act="cl-csv"]')]);
@@ -509,17 +522,17 @@ const AI_KEYS = /"(ai_score|ai_detail|ai_avg|ai_n|heard|tips|problems)"/;
   ok(usage('pron:1') === u0, 'AI 함수: 거절한 요청은 AI 사용량을 쓰지 않아요');
   const [fs1, fj] = await edgeCall('t1', { assign: A1, file: mkMp3(3).toString('base64'), items: [{ text: 'apple' }, { text: '我喜欢学习。', lang: 'zh', kind: 's' }] }, '?t=pron');
   ok(fs1 === 200 && fj.items.length === 2 && fj.items.every(x => x.score >= 0 && x.heard != null && !('v' in x)) && /Mandarin Chinese/.test(gemReqs[gemReqs.length - 1].text), 'AI 함수: 선생님 파일 채점은 결과만 돌려줘요(중국어는 성조까지)');
-  // 점수 계산: (정확도 70% + 유창성 30%) × 완성도(들은 말과 목표 비교). 단어는 정확도 80% + 강세 20%
+  // 점수 계산: 정확성 70% + 유창성 30% (단어도 같은 비율). 정확성은 일치도(들은 말과 목표 비교)만큼만 인정
   const S1 = 'I eat an apple every day.', its = [{ text: S1, kind: 's' }, { text: 'rice' }, { text: 'library' }, { text: '我喜欢学习。', lang: 'zh', kind: 's' }];
   globalThis.HEARD = x => x.idx === 0 ? 'I eat apple every day' : x.idx === 1 ? 'lice' : x.idx === 2 ? null : '我喜欢学';
   const [ss, sj] = await edgeCall('t1', { assign: A1, file: mkMp3(3).toString('base64'), items: its }, '?t=pron');
   globalThis.HEARD = null;
-  const gr = gemReqs[gemReqs.length - 1].res, by = i => sj.items.find(x => x.idx === i), base = (i, w) => gr[i].accuracy * w + gr[i].fluency * (1 - w);
-  ok(ss === 200 && by(0).comp === 83 && by(0).score === Math.round(base(0, 0.7) * (5 / 6) / 0.95), '빠진 단어(an)가 있으면 완성도 83% 만큼 깎여요 ' + JSON.stringify(by(0)));
-  ok(by(1).comp === 100 && by(1).score === Math.round(base(1, 0.8)), '발음을 틀려 다르게 들린 단어(rice→lice)는 완성도에서 또 깎지 않아요(정확도에서만)');
+  const gr = gemReqs[gemReqs.length - 1].res, by = i => sj.items.find(x => x.idx === i), accE = (i, c) => Math.round(gr[i].accuracy * Math.min(1, c / 0.95)), base = (i, c) => accE(i, c) * 0.7 + gr[i].fluency * 0.3;
+  ok(ss === 200 && by(0).comp === 83 && by(0).acc === accE(0, 5 / 6) && by(0).score === Math.round(base(0, 5 / 6)), '빠진 단어(an)가 있으면 일치도 83%, 그만큼 정확성을 깎고 점수 = 정확성 70% + 유창성 30% ' + JSON.stringify(by(0)));
+  ok(by(1).comp === 100 && by(1).acc === gr[1].accuracy && by(1).score === Math.round(base(1, 1)), '발음을 틀려 다르게 들린 단어(rice→lice)는 일치도에서 또 깎지 않아요. 단어도 정확성 70% + 유창성 30%');
   ok(by(2).score === 0 && by(2).comp === 0, '읽지 않은 문항은 0점');
-  ok(by(3).comp === 80 && by(3).score === Math.round(base(3, 0.7) * (4 / 5) / 0.95), '중국어는 글자 단위로 완성도 (5자 중 4자)');
-  ok(sj.items.every(x => x.acc != null && x.flu != null && x.model === 'gemini-2.5-flash'), '결과에 정확도 · 유창성 · 완성도 · 모델');
+  ok(by(3).comp === 80 && by(3).score === Math.round(base(3, 0.8)), '중국어는 글자 단위로 일치도 (5자 중 4자)');
+  ok(sj.items.every(x => x.acc != null && x.flu != null && x.model === 'gemini-2.5-flash'), '결과에 정확성 · 유창성 · 일치도 · 모델');
   // 발음 채점 한도: 선생님마다 하루 200회(AI_PRON_LIMIT), 일반 AI 한도(40)와 따로
   psql(`insert into voca_ai_usage(uid, day, n) values ('1', current_date, 40) on conflict (uid, day) do update set n = 40`);
   ok((await edgeCall('t1', { assign: A1, student: '2', all: true }))[0] === 200, '일반 AI 한도(40)를 다 써도 발음 채점은 돼요');

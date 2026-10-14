@@ -2160,6 +2160,9 @@
     .sp-ri-t b { font-size: 16px; font-weight: 700; line-height: 1.4; word-break: break-word; } .sp-ri-t small { font-size: 13px; color: var(--muted); }
     .sp-ri > p, .sp-ri > div:not(.sp-ri-top) { margin-left: 52px; }
     .sp-sub { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 4px; } .sp-sub span { font-size: 12px; color: var(--muted); background: var(--surface-2); border-radius: 8px; padding: 2px 8px; } .sp-sub b { color: var(--ink-2); font-weight: 600; margin-left: 2px; }
+    .sp-sub .sp-comp.part { background: var(--coral-soft); color: var(--coral); } .sp-sub .sp-comp.part b { color: var(--coral); }
+    mark.sp-miss { background: none; color: var(--coral); text-decoration: line-through; text-decoration-thickness: 2px; text-decoration-color: color-mix(in srgb, var(--coral) 70%, transparent); }
+    .sp-mlg { background: none !important; padding-left: 2px !important; }
     .sp-heard, .sp-tip, .sp-tnote { margin: 0; font-size: 14px; line-height: 1.5; word-break: keep-all; }
     .sp-heard { color: var(--muted); font-size: 13px; } .sp-heard b { color: var(--ink-2); font-weight: 600; margin-left: 4px; word-break: break-word; }
     .sp-tip { color: var(--ink); font-weight: 500; }
@@ -2255,16 +2258,19 @@
     .sp-frow { display: flex; gap: 8px; align-items: center; } .sp-frow select { flex: 1; min-width: 0; } .sp-frow .seg { flex: none; width: auto; }
     .sp-fq { margin: 0; font-size: 14px; line-height: 1.55; color: var(--muted); word-break: break-word; } .sp-fq b { color: var(--blue-ink); margin-right: 4px; }
     .sp-ft { display: flex; flex-direction: column; gap: 6px; }
-    .sp-fr { display: grid; grid-template-columns: minmax(0, 1fr) 84px 96px 92px 34px; align-items: center; gap: 6px; background: var(--surface-2); border-radius: 14px; padding: 6px 6px 6px 14px; }
+    .sp-fr { display: grid; grid-template-columns: minmax(0, 1fr) 84px 96px 64px 92px 34px; align-items: center; gap: 6px; background: var(--surface-2); border-radius: 14px; padding: 6px 6px 6px 14px; }
     .sp-fn { font-size: 13.5px; font-weight: 600; color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .sp-fr input { padding: 8px 10px; font-size: 14px; border-radius: 10px; background: var(--surface); min-width: 0; }
     .sp-fr input:placeholder-shown { box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--coral) 45%, transparent); }
     .sp-fs { text-align: right; font-size: 13px; font-weight: 600; color: var(--muted); } .sp-fs small { font-size: 12.5px; } .sp-ferr { color: var(--coral); } .sp-fgo { color: var(--blue); }
+    .sp-ftb { height: 32px; padding: 0 10px; border-radius: 10px; font-size: 13px; font-weight: 600; color: var(--muted); background: var(--surface); border: 0; cursor: pointer; white-space: nowrap; } .sp-ftb.on { color: var(--blue-ink); background: var(--blue-soft); } .sp-ftb:focus-visible { outline: none; box-shadow: var(--ring); }
+    .sp-ftx { grid-column: 1 / -1; margin: 2px 0 2px -8px; font-size: 14px; border-radius: 10px; background: var(--surface); min-height: 64px; }
     .sp-fx { width: 32px; height: 32px; background: none; } .sp-fx .ic { width: 16px; height: 16px; }
     .sp-foot2 { flex-wrap: wrap; } .sp-foot2 .btn { flex: 1 1 auto; }
     @media (max-width: 600px) {
-      .sp-fr { grid-template-columns: 88px minmax(0, 1fr) auto 32px; grid-template-areas: 'f f s x' 'a b b b'; padding: 8px 6px 8px 12px; }
-      .sp-fn { grid-area: f; } .sp-fr input:first-of-type { grid-area: a; } .sp-fr input:last-of-type { grid-area: b; } .sp-fs { grid-area: s; } .sp-fx { grid-area: x; }
+      .sp-fr { grid-template-columns: 88px minmax(0, 1fr) auto 32px; grid-template-areas: 'f f s x' 'a b t t'; padding: 8px 6px 8px 12px; }
+      .sp-fn { grid-area: f; } .sp-fr input:first-of-type { grid-area: a; } .sp-fr input:last-of-type { grid-area: b; } .sp-fs { grid-area: s; } .sp-fx { grid-area: x; } .sp-ftb, .sp-ftb-x { grid-area: t; }
+      .sp-ftx { grid-area: auto; grid-column: 1 / -1; margin-left: -4px; }
       .sp-lr { grid-template-columns: 54px minmax(0, 1fr) auto; padding: 13px 14px; } .sp-lr small { display: none; }
       .sp-live { margin-left: 0; }
     }
@@ -7913,7 +7919,7 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
   // 기기 AI 진행률(처음 한 번 모델 받기)
   function spVpaProg(t) {
     if (!SPT) return () => {};
-    const langs = [...new Set(spItems(t.r.assign).map(it => spLang(it)).concat(spfItems(t).map(x => x.lang)))].filter(l => !VPA.isReady(l));
+    const langs = [...new Set(spItems(t.r.assign).map(it => spLang(it)).concat(spfItems(t).map(x => x.lang), t.files.flatMap(f => spfLines(f.txt).map(x => x.lang))))].filter(l => !VPA.isReady(l));
     if (!langs.length) return () => {};
     const fs = langs.map(l => { const mb = vpaMB(l), f = p => { const b = $('spEngP'); if (b && SPT === t) b.textContent = p < 100 ? `${l === 'zh' ? '중국어 ' : ''}기기 AI 준비 중 ${p}% (처음 한 번만 약 ${mb}MB)` : ''; }; VPA.init(f, l).catch(() => {}); return [f, l]; });
     return () => fs.forEach(([f, l]) => { VPA.off(f, l); f(100); });
@@ -8314,11 +8320,35 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
     return `<div class="sp-lt">${list.map(x => { const f = spFin(x), open = t.open === x.k; return `<button class="sp-lr${open ? ' on' : ''}${f.v == null ? ' dim' : ''}" data-act="sp-open" data-k="${esc(x.k)}" aria-expanded="${open}"><span class="sp-no">${esc(x.sno || '-')}</span><b>${esc(x.name || '이름 없음')}</b><small>${esc(f.by)}</small><em class="${spTone(f.v).trim()}">${f.v != null ? esc(f.v) + '점' : esc(f.e || '')}</em></button>${open ? spDetHtml(t, x, items) : ''}`; }).join('')}</div>
       <p class="muted cl-p">최종 점수 = 선생님 점수, 없으면 AI 점수 평균. 줄을 누르면 문항마다 점수 · AI가 들은 말 · 조언을 보고 점수를 고칠 수 있어요.</p>`;
   }
+  // 일치도: 목표 문장에서 빠뜨린 단어(중국어는 글자)를 표시해요. 기기 AI는 채점할 때 정한 자리(miss),
+  // Gemini는 서버와 같은 방법(들은 말과 순서대로 비교, 영어는 글자 1/3까지 달라도 같은 단어)으로 다시 찾아요
+  const SP_HAN = /[\u3400-\u9fff\uf900-\ufaff]/;
+  const spToks = (t, loc) => { let x = String(t || '').toLowerCase().normalize('NFKC').replace(/[’‘`]/g, "'"); x = loc ? x.replace(/-/g, ' ').replace(/[^a-z' ]/g, ' ') : x.replace(/[^a-z0-9'\s-]/g, ' ').replace(/-/g, ' '); return x.split(/\s+/).map(w => w.replace(/^'+|'+$/g, '')).filter(Boolean); };
+  function spEdit(a, b) { const d = Array.from({ length: b.length + 1 }, (_, j) => j); for (let i = 1; i <= a.length; i++) { let p = d[0]; d[0] = i; for (let j = 1; j <= b.length; j++) { const t = d[j]; d[j] = Math.min(d[j] + 1, d[j - 1] + 1, p + (a[i - 1] === b[j - 1] ? 0 : 1)); p = t; } } return d[b.length]; }
+  function spMiss(text, d) {
+    if (Array.isArray(d.miss)) return new Set(d.miss.filter(Number.isInteger));
+    if (d.model === 'vocapro-local' || !d.heard || d.comp == null) return null;
+    const zh = SP_HAN.test(text), tw = zh ? [...String(text)].filter(c => SP_HAN.test(c)) : spToks(text), hw = zh ? [...String(d.heard)].filter(c => SP_HAN.test(c)) : spToks(d.heard);
+    const same = (x, y) => x === y || !zh && spEdit(x, y) <= Math.max(1, Math.floor(Math.max(x.length, y.length) / 3));
+    const L = Array.from({ length: tw.length + 1 }, () => new Array(hw.length + 1).fill(0));
+    for (let i = 1; i <= tw.length; i++) for (let j = 1; j <= hw.length; j++) L[i][j] = same(tw[i - 1], hw[j - 1]) ? L[i - 1][j - 1] + 1 : Math.max(L[i - 1][j], L[i][j - 1]);
+    const hit = new Set();
+    for (let i = tw.length, j = hw.length; i > 0 && j > 0;) { if (same(tw[i - 1], hw[j - 1]) && L[i][j] === L[i - 1][j - 1] + 1) { hit.add(i - 1); i--; j--; } else if (L[i - 1][j] >= L[i][j - 1]) i--; else j--; }
+    return new Set(tw.map((_, i) => i).filter(i => !hit.has(i)));
+  }
+  // 목표 문장을 그대로 보여 주고 빠뜨린 단어에 표시
+  function spSentHtml(text, miss, loc) {
+    if (!miss || !miss.size) return esc(text);
+    const mk = x => `<mark class="sp-miss" title="빠뜨린 말">${esc(x)}</mark>`;
+    let k = 0;
+    if (SP_HAN.test(text)) { const cs = [...String(text).normalize(loc ? 'NFKC' : 'NFC')]; return cs.map(c => SP_HAN.test(c) ? (miss.has(k++) ? mk(c) : esc(c)) : esc(c)).join(''); }
+    return String(text).split(/(\s+)/).map(ch => { if (!ch.trim()) return esc(ch); const n = spToks(ch, loc).length, m = Array.from({ length: n }, (_, j) => k + j).some(j => miss.has(j)); k += n; return m ? mk(ch) : esc(ch); }).join('');
+  }
   // 문항 하나: 앱 녹음(ai_score, ai_detail) 또는 파일 결과(score, heard, tips)
-  const spDetItem = (it, i, r, play) => { const d = (r && r.ai_detail) || r || {}, sc = r ? (r.ai_score != null ? r.ai_score : r.score) : null; return `<div class="sp-ri">
-      <div class="sp-ri-top">${play || ''}<div class="sp-ri-t"><b lang="${spLang(it) === 'zh' ? 'zh-CN' : 'en'}">${i + 1}. ${esc(it[0])}</b>${it[1] ? `<small>${esc(it[1])}</small>` : ''}</div>
+  const spDetItem = (it, i, r, play) => { const d = (r && r.ai_detail) || r || {}, sc = r ? (r.ai_score != null ? r.ai_score : r.score) : null, miss = r && d.acc != null ? spMiss(String(it[0]), d) : null; return `<div class="sp-ri">
+      <div class="sp-ri-top">${play || ''}<div class="sp-ri-t"><b lang="${spLang(it) === 'zh' ? 'zh-CN' : 'en'}">${i + 1}. ${spSentHtml(String(it[0]), miss, d.model === 'vocapro-local')}</b>${it[1] ? `<small>${esc(it[1])}</small>` : ''}</div>
         <em class="sp-sc${spTone(sc)}">${sc != null ? 'AI ' + esc(sc) : r ? '채점 전' : '-'}</em></div>
-      ${d.acc != null ? `<div class="sp-sub"><span>정확도 <b>${esc(d.acc)}</b></span><span>${it[3] === 's' ? '유창성' : '강세'} <b>${esc(d.flu)}</b></span><span>완성도 <b>${esc(d.comp)}%</b></span></div>` : ''}
+      ${d.acc != null ? `<div class="sp-sub"><span>정확성 <b>${esc(d.acc)}</b></span><span>유창성 <b>${esc(d.flu)}</b></span>${d.comp != null ? `<span class="sp-comp${d.comp < 100 ? ' part' : ''}">일치도 <b>${esc(d.comp)}%</b></span>` : ''}${miss && miss.size ? `<span class="sp-mlg">빠뜨린 말 ${miss.size}개 (줄 그어 표시)</span>` : ''}</div>` : ''}
       ${d.heard ? `<p class="sp-heard">AI가 들은 말 <b>${esc(d.heard)}</b></p>` : ''}${d.tips ? `<p class="sp-tip">${esc(d.tips)}</p>` : ''}
       ${Array.isArray(d.problems) && d.problems.length ? `<div class="sp-prob">${d.problems.map(y => `<span>${esc(y)}</span>`).join('')}</div>` : ''}`; };
   const spMarkHtml = (sc, note, act, key) => `<div class="sp-mark"><b>선생님 최종 점수 · 한마디</b><small>${act === 'sp-msave' ? '학생에게 보여요. 넣으면 AI 점수 대신 이 점수가 최종 점수예요.' : '이 기기에만 저장해요.'}</small>
@@ -8382,7 +8412,7 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
       const x = await Cloud.call('voca_speak_audio', { p_assign: t.id, p_uid: uid, p_idx: r.idx });
       let d; try { d = await spDecode(spUnB64(x.b64).buffer); } catch (e) { continue; }
       const it = its[r.idx], o = (await VPA.score(d.y, [{ text: String(it[0]).slice(0, 200), kind: it[3] === 's' ? 's' : 'w', idx: r.idx }], spLang(it))).items[0];
-      out.push({ idx: r.idx, score: o.score, detail: { heard: String(o.heard || '').slice(0, 300), tips: String(o.tips || '').slice(0, 600), problems: (o.problems || []).slice(0, 8), acc: o.acc, flu: o.flu, comp: o.comp } });
+      out.push({ idx: r.idx, score: o.score, detail: { heard: String(o.heard || '').slice(0, 300), tips: String(o.tips || '').slice(0, 600), problems: (o.problems || []).slice(0, 8), acc: o.acc, flu: o.flu, comp: o.comp, miss: (o.miss || []).slice(0, 60), model: 'vocapro-local' } });
     }
     if (!out.length) throw { msg: '녹음 파일을 읽지 못했어요.' };
     if (SPT === t) await Cloud.call('voca_speak_set_local', { p_assign: t.id, p_uid: uid, p_items: out });
@@ -8460,12 +8490,13 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
     const t = SPT; if (!t) return;
     const a = t.r.assign, items = spItems(a);
     const q = x => { const s = String(x == null ? '' : x); return /[",\n]/.test(s) || /^[=+\-@\t\r]/.test(s) ? `"${s.replace(/^([=+\-@\t\r])/, "'$1").replace(/"/g, '""')}"` : s; };
-    const head = ['학번', '이름', '출처', '제출 시각', '녹음', 'AI 평균', '선생님 점수', '최종 점수', '선생님 한마디'].concat(items.map((it, i) => `${i + 1}. ${String(it[0]).slice(0, 40)}`));
+    const cAvg = list => spAvg(list.filter(d => d && typeof d.comp === 'number').map(d => d.comp));
+    const head = ['학번', '이름', '출처', '제출 시각', '녹음', 'AI 평균', 'AI 일치도(%)', '선생님 점수', '최종 점수', '선생님 한마디'].concat(items.map((it, i) => `${i + 1}. ${String(it[0]).slice(0, 40)}`));
     const rows = spRows(t).map(x => {
       const m = x.m, f = x.f, fin = spFin(x);
-      if (m && m.submitted) { const by = new Map((m.items || []).map(r => [r.idx, r])); return [x.sno, x.name, '앱', spTime(m.at), `${m.n}/${items.length}`, m.ai_n ? m.ai_avg : '', m.mark && m.mark.score != null ? m.mark.score : m.t_avg != null ? m.t_avg : '', fin.v != null ? fin.v : '', (m.mark && m.mark.note) || ''].concat(items.map((_, i) => { const r = by.get(i); return r ? (r.t_score != null ? r.t_score : r.ai_score != null ? r.ai_score : '') : ''; })); }
-      if (f) { const res = new Map((f.res || []).map(r => [r.idx, r])); return [x.sno, x.name, '파일 ' + f.file, spTime(f.at), '', spAvg((f.res || []).map(r => r.score)), f.ts != null ? f.ts : '', fin.v != null ? fin.v : '', f.tn || ''].concat(items.map((_, i) => res.has(i) ? res.get(i).score : '')); }
-      return [x.sno, x.name, '미제출', '', m && m.n ? `${m.n}/${items.length}` : '', '', '', '', ''].concat(items.map(() => ''));
+      if (m && m.submitted) { const by = new Map((m.items || []).map(r => [r.idx, r])); return [x.sno, x.name, '앱', spTime(m.at), `${m.n}/${items.length}`, m.ai_n ? m.ai_avg : '', cAvg((m.items || []).map(r => r.ai_detail)) ?? '', m.mark && m.mark.score != null ? m.mark.score : m.t_avg != null ? m.t_avg : '', fin.v != null ? fin.v : '', (m.mark && m.mark.note) || ''].concat(items.map((_, i) => { const r = by.get(i); return r ? (r.t_score != null ? r.t_score : r.ai_score != null ? r.ai_score : '') : ''; })); }
+      if (f) { const res = new Map((f.res || []).map(r => [r.idx, r])); return [x.sno, x.name, '파일 ' + f.file, spTime(f.at), '', spAvg((f.res || []).map(r => r.score)), cAvg(f.res || []) ?? '', f.ts != null ? f.ts : '', fin.v != null ? fin.v : '', f.tn || ''].concat(items.map((_, i) => res.has(i) ? res.get(i).score : '')); }
+      return [x.sno, x.name, '미제출', '', m && m.n ? `${m.n}/${items.length}` : '', '', '', '', '', ''].concat(items.map(() => ''));
     });
     download(`${spSafe(a.title)}_발음평가_${dayKey()}.csv`, '﻿' + [head].concat(rows).map(r => r.map(q).join(',')).join('\r\n'), 'text/csv;charset=utf-8');
     toast('엑셀에서 열 수 있는 파일로 받았어요.');
@@ -8514,9 +8545,12 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
     toast(add.length ? `파일 ${add.length}개를 넣었어요.${skip ? ` ${skip}개는 소리 파일이 아니거나 너무 커서 뺐어요.` : ''}` : bad ? 'zip 파일을 풀지 못했어요.' : '넣을 수 있는 소리 파일이 없어요. m4a · mp3 · wav · zip 파일을 넣어 주세요.');
   }
   // 채점할 문장: 과제 문항(기본) · 단어장 · 직접 입력
+  const spfLines = txt => String(txt || '').split(/\r?\n/).map(s => s.trim()).filter(Boolean).slice(0, SP_MAX).map(s => { const zh = /[㐀-鿿]/.test(s); return { text: s.slice(0, 200), lang: zh ? 'zh' : 'en', kind: (zh ? s.length > 6 : /\s/.test(s)) ? 's' : 'w' }; });
+  // 파일마다 따로 넣은 문장이 있으면 그 문장으로, 없으면 위에서 고른 문장으로 채점해요
+  const spfQOf = (t, f) => { const own = spfLines(f.txt); return own.length ? own : spfItems(t); };
   function spfItems(t) {
     const zh = s => /[㐀-鿿]/.test(s);
-    if (t.src === 'text') return t.text.split(/\r?\n/).map(s => s.trim()).filter(Boolean).slice(0, SP_MAX).map(s => ({ text: s.slice(0, 200), lang: zh(s) ? 'zh' : 'en', kind: (zh(s) ? s.length > 6 : /\s/.test(s)) ? 's' : 'w' }));
+    if (t.src === 'text') return spfLines(t.text);
     if (t.src === 'book') { const c = findBook(t.book); return c ? c.words.slice(0, SP_MAX).map(w => t.bookS && w.example ? { text: w.example.slice(0, 200), lang: zh(w.example) ? 'zh' : 'en', kind: 's' } : { text: w.word.slice(0, 200), lang: isHanWord(w.word) ? 'zh' : 'en', kind: 'w' }) : []; }
     return spItems(t.r.assign).filter(it => it[0]).map(it => ({ text: String(it[0]).slice(0, 200), lang: spLang(it), kind: it[3] === 's' ? 's' : 'w' }));
   }
@@ -8525,21 +8559,29 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
   // 채점 중 버튼: "채점 중 12/30"
   function spfProg(t) { const b = document.querySelector('[data-act="spf-go"]'); if (b && t.frun) b.innerHTML = `${IC.sparkles} 채점 중 ${t.frun.i}/${t.frun.n}`; }
   function spfSet(f, st) { f.st = st; const el = $('spfS' + f.id); if (el) el.innerHTML = spfSt(f); }
+  // 채점할 수 있는지: 대기 파일이 있고, 그 파일마다 채점할 문장이 있어야 해요
+  const spfCanGo = t => !t.frun && t.files.some(f => f.st === 'wait' || f.st === 'err') && t.files.filter(f => f.st === 'wait' || f.st === 'err').every(f => spfQOf(t, f).length);
+  function spfGoSync(t) { const b = document.querySelector('[data-act="spf-go"]'); if (b && !t.frun) b.disabled = !spfCanGo(t); }
+  const spfFtLabel = f => { const n = spfLines(f.txt).length; return n ? `문장 ${n}` : '문장'; };
   function spFileHtml(t) {
     const q = spfItems(t), w = t.files, wait = w.filter(f => f.st === 'wait' || f.st === 'err').length, books = categories.filter(c => c.words.length);
     if (t.src === 'book' && !findBook(t.book) && books[0]) t.book = books[0].id;
-    return `<div class="sp-drop${w.length ? ' has' : ''}" id="spDrop" role="button" tabindex="0" data-act="spf-open"><i>${IC.upload}</i><span><b><span class="sp-pc">녹음 파일을 여기에 끌어 놓거나 눌러서 고르세요</span><span class="sp-touch">눌러서 녹음 파일을 고르세요</span></b>
-        <small>m4a · mp3 · wav · aac · ogg · webm · zip을 여러 개 한 번에 넣을 수 있어요. 카카오톡으로 받은 녹음도 돼요. 파일은 서버에 저장하지 않고 채점에만 써요.</small></span></div>
-      <input type="file" id="spfIn" multiple accept="${SPF_ACCEPT}" data-change="spf-pick" hidden>
-      <h4 class="syn-h">학생이 읽은 내용 (채점 기준)</h4>
+    return `<h4 class="syn-h">1. 학생이 읽은 문장 (채점 기준)</h4>
       <div class="seg" id="spfSrc"><button class="${t.src === 'asg' ? 'on' : ''}" data-act="spf-src" data-v="asg">과제 문항</button><button class="${t.src === 'book' ? 'on' : ''}" data-act="spf-src" data-v="book">단어장</button><button class="${t.src === 'text' ? 'on' : ''}" data-act="spf-src" data-v="text">직접 입력</button></div>
       ${t.src === 'book' ? (books.length ? `<div class="sp-frow"><select data-change="spf-book" aria-label="단어장">${books.map(c => `<option value="${esc(c.id)}"${c.id === t.book ? ' selected' : ''}>${esc(c.name)} (${c.words.length}개)</option>`).join('')}</select><div class="seg"><button class="${t.bookS ? '' : 'on'}" data-act="spf-bs" data-v="w">단어</button><button class="${t.bookS ? 'on' : ''}" data-act="spf-bs" data-v="s">예문</button></div></div>` : '<p class="muted cl-p">단어가 있는 단어장이 없어요.</p>') : ''}
       ${t.src === 'text' ? `<textarea id="spfText" rows="5" maxlength="4000" data-input="spf-text" placeholder="학생이 읽은 순서대로 한 줄에 하나씩 (20줄까지)&#10;예) I eat an apple every day.">${esc(t.text)}</textarea>` : ''}
       <p class="sp-fq" id="spfQ">${spfQHtml(q)}</p>
-      ${w.length ? `<h4 class="syn-h">파일 ${w.length}개</h4><div class="sp-ft">${w.map(f => `<div class="sp-fr" id="spf${esc(f.id)}"><span class="sp-fn" title="${esc(f.file)}">${esc(f.file)}</span>
+      <h4 class="syn-h">2. 녹음 파일</h4>
+      <div class="sp-drop${w.length ? ' has' : ''}" id="spDrop" role="button" tabindex="0" data-act="spf-open"><i>${IC.upload}</i><span><b><span class="sp-pc">녹음 파일을 여기에 끌어 놓거나 눌러서 고르세요</span><span class="sp-touch">눌러서 녹음 파일을 고르세요</span></b>
+        <small>m4a · mp3 · wav · aac · ogg · webm · zip을 여러 개 한 번에 넣을 수 있어요. 카카오톡으로 받은 녹음도 돼요. 파일은 서버에 저장하지 않고 채점에만 써요.</small></span></div>
+      <input type="file" id="spfIn" multiple accept="${SPF_ACCEPT}" data-change="spf-pick" hidden>
+      ${w.length ? `<h4 class="syn-h">파일 ${w.length}개</h4><div class="sp-ft">${w.map(f => { const edit = f.st === 'wait' || f.st === 'err', open = edit && t.ftOpen === f.id; return `<div class="sp-fr" id="spf${esc(f.id)}"><span class="sp-fn" title="${esc(f.file)}">${esc(f.file)}</span>
           <input type="text" inputmode="numeric" maxlength="10" placeholder="학번" value="${esc(f.sno || '')}" data-input="spf-sno" data-f="${esc(f.id)}" aria-label="학번"><input type="text" maxlength="20" placeholder="이름" value="${esc(f.nm || '')}" data-input="spf-nm" data-f="${esc(f.id)}" aria-label="이름">
-          <span class="sp-fs" id="spfS${esc(f.id)}">${spfSt(f)}</span><button class="icon-btn sp-fx" data-act="spf-x" data-f="${esc(f.id)}" aria-label="빼기">${IC.x}</button></div>`).join('')}</div>
-        <button class="btn btn-primary btn-block" data-act="spf-go"${wait && q.length && !t.frun ? '' : ' disabled'}>${IC.sparkles} ${t.frun ? `채점 중 ${t.frun.i}/${t.frun.n}` : wait ? `파일 ${wait}개 AI 채점` : '모두 채점했어요'}</button>
+          ${edit ? `<button class="sp-ftb${spfLines(f.txt).length ? ' on' : ''}" data-act="spf-ft" data-f="${esc(f.id)}" aria-expanded="${open}" title="이 파일만 다른 문장으로 채점">${esc(spfFtLabel(f))}</button>` : '<span class="sp-ftb-x"></span>'}
+          <span class="sp-fs" id="spfS${esc(f.id)}">${spfSt(f)}</span><button class="icon-btn sp-fx" data-act="spf-x" data-f="${esc(f.id)}" aria-label="빼기">${IC.x}</button>
+          ${open ? `<textarea class="sp-ftx" rows="3" maxlength="4000" data-input="spf-ftxt" data-f="${esc(f.id)}" aria-label="이 파일의 문장" placeholder="이 학생이 읽은 문장 (한 줄에 하나씩). 비워 두면 1번 문장으로 채점해요.">${esc(f.txt || '')}</textarea>` : ''}</div>`; }).join('')}</div>
+        <button class="btn btn-primary btn-block" data-act="spf-go"${spfCanGo(t) ? '' : ' disabled'}>${IC.sparkles} ${t.frun ? `채점 중 ${t.frun.i}/${t.frun.n}` : wait ? `파일 ${wait}개 AI 채점` : '모두 채점했어요'}</button>
+        <p class="muted cl-p">점수 = 정확성 70% + 유창성 30%. 일치도는 문장에서 읽은 단어 비율이고, 빠뜨린 단어는 정확성에서 0점으로 쳐요. 학생마다 읽은 문장이 다르면 파일 줄의 '문장'을 눌러 따로 적어요.</p>
         <p class="muted cl-p">파일 4개씩 동시에 채점해요(30명이면 3~5분). 파일 하나 = AI 1회(선생님 하루 200회까지), 한 파일 3분까지. 학번 · 이름을 못 찾은 파일은 칸에 적어 주세요. 결과는 '결과 목록'과 CSV에 앱 제출과 함께 나오고 이 기기에 저장돼요.</p>` : ''}`;
   }
   const spfQHtml = q => q.length ? `<b>${q.length}문항</b> ${q.slice(0, 6).map(x => esc(x.text)).join(' · ')}${q.length > 6 ? ' …' : ''}` : '채점할 문장을 넣어 주세요.';
@@ -8548,7 +8590,9 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
   ACTIONS['spf-src'] = el => { if (!SPT) return; SPT.src = el.dataset.v; spTDraw(); };
   ACTIONS['spf-bs'] = el => { if (!SPT) return; SPT.bookS = el.dataset.v === 's'; spTDraw(); };
   ON.change['spf-book'] = el => { if (!SPT) return; SPT.book = el.value; spTDraw(); };
-  ON.input['spf-text'] = el => { if (!SPT) return; SPT.text = el.value; const q = $('spfQ'); if (q) q.innerHTML = spfQHtml(spfItems(SPT)); };
+  ON.input['spf-text'] = el => { if (!SPT) return; SPT.text = el.value; const q = $('spfQ'); if (q) q.innerHTML = spfQHtml(spfItems(SPT)); spfGoSync(SPT); };
+  ACTIONS['spf-ft'] = el => { const t = SPT; if (!t) return; t.ftOpen = t.ftOpen === el.dataset.f ? null : el.dataset.f; spTDraw(); const x = document.querySelector('.sp-ftx'); if (x) x.focus(); };
+  ON.input['spf-ftxt'] = el => { const f = spfOf(el); if (!f) return; f.txt = el.value.slice(0, 4000); const b = el.closest('.sp-fr') && el.closest('.sp-fr').querySelector('.sp-ftb'); if (b) { b.textContent = spfFtLabel(f); b.classList.toggle('on', spfLines(f.txt).length > 0); } spfGoSync(SPT); };
   const spfOf = el => SPT && SPT.files.find(f => f.id === el.dataset.f);
   ON.input['spf-sno'] = el => { const f = spfOf(el); if (f) { f.sno = el.value.trim(); if (f.st === 'done') spfSave(SPT); } };
   ON.input['spf-nm'] = el => { const f = spfOf(el); if (f) { f.nm = el.value.trim(); if (f.st === 'done') spfSave(SPT); } };
@@ -8566,17 +8610,20 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
   };
   ACTIONS['spf-go'] = async () => {
     const t = SPT; if (!t || t.frun) return;
-    const q = spfItems(t); if (!q.length) return toast('채점할 문장을 넣어 주세요.');
     const list = t.files.filter(f => f.st === 'wait' || f.st === 'err'); if (!list.length) return;
-    // 기기 AI는 파일 하나를 한 언어 모델로 들어요. 영어와 중국어가 섞여 있으면 이번에는 Gemini로
-    const langs = new Set(q.map(x => x.lang === 'zh' ? 'zh' : 'en')), loc = spEngLocal() && langs.size === 1, flang = langs.has('zh') ? 'zh' : 'en';
-    if (spEngLocal() && !loc && !await ask('영어와 중국어 문장이 섞여 있어서 이번에는 Gemini(서버)로 채점해요. 계속할까요?', { ok: '채점하기' })) return;
+    // 파일마다 채점할 문장(따로 적은 문장이 있으면 그것)
+    const qs = new Map(list.map(f => [f, spfQOf(t, f)]));
+    if (list.some(f => !qs.get(f).length)) return toast('채점할 문장을 넣어 주세요.');
+    // 기기 AI는 파일 하나를 한 언어 모델로 들어요. 영어와 중국어가 섞인 파일이 있으면 이번에는 Gemini로
+    const mixed = list.some(f => new Set(qs.get(f).map(x => x.lang === 'zh' ? 'zh' : 'en')).size > 1), loc = spEngLocal() && !mixed;
+    if (spEngLocal() && !loc && !await ask('한 파일 안에 영어와 중국어 문장이 섞여 있어서 이번에는 Gemini(서버)로 채점해요. 계속할까요?', { ok: '채점하기' })) return;
     if (list.length > 1 && (!await ask(loc ? `파일 ${list.length}개를 기기 AI로 채점할까요?\n이 컴퓨터에서 채점해서 AI 횟수를 쓰지 않아요(무료). 이 화면을 열어 두세요.` : `파일 ${list.length}개를 AI로 채점할까요?\n파일마다 AI 1회씩 모두 ${list.length}회를 써요(선생님 하루 200회까지). 이 화면을 열어 두세요.`, { ok: '채점하기' }) || SPT !== t || t.frun)) return;
     t.frun = { n: list.length, i: 0, stop: false }; spTDraw();
     const fr = t.frun, live = () => SPT === t && !fr.stop, done = loc ? spVpaProg(t) : () => {};
     // Gemini: 파일 4개씩 동시에(MP3로 바꾸기와 AI 채점이 겹쳐 돌아가요). 기기 AI: 2개씩(읽기와 채점이 겹쳐요)
     await spPool(list, loc ? 2 : SP_PAR, async f => {
       if (!live()) return;
+      const q = qs.get(f), flang = q.some(x => x.lang === 'zh') ? 'zh' : 'en';
       if (!f.data) { f.msg = '파일을 다시 넣어 주세요.'; spfSet(f, 'err'); fr.i++; return spfProg(t); }
       try {
         spfSet(f, 'read');

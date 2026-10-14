@@ -1,15 +1,20 @@
-// supabase/functions/ai/index.ts  (v10)
+// supabase/functions/ai/index.ts  (v11)
 // 배포: supabase functions deploy ai --no-verify-jwt --project-ref psmmrwhmpezyeehjivav
 // 비밀키: supabase secrets set GEMINI_API_KEY=... AI_DAILY_LIMIT=40 AI_GLOBAL_LIMIT=3000
 //   선택: AI_PRON_LIMIT=200 (선생님 한 명의 하루 발음 채점 횟수. 일반 AI 한도와 따로 세요)
 //   선택: GEMINI_PRON_MODEL=gemini-2.5-flash (발음 채점 모델. gemini-2.5-pro 로 바꾸면 더 꼼꼼하지만 느리고 비싸요)
 //   선택: ALLOWED_ORIGINS=https://vocapro.kro.kr,https://vocapro.pages.dev (쉼표로 구분, 기본값이 이 세 주소)
 //
+// v11 변경점 (SQL 변경 없음)
+// - 점수 = 정확성 70% + 유창성 30%. 단어 문항도 같은 비율이에요.
+// - comp 는 '일치도'(목표 문장 단어 가운데 들은 말에 있는 비율). 빠진 단어만큼 정확성을 깎고(정확성 × 일치도/0.95, 최대 1),
+//   일치도가 1/4도 안 되면 다른 말을 읽은 것으로 보고 10점까지.
+//
 // v10 변경점 (수행평가용 발음 채점 정확도, SQL 변경 없음)
 // - 같은 녹음은 같은 점수: temperature 0 + 고정 seed. 다른 모델로 몰래 넘어가지 않고 정한 모델(GEMINI_PRON_MODEL)만 두 번까지 써요.
 // - 채점 전에 생각할 시간(thinking 1024)을 줘요. 모델 한 번 60초, 전체 100초까지.
-// - 모델은 정확도(소리 · 성조) · 유창성(강세 · 리듬)을 따로 매기고, 서버가 '들은 말'과 목표 문장을 비교해 완성도(빠진 단어)를 계산해
-//   최종 점수 = (정확도 70% + 유창성 30%) × 완성도. 단어 하나는 정확도 80% + 유창성(강세) 20%. 결과에 acc, flu, comp, model 을 함께 줘요.
+// - 모델은 정확도(소리 · 성조) · 유창성(강세 · 리듬)을 따로 매기고, 서버가 '들은 말'과 목표 문장을 비교해 완성도(빠진 단어)를 계산해요.
+//   결과에 acc, flu, comp, model 을 함께 줘요.
 //
 // v9 변경점 (발음 평가를 선생님 전용으로, supabase_update_v11.sql 새 판을 먼저 실행)
 // - AI 채점은 과제를 낸 반 선생님만 해요. 학생이 부르면 403. 학생 화면에는 AI 점수를 보내지 않아요(SQL v11).
@@ -231,7 +236,7 @@ async function gemini(key: string, model: string, parts: Part[], schema: unknown
   }
 }
 
-// 완성도: 목표 문장 단어(중국어는 글자) 가운데 '들은 말'에 있는 비율. 발음이 조금 틀려 철자가 다르게 적힌 단어는 맞은 걸로 쳐요
+// 일치도: 목표 문장 단어(중국어는 글자) 가운데 '들은 말'에 있는 비율. 발음이 조금 틀려 철자가 다르게 적힌 단어는 맞은 걸로 쳐요
 const normW = (t: string) => t.toLowerCase().normalize("NFKC").replace(/[’‘`]/g, "'").replace(/[^a-z0-9'\s-]/g, " ").replace(/-/g, " ").split(/\s+/).map((w) => w.replace(/^'+|'+$/g, "")).filter(Boolean);
 const HAN = /[\u3400-\u9fff\uf900-\ufaff]/;
 function editDist(a: string, b: string) {
@@ -255,15 +260,15 @@ function completeness(target: string, heard: string, lang: string) {
   return L[tw.length][hw.length] / tw.length;
 }
 const clamp = (v: unknown) => { const n = Math.round(Number(v)); return Number.isFinite(n) ? Math.max(0, Math.min(100, n)) : null; };
-// 최종 점수 = (정확도 70% + 유창성 30%) × 완성도 (단어 하나: 정확도 80% + 강세 20%). 읽지 않았으면 0
+// 최종 점수 = 정확성 70% + 유창성 30%. 일치도(목표 문장 단어 가운데 들은 말에 있는 비율)만큼만 정확성을 인정해요(빠진 단어는 틀린 것).
+// 일치도가 1/4도 안 되면 다른 말을 읽은 것으로 보고 10점까지. 읽지 않았으면 0
 function pronScore(it: PronItem, r: Record<string, unknown>, heard: string) {
-  const acc = clamp(r.accuracy), flu = clamp(r.fluency), sc = clamp(r.score);
+  const a0 = clamp(r.accuracy), flu = clamp(r.fluency), sc = clamp(r.score);
   const comp = heard ? completeness(it.text, heard, it.lang) : 0;
-  if (r.read === false || !heard) return { score: 0, acc: acc ?? 0, flu: flu ?? 0, comp: 0 };
-  if (acc == null || flu == null) return { score: sc ?? 0, acc: acc ?? sc ?? 0, flu: flu ?? sc ?? 0, comp: Math.round(comp * 100) };
-  const w = it.kind === "s" ? 0.7 : 0.8, base = acc * w + flu * (1 - w);
-  // 완성도가 아주 낮으면(목표의 1/4도 못 찾음) 다른 말을 읽은 것으로 봐요
-  const score = comp < 0.25 ? Math.min(Math.round(base * comp), 10) : Math.round(base * Math.min(1, comp / 0.95));
+  if (r.read === false || !heard) return { score: 0, acc: 0, flu: 0, comp: 0 };
+  if (a0 == null || flu == null) return { score: sc ?? 0, acc: a0 ?? sc ?? 0, flu: flu ?? sc ?? 0, comp: Math.round(comp * 100) };
+  const acc = Math.round(a0 * Math.min(1, comp / 0.95)), base = acc * 0.7 + flu * 0.3;
+  const score = comp < 0.25 ? Math.min(Math.round(base * comp), 10) : Math.round(base);
   return { score: Math.max(0, Math.min(100, score)), acc, flu, comp: Math.round(comp * 100) };
 }
 // 발음 채점: Gemini 답을 문항별로 다듬어요 (점수 0~100, 글자 길이 제한, 요청한 문항만)
