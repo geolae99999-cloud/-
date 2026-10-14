@@ -56,6 +56,17 @@ vdir = os.path.join(os.path.dirname(os.path.abspath(src)), 'vendor')
 for f in sorted(os.listdir(vdir)) if os.path.isdir(vdir) else []:
     assert re.match(r'[\w.-]+\.js$', f), f
     w(f, open(os.path.join(vdir, f), encoding='utf-8').read())
+# 기기 음성 AI(src/asr): 엔진 · ONNX Runtime(wasm) · 모델 조각을 그대로 public/asr 로 복사해요. 쓸 때만 받아요(CORE 에 넣지 않음)
+import shutil
+adir = os.path.join(os.path.dirname(os.path.abspath(src)), 'asr')
+if os.path.isdir(adir):
+    shutil.rmtree(os.path.join(out, 'asr'), ignore_errors=True)
+    shutil.copytree(adir, os.path.join(out, 'asr'))
+# 글꼴(src/font, Pretendard · SIL OFL 1.1): 외부 CDN 대신 같은 주소에서 받아요
+fdir = os.path.join(os.path.dirname(os.path.abspath(src)), 'font')
+if os.path.isdir(fdir):
+    shutil.rmtree(os.path.join(out, 'font'), ignore_errors=True)
+    shutil.copytree(fdir, os.path.join(out, 'font'))
 core =['./', 'style.css', 'config.js', 'cloud.js'] + names + ['manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png']
 ver = hashlib.sha1(''.join(open(os.path.join(out, f), encoding='utf-8').read() for f in ['index.html', 'style.css', 'cloud.js'] + names).encode()).hexdigest()[:10]
 sw = open(os.path.join(os.path.dirname(__file__), 'sw.template.js'), encoding='utf-8').read()

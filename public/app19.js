@@ -9,7 +9,7 @@
     auth: '로그인이 만료됐어요. 다시 로그인해 주세요.', missing: '우리 반 기능은 아직 준비 중이에요. 운영자가 서버 설정을 마치면 바로 쓸 수 있어요.',
     network: '서버에 연결하지 못했어요. 인터넷 연결을 확인해 주세요.', too_many_tries: '틀린 코드를 너무 많이 넣었어요. 내일 다시 시도하거나 선생님께 코드를 확인해 주세요.',
     too_big: '녹음이 너무 길어요. 조금 더 짧게 읽어 주세요.', bad_audio: '녹음 파일을 읽지 못했어요. 다시 녹음해 주세요.', not_done: '아직 녹음하지 않은 문항이 있어요.',
-    no_rec: '녹음을 찾지 못했어요. 60일이 지나 지워졌을 수 있어요.'
+    no_rec: '녹음을 찾지 못했어요. 60일이 지나 지워졌을 수 있어요.', too_fast: '문제를 너무 빨리 풀어서 받지 않았어요. 과제를 다시 열어 차근차근 풀어 주세요.'
   };
   const clMsg = e => e && e.code === 'sp_missing' ? SP_MISSING : CL_ERR[e && e.code] || '잠시 후 다시 시도해 주세요.';
   const CL_KIND = { test: '시험', study: '단어 학습', speak: '발음 평가' };
@@ -96,7 +96,7 @@
   function clDraw() {
     const d = CLV.data, c = d.class, mem = d.members, asg = d.assignments;
     $('sheetTitle').textContent = c.name;
-    const head = `<div class="cl-code"><div><small>초대 코드</small><b>${esc(c.code)}</b></div><button class="btn btn-sm btn-soft" data-act="cl-copy" data-code="${esc(c.code)}">복사</button></div>
+    const head = `<div class="cl-code"><div><small>초대 코드</small><b>${esc(c.code)}</b></div><button class="btn btn-sm btn-soft" data-act="cl-copy" data-code="${esc(c.code)}">복사</button><button class="btn btn-sm btn-soft" data-act="cl-rot">새 코드</button></div>
       <button class="btn btn-primary btn-block lv-open" data-act="cl-live"><i class="lv-dot"></i>실시간 보기 (누가 들어와서 무엇을 하는지)</button>
       <p class="muted cl-p">학생은 홈의 '우리 반'에서 이 코드를 넣으면 들어와요. 만 14세 미만(이 기기에만 저장하는 계정)은 참여할 수 없어요.</p>
       <div class="seg"><button class="${CLV.tab === 'stu' ? 'on' : ''}" data-act="cl-tab" data-t="stu">학생 ${mem.length}명</button><button class="${CLV.tab === 'asg' ? 'on' : ''}" data-act="cl-tab" data-t="asg">과제 ${asg.length}개</button><button class="${CLV.tab === 'rank' ? 'on' : ''}" data-act="cl-tab" data-t="rank">랭킹</button></div>`;
@@ -151,6 +151,14 @@
     const conf = Array.from({ length: 36 }, (_, i) => `<i style="left:${(i * 97) % 100}%;background:${RK_C[i % RK_C.length]};animation-delay:${-(i * 0.37) % 3.2}s;animation-duration:${2.6 + (i % 5) * 0.3}s"></i>`).join('');
     ov.innerHTML = `${ttTop(d.class.name + ' · 랭킹')}<div class="rk-conf">${conf}</div><div class="rk-big"><h2>${m === 'n7' ? '이번 주 우리 반 학습 왕' : `우리 반 ${esc(label)} 왕`}</h2><p class="rk-sub">${esc(d.class.name)} · 학생 ${d.members.length}명</p>${rkHtml(d.members, true)}</div>`;
   }
+  // 초대 코드 바꾸기: 코드가 밖으로 퍼졌거나 내보낸 학생이 다시 들어오려 할 때. 이미 들어온 학생은 그대로예요
+  ACTIONS['cl-rot'] = async el => {
+    const d = CLV && CLV.data; if (!d) return;
+    if (!await ask('초대 코드를 새로 바꿀까요?\n이미 들어온 학생은 그대로이고, 예전 코드로는 더 들어올 수 없어요.', { ok: '바꾸기' })) return;
+    el.disabled = true;
+    try { const r = await Cloud.call('voca_class_rotate_code', { p_class: d.class.id }); if (CLV && CLV.data === d) { d.class.code = r.code; clDraw(); } toast('새 초대 코드: ' + r.code); }
+    catch (e) { el.disabled = false; say(e && e.code === 'missing' ? '코드 바꾸기는 운영자가 Supabase에서 supabase_update_v12.sql을 실행하면 쓸 수 있어요.' : clMsg(e)); }
+  };
   ACTIONS['cl-copy'] = async el => { try { await navigator.clipboard.writeText(el.dataset.code); toast('초대 코드를 복사했어요.'); } catch (e) { toast('코드: ' + el.dataset.code); } };
   ACTIONS['cl-kick'] = async el => {
     if (!await ask(`${el.dataset.name || '이 학생'} 학생을 반에서 내보낼까요?\n이 반의 과제 결과도 함께 지워져요.`, { ok: '내보내기', danger: true })) return;

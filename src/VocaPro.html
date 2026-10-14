@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#f2f4f6">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+  <link rel="stylesheet" href="font/pretendard.css">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon-192.png">
   <link rel="apple-touch-icon" href="icon-192.png">
@@ -76,7 +76,8 @@
     .app-header { position: sticky; top: 0; z-index: 40; background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: calc(12px + env(safe-area-inset-top, 0px)) 16px 10px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
     .header-left { display: flex; align-items: center; gap: 8px; min-width: 0; }
     .header-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
-    .brand { display: flex; align-items: center; gap: 8px; font-size: 1.22rem; font-weight: 800; letter-spacing: -0.04em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .brand-t { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .brand { min-width: 0; display: flex; align-items: center; gap: 8px; font-size: 1.22rem; font-weight: 800; letter-spacing: -0.04em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .brand b { font-weight: 800; color: var(--blue); }
     .brand-mark { width: 30px; height: 30px; border-radius: 9px; background: var(--navy); color: var(--mark); font-style: normal; font-size: 1rem; font-weight: 900; display: inline-flex; align-items: center; justify-content: center; flex: none; letter-spacing: 0; }
     .round-btn { width: 38px; height: 38px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--ink); }
@@ -198,6 +199,12 @@
     .book-list { display: flex; flex-direction: column; gap: 8px; }
     .book { display: flex; align-items: stretch; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; cursor: pointer; transition: transform .12s; }
     .book:active { transform: scale(.985); }
+    .bk-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; } .bk-head .btn { flex: none; }
+    .bk-bar { grid-column: 1 / -1; position: sticky; top: 8px; z-index: 5; display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 8px 10px; box-shadow: 0 6px 18px rgba(0,0,0,.06); }
+    .bk-bar span { flex: 1; text-align: center; font-weight: 700; font-size: .9rem; color: var(--ink-2); }
+    .book.sel { position: relative; } .book.sel.on { border-color: var(--blue); box-shadow: 0 0 0 2px var(--blue) inset; }
+    .bk-chk { position: absolute; top: 10px; right: 10px; width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--line); background: var(--surface); display: grid; place-items: center; color: transparent; z-index: 1; }
+    .bk-chk .ic { width: 14px; height: 14px; } .book.sel.on .bk-chk { background: var(--blue); border-color: var(--blue); color: #fff; }
     .book-spine { width: 62px; flex: none; background: var(--bk, var(--blue)); color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
     .book-spine::after { content: ''; position: absolute; right: 6px; top: 8px; bottom: 8px; border-right: 1.5px dashed rgba(255, 255, 255, .35); }
     .book-spine b { font-size: 1.25rem; font-weight: 900; letter-spacing: -.04em; line-height: 1.1; }
@@ -1249,6 +1256,7 @@
     .scr-slots span.on { border-color: var(--blue); } .scr-slots i { width: 12px; font-style: normal; display: grid; place-items: center; font-weight: 800; }
     .scr-slots.ok span { border-color: var(--mint); color: var(--mint); } .scr-slots.bad span { border-color: var(--coral); color: var(--coral); animation: mshake .35s; }
     .scr-tiles { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 18px 0 6px; }
+    .scr-tiles.nope { animation: mshake .25s; }
     .scr-t { width: 48px; height: 52px; border-radius: 14px; border: none; background: var(--surface); box-shadow: 0 3px 0 var(--sh-line); font-size: 1.3rem; font-weight: 800; color: var(--ink); }
     .scr-t:disabled { opacity: .25; box-shadow: none; transform: translateY(3px); }
     .rn { display: flex; flex-direction: column; gap: 10px; }
@@ -1549,11 +1557,6 @@
     .rk-p.me b { color: var(--blue); } .rk-row.me { background: var(--blue-soft); outline: 2px solid var(--blue); }
     .wq .cl-load { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; color: var(--muted); font-weight: 700; padding: 20px 10px; } .wq .cl-load svg { width: 90px; height: 90px; }
     @media (min-width: 900px) { .wq-opts { grid-template-columns: 1fr 1fr; } .wq-opt { min-height: 72px; } }
-    /* 예전 주소 안내 */
-    .move-bar { position: fixed; left: 50%; top: calc(10px + env(safe-area-inset-top, 0px)); transform: translateX(-50%); z-index: 100000; width: min(560px, calc(100% - 20px)); display: flex; align-items: center; gap: 10px; padding: 12px 12px 12px 16px; border-radius: 18px; background: var(--surface); box-shadow: var(--pop); }
-    .move-bar > div { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; } .move-bar b { font-size: .92rem; } .move-bar small { color: var(--muted); font-size: .76rem; line-height: 1.45; }
-    .move-bar .btn { flex: none; display: inline-flex; align-items: center; padding: 0 12px; text-decoration: none; }
-    .move-x { flex: none; border: none; background: none; color: var(--muted); width: 30px; height: 30px; display: grid; place-items: center; }
     /* =====================================================
      * 디자인 v7 · 토스 스타일 정리
      * 회색 바탕 + 흰 카드(테두리 없음), 굵은 제목, 56px 버튼, 하단 탭은 흰 바탕 + 회색/잉크 아이콘
@@ -2190,6 +2193,7 @@
     @keyframes spBlink { 50% { opacity: .3; } }
     .sp-acts { display: flex; gap: 8px; } .sp-acts .btn:first-child { flex: 1; min-width: 0; } .sp-acts .btn + .btn { flex: none; padding: 0 18px; }
     .sp-acts .btn .ic { width: 18px; height: 18px; }
+    .sp-eng { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--ink-2); } .sp-eng .seg { flex: 1; } .sp-engp { margin: -6px 0 0; font-size: 12.5px; min-height: 0; } .sp-engp:empty { display: none; }
     .sp-prog { height: 6px; border-radius: 99px; background: var(--surface-3); overflow: hidden; margin-top: -4px; } .sp-prog i { display: block; height: 100%; border-radius: inherit; background: var(--blue); transition: width .4s var(--ease); }
     .sp-no { flex: none; font-size: 14px; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
     /* 제출 카드 (하이러닝처럼 한눈에) */
@@ -2365,6 +2369,35 @@
     .gx-entry-ico .ic { width: 22px; height: 22px; }
     @media (hover: hover) { .gx-entry:hover { background: color-mix(in srgb, var(--surface) 96%, var(--ink) 4%); } }
     @media (min-width: 900px) { .gx-in { min-height: 300px; } }
+    /* ===== PC 화면 다듬기 (900px 이상): 위에 붙는 바 · 검색창 · 한 줄 단어 표 · 카드 hover ===== */
+    .hd-search { display: none; }
+    @media (min-width: 900px) {
+      .app-header { position: sticky; top: 0; z-index: 40; margin: 0 calc(-1 * clamp(28px, 3vw, 56px)) 8px; padding: 14px clamp(28px, 3vw, 56px); background: color-mix(in srgb, var(--bg) 82%, transparent); -webkit-backdrop-filter: saturate(1.6) blur(16px); backdrop-filter: saturate(1.6) blur(16px); border-bottom: 1px solid transparent; transition: border-color .2s; }
+      body.scrolled .app-header { border-bottom-color: var(--line); }
+      .hd-search { display: inline-flex; align-items: center; gap: 10px; width: clamp(220px, 26vw, 340px); height: 40px; padding: 0 10px 0 14px; margin-right: 4px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); color: var(--muted); font: inherit; font-size: .9rem; font-weight: 500; cursor: pointer; transition: border-color .15s, color .15s; }
+      .hd-search .ic { width: 18px; height: 18px; flex: none; }
+      .hd-search span { flex: 1; text-align: left; }
+      .hd-search kbd { font: inherit; font-size: .72rem; font-weight: 700; color: var(--ink-2); border: 1px solid var(--line); border-radius: 6px; padding: 1px 7px; background: var(--surface-2); }
+      .hd-search:hover { border-color: color-mix(in srgb, var(--blue) 45%, var(--line)); color: var(--ink-2); }
+      #btnDict { display: none; }
+      .page-title { letter-spacing: -.035em; }
+      /* 단어 목록: 한 줄에 단어 · 뜻 · 상태 (표처럼) */
+      #wordCardStream { border-radius: 20px; overflow: hidden; }
+      .wcard { padding-top: 12px; padding-bottom: 12px; transition: background-color .12s; }
+      .w-row { align-items: center; }
+      .w-no { padding-top: 0; }
+      .w-main { display: grid; grid-template-columns: minmax(170px, 1fr) minmax(0, 1.4fr) auto; align-items: center; column-gap: 22px; }
+      .w-mean { margin-top: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+      .w-badges { margin-top: 0; justify-content: flex-end; }
+      .w-side { flex-direction: row; gap: 2px; margin-left: 10px; }
+      .wcard.open .w-detail { padding-left: 46px; }
+    }
+    @media (min-width: 900px) and (hover: hover) {
+      .wcard:hover { background: color-mix(in srgb, var(--surface-2) 55%, var(--surface)); }
+      .book, .mode, .tile { transition: transform .16s var(--ease), box-shadow .16s var(--ease), background-color .15s; }
+      .book:hover, .mode:hover, .tile:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(2, 32, 71, .09); }
+      body.dark .book:hover, body.dark .mode:hover, body.dark .tile:hover { box-shadow: 0 12px 30px rgba(0, 0, 0, .35); }
+    }
   </style>
 </head>
 <body>
@@ -2375,6 +2408,7 @@
       <h1 class="brand" id="headTitle"><i class="brand-mark">V</i><span><b>Voca</b>Pro</span></h1>
     </div>
     <div class="header-right">
+      <button class="hd-search" data-act="dict-open" aria-label="단어 검색 (영어사전)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span>단어 검색</span><kbd>/</kbd></button>
       <button class="lang-sw" data-act="lang" id="btnLang" aria-label="학습 언어 바꾸기 (영어, 중국어)" aria-pressed="false"><i class="ls-knob"></i><span class="ls-en">EN</span><span class="ls-zh">中</span></button>
       <button class="round-btn" data-act="dict-open" id="btnDict" aria-label="영어사전"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
       <button class="round-btn" data-act="translator" id="btnTr" aria-label="번역"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg></button>
@@ -2385,7 +2419,7 @@
   <main class="view-pane active" id="tabHome"></main>
 
   <main class="view-pane" id="tabBooks">
-    <h2 class="page-title">단어장</h2>
+    <div class="bk-head"><h2 class="page-title">단어장</h2><button class="btn btn-sm btn-soft" id="bkEdit" data-act="books-edit">여러 개 지우기</button></div>
     <div class="add-row">
       <input type="text" id="inCatName" placeholder="새 단어장 이름 (예: Day 1, 수능 필수)" maxlength="40" data-enter="add-book">
       <button class="btn btn-primary" data-act="add-book">만들기</button>
@@ -2781,7 +2815,7 @@ window.VOCA_CLOUD = {
   });
   // 버튼처럼 쓰는 div(role=button)도 키보드 Enter/Space로 눌러요
   document.addEventListener('keydown', e => {
-    if ((e.key === 'Enter' || e.key === ' ') && !e.repeat && e.target.matches && e.target.matches('[data-act][role="button"]')) { e.preventDefault(); e.target.click(); }
+    if ((e.key === 'Enter' || e.key === ' ') && !e.repeat && e.target.matches && e.target.matches('[data-act][role="button"], [data-act][role="checkbox"]')) { e.preventDefault(); e.target.click(); }
   });
   /* 입력 이벤트도 같은 방식으로 위임해요. HTML 속성에 onclick 같은 인라인 코드를 쓰면
      보안 정책(CSP)에 막히니 data-change / data-input / data-enter 와 아래 ON 표를 쓰세요. */
@@ -3103,8 +3137,11 @@ window.VOCA_CLOUD = {
 
   let curTab = 'tabHome';
   const TITLES = { tabBooks: '단어장', tabStudy: '학습', tabStats: '통계', tabSettings: '설정' };
+  // 위 제목: 길면 말줄임(…)이 되게 span 안에 넣어요
+  function headText(t) { $('headTitle').innerHTML = `<span class="brand-t">${esc(t)}</span>`; }
   function go(id) {
     curTab = id;
+    if (id !== 'tabBooks') bookSel = null;
     document.body.dataset.tab = id;
     renderNavCard();
     if (id !== 'tabHome') { const rv = $('recOv'); if (rv) rv.remove(); }
@@ -3114,8 +3151,8 @@ window.VOCA_CLOUD = {
     document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.t === navFor));
     $('btnBackHome').style.display = id === 'paneBook' ? 'flex' : 'none';
     if (id === 'tabHome') $('headTitle').innerHTML = '<i class="brand-mark">V</i><span><b>Voca</b>Pro</span>';
-    else if (id === 'paneBook') $('headTitle').textContent = (curCat() || {}).name || '단어장';
-    else $('headTitle').textContent = TITLES[id] || 'VocaPro';
+    else if (id === 'paneBook') headText((curCat() || {}).name || '단어장');
+    else headText(TITLES[id] || 'VocaPro');
 
     if (id === 'tabHome') renderHome();
     else if (id === 'tabBooks') renderBooks();
@@ -3217,7 +3254,7 @@ window.VOCA_CLOUD = {
     const due = b.words.filter(w => w.box >= 1 && w.due <= end).length;
     const pct = total ? Math.round(mastered / total * 100) : 0;
     return `
-      <div class="book" style="--bk:${bookColor(b.id)}" data-act="open-book" data-id="${esc(b.id)}" role="button" tabindex="0" aria-label="${esc(b.name)} 단어장 열기">
+      <div class="book${bookSel ? ' sel' + (bookSel.has(b.id) ? ' on' : '') : ''}" style="--bk:${bookColor(b.id)}" data-act="${bookSel ? 'book-pick' : 'open-book'}" data-id="${esc(b.id)}" role="${bookSel ? 'checkbox' : 'button'}"${bookSel ? ` aria-checked="${bookSel.has(b.id)}"` : ''} tabindex="0" aria-label="${esc(b.name)} 단어장 ${bookSel ? '고르기' : '열기'}">${bookSel ? `<span class="bk-chk">${IC.tick}</span>` : ''}
         <div class="book-spine"><b>${total}</b><small>단어</small></div>
         <div class="book-body">
           <div class="book-top"><span class="book-name">${esc(b.name)}</span>${due ? `<span class="badge b-learn">복습 ${due}</span>` : ''}</div>
@@ -3226,10 +3263,25 @@ window.VOCA_CLOUD = {
         </div>
       </div>`;
   }
+  // 단어장 여러 개 골라 지우기: bookSel 이 있으면 카드를 누를 때 열지 않고 골라요
+  let bookSel = null;
   function renderBooks() {
-    $('folderContainer').innerHTML = categories.map(bookCardHtml).join('') ||
-      emptyHtml('단어장이 없어요', '위에서 이름을 입력하고 만들기를 눌러 보세요.');
+    if (bookSel) bookSel.forEach(id => { if (!findBook(id)) bookSel.delete(id); });
+    const eb = $('bkEdit'); if (eb) { eb.textContent = bookSel ? '취소' : '여러 개 지우기'; eb.hidden = !bookSel && !categories.length; }
+    $('folderContainer').innerHTML = (bookSel && categories.length ? `<div class="bk-bar"><button class="btn btn-sm btn-soft" data-act="book-all">${bookSel.size === categories.length ? '모두 풀기' : '모두 고르기'}</button><span>${bookSel.size}개 골랐어요</span><button class="btn btn-sm btn-soft cl-danger" data-act="books-del"${bookSel.size ? '' : ' disabled'}>지우기</button></div>` : '') +
+      (categories.map(bookCardHtml).join('') || emptyHtml('단어장이 없어요', '위에서 이름을 입력하고 만들기를 눌러 보세요.'));
   }
+  ACTIONS['books-edit'] = () => { bookSel = bookSel ? null : new Set(); renderBooks(); };
+  ACTIONS['book-pick'] = el => { if (!bookSel) return; const id = el.dataset.id; if (bookSel.has(id)) bookSel.delete(id); else bookSel.add(id); renderBooks(); const c = document.querySelector(`.book[data-id="${CSS.escape(id)}"]`); if (c) c.focus(); };
+  ACTIONS['book-all'] = () => { if (!bookSel) return; bookSel = bookSel.size === categories.length ? new Set() : new Set(categories.map(c => c.id)); renderBooks(); };
+  ACTIONS['books-del'] = async () => {
+    if (!bookSel || !bookSel.size) return;
+    const pick = categories.filter(c => bookSel.has(c.id)), nw = pick.reduce((a, c) => a + c.words.length, 0);
+    if (!await ask(`단어장 ${pick.length}개와 안의 단어 ${nw}개를 모두 삭제할까요?\n${pick.slice(0, 5).map(c => '· ' + c.name).join('\n')}${pick.length > 5 ? `\n· 그 밖에 ${pick.length - 5}개` : ''}\n지운 단어장은 되돌릴 수 없어요.`, { ok: `${pick.length}개 삭제`, danger: true })) return;
+    const ids = new Set(pick.map(c => c.id)); categories = categories.filter(c => !ids.has(c.id));
+    if (ids.has(currentCategoryId)) currentCategoryId = null;
+    bookSel = null; syncStorage(); renderBooks(); toast(`단어장 ${pick.length}개를 삭제했어요.`);
+  };
   ACTIONS['add-book'] = () => {
     const input = $('inCatName');
     const val = input.value.trim();
@@ -3603,7 +3655,7 @@ window.VOCA_CLOUD = {
   ACTIONS['book-rename'] = async () => {
     const cat = curCat(); if (!cat) return;
     const name = await ask('새 이름을 입력하세요.', { input: cat.name });
-    if (name && name.trim()) { cat.name = name.trim().slice(0, 40); syncStorage(); closeSheet(); $('headTitle').textContent = cat.name; }
+    if (name && name.trim()) { cat.name = name.trim().slice(0, 40); syncStorage(); closeSheet(); headText(cat.name); }
   };
   ACTIONS['book-del'] = async () => {
     const cat = curCat(); if (!cat) return;
@@ -3613,7 +3665,7 @@ window.VOCA_CLOUD = {
   };
   ACTIONS['csv-export'] = () => {
     const cat = curCat(); if (!cat) return;
-    const q = v => '"' + String(v).replace(/"/g, '""') + '"';
+    const q = v => { let x = String(v == null ? '' : v); if (/^[=+\-@\t\r]/.test(x)) x = "'" + x; return '"' + x.replace(/"/g, '""') + '"'; }; // 엑셀 수식으로 실행되지 않게
     const rows = [['word', 'meaning', 'phonetic', 'koreanPron', 'example', 'synonyms', 'exampleKo'].join(',')]
       .concat(cat.words.map(w => [w.word, w.meaning, w.phonetic, w.koreanPron, w.example, w.synonyms, w.exampleKo].map(q).join(',')));
     download(`${cat.name.replace(/[\\/:*?"<>|]/g, '_')}.csv`, '﻿' + rows.join('\r\n'), 'text/csv;charset=utf-8');
@@ -4457,6 +4509,73 @@ window.VOCA_CLOUD = {
     const my = S.idx; setTimeout(() => { if (S.active && S.idx === my) nextQuestion(); }, ok ? 1500 : 2600);
   }
 
+  /* ----- 기기 음성 AI (영어): asr/vp-asr.js 를 Web Worker 로 돌려요. 처음 한 번 모델(약 57MB)을 받아 이 기기에 저장해요 ----- */
+  const VPA = (() => {
+    let w = null, initP = null, ready = false, seq = 0, prog = 0; const wait = new Map(), subs = new Set();
+    const ok = () => typeof Worker === 'function' && typeof WebAssembly === 'object' && typeof BigInt64Array === 'function' && 'caches' in window;
+    function fail(msg) { const e = new Error(msg || '기기 음성 AI를 시작하지 못했어요.'); wait.forEach(x => x.no(e)); wait.clear(); return e; }
+    function worker() {
+      if (w) return w;
+      w = new Worker('asr/vp-asr.js');
+      w.onmessage = e => {
+        const m = e.data || {};
+        if (m.type === 'progress') { prog = m.p; subs.forEach(f => { try { f(m.p); } catch (x) {} }); }
+        else if (m.type === 'ready') { ready = true; prog = 100; subs.forEach(f => { try { f(100); } catch (x) {} }); const x = wait.get('init'); if (x) { wait.delete('init'); x.ok(); } }
+        else if (m.type === 'result' || m.type === 'error') {
+          const x = wait.get(m.id != null ? m.id : 'init'); if (!x) return; wait.delete(m.id != null ? m.id : 'init');
+          if (m.type === 'result') x.ok(m); else x.no(new Error(m.msg || '음성 AI 오류'));
+        }
+      };
+      w.onerror = () => { const e = fail(); try { w.terminate(); } catch (x) {} w = null; initP = null; ready = false; return e; };
+      return w;
+    }
+    function init(onProg) {
+      if (onProg) { subs.add(onProg); onProg(prog); }
+      if (ready) return Promise.resolve();
+      if (!ok()) return Promise.reject(new Error('이 브라우저에서는 기기 음성 AI를 쓸 수 없어요. 최신 Chrome · Edge · Safari에서 열어 주세요.'));
+      if (!initP) initP = new Promise((res, rej) => { wait.set('init', { ok: res, no: rej }); worker().postMessage({ cmd: 'init' }); }).catch(e => { initP = null; throw e; });
+      return initP;
+    }
+    // pcm: 16kHz Float32Array, items: [{ text, kind: 'w' | 's', idx }] -> { items: [{ score, acc, flu, comp, heard, tips, problems, words }], heard }
+    async function score(pcm, items) {
+      await init();
+      return new Promise((res, rej) => { const id = ++seq; wait.set(id, { ok: res, no: rej }); const y = new Float32Array(pcm); worker().postMessage({ cmd: 'score', id, pcm: y, items }, [y.buffer]); });
+    }
+    return { ok, init, score, off: f => subs.delete(f), get ready() { return ready; } };
+  })();
+  const VPA_MB = 57;
+  // 연습용 마이크: 말이 끝나면(0.7초 조용하면) 자동으로 멈춰요. 최대 maxSec 초
+  const VPM = { ctx: null, stream: null, R: null };
+  async function vpMicStart(maxSec, onLevel, onEnd) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.isSecureContext) throw { code: 'unsupported' };
+    if (!VPM.ctx) VPM.ctx = new AC();
+    if (VPM.ctx.state === 'suspended') await VPM.ctx.resume().catch(() => {});
+    try { VPM.stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true } }); }
+    catch (e) { throw { code: e && (e.name === 'NotAllowedError' || e.name === 'SecurityError') ? 'denied' : e && (e.name === 'NotFoundError' || e.name === 'OverconstrainedError') ? 'nomic' : 'unsupported' }; }
+    if (VPM.ctx.state !== 'running') await VPM.ctx.resume().catch(() => {});
+    const ctx = VPM.ctx, src = ctx.createMediaStreamSource(VPM.stream), proc = ctx.createScriptProcessor(4096, 1, 1), mute = ctx.createGain();
+    mute.gain.value = 0;
+    const R = { chunks: [], n: 0, max: Math.ceil(maxSec * ctx.sampleRate), spoke: false, quiet: 0, onEnd };
+    proc.onaudioprocess = e => {
+      if (VPM.R !== R) return;
+      const d = e.inputBuffer.getChannelData(0); let sq = 0; for (let i = 0; i < d.length; i += 4) sq += d[i] * d[i];
+      const lv = Math.min(1, Math.sqrt(sq / (d.length / 4)) * 6); if (onLevel) onLevel(lv);
+      if (R.n < R.max) { const c = d.subarray(0, Math.min(d.length, R.max - R.n)); R.chunks.push(new Float32Array(c)); R.n += c.length; }
+      if (lv > 0.12) { R.spoke = true; R.quiet = 0; } else if (R.spoke) R.quiet += d.length / ctx.sampleRate;
+      if (R.n >= R.max || (R.spoke && R.quiet > 0.7)) vpMicStop();
+    };
+    src.connect(proc); proc.connect(mute); mute.connect(ctx.destination);
+    Object.assign(R, { src, proc, mute }); VPM.R = R;
+  }
+  function vpMicStop(drop) {
+    const R = VPM.R; if (!R) return; VPM.R = null;
+    try { R.src.disconnect(); R.proc.disconnect(); R.mute.disconnect(); } catch (e) {}
+    R.proc.onaudioprocess = null;
+    if (VPM.stream) { VPM.stream.getTracks().forEach(t => t.stop()); VPM.stream = null; }
+    if (!drop && R.onEnd) R.onEnd(spPcm(R.chunks, VPM.ctx.sampleRate));
+  }
+
   /* ----- 말하기 ----- */
   let SPK = null;
   const spkNorm = x => String(x || '').toLowerCase().replace(/[-_/]+/g, ' ').replace(/[^a-z' ]/g, '').replace(/\s+/g, ' ').trim();
@@ -4482,9 +4601,12 @@ window.VOCA_CLOUD = {
   }
   const SPK_FATAL = { 'not-allowed': '마이크 사용이 막혀 있어요. 주소창의 자물쇠를 눌러 마이크를 허용해 주세요.', 'service-not-allowed': '이 브라우저는 음성 인식을 막아 두었어요.', network: '음성 인식 서버에 연결하지 못했어요.', 'audio-capture': '마이크를 찾지 못했어요.', 'language-not-supported': '이 기기는 이 언어의 음성 인식을 지원하지 않아요.' };
   let spkSelf = false;
+  // 영어 단어는 기기 음성 AI로 들어요(서버 · 구글 음성 인식 없이). 중국어나 기기 AI를 못 쓰면 브라우저 음성 인식, 그것도 안 되면 스스로 확인
+  const spkLocal = w => !spkSelf && !isHanWord(w.word) && VPA.ok() && !S.vpaOff;
   function renderSpeak(item) {
     const w = item.w; S.tries = 0;
-    const self = spkSelf || !SR;
+    if (spkLocal(w)) VPA.init().catch(() => {}); // 미리 받아 둬요
+    const self = !spkLocal(w) && (spkSelf || !SR);
     $('stBody').innerHTML = `
       <div class="q-wrap">
         <div class="q-card">
@@ -4502,13 +4624,59 @@ window.VOCA_CLOUD = {
       </div>`;
     if (self) playAudio(w.word);
   }
-  function spkStop() { const r = SPK; SPK = null; clearTimeout(S.spkT); if (r) { try { r.onresult = r.onerror = r.onend = null; r.abort(); } catch (e) {} } }
+  function spkStop() { const r = SPK; SPK = null; clearTimeout(S.spkT); vpMicStop(true); if (S.vpaProg) { VPA.off(S.vpaProg); S.vpaProg = null; } if (r) { try { r.onresult = r.onerror = r.onend = null; r.abort(); } catch (e) {} } }
+  function spkLocalFail(msg) {
+    S.vpaOff = true;
+    if (!SR) return spkFallback(msg);
+    toast(msg + ' 브라우저 음성 인식으로 바꿀게요.'); if (S.active && S.mode === 'speak' && !S.locked) renderSpeak(S.queue[S.idx]);
+  }
+  // 기기 AI로 듣기: 누르면 녹음(말이 끝나면 자동으로 멈춤) -> 채점 -> 맞으면 다음 문제
+  async function spkLocalGo(item) {
+    const out = $('spkOut'), btn = $('micBtn'); if (!out || !btn) return;
+    const mine = () => S.active && S.queue[S.idx] === item && !S.locked;
+    if (VPM.R) { vpMicStop(); return; } // 말하는 중에 다시 누르면 바로 멈춰요
+    if (!VPA.ready) {
+      btn.disabled = true;
+      const pg = p => { if (mine() && $('spkOut')) $('spkOut').innerHTML = `음성 AI 준비 중 <b>${p}%</b><br><small>처음 한 번만 받아요(약 ${VPA_MB}MB). 와이파이를 권해요.</small>`; };
+      S.vpaProg = pg;
+      try { await VPA.init(pg); } catch (e) { VPA.off(pg); S.vpaProg = null; if (!mine()) return; btn.disabled = false; return spkLocalFail((e && e.message) || '음성 AI를 받지 못했어요.'); }
+      VPA.off(pg); S.vpaProg = null; if (!mine()) return;
+      btn.disabled = false;
+    }
+    try { window.speechSynthesis.cancel(); } catch (e) {}
+    try {
+      await vpMicStart(/\s/.test(item.w.word.trim()) ? 8 : 4, lv => { const b = $('micBtn'); if (b) b.style.setProperty('--lv', lv.toFixed(2)); }, async pcm => {
+        const b = $('micBtn'), o = $('spkOut'); if (b) b.classList.remove('on');
+        if (!mine() || !o) return;
+        if (!pcm) { o.textContent = '소리가 들리지 않았어요. 마이크 가까이에서 다시 눌러 말해 주세요.'; return; }
+        o.textContent = '듣고 확인하는 중...'; if (b) b.disabled = true;
+        let r; try { r = await VPA.score(pcm.y, [{ text: item.w.word, kind: /\s/.test(item.w.word.trim()) ? 's' : 'w' }]); }
+        catch (e) { if (mine() && $('micBtn')) { $('micBtn').disabled = false; $('spkOut').textContent = '확인하지 못했어요. 다시 눌러 주세요.'; } return; }
+        if (!mine()) return;
+        if (b) b.disabled = false;
+        const x = r.items && r.items[0], sc = x ? x.score : 0, heard = (x && x.heard) || r.heard || '';
+        const ok = sc >= 55 || (sc >= 35 && spkMatch(heard, item.w.word));
+        S.tries = (S.tries || 0) + 1;
+        if (ok) {
+          S.locked = true; $('spkOut').innerHTML = `<b class="ok">정확해요!</b> 발음 ${esc(sc)}점${heard ? ` · "${esc(heard)}"` : ''}`; recordResult(item, true);
+          const my = S.idx; setTimeout(() => { if (S.active && S.idx === my) nextQuestion(); }, 1100);
+        } else $('spkOut').innerHTML = `<b class="bad">${heard ? `"${esc(heard)}"(으)로 들렸어요.` : '잘 들리지 않았어요.'}</b> 발음 ${esc(sc)}점 · ${S.tries >= 3 ? '넘어가도 괜찮아요.' : '원어민 발음을 듣고 다시 말해 볼까요?'}`;
+      });
+      btn.classList.add('on'); out.textContent = '듣고 있어요... 말이 끝나면 자동으로 멈춰요';
+    } catch (e) {
+      if (!mine()) return;
+      if (e && e.code === 'denied') return spkFallback(SP_MIC_ERR.denied);
+      spkLocalFail(SP_MIC_ERR[(e && e.code) || 'unsupported'] || '마이크를 시작하지 못했어요.');
+    }
+  }
   function spkFallback(why) {
     spkStop(); spkSelf = true; S.spkWhy = why + ' 이번에는 스스로 확인하는 방식으로 바꿀게요.';
     if (S.active && S.mode === 'speak' && !S.locked) renderSpeak(S.queue[S.idx]);
   }
   ACTIONS['spk-go'] = () => {
-    if (!S.active || S.locked || !SR) return;
+    if (!S.active || S.locked) return;
+    if (spkLocal(S.queue[S.idx].w)) return spkLocalGo(S.queue[S.idx]);
+    if (!SR) return;
     const item = S.queue[S.idx], out = $('spkOut'), btn = $('micBtn'); if (!out || !btn) return;
     spkStop();
     try { window.speechSynthesis.cancel(); } catch (e) {}
@@ -4700,7 +4868,8 @@ window.VOCA_CLOUD = {
     const base = S.baseCount != null ? S.baseCount : S.count;
     startSession(S.mode, S.src, 0, items); S.baseCount = base;
   };
-  ACTIONS.again = () => startSession(S.mode, S.src, S.baseCount != null ? S.baseCount : S.count);
+  // 다시 하기: 반 과제였으면 다시 푼 결과도 선생님에게 보내요(가장 높은 점수가 남아요)
+  ACTIONS.again = () => { const a = S.assign; startSession(S.mode, S.src, S.baseCount != null ? S.baseCount : S.count); if (S.active && a) S.assign = a; };
 
   async function exitSession(force) {
     if (!force && S.active && !S.finished && S.idx > 0 && S.mode !== 'listen') {
@@ -7369,7 +7538,7 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
         const scores = pool.map((rs, j) => {
           let k = rs.findIndex(y => y.uid != null && y.uid === m.uid); if (k < 0) k = rs.findIndex(y => y.uid == null && y.name === m.name && y.sno === m.sno);
           const x = k < 0 ? null : rs.splice(k, 1)[0], v = y => y != null ? y : '';
-          return asg[j].kind === 'speak' ? [x && x.submitted ? v(x.score) : '', v(x && x.ai_avg), v(x && x.t_avg)] : [x && x.score != null ? x.score : ''];
+          return asg[j].kind === 'speak' ? [x && x.submitted && (x.ai_n || x.t_avg != null || (x.mark && x.mark.score != null)) ? v(x.score) : '', v(x && x.ai_avg), v(x && x.t_avg)] : [x && x.score != null ? x.score : ''];
         });
         return [m.sno, m.name, p.last || '', p.n7 != null ? p.n7 : '', p.acc7 != null ? p.acc7 : '', p.streak || 0, p.total || 0, p.mastered || 0, `${m.done}/${asg.length}`].concat(...scores);
       });
@@ -7394,9 +7563,17 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
     if (typeof CompressionStream === 'function') { try { return 'z' + b64u(await zipBytes(raw)); } catch (e) {} }
     return 'j' + b64u(raw);
   }
+  // 받은 공유 링크 풀기: 링크는 1MB, 푼 내용은 4MB까지만(작게 압축한 거대한 링크로 기기를 멈추게 하는 것 막기)
+  const SHARE_MAX = 4 << 20;
+  async function shareInflate(u8) {
+    const rd = new Blob([u8]).stream().pipeThrough(new DecompressionStream('deflate-raw')).getReader(), out = []; let n = 0;
+    for (;;) { const { done, value } = await rd.read(); if (done) break; n += value.length; if (n > SHARE_MAX) { rd.cancel().catch(() => {}); throw new Error('too_big'); } out.push(value); }
+    const r = new Uint8Array(n); let o = 0; out.forEach(v => { r.set(v, o); o += v.length; }); return r;
+  }
   async function shareDecode(code) {
-    const t = String(code || ''), body = unb64u(t.slice(1));
-    const raw = t[0] === 'z' ? await zipBytes(body, true) : body;
+    const t = String(code || ''); if (t.length > 1 << 20) throw new Error('too_big');
+    const body = unb64u(t.slice(1));
+    const raw = t[0] === 'z' ? await shareInflate(body) : body;
     const o = JSON.parse(new TextDecoder().decode(raw));
     const words = (Array.isArray(o.w) ? o.w : []).filter(a => Array.isArray(a) && a[0]).slice(0, 2000).map(a => [String(a[0]).slice(0, 80), String(a[1] == null ? '' : a[1]).slice(0, 200)]); // 뜻이 빈 단어도 남겨요
     if (!words.length) throw new Error('empty');
@@ -7467,7 +7644,7 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
     auth: '로그인이 만료됐어요. 다시 로그인해 주세요.', missing: '우리 반 기능은 아직 준비 중이에요. 운영자가 서버 설정을 마치면 바로 쓸 수 있어요.',
     network: '서버에 연결하지 못했어요. 인터넷 연결을 확인해 주세요.', too_many_tries: '틀린 코드를 너무 많이 넣었어요. 내일 다시 시도하거나 선생님께 코드를 확인해 주세요.',
     too_big: '녹음이 너무 길어요. 조금 더 짧게 읽어 주세요.', bad_audio: '녹음 파일을 읽지 못했어요. 다시 녹음해 주세요.', not_done: '아직 녹음하지 않은 문항이 있어요.',
-    no_rec: '녹음을 찾지 못했어요. 60일이 지나 지워졌을 수 있어요.'
+    no_rec: '녹음을 찾지 못했어요. 60일이 지나 지워졌을 수 있어요.', too_fast: '문제를 너무 빨리 풀어서 받지 않았어요. 과제를 다시 열어 차근차근 풀어 주세요.'
   };
   const clMsg = e => e && e.code === 'sp_missing' ? SP_MISSING : CL_ERR[e && e.code] || '잠시 후 다시 시도해 주세요.';
   const CL_KIND = { test: '시험', study: '단어 학습', speak: '발음 평가' };
@@ -7554,7 +7731,7 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
   function clDraw() {
     const d = CLV.data, c = d.class, mem = d.members, asg = d.assignments;
     $('sheetTitle').textContent = c.name;
-    const head = `<div class="cl-code"><div><small>초대 코드</small><b>${esc(c.code)}</b></div><button class="btn btn-sm btn-soft" data-act="cl-copy" data-code="${esc(c.code)}">복사</button></div>
+    const head = `<div class="cl-code"><div><small>초대 코드</small><b>${esc(c.code)}</b></div><button class="btn btn-sm btn-soft" data-act="cl-copy" data-code="${esc(c.code)}">복사</button><button class="btn btn-sm btn-soft" data-act="cl-rot">새 코드</button></div>
       <button class="btn btn-primary btn-block lv-open" data-act="cl-live"><i class="lv-dot"></i>실시간 보기 (누가 들어와서 무엇을 하는지)</button>
       <p class="muted cl-p">학생은 홈의 '우리 반'에서 이 코드를 넣으면 들어와요. 만 14세 미만(이 기기에만 저장하는 계정)은 참여할 수 없어요.</p>
       <div class="seg"><button class="${CLV.tab === 'stu' ? 'on' : ''}" data-act="cl-tab" data-t="stu">학생 ${mem.length}명</button><button class="${CLV.tab === 'asg' ? 'on' : ''}" data-act="cl-tab" data-t="asg">과제 ${asg.length}개</button><button class="${CLV.tab === 'rank' ? 'on' : ''}" data-act="cl-tab" data-t="rank">랭킹</button></div>`;
@@ -7609,6 +7786,14 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
     const conf = Array.from({ length: 36 }, (_, i) => `<i style="left:${(i * 97) % 100}%;background:${RK_C[i % RK_C.length]};animation-delay:${-(i * 0.37) % 3.2}s;animation-duration:${2.6 + (i % 5) * 0.3}s"></i>`).join('');
     ov.innerHTML = `${ttTop(d.class.name + ' · 랭킹')}<div class="rk-conf">${conf}</div><div class="rk-big"><h2>${m === 'n7' ? '이번 주 우리 반 학습 왕' : `우리 반 ${esc(label)} 왕`}</h2><p class="rk-sub">${esc(d.class.name)} · 학생 ${d.members.length}명</p>${rkHtml(d.members, true)}</div>`;
   }
+  // 초대 코드 바꾸기: 코드가 밖으로 퍼졌거나 내보낸 학생이 다시 들어오려 할 때. 이미 들어온 학생은 그대로예요
+  ACTIONS['cl-rot'] = async el => {
+    const d = CLV && CLV.data; if (!d) return;
+    if (!await ask('초대 코드를 새로 바꿀까요?\n이미 들어온 학생은 그대로이고, 예전 코드로는 더 들어올 수 없어요.', { ok: '바꾸기' })) return;
+    el.disabled = true;
+    try { const r = await Cloud.call('voca_class_rotate_code', { p_class: d.class.id }); if (CLV && CLV.data === d) { d.class.code = r.code; clDraw(); } toast('새 초대 코드: ' + r.code); }
+    catch (e) { el.disabled = false; say(e && e.code === 'missing' ? '코드 바꾸기는 운영자가 Supabase에서 supabase_update_v12.sql을 실행하면 쓸 수 있어요.' : clMsg(e)); }
+  };
   ACTIONS['cl-copy'] = async el => { try { await navigator.clipboard.writeText(el.dataset.code); toast('초대 코드를 복사했어요.'); } catch (e) { toast('코드: ' + el.dataset.code); } };
   ACTIONS['cl-kick'] = async el => {
     if (!await ask(`${el.dataset.name || '이 학생'} 학생을 반에서 내보낼까요?\n이 반의 과제 결과도 함께 지워져요.`, { ok: '내보내기', danger: true })) return;
@@ -7711,6 +7896,17 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
       try { return await Cloud.ai(undefined, body, ms); }
       catch (e) { if (k >= 2 || !(e && [0, 408, 502, 503, 504].includes(e.status)) || !ok()) throw e; await new Promise(r => setTimeout(r, k ? 9000 : 4000)); }
     }
+  }
+  // 채점 AI: 기기 AI(무료, 이 컴퓨터에서 채점) 또는 Gemini(서버). 중국어는 Gemini만 돼요
+  const SP_V12 = '기기 AI 채점 점수를 저장하려면 운영자(선생님)가 Supabase SQL Editor에서 supabase_update_v12.sql을 한 번 실행해야 해요. 그 전에는 위에서 채점 AI를 Gemini로 바꿔 쓰세요.';
+  const spEngLocal = () => { if (!VPA.ok()) return false; try { return localStorage.getItem('vp_eng') !== 'ai'; } catch (e) { return true; } };
+  const spEngHtml = () => VPA.ok() ? `<div class="sp-eng"><span>채점 AI</span><div class="seg"><button class="${spEngLocal() ? 'on' : ''}" data-act="sp-eng" data-v="local">기기 AI (무료)</button><button class="${spEngLocal() ? '' : 'on'}" data-act="sp-eng" data-v="ai">Gemini (서버)</button></div></div>` : '';
+  ACTIONS['sp-eng'] = el => { const t = SPT; if (!t || t.q || t.frun) return; try { localStorage.setItem('vp_eng', el.dataset.v); } catch (e) {} spTDraw(); if (el.dataset.v === 'local') VPA.init().catch(() => {}); };
+  // 기기 AI 진행률(처음 한 번 모델 받기)
+  function spVpaProg(t) {
+    if (VPA.ready) return () => {};
+    const f = p => { const b = $('spEngP'); if (b && SPT === t) b.textContent = p < 100 ? `기기 AI 준비 중 ${p}% (처음 한 번만 약 ${VPA_MB}MB)` : ''; };
+    VPA.init(f).catch(() => {}); return () => { VPA.off(f); f(100); };
   }
   const spBySno = (a, b) => String(a.sno || '~').localeCompare(String(b.sno || '~'), 'ko', { numeric: true }) || String(a.name || '').localeCompare(String(b.name || ''), 'ko');
   const spTime = s => { const d = new Date(s); return !s || isNaN(d) ? '' : `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
@@ -8079,6 +8275,7 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
       <div class="sp-acts">${q ? `<button class="btn btn-primary" data-act="sp-gstop">${q.stop ? '멈추는 중...' : `AI 채점 중 ${q.i}/${q.list.length} · 멈추기`}</button>`
         : `<button class="btn btn-primary" data-act="sp-gall"${todo ? '' : ' disabled'}>${IC.sparkles} ${todo ? `전체 AI 채점 (${todo}명)` : sub.length ? '모두 AI 채점했어요' : '전체 AI 채점'}</button>`}<button class="btn btn-soft" data-act="sp-csv">${IC.download} CSV</button></div>
       ${q ? `<div class="sp-prog" role="progressbar" aria-valuenow="${q.i}" aria-valuemax="${q.list.length}"><i style="width:${Math.round(q.i / q.list.length * 100)}%"></i></div>` : ''}
+      ${spEngHtml()}<p class="muted sp-engp" id="spEngP" aria-live="polite"></p>
       <div class="seg sp-tabs"><button class="${t.tab === 'board' ? 'on' : ''}" data-act="sp-tab" data-t="board">제출 ${sub.length}</button><button class="${t.tab === 'list' ? 'on' : ''}" data-act="sp-tab" data-t="list">결과 목록</button><button class="${t.tab === 'file' ? 'on' : ''}" data-act="sp-tab" data-t="file">파일로 채점</button></div>`;
     const body = t.tab === 'list' ? spListHtml(t, items) : t.tab === 'file' ? spFileHtml(t, items) : spBoardHtml(t, items, rows);
     $('sheetBody').innerHTML = `<div class="form-stack cl sp sp-wide">${head}${body}
@@ -8159,16 +8356,37 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
   };
   async function spAiOne(t, uid, all, retry) {
     t.busy.add(uid); spTRender();
+    if (spEngLocal()) { try { return await spLocalOne(t, uid, all); } finally { t.busy.delete(uid); } }
     const body = { task: 'pron', assign: t.id, student: uid, all: !!all };
     try { return retry ? await spAiTry(body, 120000, () => SPT === t && !(t.q && t.q.stop)) : await Cloud.ai(undefined, body, 120000); }
     finally { t.busy.delete(uid); }
   }
+  // 기기 AI: 학생 녹음을 하나씩 받아 이 컴퓨터에서 채점하고 점수만 저장해요(AI 횟수 안 써요)
+  async function spLocalOne(t, uid, all) {
+    const m = (t.r.rows || []).find(x => x.uid === uid), its = spItems(t.r.assign);
+    const recs = ((m && m.items) || []).filter(r => r.audio && its[r.idx] && its[r.idx][0] && (all || r.ai_score == null));
+    if (recs.some(r => spLang(its[r.idx]) === 'zh')) throw { msg: '중국어 문항은 기기 AI로 채점할 수 없어요. 채점 AI를 Gemini로 바꿔 주세요.' };
+    if (!recs.length) return;
+    const out = [];
+    for (const r of recs) {
+      if (SPT !== t) return;
+      const x = await Cloud.call('voca_speak_audio', { p_assign: t.id, p_uid: uid, p_idx: r.idx });
+      let d; try { d = await spDecode(spUnB64(x.b64).buffer); } catch (e) { continue; }
+      const it = its[r.idx], o = (await VPA.score(d.y, [{ text: String(it[0]).slice(0, 200), kind: it[3] === 's' ? 's' : 'w', idx: r.idx }])).items[0];
+      out.push({ idx: r.idx, score: o.score, detail: { heard: String(o.heard || '').slice(0, 300), tips: String(o.tips || '').slice(0, 600), problems: (o.problems || []).slice(0, 8), acc: o.acc, flu: o.flu, comp: o.comp } });
+    }
+    if (!out.length) throw { msg: '녹음 파일을 읽지 못했어요.' };
+    if (SPT === t) await Cloud.call('voca_speak_set_local', { p_assign: t.id, p_uid: uid, p_items: out });
+  }
+  const spLocalMsg = e => e && e.msg ? e.msg : e && e.code === 'missing' ? SP_V12 : e && e.code === 'too_many' ? '한 시간 채점 한도(2,000문항)를 넘었어요. 잠시 후 다시 해 주세요.' : e && /음성 AI|브라우저/.test(e.message || '') ? e.message : spMsg(e);
   ACTIONS['sp-grade1'] = async el => {
     const t = SPT, uid = el.dataset.uid, x = t && (t.r.rows || []).find(y => y.uid === uid); if (!x || t.busy.has(uid) || t.q) return;
-    const all = x.n > 0 && x.ai_n >= x.n;
-    if (all && !await ask(`${x.name || '이 학생'} 학생의 녹음을 AI로 다시 채점할까요?\n선생님이 넣은 점수는 그대로 남아요. AI 1회를 써요.`, { ok: '다시 채점' })) return;
+    const all = x.n > 0 && x.ai_n >= x.n, loc = spEngLocal();
+    if (all && !await ask(`${x.name || '이 학생'} 학생의 녹음을 AI로 다시 채점할까요?\n선생님이 넣은 점수는 그대로 남아요.${loc ? ' 이 컴퓨터에서 채점해요(무료).' : ' AI 1회를 써요.'}`, { ok: '다시 채점' })) return;
+    const done = loc ? spVpaProg(t) : () => {};
     try { await spAiOne(t, uid, all); if (SPT === t) toast(`${x.name || '학생'} 학생을 AI로 채점했어요.`); }
-    catch (e) { if (SPT === t) say('AI 채점을 하지 못했어요. ' + spAiMsg(e)); }
+    catch (e) { if (SPT === t) say('AI 채점을 하지 못했어요. ' + (loc ? spLocalMsg(e) : spAiMsg(e))); }
+    finally { done(); }
     if (SPT === t) await spPoll(t, true);
   };
   // 전체 AI 채점: 채점 안 된 문항이 있는 제출 학생을 학번 순서로 4명씩 동시에 (학생마다 Gemini 1번 = AI 1회)
@@ -8176,21 +8394,25 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
     const t = SPT; if (!t || t.q) return;
     const list = (t.r.rows || []).filter(x => x.submitted && x.n > (x.ai_n || 0)).sort(spBySno);
     if (!list.length) return toast('채점할 녹음이 없어요.');
-    if (!await ask(`제출한 학생 ${list.length}명의 녹음을 AI로 채점할까요?\n학생마다 AI 1회씩 모두 ${list.length}회를 써요(선생님 하루 200회까지). ${SP_PAR}명씩 동시에 채점해서 30명이면 3~5분쯤 걸려요. 이 화면을 열어 두세요.`, { ok: '채점하기' }) || SPT !== t || t.q) return;
+    const loc = spEngLocal();
+    if (!await ask(loc ? `제출한 학생 ${list.length}명의 녹음을 기기 AI로 채점할까요?\n이 컴퓨터에서 채점해서 AI 횟수를 쓰지 않아요(무료). 처음 한 번은 음성 AI(약 ${VPA_MB}MB)를 받아요. 이 화면을 열어 두세요.`
+      : `제출한 학생 ${list.length}명의 녹음을 AI로 채점할까요?\n학생마다 AI 1회씩 모두 ${list.length}회를 써요(선생님 하루 200회까지). ${SP_PAR}명씩 동시에 채점해서 30명이면 3~5분쯤 걸려요. 이 화면을 열어 두세요.`, { ok: '채점하기' }) || SPT !== t || t.q) return;
     const q = t.q = { list, i: 0, ok: 0, fail: 0, stop: false }; spTRender();
-    let polled = 0;
-    await spPool(list, SP_PAR, async x => {
+    let polled = 0; const done = loc ? spVpaProg(t) : () => {};
+    await spPool(list, loc ? 2 : SP_PAR, async x => {
       if (q.stop || SPT !== t) return;
       try { await spAiOne(t, x.uid, false, true); q.ok++; }
       catch (e) {
         if (SPT !== t) return;
         q.fail++;
-        if (e && (e.status === 429 || e.status === 403 || e.status === 400 || e.status === 413 || e.code === 'missing') && !q.stop) { q.stop = true; say('AI 채점을 멈췄어요. ' + spAiMsg(e)); }
+        if (loc) { if (!q.stop && (e && (e.msg || e.code === 'missing' || e.code === 'too_many' || /음성 AI|브라우저/.test(e.message || '')))) { q.stop = true; say('AI 채점을 멈췄어요. ' + spLocalMsg(e)); } }
+        else if (e && (e.status === 429 || e.status === 403 || e.status === 400 || e.status === 413 || e.code === 'missing') && !q.stop) { q.stop = true; say('AI 채점을 멈췄어요. ' + spAiMsg(e)); }
       }
       q.i++;
       // 점수 새로 고침은 2초에 한 번만 (동시에 끝난 학생들을 한 번에)
       if (SPT === t && Date.now() - polled > 2000) { polled = Date.now(); await spPoll(t, true); } else if (SPT === t) spTRender();
     });
+    done();
     if (SPT !== t) return;
     await spPoll(t, true); if (SPT !== t) return;
     t.q = null; spTRender();
@@ -8337,17 +8559,26 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
     const t = SPT; if (!t || t.frun) return;
     const q = spfItems(t); if (!q.length) return toast('채점할 문장을 넣어 주세요.');
     const list = t.files.filter(f => f.st === 'wait' || f.st === 'err'); if (!list.length) return;
-    if (list.length > 1 && (!await ask(`파일 ${list.length}개를 AI로 채점할까요?\n파일마다 AI 1회씩 모두 ${list.length}회를 써요(선생님 하루 200회까지). 이 화면을 열어 두세요.`, { ok: '채점하기' }) || SPT !== t || t.frun)) return;
+    const loc = spEngLocal() && !q.some(x => x.lang === 'zh');
+    if (spEngLocal() && !loc && !await ask('중국어 문항은 기기 AI로 채점할 수 없어서 이번에는 Gemini(서버)로 채점해요. 계속할까요?', { ok: '채점하기' })) return;
+    if (list.length > 1 && (!await ask(loc ? `파일 ${list.length}개를 기기 AI로 채점할까요?\n이 컴퓨터에서 채점해서 AI 횟수를 쓰지 않아요(무료). 이 화면을 열어 두세요.` : `파일 ${list.length}개를 AI로 채점할까요?\n파일마다 AI 1회씩 모두 ${list.length}회를 써요(선생님 하루 200회까지). 이 화면을 열어 두세요.`, { ok: '채점하기' }) || SPT !== t || t.frun)) return;
     t.frun = { n: list.length, i: 0, stop: false }; spTDraw();
-    const fr = t.frun, live = () => SPT === t && !fr.stop;
-    // 파일 4개씩 동시에: MP3로 바꾸기와 AI 채점이 겹쳐 돌아가요
-    await spPool(list, SP_PAR, async f => {
+    const fr = t.frun, live = () => SPT === t && !fr.stop, done = loc ? spVpaProg(t) : () => {};
+    // Gemini: 파일 4개씩 동시에(MP3로 바꾸기와 AI 채점이 겹쳐 돌아가요). 기기 AI: 2개씩(읽기와 채점이 겹쳐요)
+    await spPool(list, loc ? 2 : SP_PAR, async f => {
       if (!live()) return;
       if (!f.data) { f.msg = '파일을 다시 넣어 주세요.'; spfSet(f, 'err'); fr.i++; return spfProg(t); }
       try {
         spfSet(f, 'read');
         let d; try { const buf = f.data instanceof Uint8Array ? f.data.slice().buffer : await f.data.arrayBuffer(); d = await spDecode(buf); } catch (e) { throw { msg: '이 파일은 읽지 못했어요' }; }
         const pcm = spTrim(d.y); if (!pcm) throw { msg: '소리가 거의 없어요' };
+        if (loc) {
+          if (!live()) { spfSet(f, 'wait'); return; }
+          spfSet(f, 'grade');
+          const r = await VPA.score(d.y, q.map((x, idx) => ({ text: x.text, kind: x.kind, idx })));
+          Object.assign(f, { res: r.items.filter(x => x && typeof x === 'object'), q: q.map(x => x.text), at: Date.now(), long: d.sec > SP_FILE_SEC }); delete f.data;
+          spfSet(f, 'done'); spfSave(t); fr.i++; return spfProg(t);
+        }
         let u8; try { u8 = await spMp3(pcm.y); } catch (e) { throw { msg: 'MP3로 바꾸지 못했어요' }; }
         if (!live()) { spfSet(f, 'wait'); return; }
         spfSet(f, 'grade');
@@ -8357,11 +8588,13 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
         spfSet(f, 'done'); spfSave(t);
       } catch (e) {
         if (SPT !== t) return;
-        f.msg = e && e.msg ? e.msg : spAiMsg(e); spfSet(f, 'err');
-        if (e && (e.status === 429 || e.status === 403 || e.status === 400 || e.status === 413 || e.code === 'missing') && !fr.stop) { fr.stop = true; say('파일 채점을 멈췄어요. ' + spAiMsg(e)); }
+        f.msg = e && e.msg ? e.msg : loc ? spLocalMsg(e) : spAiMsg(e); spfSet(f, 'err');
+        if (loc && !e.msg && !fr.stop) { fr.stop = true; say('파일 채점을 멈췄어요. ' + spLocalMsg(e)); }
+        if (!loc && e && (e.status === 429 || e.status === 403 || e.status === 400 || e.status === 413 || e.code === 'missing') && !fr.stop) { fr.stop = true; say('파일 채점을 멈췄어요. ' + spAiMsg(e)); }
       }
       fr.i++; spfProg(t);
     });
+    done();
     list.forEach(f => { if (f.st === 'read' || f.st === 'grade') spfSet(f, 'wait'); });
     if (SPT !== t) return;
     t.frun = false; spTRender();
@@ -8596,8 +8829,8 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
 - Google LLC (미국, https://policies.google.com/privacy): AI 완성·번역을 누를 때 입력한 영어·중국어 단어나 문장을, 선생님이 발음 평가 AI 채점을 누를 때 학생 녹음(음성)과 읽을 단어·문장을(선생님이 직접 넣은 녹음 파일은 채점에만 쓰고 운영자 서버에 저장하지 않습니다), '글·사진에서 단어 뽑기'에서 사진 속 글자 읽기를 누를 때 고른 사진(줄인 JPEG)을, 문맥 뜻 채우기를 켜고 단어를 넣을 때 고른 단어와 글 속 문장을 보냅니다. 사진은 운영자 서버에 저장하지 않습니다. 아이디 등 계정 정보는 보내지 않습니다. 목적은 AI 결과 생성이며, 보유 기간은 Google의 Gemini API 약관을 따릅니다.
 - Cloudflare, Inc. (미국, privacyquestions@cloudflare.com): 서비스에 접속할 때 IP 주소, 브라우저 정보가 전송됩니다. 목적은 웹앱 전송이며, 보유 기간은 Cloudflare의 기록 보관 기간을 따릅니다.
 - Translated srl, MyMemory (이탈리아, https://mymemory.translated.net): AI 번역을 쓸 수 없을 때 번역할 문장을 보냅니다. 목적은 번역 결과 생성입니다.
-- jsDelivr (Prospect One, 폴란드, https://www.jsdelivr.com/terms/privacy-policy-jsdelivr-net): 글꼴 파일을 받을 때 IP 주소가 전송됩니다.
 - Supabase, Inc. (서버 위치: ${region}): 서버 위치가 국외인 경우 제2조의 계정·학습 정보가 그 국가에 저장됩니다.
+말하기 연습과, 선생님이 발음 평가에서 '기기 AI (무료)'로 채점할 때는 음성을 외부로 보내지 않고 이용자 기기(브라우저) 안에서 처리합니다. 이때 기기 AI가 매긴 점수와 들은 말만 운영자 서버에 저장합니다.
 이전을 원하지 않으면 AI 완성과 번역을 쓰지 않으면 됩니다. 내장 사전에 있는 단어는 외부로 보내지 않고 기기 안에서 채웁니다. 다만 접속 기록과 계정 정보 저장은 서비스 제공에 꼭 필요해 거부하면 서비스를 이용할 수 없습니다.
 이용자가 설정에서 직접 입력한 AI 키로 이용하는 경우, 입력한 단어와 문장은 이용자 기기에서 해당 AI 제공자(Google, OpenAI, xAI, Anthropic)로 바로 전송되며 운영자 서버를 거치지 않습니다. 이 키는 이용자 기기에만 저장합니다.`],
         ['제7조 개인정보의 파기 절차 및 방법', `보유 기간이 끝나거나 처리 목적을 이루면 지체 없이 파기합니다.
@@ -8675,7 +8908,13 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
         ['제14조 (책임의 제한)', '운영자는 천재지변, 외부 서비스 장애, 회원의 잘못으로 생긴 손해에는 책임을 지지 않습니다. 내장 사전과 AI 결과의 정확성, 학습 성과는 보장하지 않습니다. 다만 운영자의 고의나 중대한 과실로 생긴 손해는 관련 법령에 따라 책임을 집니다.'],
         ['제15조 (회원에 대한 통지)', '운영자는 앱 안 공지로 회원에게 알립니다. 서비스는 회원의 연락처를 받지 않으므로 개별 통지가 필요한 경우에도 앱 안 알림으로 합니다.'],
         ['제16조 (분쟁 해결과 준거법)', `서비스 이용과 관련한 분쟁은 먼저 이메일(${mail})로 협의해 해결합니다. 협의가 되지 않으면 대한민국 법을 적용하며, 관할 법원은 「민사소송법」에 따라 정합니다.`],
-        ['부칙', `이 약관은 ${I.effective}부터 시행합니다.`]]]
+        ['부칙', `이 약관은 ${I.effective}부터 시행합니다.`]]],
+      oss: ['오픈소스 고지', '서비스는 다음 오픈소스 소프트웨어와 자료를 바꾸지 않고 함께 씁니다. 각 라이선스 전문은 아래 주소에서 볼 수 있습니다.', [
+        ['기기 음성 AI', `- 음성 인식 모델: NVIDIA NeMo stt_en_conformer_ctc_small (CC BY 4.0, https://catalog.ngc.nvidia.com/orgs/nvidia/teams/nemo/models/stt_en_conformer_ctc_small). k2-fsa/sherpa-onnx가 ONNX로 바꾸고 int8로 줄인 파일을 씁니다(Apache-2.0, https://github.com/k2-fsa/sherpa-onnx).
+- ONNX Runtime Web 1.20.1 (Copyright (c) Microsoft Corporation, MIT License, https://github.com/microsoft/onnxruntime)`],
+        ['녹음 · 파일', `- lamejs 1.2.1 (LGPL-3.0, https://github.com/zhuker/lamejs): 녹음을 MP3로 바꿉니다. 바꾸지 않은 파일을 따로 불러오며, 이용자는 이 파일을 다른 버전으로 바꿔 쓸 수 있습니다.
+- fflate 0.8.2 (MIT License, https://github.com/101arrowz/fflate): zip 파일을 풉니다.`],
+        ['글꼴', '- Pretendard 1.3.9 (Copyright (c) 2021 Kil Hyung-jin, SIL Open Font License 1.1, https://github.com/orioncactus/pretendard)']]]
     };
   }
   function legalHtml(t) {
@@ -8694,7 +8933,7 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
     ov.addEventListener('click', e => { if (e.target.closest('[data-lg]')) ov.remove(); });
     document.body.appendChild(ov);
   };
-  function legalLinksHtml() { return '<div class="legal-links"><a class="lg-a" data-act="legal" data-k="terms">이용약관</a> · <a class="lg-a" data-act="legal" data-k="privacy">개인정보 처리방침</a></div>'; }
+  function legalLinksHtml() { return '<div class="legal-links"><a class="lg-a" data-act="legal" data-k="terms">이용약관</a> · <a class="lg-a" data-act="legal" data-k="privacy">개인정보 처리방침</a> · <a class="lg-a" data-act="legal" data-k="oss">오픈소스 고지</a></div>'; }
 
 
   function flowEntryHtml() { return `<button class="mg-entry" data-act="flow"><span class="mg-ico">${IC.repeat}</span><span class="mg-txt"><b>4단계 집중 학습</b><small>보기, 고르기, 쓰기, 시험으로 확실하게</small></span><span class="mg-chev"></span></button>`; }
@@ -8708,8 +8947,17 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
     spell: [['Enter', '확인 · 다음'], ['Esc', '나가기']],
     listen: [['Space', '재생 · 정지'], ['← →', '이전 · 다음'], ['Esc', '나가기']]
   };
-  KBD.lchoice = KBD.choice; KBD.mix = [['1~4', '고르기'], ['Enter', '확인 · 다음'], ['Esc', '나가기']]; KBD.scramble = [['Esc', '나가기']];
+  KBD.lchoice = KBD.choice; KBD.mix = [['1~4', '고르기'], ['Enter', '확인 · 다음'], ['Esc', '나가기']]; KBD.scramble = [['A~Z', '글자 넣기'], ['⌫', '한 글자 지우기'], ['Esc', '나가기']];
   KBD.rchoice = KBD.choice; KBD.dict = KBD.spell; KBD.test = [['1~4', '고르기'], ['Enter', '제출'], ['Esc', '나가기']]; KBD.cloze = KBD.choice;
+  // PC: 스크롤하면 위 바에 선, '/' 또는 Ctrl+K 로 단어 검색
+  let scrolledOn = false;
+  window.addEventListener('scroll', () => { const on = window.scrollY > 4; if (on !== scrolledOn) { scrolledOn = on; document.body.classList.toggle('scrolled', on); } }, { passive: true });
+  document.addEventListener('keydown', e => {
+    const t = e.target, typing = t && (/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.isContentEditable);
+    const k = (e.key === '/' && !e.ctrlKey && !e.metaKey && !e.altKey && !typing) || ((e.ctrlKey || e.metaKey) && !e.altKey && (e.key === 'k' || e.key === 'K'));
+    if (!k || e.isComposing || document.querySelector('.dlg-ov') || $('authScreen').style.display !== 'none' || $('studyScreen').classList.contains('open') || $('sheetOv').classList.contains('open') || $('trOv') || $('lgOv') || $('obOv')) return;
+    e.preventDefault(); ACTIONS['dict-open']();
+  });
   function kbdHint(mode) { const el = $('kbdHint'); if (el) el.innerHTML = (KBD[mode] || []).map(([k, t]) => `<span><kbd>${k}</kbd>${t}</span>`).join(''); }
   document.addEventListener('keydown', e => {
     if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
@@ -8732,6 +8980,17 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
       return;
     }
     if (typing || $('trOv') || $('lgOv')) return;
+    // 철자 퍼즐: 글자를 키보드로 쳐도 그 글자 타일이 눌려요. Backspace는 한 글자 지우기
+    if (study && S.active && !S.finished && !S.locked && S.scr && $('scrTiles') && !isHanWord(S.queue[S.idx].w.word)) {
+      if (e.key === 'Backspace') { e.preventDefault(); ACTIONS['scr-back'](); return; }
+      if ([...e.key].length === 1 && e.key !== ' ') {
+        const s = S.scr, k = e.key.toLowerCase(), i = s.order.find(j => !s.picked.includes(j) && s.letters[j].toLowerCase() === k);
+        e.preventDefault();
+        if (i != null) ACTIONS['scr-pick']({ dataset: { i: String(i) } });
+        else { const tl = $('scrTiles'); tl.classList.remove('nope'); void tl.offsetWidth; tl.classList.add('nope'); }
+        return;
+      }
+    }
     if (/^[1-4]$/.test(e.key)) {
       const scope = $('flOv') || $('ltOv') || (study ? $('stBody') : null);
       const b = scope && scope.querySelectorAll('.opt')[+e.key - 1];
@@ -8756,16 +9015,6 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
   if ('speechSynthesis' in window) { try { window.speechSynthesis.getVoices(); } catch (e) {} }
   try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
   if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
-  /* 예전 주소(hijujuwon.kro.kr)로 들어오면 새 주소 안내. 기기에만 저장한 데이터는 주소마다 따로라 바로 넘기지 않고 백업 방법을 알려 줘요. */
-  const NEW_HOST = 'vocapro.kro.kr';
-  // 새 주소 DNS가 아직 연결되지 않아(NXDOMAIN) 안내를 잠시 꺼 둬요. vocapro.kro.kr 이 열리면 true 로 바꾸세요.
-  const MOVE_READY = false;
-  if (MOVE_READY && location.hostname === 'hijujuwon.kro.kr') {
-    const bar = document.createElement('div'); bar.className = 'move-bar'; bar.setAttribute('role', 'status');
-    bar.innerHTML = `<div><b>주소가 ${NEW_HOST} 로 바뀌었어요</b><small>서버 계정은 새 주소에서 같은 아이디로 로그인하면 그대로예요. 이 기기에만 저장한 계정은 설정 > 백업 파일 내려받기를 한 뒤 새 주소에서 불러오세요.</small></div><a class="btn btn-primary btn-sm" href="https://${NEW_HOST}/">새 주소로 가기</a><button class="move-x" aria-label="닫기">${IC.x}</button>`;
-    bar.querySelector('.move-x').addEventListener('click', () => bar.remove());
-    document.body.appendChild(bar);
-  }
   let deferredInstall = null;
   window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredInstall = e; });
   ACTIONS.install = async () => {

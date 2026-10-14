@@ -23,6 +23,17 @@
       catch (e) { if (k >= 2 || !(e && [0, 408, 502, 503, 504].includes(e.status)) || !ok()) throw e; await new Promise(r => setTimeout(r, k ? 9000 : 4000)); }
     }
   }
+  // 채점 AI: 기기 AI(무료, 이 컴퓨터에서 채점) 또는 Gemini(서버). 중국어는 Gemini만 돼요
+  const SP_V12 = '기기 AI 채점 점수를 저장하려면 운영자(선생님)가 Supabase SQL Editor에서 supabase_update_v12.sql을 한 번 실행해야 해요. 그 전에는 위에서 채점 AI를 Gemini로 바꿔 쓰세요.';
+  const spEngLocal = () => { if (!VPA.ok()) return false; try { return localStorage.getItem('vp_eng') !== 'ai'; } catch (e) { return true; } };
+  const spEngHtml = () => VPA.ok() ? `<div class="sp-eng"><span>채점 AI</span><div class="seg"><button class="${spEngLocal() ? 'on' : ''}" data-act="sp-eng" data-v="local">기기 AI (무료)</button><button class="${spEngLocal() ? '' : 'on'}" data-act="sp-eng" data-v="ai">Gemini (서버)</button></div></div>` : '';
+  ACTIONS['sp-eng'] = el => { const t = SPT; if (!t || t.q || t.frun) return; try { localStorage.setItem('vp_eng', el.dataset.v); } catch (e) {} spTDraw(); if (el.dataset.v === 'local') VPA.init().catch(() => {}); };
+  // 기기 AI 진행률(처음 한 번 모델 받기)
+  function spVpaProg(t) {
+    if (VPA.ready) return () => {};
+    const f = p => { const b = $('spEngP'); if (b && SPT === t) b.textContent = p < 100 ? `기기 AI 준비 중 ${p}% (처음 한 번만 약 ${VPA_MB}MB)` : ''; };
+    VPA.init(f).catch(() => {}); return () => { VPA.off(f); f(100); };
+  }
   const spBySno = (a, b) => String(a.sno || '~').localeCompare(String(b.sno || '~'), 'ko', { numeric: true }) || String(a.name || '').localeCompare(String(b.name || ''), 'ko');
   const spTime = s => { const d = new Date(s); return !s || isNaN(d) ? '' : `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
   let SP = null; // 학생 녹음 화면 상태
@@ -390,6 +401,7 @@
       <div class="sp-acts">${q ? `<button class="btn btn-primary" data-act="sp-gstop">${q.stop ? '멈추는 중...' : `AI 채점 중 ${q.i}/${q.list.length} · 멈추기`}</button>`
         : `<button class="btn btn-primary" data-act="sp-gall"${todo ? '' : ' disabled'}>${IC.sparkles} ${todo ? `전체 AI 채점 (${todo}명)` : sub.length ? '모두 AI 채점했어요' : '전체 AI 채점'}</button>`}<button class="btn btn-soft" data-act="sp-csv">${IC.download} CSV</button></div>
       ${q ? `<div class="sp-prog" role="progressbar" aria-valuenow="${q.i}" aria-valuemax="${q.list.length}"><i style="width:${Math.round(q.i / q.list.length * 100)}%"></i></div>` : ''}
+      ${spEngHtml()}<p class="muted sp-engp" id="spEngP" aria-live="polite"></p>
       <div class="seg sp-tabs"><button class="${t.tab === 'board' ? 'on' : ''}" data-act="sp-tab" data-t="board">제출 ${sub.length}</button><button class="${t.tab === 'list' ? 'on' : ''}" data-act="sp-tab" data-t="list">결과 목록</button><button class="${t.tab === 'file' ? 'on' : ''}" data-act="sp-tab" data-t="file">파일로 채점</button></div>`;
     const body = t.tab === 'list' ? spListHtml(t, items) : t.tab === 'file' ? spFileHtml(t, items) : spBoardHtml(t, items, rows);
     $('sheetBody').innerHTML = `<div class="form-stack cl sp sp-wide">${head}${body}
@@ -470,16 +482,37 @@
   };
   async function spAiOne(t, uid, all, retry) {
     t.busy.add(uid); spTRender();
+    if (spEngLocal()) { try { return await spLocalOne(t, uid, all); } finally { t.busy.delete(uid); } }
     const body = { task: 'pron', assign: t.id, student: uid, all: !!all };
     try { return retry ? await spAiTry(body, 120000, () => SPT === t && !(t.q && t.q.stop)) : await Cloud.ai(undefined, body, 120000); }
     finally { t.busy.delete(uid); }
   }
+  // 기기 AI: 학생 녹음을 하나씩 받아 이 컴퓨터에서 채점하고 점수만 저장해요(AI 횟수 안 써요)
+  async function spLocalOne(t, uid, all) {
+    const m = (t.r.rows || []).find(x => x.uid === uid), its = spItems(t.r.assign);
+    const recs = ((m && m.items) || []).filter(r => r.audio && its[r.idx] && its[r.idx][0] && (all || r.ai_score == null));
+    if (recs.some(r => spLang(its[r.idx]) === 'zh')) throw { msg: '중국어 문항은 기기 AI로 채점할 수 없어요. 채점 AI를 Gemini로 바꿔 주세요.' };
+    if (!recs.length) return;
+    const out = [];
+    for (const r of recs) {
+      if (SPT !== t) return;
+      const x = await Cloud.call('voca_speak_audio', { p_assign: t.id, p_uid: uid, p_idx: r.idx });
+      let d; try { d = await spDecode(spUnB64(x.b64).buffer); } catch (e) { continue; }
+      const it = its[r.idx], o = (await VPA.score(d.y, [{ text: String(it[0]).slice(0, 200), kind: it[3] === 's' ? 's' : 'w', idx: r.idx }])).items[0];
+      out.push({ idx: r.idx, score: o.score, detail: { heard: String(o.heard || '').slice(0, 300), tips: String(o.tips || '').slice(0, 600), problems: (o.problems || []).slice(0, 8), acc: o.acc, flu: o.flu, comp: o.comp } });
+    }
+    if (!out.length) throw { msg: '녹음 파일을 읽지 못했어요.' };
+    if (SPT === t) await Cloud.call('voca_speak_set_local', { p_assign: t.id, p_uid: uid, p_items: out });
+  }
+  const spLocalMsg = e => e && e.msg ? e.msg : e && e.code === 'missing' ? SP_V12 : e && e.code === 'too_many' ? '한 시간 채점 한도(2,000문항)를 넘었어요. 잠시 후 다시 해 주세요.' : e && /음성 AI|브라우저/.test(e.message || '') ? e.message : spMsg(e);
   ACTIONS['sp-grade1'] = async el => {
     const t = SPT, uid = el.dataset.uid, x = t && (t.r.rows || []).find(y => y.uid === uid); if (!x || t.busy.has(uid) || t.q) return;
-    const all = x.n > 0 && x.ai_n >= x.n;
-    if (all && !await ask(`${x.name || '이 학생'} 학생의 녹음을 AI로 다시 채점할까요?\n선생님이 넣은 점수는 그대로 남아요. AI 1회를 써요.`, { ok: '다시 채점' })) return;
+    const all = x.n > 0 && x.ai_n >= x.n, loc = spEngLocal();
+    if (all && !await ask(`${x.name || '이 학생'} 학생의 녹음을 AI로 다시 채점할까요?\n선생님이 넣은 점수는 그대로 남아요.${loc ? ' 이 컴퓨터에서 채점해요(무료).' : ' AI 1회를 써요.'}`, { ok: '다시 채점' })) return;
+    const done = loc ? spVpaProg(t) : () => {};
     try { await spAiOne(t, uid, all); if (SPT === t) toast(`${x.name || '학생'} 학생을 AI로 채점했어요.`); }
-    catch (e) { if (SPT === t) say('AI 채점을 하지 못했어요. ' + spAiMsg(e)); }
+    catch (e) { if (SPT === t) say('AI 채점을 하지 못했어요. ' + (loc ? spLocalMsg(e) : spAiMsg(e))); }
+    finally { done(); }
     if (SPT === t) await spPoll(t, true);
   };
   // 전체 AI 채점: 채점 안 된 문항이 있는 제출 학생을 학번 순서로 4명씩 동시에 (학생마다 Gemini 1번 = AI 1회)
@@ -487,21 +520,25 @@
     const t = SPT; if (!t || t.q) return;
     const list = (t.r.rows || []).filter(x => x.submitted && x.n > (x.ai_n || 0)).sort(spBySno);
     if (!list.length) return toast('채점할 녹음이 없어요.');
-    if (!await ask(`제출한 학생 ${list.length}명의 녹음을 AI로 채점할까요?\n학생마다 AI 1회씩 모두 ${list.length}회를 써요(선생님 하루 200회까지). ${SP_PAR}명씩 동시에 채점해서 30명이면 3~5분쯤 걸려요. 이 화면을 열어 두세요.`, { ok: '채점하기' }) || SPT !== t || t.q) return;
+    const loc = spEngLocal();
+    if (!await ask(loc ? `제출한 학생 ${list.length}명의 녹음을 기기 AI로 채점할까요?\n이 컴퓨터에서 채점해서 AI 횟수를 쓰지 않아요(무료). 처음 한 번은 음성 AI(약 ${VPA_MB}MB)를 받아요. 이 화면을 열어 두세요.`
+      : `제출한 학생 ${list.length}명의 녹음을 AI로 채점할까요?\n학생마다 AI 1회씩 모두 ${list.length}회를 써요(선생님 하루 200회까지). ${SP_PAR}명씩 동시에 채점해서 30명이면 3~5분쯤 걸려요. 이 화면을 열어 두세요.`, { ok: '채점하기' }) || SPT !== t || t.q) return;
     const q = t.q = { list, i: 0, ok: 0, fail: 0, stop: false }; spTRender();
-    let polled = 0;
-    await spPool(list, SP_PAR, async x => {
+    let polled = 0; const done = loc ? spVpaProg(t) : () => {};
+    await spPool(list, loc ? 2 : SP_PAR, async x => {
       if (q.stop || SPT !== t) return;
       try { await spAiOne(t, x.uid, false, true); q.ok++; }
       catch (e) {
         if (SPT !== t) return;
         q.fail++;
-        if (e && (e.status === 429 || e.status === 403 || e.status === 400 || e.status === 413 || e.code === 'missing') && !q.stop) { q.stop = true; say('AI 채점을 멈췄어요. ' + spAiMsg(e)); }
+        if (loc) { if (!q.stop && (e && (e.msg || e.code === 'missing' || e.code === 'too_many' || /음성 AI|브라우저/.test(e.message || '')))) { q.stop = true; say('AI 채점을 멈췄어요. ' + spLocalMsg(e)); } }
+        else if (e && (e.status === 429 || e.status === 403 || e.status === 400 || e.status === 413 || e.code === 'missing') && !q.stop) { q.stop = true; say('AI 채점을 멈췄어요. ' + spAiMsg(e)); }
       }
       q.i++;
       // 점수 새로 고침은 2초에 한 번만 (동시에 끝난 학생들을 한 번에)
       if (SPT === t && Date.now() - polled > 2000) { polled = Date.now(); await spPoll(t, true); } else if (SPT === t) spTRender();
     });
+    done();
     if (SPT !== t) return;
     await spPoll(t, true); if (SPT !== t) return;
     t.q = null; spTRender();
@@ -648,17 +685,26 @@
     const t = SPT; if (!t || t.frun) return;
     const q = spfItems(t); if (!q.length) return toast('채점할 문장을 넣어 주세요.');
     const list = t.files.filter(f => f.st === 'wait' || f.st === 'err'); if (!list.length) return;
-    if (list.length > 1 && (!await ask(`파일 ${list.length}개를 AI로 채점할까요?\n파일마다 AI 1회씩 모두 ${list.length}회를 써요(선생님 하루 200회까지). 이 화면을 열어 두세요.`, { ok: '채점하기' }) || SPT !== t || t.frun)) return;
+    const loc = spEngLocal() && !q.some(x => x.lang === 'zh');
+    if (spEngLocal() && !loc && !await ask('중국어 문항은 기기 AI로 채점할 수 없어서 이번에는 Gemini(서버)로 채점해요. 계속할까요?', { ok: '채점하기' })) return;
+    if (list.length > 1 && (!await ask(loc ? `파일 ${list.length}개를 기기 AI로 채점할까요?\n이 컴퓨터에서 채점해서 AI 횟수를 쓰지 않아요(무료). 이 화면을 열어 두세요.` : `파일 ${list.length}개를 AI로 채점할까요?\n파일마다 AI 1회씩 모두 ${list.length}회를 써요(선생님 하루 200회까지). 이 화면을 열어 두세요.`, { ok: '채점하기' }) || SPT !== t || t.frun)) return;
     t.frun = { n: list.length, i: 0, stop: false }; spTDraw();
-    const fr = t.frun, live = () => SPT === t && !fr.stop;
-    // 파일 4개씩 동시에: MP3로 바꾸기와 AI 채점이 겹쳐 돌아가요
-    await spPool(list, SP_PAR, async f => {
+    const fr = t.frun, live = () => SPT === t && !fr.stop, done = loc ? spVpaProg(t) : () => {};
+    // Gemini: 파일 4개씩 동시에(MP3로 바꾸기와 AI 채점이 겹쳐 돌아가요). 기기 AI: 2개씩(읽기와 채점이 겹쳐요)
+    await spPool(list, loc ? 2 : SP_PAR, async f => {
       if (!live()) return;
       if (!f.data) { f.msg = '파일을 다시 넣어 주세요.'; spfSet(f, 'err'); fr.i++; return spfProg(t); }
       try {
         spfSet(f, 'read');
         let d; try { const buf = f.data instanceof Uint8Array ? f.data.slice().buffer : await f.data.arrayBuffer(); d = await spDecode(buf); } catch (e) { throw { msg: '이 파일은 읽지 못했어요' }; }
         const pcm = spTrim(d.y); if (!pcm) throw { msg: '소리가 거의 없어요' };
+        if (loc) {
+          if (!live()) { spfSet(f, 'wait'); return; }
+          spfSet(f, 'grade');
+          const r = await VPA.score(d.y, q.map((x, idx) => ({ text: x.text, kind: x.kind, idx })));
+          Object.assign(f, { res: r.items.filter(x => x && typeof x === 'object'), q: q.map(x => x.text), at: Date.now(), long: d.sec > SP_FILE_SEC }); delete f.data;
+          spfSet(f, 'done'); spfSave(t); fr.i++; return spfProg(t);
+        }
         let u8; try { u8 = await spMp3(pcm.y); } catch (e) { throw { msg: 'MP3로 바꾸지 못했어요' }; }
         if (!live()) { spfSet(f, 'wait'); return; }
         spfSet(f, 'grade');
@@ -668,11 +714,13 @@
         spfSet(f, 'done'); spfSave(t);
       } catch (e) {
         if (SPT !== t) return;
-        f.msg = e && e.msg ? e.msg : spAiMsg(e); spfSet(f, 'err');
-        if (e && (e.status === 429 || e.status === 403 || e.status === 400 || e.status === 413 || e.code === 'missing') && !fr.stop) { fr.stop = true; say('파일 채점을 멈췄어요. ' + spAiMsg(e)); }
+        f.msg = e && e.msg ? e.msg : loc ? spLocalMsg(e) : spAiMsg(e); spfSet(f, 'err');
+        if (loc && !e.msg && !fr.stop) { fr.stop = true; say('파일 채점을 멈췄어요. ' + spLocalMsg(e)); }
+        if (!loc && e && (e.status === 429 || e.status === 403 || e.status === 400 || e.status === 413 || e.code === 'missing') && !fr.stop) { fr.stop = true; say('파일 채점을 멈췄어요. ' + spAiMsg(e)); }
       }
       fr.i++; spfProg(t);
     });
+    done();
     list.forEach(f => { if (f.st === 'read' || f.st === 'grade') spfSet(f, 'wait'); });
     if (SPT !== t) return;
     t.frun = false; spTRender();

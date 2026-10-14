@@ -325,6 +325,73 @@
     const my = S.idx; setTimeout(() => { if (S.active && S.idx === my) nextQuestion(); }, ok ? 1500 : 2600);
   }
 
+  /* ----- 기기 음성 AI (영어): asr/vp-asr.js 를 Web Worker 로 돌려요. 처음 한 번 모델(약 57MB)을 받아 이 기기에 저장해요 ----- */
+  const VPA = (() => {
+    let w = null, initP = null, ready = false, seq = 0, prog = 0; const wait = new Map(), subs = new Set();
+    const ok = () => typeof Worker === 'function' && typeof WebAssembly === 'object' && typeof BigInt64Array === 'function' && 'caches' in window;
+    function fail(msg) { const e = new Error(msg || '기기 음성 AI를 시작하지 못했어요.'); wait.forEach(x => x.no(e)); wait.clear(); return e; }
+    function worker() {
+      if (w) return w;
+      w = new Worker('asr/vp-asr.js');
+      w.onmessage = e => {
+        const m = e.data || {};
+        if (m.type === 'progress') { prog = m.p; subs.forEach(f => { try { f(m.p); } catch (x) {} }); }
+        else if (m.type === 'ready') { ready = true; prog = 100; subs.forEach(f => { try { f(100); } catch (x) {} }); const x = wait.get('init'); if (x) { wait.delete('init'); x.ok(); } }
+        else if (m.type === 'result' || m.type === 'error') {
+          const x = wait.get(m.id != null ? m.id : 'init'); if (!x) return; wait.delete(m.id != null ? m.id : 'init');
+          if (m.type === 'result') x.ok(m); else x.no(new Error(m.msg || '음성 AI 오류'));
+        }
+      };
+      w.onerror = () => { const e = fail(); try { w.terminate(); } catch (x) {} w = null; initP = null; ready = false; return e; };
+      return w;
+    }
+    function init(onProg) {
+      if (onProg) { subs.add(onProg); onProg(prog); }
+      if (ready) return Promise.resolve();
+      if (!ok()) return Promise.reject(new Error('이 브라우저에서는 기기 음성 AI를 쓸 수 없어요. 최신 Chrome · Edge · Safari에서 열어 주세요.'));
+      if (!initP) initP = new Promise((res, rej) => { wait.set('init', { ok: res, no: rej }); worker().postMessage({ cmd: 'init' }); }).catch(e => { initP = null; throw e; });
+      return initP;
+    }
+    // pcm: 16kHz Float32Array, items: [{ text, kind: 'w' | 's', idx }] -> { items: [{ score, acc, flu, comp, heard, tips, problems, words }], heard }
+    async function score(pcm, items) {
+      await init();
+      return new Promise((res, rej) => { const id = ++seq; wait.set(id, { ok: res, no: rej }); const y = new Float32Array(pcm); worker().postMessage({ cmd: 'score', id, pcm: y, items }, [y.buffer]); });
+    }
+    return { ok, init, score, off: f => subs.delete(f), get ready() { return ready; } };
+  })();
+  const VPA_MB = 57;
+  // 연습용 마이크: 말이 끝나면(0.7초 조용하면) 자동으로 멈춰요. 최대 maxSec 초
+  const VPM = { ctx: null, stream: null, R: null };
+  async function vpMicStart(maxSec, onLevel, onEnd) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.isSecureContext) throw { code: 'unsupported' };
+    if (!VPM.ctx) VPM.ctx = new AC();
+    if (VPM.ctx.state === 'suspended') await VPM.ctx.resume().catch(() => {});
+    try { VPM.stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true } }); }
+    catch (e) { throw { code: e && (e.name === 'NotAllowedError' || e.name === 'SecurityError') ? 'denied' : e && (e.name === 'NotFoundError' || e.name === 'OverconstrainedError') ? 'nomic' : 'unsupported' }; }
+    if (VPM.ctx.state !== 'running') await VPM.ctx.resume().catch(() => {});
+    const ctx = VPM.ctx, src = ctx.createMediaStreamSource(VPM.stream), proc = ctx.createScriptProcessor(4096, 1, 1), mute = ctx.createGain();
+    mute.gain.value = 0;
+    const R = { chunks: [], n: 0, max: Math.ceil(maxSec * ctx.sampleRate), spoke: false, quiet: 0, onEnd };
+    proc.onaudioprocess = e => {
+      if (VPM.R !== R) return;
+      const d = e.inputBuffer.getChannelData(0); let sq = 0; for (let i = 0; i < d.length; i += 4) sq += d[i] * d[i];
+      const lv = Math.min(1, Math.sqrt(sq / (d.length / 4)) * 6); if (onLevel) onLevel(lv);
+      if (R.n < R.max) { const c = d.subarray(0, Math.min(d.length, R.max - R.n)); R.chunks.push(new Float32Array(c)); R.n += c.length; }
+      if (lv > 0.12) { R.spoke = true; R.quiet = 0; } else if (R.spoke) R.quiet += d.length / ctx.sampleRate;
+      if (R.n >= R.max || (R.spoke && R.quiet > 0.7)) vpMicStop();
+    };
+    src.connect(proc); proc.connect(mute); mute.connect(ctx.destination);
+    Object.assign(R, { src, proc, mute }); VPM.R = R;
+  }
+  function vpMicStop(drop) {
+    const R = VPM.R; if (!R) return; VPM.R = null;
+    try { R.src.disconnect(); R.proc.disconnect(); R.mute.disconnect(); } catch (e) {}
+    R.proc.onaudioprocess = null;
+    if (VPM.stream) { VPM.stream.getTracks().forEach(t => t.stop()); VPM.stream = null; }
+    if (!drop && R.onEnd) R.onEnd(spPcm(R.chunks, VPM.ctx.sampleRate));
+  }
+
   /* ----- 말하기 ----- */
   let SPK = null;
   const spkNorm = x => String(x || '').toLowerCase().replace(/[-_/]+/g, ' ').replace(/[^a-z' ]/g, '').replace(/\s+/g, ' ').trim();
@@ -350,9 +417,12 @@
   }
   const SPK_FATAL = { 'not-allowed': '마이크 사용이 막혀 있어요. 주소창의 자물쇠를 눌러 마이크를 허용해 주세요.', 'service-not-allowed': '이 브라우저는 음성 인식을 막아 두었어요.', network: '음성 인식 서버에 연결하지 못했어요.', 'audio-capture': '마이크를 찾지 못했어요.', 'language-not-supported': '이 기기는 이 언어의 음성 인식을 지원하지 않아요.' };
   let spkSelf = false;
+  // 영어 단어는 기기 음성 AI로 들어요(서버 · 구글 음성 인식 없이). 중국어나 기기 AI를 못 쓰면 브라우저 음성 인식, 그것도 안 되면 스스로 확인
+  const spkLocal = w => !spkSelf && !isHanWord(w.word) && VPA.ok() && !S.vpaOff;
   function renderSpeak(item) {
     const w = item.w; S.tries = 0;
-    const self = spkSelf || !SR;
+    if (spkLocal(w)) VPA.init().catch(() => {}); // 미리 받아 둬요
+    const self = !spkLocal(w) && (spkSelf || !SR);
     $('stBody').innerHTML = `
       <div class="q-wrap">
         <div class="q-card">
@@ -370,13 +440,59 @@
       </div>`;
     if (self) playAudio(w.word);
   }
-  function spkStop() { const r = SPK; SPK = null; clearTimeout(S.spkT); if (r) { try { r.onresult = r.onerror = r.onend = null; r.abort(); } catch (e) {} } }
+  function spkStop() { const r = SPK; SPK = null; clearTimeout(S.spkT); vpMicStop(true); if (S.vpaProg) { VPA.off(S.vpaProg); S.vpaProg = null; } if (r) { try { r.onresult = r.onerror = r.onend = null; r.abort(); } catch (e) {} } }
+  function spkLocalFail(msg) {
+    S.vpaOff = true;
+    if (!SR) return spkFallback(msg);
+    toast(msg + ' 브라우저 음성 인식으로 바꿀게요.'); if (S.active && S.mode === 'speak' && !S.locked) renderSpeak(S.queue[S.idx]);
+  }
+  // 기기 AI로 듣기: 누르면 녹음(말이 끝나면 자동으로 멈춤) -> 채점 -> 맞으면 다음 문제
+  async function spkLocalGo(item) {
+    const out = $('spkOut'), btn = $('micBtn'); if (!out || !btn) return;
+    const mine = () => S.active && S.queue[S.idx] === item && !S.locked;
+    if (VPM.R) { vpMicStop(); return; } // 말하는 중에 다시 누르면 바로 멈춰요
+    if (!VPA.ready) {
+      btn.disabled = true;
+      const pg = p => { if (mine() && $('spkOut')) $('spkOut').innerHTML = `음성 AI 준비 중 <b>${p}%</b><br><small>처음 한 번만 받아요(약 ${VPA_MB}MB). 와이파이를 권해요.</small>`; };
+      S.vpaProg = pg;
+      try { await VPA.init(pg); } catch (e) { VPA.off(pg); S.vpaProg = null; if (!mine()) return; btn.disabled = false; return spkLocalFail((e && e.message) || '음성 AI를 받지 못했어요.'); }
+      VPA.off(pg); S.vpaProg = null; if (!mine()) return;
+      btn.disabled = false;
+    }
+    try { window.speechSynthesis.cancel(); } catch (e) {}
+    try {
+      await vpMicStart(/\s/.test(item.w.word.trim()) ? 8 : 4, lv => { const b = $('micBtn'); if (b) b.style.setProperty('--lv', lv.toFixed(2)); }, async pcm => {
+        const b = $('micBtn'), o = $('spkOut'); if (b) b.classList.remove('on');
+        if (!mine() || !o) return;
+        if (!pcm) { o.textContent = '소리가 들리지 않았어요. 마이크 가까이에서 다시 눌러 말해 주세요.'; return; }
+        o.textContent = '듣고 확인하는 중...'; if (b) b.disabled = true;
+        let r; try { r = await VPA.score(pcm.y, [{ text: item.w.word, kind: /\s/.test(item.w.word.trim()) ? 's' : 'w' }]); }
+        catch (e) { if (mine() && $('micBtn')) { $('micBtn').disabled = false; $('spkOut').textContent = '확인하지 못했어요. 다시 눌러 주세요.'; } return; }
+        if (!mine()) return;
+        if (b) b.disabled = false;
+        const x = r.items && r.items[0], sc = x ? x.score : 0, heard = (x && x.heard) || r.heard || '';
+        const ok = sc >= 55 || (sc >= 35 && spkMatch(heard, item.w.word));
+        S.tries = (S.tries || 0) + 1;
+        if (ok) {
+          S.locked = true; $('spkOut').innerHTML = `<b class="ok">정확해요!</b> 발음 ${esc(sc)}점${heard ? ` · "${esc(heard)}"` : ''}`; recordResult(item, true);
+          const my = S.idx; setTimeout(() => { if (S.active && S.idx === my) nextQuestion(); }, 1100);
+        } else $('spkOut').innerHTML = `<b class="bad">${heard ? `"${esc(heard)}"(으)로 들렸어요.` : '잘 들리지 않았어요.'}</b> 발음 ${esc(sc)}점 · ${S.tries >= 3 ? '넘어가도 괜찮아요.' : '원어민 발음을 듣고 다시 말해 볼까요?'}`;
+      });
+      btn.classList.add('on'); out.textContent = '듣고 있어요... 말이 끝나면 자동으로 멈춰요';
+    } catch (e) {
+      if (!mine()) return;
+      if (e && e.code === 'denied') return spkFallback(SP_MIC_ERR.denied);
+      spkLocalFail(SP_MIC_ERR[(e && e.code) || 'unsupported'] || '마이크를 시작하지 못했어요.');
+    }
+  }
   function spkFallback(why) {
     spkStop(); spkSelf = true; S.spkWhy = why + ' 이번에는 스스로 확인하는 방식으로 바꿀게요.';
     if (S.active && S.mode === 'speak' && !S.locked) renderSpeak(S.queue[S.idx]);
   }
   ACTIONS['spk-go'] = () => {
-    if (!S.active || S.locked || !SR) return;
+    if (!S.active || S.locked) return;
+    if (spkLocal(S.queue[S.idx].w)) return spkLocalGo(S.queue[S.idx]);
+    if (!SR) return;
     const item = S.queue[S.idx], out = $('spkOut'), btn = $('micBtn'); if (!out || !btn) return;
     spkStop();
     try { window.speechSynthesis.cancel(); } catch (e) {}
@@ -568,7 +684,8 @@
     const base = S.baseCount != null ? S.baseCount : S.count;
     startSession(S.mode, S.src, 0, items); S.baseCount = base;
   };
-  ACTIONS.again = () => startSession(S.mode, S.src, S.baseCount != null ? S.baseCount : S.count);
+  // 다시 하기: 반 과제였으면 다시 푼 결과도 선생님에게 보내요(가장 높은 점수가 남아요)
+  ACTIONS.again = () => { const a = S.assign; startSession(S.mode, S.src, S.baseCount != null ? S.baseCount : S.count); if (S.active && a) S.assign = a; };
 
   async function exitSession(force) {
     if (!force && S.active && !S.finished && S.idx > 0 && S.mode !== 'listen') {

@@ -289,8 +289,11 @@
 
   let curTab = 'tabHome';
   const TITLES = { tabBooks: '단어장', tabStudy: '학습', tabStats: '통계', tabSettings: '설정' };
+  // 위 제목: 길면 말줄임(…)이 되게 span 안에 넣어요
+  function headText(t) { $('headTitle').innerHTML = `<span class="brand-t">${esc(t)}</span>`; }
   function go(id) {
     curTab = id;
+    if (id !== 'tabBooks') bookSel = null;
     document.body.dataset.tab = id;
     renderNavCard();
     if (id !== 'tabHome') { const rv = $('recOv'); if (rv) rv.remove(); }
@@ -300,8 +303,8 @@
     document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.t === navFor));
     $('btnBackHome').style.display = id === 'paneBook' ? 'flex' : 'none';
     if (id === 'tabHome') $('headTitle').innerHTML = '<i class="brand-mark">V</i><span><b>Voca</b>Pro</span>';
-    else if (id === 'paneBook') $('headTitle').textContent = (curCat() || {}).name || '단어장';
-    else $('headTitle').textContent = TITLES[id] || 'VocaPro';
+    else if (id === 'paneBook') headText((curCat() || {}).name || '단어장');
+    else headText(TITLES[id] || 'VocaPro');
 
     if (id === 'tabHome') renderHome();
     else if (id === 'tabBooks') renderBooks();

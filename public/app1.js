@@ -142,7 +142,7 @@
   });
   // 버튼처럼 쓰는 div(role=button)도 키보드 Enter/Space로 눌러요
   document.addEventListener('keydown', e => {
-    if ((e.key === 'Enter' || e.key === ' ') && !e.repeat && e.target.matches && e.target.matches('[data-act][role="button"]')) { e.preventDefault(); e.target.click(); }
+    if ((e.key === 'Enter' || e.key === ' ') && !e.repeat && e.target.matches && e.target.matches('[data-act][role="button"], [data-act][role="checkbox"]')) { e.preventDefault(); e.target.click(); }
   });
   /* 입력 이벤트도 같은 방식으로 위임해요. HTML 속성에 onclick 같은 인라인 코드를 쓰면
      보안 정책(CSP)에 막히니 data-change / data-input / data-enter 와 아래 ON 표를 쓰세요. */

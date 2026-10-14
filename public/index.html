@@ -2,12 +2,12 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' data: https://cdn.jsdelivr.net; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' https://*.supabase.co https://generativelanguage.googleapis.com https://api.openai.com https://api.x.ai https://api.anthropic.com https://api.mymemory.translated.net https://translate.googleapis.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' https://psmmrwhmpezyeehjivav.supabase.co https://generativelanguage.googleapis.com https://api.openai.com https://api.x.ai https://api.anthropic.com https://api.mymemory.translated.net https://translate.googleapis.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#f2f4f6">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+  <link rel="stylesheet" href="font/pretendard.css">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon-192.png">
   <link rel="apple-touch-icon" href="icon-192.png">
@@ -33,6 +33,7 @@
       <h1 class="brand" id="headTitle"><i class="brand-mark">V</i><span><b>Voca</b>Pro</span></h1>
     </div>
     <div class="header-right">
+      <button class="hd-search" data-act="dict-open" aria-label="단어 검색 (영어사전)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span>단어 검색</span><kbd>/</kbd></button>
       <button class="lang-sw" data-act="lang" id="btnLang" aria-label="학습 언어 바꾸기 (영어, 중국어)" aria-pressed="false"><i class="ls-knob"></i><span class="ls-en">EN</span><span class="ls-zh">中</span></button>
       <button class="round-btn" data-act="dict-open" id="btnDict" aria-label="영어사전"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
       <button class="round-btn" data-act="translator" id="btnTr" aria-label="번역"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg></button>
@@ -43,7 +44,7 @@
   <main class="view-pane active" id="tabHome"></main>
 
   <main class="view-pane" id="tabBooks">
-    <h2 class="page-title">단어장</h2>
+    <div class="bk-head"><h2 class="page-title">단어장</h2><button class="btn btn-sm btn-soft" id="bkEdit" data-act="books-edit">여러 개 지우기</button></div>
     <div class="add-row">
       <input type="text" id="inCatName" placeholder="새 단어장 이름 (예: Day 1, 수능 필수)" maxlength="40" data-enter="add-book">
       <button class="btn btn-primary" data-act="add-book">만들기</button>

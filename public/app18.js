@@ -12,9 +12,17 @@
     if (typeof CompressionStream === 'function') { try { return 'z' + b64u(await zipBytes(raw)); } catch (e) {} }
     return 'j' + b64u(raw);
   }
+  // 받은 공유 링크 풀기: 링크는 1MB, 푼 내용은 4MB까지만(작게 압축한 거대한 링크로 기기를 멈추게 하는 것 막기)
+  const SHARE_MAX = 4 << 20;
+  async function shareInflate(u8) {
+    const rd = new Blob([u8]).stream().pipeThrough(new DecompressionStream('deflate-raw')).getReader(), out = []; let n = 0;
+    for (;;) { const { done, value } = await rd.read(); if (done) break; n += value.length; if (n > SHARE_MAX) { rd.cancel().catch(() => {}); throw new Error('too_big'); } out.push(value); }
+    const r = new Uint8Array(n); let o = 0; out.forEach(v => { r.set(v, o); o += v.length; }); return r;
+  }
   async function shareDecode(code) {
-    const t = String(code || ''), body = unb64u(t.slice(1));
-    const raw = t[0] === 'z' ? await zipBytes(body, true) : body;
+    const t = String(code || ''); if (t.length > 1 << 20) throw new Error('too_big');
+    const body = unb64u(t.slice(1));
+    const raw = t[0] === 'z' ? await shareInflate(body) : body;
     const o = JSON.parse(new TextDecoder().decode(raw));
     const words = (Array.isArray(o.w) ? o.w : []).filter(a => Array.isArray(a) && a[0]).slice(0, 2000).map(a => [String(a[0]).slice(0, 80), String(a[1] == null ? '' : a[1]).slice(0, 200)]); // 뜻이 빈 단어도 남겨요
     if (!words.length) throw new Error('empty');

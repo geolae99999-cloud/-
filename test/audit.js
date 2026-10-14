@@ -79,7 +79,7 @@ const SKIP = new Set(['acct-del', 'reset-all', 'book-del', 'del-word', 'cl-delet
   await p.evaluate(() => exitSession(true));
 
   // 3) 한글 뜻으로 영어 사전 찾기
-  await p.evaluate(() => go('tabHome')); await p.click('#btnDict'); await p.waitForSelector('#dictQ');
+  await p.evaluate(() => go('tabHome')); await p.click('#btnDict:visible, .hd-search:visible'); await p.waitForSelector('#dictQ');
   await p.fill('#dictQ', '사과'); await p.waitForFunction(() => document.querySelectorAll('#dictOut .dict-row').length > 0, null, { timeout: 15000 });
   const rows = await p.evaluate(() => [...document.querySelectorAll('#dictOut .dict-row b')].slice(0, 5).map(x => x.textContent));
   ok(rows[0] === 'apple' || rows.includes('apple'), "'사과' → " + rows.join(', '));

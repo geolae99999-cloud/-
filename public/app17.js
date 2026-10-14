@@ -256,7 +256,7 @@
         const scores = pool.map((rs, j) => {
           let k = rs.findIndex(y => y.uid != null && y.uid === m.uid); if (k < 0) k = rs.findIndex(y => y.uid == null && y.name === m.name && y.sno === m.sno);
           const x = k < 0 ? null : rs.splice(k, 1)[0], v = y => y != null ? y : '';
-          return asg[j].kind === 'speak' ? [x && x.submitted ? v(x.score) : '', v(x && x.ai_avg), v(x && x.t_avg)] : [x && x.score != null ? x.score : ''];
+          return asg[j].kind === 'speak' ? [x && x.submitted && (x.ai_n || x.t_avg != null || (x.mark && x.mark.score != null)) ? v(x.score) : '', v(x && x.ai_avg), v(x && x.t_avg)] : [x && x.score != null ? x.score : ''];
         });
         return [m.sno, m.name, p.last || '', p.n7 != null ? p.n7 : '', p.acc7 != null ? p.acc7 : '', p.streak || 0, p.total || 0, p.mastered || 0, `${m.done}/${asg.length}`].concat(...scores);
       });

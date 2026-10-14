@@ -9,7 +9,7 @@ const http = require('http'), fs = require('fs'), os = require('os'), path = req
 const root = path.join(__dirname, 'site2'), shots = path.join(__dirname, 'shots', 'speak');
 const OUT = process.env.SHOTS_OUT || '/mnt/project-files/vocapro/screens/발음평가';
 fs.mkdirSync(shots, { recursive: true }); try { fs.mkdirSync(OUT, { recursive: true }); } catch (e) {}
-const srv = http.createServer((q, r) => { let f = path.join(root, decodeURIComponent(q.url.split('?')[0])); if (f.endsWith('/')) f += 'index.html'; fs.readFile(f, (e, d) => { if (e) { r.writeHead(404); return r.end(); } r.writeHead(200, { 'Content-Type': f.endsWith('.js') ? 'text/javascript' : f.endsWith('.css') ? 'text/css' : f.endsWith('.json') ? 'application/json' : 'text/html; charset=utf-8' }); r.end(d); }); }).listen(8795);
+const srv = http.createServer((q, r) => { let f = path.join(root, decodeURIComponent(q.url.split('?')[0])); if (f.endsWith('/')) f += 'index.html'; fs.readFile(f, (e, d) => { if (e) { r.writeHead(404); return r.end(); } r.writeHead(200, { 'Content-Type': /\.m?js$/.test(f) ? 'text/javascript' : f.endsWith('.wasm') ? 'application/wasm' : f.endsWith('.css') ? 'text/css' : f.endsWith('.json') ? 'application/json' : 'text/html; charset=utf-8' }); r.end(d); }); }).listen(8795);
 let fails = 0;
 const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); if (!c) fails++; };
 // 긴 base64도 넣을 수 있게 SQL은 표준 입력으로 보내요
@@ -100,6 +100,7 @@ async function mock(p) {
     const j = (x, st) => r.fulfill({ status: st || 200, contentType: 'application/json', body: JSON.stringify(x) });
     if (u.includes('/functions/v1/ai')) {
       aiBodies.push(Object.assign({ url: u }, body));
+      if (body.student) await new Promise(r => setTimeout(r, 300)); // 진행 표시를 볼 수 있게 조금 늦게
       const res = await edge(new Request(u.replace('psmmrwhmpezyeehjivav', 'x'), { method: 'POST', headers: { origin: 'http://localhost:8795', 'content-type': 'application/json' }, body: JSON.stringify(body) }));
       return r.fulfill({ status: res.status, contentType: 'application/json', body: await res.text() });
     }
@@ -141,7 +142,7 @@ const AI_KEYS = /"(ai_score|ai_detail|ai_avg|ai_n|heard|tips|problems)"/;
     const ctx = await b.newContext({ viewport: vp, acceptDownloads: true }), p = await ctx.newPage();
     p.on('pageerror', e => errs.push(tag + ' ' + e.message)); p.on('console', m => { if (m.type() === 'error' && !/ERR_FAILED|Failed to load resource/.test(m.text())) errs.push(tag + ' console: ' + m.text()); }); await require('./undef')(p, errs, tag);
     await p.route(/fonts|jsdelivr/, r => r.abort());
-    await p.addInitScript(() => { try { window.speechSynthesis.speak = u => { (window.__spoken = window.__spoken || []).push(u.text); }; } catch (e) {} window.__blobs = []; const c = URL.createObjectURL; URL.createObjectURL = o => { if (o && /^audio\//.test(o.type)) window.__blobs.push(o.type); return c.call(URL, o); }; const r = URL.revokeObjectURL; window.__revoked = 0; URL.revokeObjectURL = u => { window.__revoked++; return r.call(URL, u); }; HTMLMediaElement.prototype.play = function () { window.__played = (window.__played || 0) + 1; return Promise.resolve(); }; });
+    await p.addInitScript(() => { try { window.speechSynthesis.speak = u => { (window.__spoken = window.__spoken || []).push(u.text); }; } catch (e) {} window.__blobs = []; try { if (!localStorage.getItem('vp_eng')) localStorage.setItem('vp_eng', 'ai'); } catch (e) {} const c = URL.createObjectURL; URL.createObjectURL = o => { if (o && /^audio\//.test(o.type)) window.__blobs.push(o.type); return c.call(URL, o); }; const r = URL.revokeObjectURL; window.__revoked = 0; URL.revokeObjectURL = u => { window.__revoked++; return r.call(URL, u); }; HTMLMediaElement.prototype.play = function () { window.__played = (window.__played || 0) + 1; return Promise.resolve(); }; });
     if (init) await p.addInitScript(init);
     await mock(p); return p;
   };
@@ -315,6 +316,21 @@ const AI_KEYS = /"(ai_score|ai_detail|ai_avg|ai_n|heard|tips|problems)"/;
   await T.waitForFunction(() => !document.querySelector('.sp-bc[data-uid="2"] [data-act="sp-grade1"][disabled]'), null, { timeout: 20000 }); await T.waitForTimeout(600);
   ok(aiBodies.length === 1 && aiBodies[0].all === true && psql(`select string_agg(ai_score::text, ',' order by idx) from voca_speak_recs where assign_id = ${A1} and uid = '2'`) === want2, '"다시 채점": 이미 채점한 문항도 다시(all)');
 
+  // 기기 AI(무료): 녹음을 받아 이 브라우저에서 채점하고 점수만 저장 (Gemini · AI 함수 안 씀)
+  gemReqs = []; aiBodies = [];
+  await T.click('[data-act="sp-eng"][data-v="local"]');
+  ok(await T.evaluate(() => localStorage.getItem('vp_eng')) === 'local' && (await T.getAttribute('[data-act="sp-eng"][data-v="local"]', 'class')).includes('on'), '채점 AI를 "기기 AI (무료)"로 바꿔요');
+  psql(`update voca_speak_recs set ai_score = null, ai_detail = null where assign_id = ${A1} and uid = '3'`);
+  await T.waitForTimeout(10500);
+  await T.click('.sp-bc[data-uid="3"] [data-act="sp-grade1"]');
+  if (await T.waitForSelector('.dlg', { timeout: 1500 }).catch(() => null)) await confirm(T);
+  await T.waitForFunction(() => !document.querySelector('.sp-bc[data-uid="3"] [data-act="sp-grade1"][disabled]'), null, { timeout: 180000 }); await T.waitForTimeout(800);
+  const loc3 = psql(`select count(*) || '|' || count(ai_score) || '|' || string_agg(distinct ai_detail->>'model', ',') from voca_speak_recs where assign_id = ${A1} and uid = '3' and audio is not null`);
+  ok(/^(\d+)\|\1\|vocapro-local$/.test(loc3) && aiBodies.length === 0 && gemReqs.length === 0, '기기 AI 채점: 녹음마다 점수 저장, 모델 vocapro-local, 서버 AI 0번 ' + loc3);
+  ok(call('anon', 'voca_speak_set_local', { p_token: 't2', p_assign: A1, p_uid: '3', p_items: [{ idx: 0, score: 100 }] }).err === 'no_assign', '기기 AI 점수 저장: 그 과제 선생님만');
+  ok(call('anon', 'voca_speak_set_local', { p_token: 't1', p_assign: A1, p_uid: '3', p_items: [{ idx: 99, score: 100 }] }).err === 'bad_input', '없는 문항 번호는 거절');
+  await T.click('[data-act="sp-eng"][data-v="ai"]');
+
   // ===== 결과 목록: 30211 김주원 75점 형식, 문항 점수 · 최종 점수 =====
   await T.click('[data-act="sp-tab"][data-t="list"]'); await T.waitForSelector('.sp-lr');
   let lines = await T.$$eval('.sp-lr', a => a.map(x => [x.querySelector('.sp-no').textContent, x.querySelector('b').textContent, x.querySelector('em').textContent]));
@@ -390,6 +406,13 @@ const AI_KEYS = /"(ai_score|ai_detail|ai_avg|ai_n|heard|tips|problems)"/;
   const aacSt = await T.textContent('.sp-fr:last-child .sp-fs');
   ok(aacOk && (/이 파일은 읽지 못했어요/.test(aacSt) || /^\d+점$/.test(aacSt)), 'AAC m4a: 풀 수 있으면 채점, 못 풀면 "이 파일은 읽지 못했어요" (' + aacSt + ')');
   await T.click('.sp-fr:last-child [data-act="spf-x"]');
+  // 파일 채점도 기기 AI로: 서버 AI를 부르지 않고 점수
+  { const ab = aiBodies.length; await T.click('[data-act="sp-eng"][data-v="local"]');
+    await T.setInputFiles('#spfIn', [FILES.wav]); await T.waitForFunction(() => document.querySelectorAll('.sp-fr').length === 6);
+    await T.click('[data-act="spf-go"]'); await T.waitForFunction(() => SPT && !SPT.frun, null, { timeout: 120000 });
+    const st = await T.textContent('.sp-fr:last-child .sp-fs'), det = await T.evaluate(() => SPT.files[SPT.files.length - 1].res);
+    ok(/^\d+점$/.test(st) && aiBodies.length === ab && det.length > 0 && det.every(x => x.model === 'vocapro-local' && typeof x.score === 'number'), '파일 채점(기기 AI): 서버 AI 없이 문항마다 점수 ' + st);
+    await T.click('.sp-fr:last-child [data-act="spf-x"]'); await T.click('[data-act="sp-eng"][data-v="ai"]'); }
   // 결과 목록: 앱 제출 + 파일 결과가 학번 순으로 함께
   await T.click('[data-act="sp-tab"][data-t="list"]'); await T.waitForSelector('.sp-lr');
   lines = await T.$$eval('.sp-lr', a => a.map(x => x.querySelector('.sp-no').textContent + ' ' + x.querySelector('b').textContent + ' ' + x.querySelector('em').textContent));

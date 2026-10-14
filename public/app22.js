@@ -58,8 +58,8 @@
 - Google LLC (미국, https://policies.google.com/privacy): AI 완성·번역을 누를 때 입력한 영어·중국어 단어나 문장을, 선생님이 발음 평가 AI 채점을 누를 때 학생 녹음(음성)과 읽을 단어·문장을(선생님이 직접 넣은 녹음 파일은 채점에만 쓰고 운영자 서버에 저장하지 않습니다), '글·사진에서 단어 뽑기'에서 사진 속 글자 읽기를 누를 때 고른 사진(줄인 JPEG)을, 문맥 뜻 채우기를 켜고 단어를 넣을 때 고른 단어와 글 속 문장을 보냅니다. 사진은 운영자 서버에 저장하지 않습니다. 아이디 등 계정 정보는 보내지 않습니다. 목적은 AI 결과 생성이며, 보유 기간은 Google의 Gemini API 약관을 따릅니다.
 - Cloudflare, Inc. (미국, privacyquestions@cloudflare.com): 서비스에 접속할 때 IP 주소, 브라우저 정보가 전송됩니다. 목적은 웹앱 전송이며, 보유 기간은 Cloudflare의 기록 보관 기간을 따릅니다.
 - Translated srl, MyMemory (이탈리아, https://mymemory.translated.net): AI 번역을 쓸 수 없을 때 번역할 문장을 보냅니다. 목적은 번역 결과 생성입니다.
-- jsDelivr (Prospect One, 폴란드, https://www.jsdelivr.com/terms/privacy-policy-jsdelivr-net): 글꼴 파일을 받을 때 IP 주소가 전송됩니다.
 - Supabase, Inc. (서버 위치: ${region}): 서버 위치가 국외인 경우 제2조의 계정·학습 정보가 그 국가에 저장됩니다.
+말하기 연습과, 선생님이 발음 평가에서 '기기 AI (무료)'로 채점할 때는 음성을 외부로 보내지 않고 이용자 기기(브라우저) 안에서 처리합니다. 이때 기기 AI가 매긴 점수와 들은 말만 운영자 서버에 저장합니다.
 이전을 원하지 않으면 AI 완성과 번역을 쓰지 않으면 됩니다. 내장 사전에 있는 단어는 외부로 보내지 않고 기기 안에서 채웁니다. 다만 접속 기록과 계정 정보 저장은 서비스 제공에 꼭 필요해 거부하면 서비스를 이용할 수 없습니다.
 이용자가 설정에서 직접 입력한 AI 키로 이용하는 경우, 입력한 단어와 문장은 이용자 기기에서 해당 AI 제공자(Google, OpenAI, xAI, Anthropic)로 바로 전송되며 운영자 서버를 거치지 않습니다. 이 키는 이용자 기기에만 저장합니다.`],
         ['제7조 개인정보의 파기 절차 및 방법', `보유 기간이 끝나거나 처리 목적을 이루면 지체 없이 파기합니다.
@@ -137,7 +137,13 @@
         ['제14조 (책임의 제한)', '운영자는 천재지변, 외부 서비스 장애, 회원의 잘못으로 생긴 손해에는 책임을 지지 않습니다. 내장 사전과 AI 결과의 정확성, 학습 성과는 보장하지 않습니다. 다만 운영자의 고의나 중대한 과실로 생긴 손해는 관련 법령에 따라 책임을 집니다.'],
         ['제15조 (회원에 대한 통지)', '운영자는 앱 안 공지로 회원에게 알립니다. 서비스는 회원의 연락처를 받지 않으므로 개별 통지가 필요한 경우에도 앱 안 알림으로 합니다.'],
         ['제16조 (분쟁 해결과 준거법)', `서비스 이용과 관련한 분쟁은 먼저 이메일(${mail})로 협의해 해결합니다. 협의가 되지 않으면 대한민국 법을 적용하며, 관할 법원은 「민사소송법」에 따라 정합니다.`],
-        ['부칙', `이 약관은 ${I.effective}부터 시행합니다.`]]]
+        ['부칙', `이 약관은 ${I.effective}부터 시행합니다.`]]],
+      oss: ['오픈소스 고지', '서비스는 다음 오픈소스 소프트웨어와 자료를 바꾸지 않고 함께 씁니다. 각 라이선스 전문은 아래 주소에서 볼 수 있습니다.', [
+        ['기기 음성 AI', `- 음성 인식 모델: NVIDIA NeMo stt_en_conformer_ctc_small (CC BY 4.0, https://catalog.ngc.nvidia.com/orgs/nvidia/teams/nemo/models/stt_en_conformer_ctc_small). k2-fsa/sherpa-onnx가 ONNX로 바꾸고 int8로 줄인 파일을 씁니다(Apache-2.0, https://github.com/k2-fsa/sherpa-onnx).
+- ONNX Runtime Web 1.20.1 (Copyright (c) Microsoft Corporation, MIT License, https://github.com/microsoft/onnxruntime)`],
+        ['녹음 · 파일', `- lamejs 1.2.1 (LGPL-3.0, https://github.com/zhuker/lamejs): 녹음을 MP3로 바꿉니다. 바꾸지 않은 파일을 따로 불러오며, 이용자는 이 파일을 다른 버전으로 바꿔 쓸 수 있습니다.
+- fflate 0.8.2 (MIT License, https://github.com/101arrowz/fflate): zip 파일을 풉니다.`],
+        ['글꼴', '- Pretendard 1.3.9 (Copyright (c) 2021 Kil Hyung-jin, SIL Open Font License 1.1, https://github.com/orioncactus/pretendard)']]]
     };
   }
   function legalHtml(t) {
@@ -156,7 +162,7 @@
     ov.addEventListener('click', e => { if (e.target.closest('[data-lg]')) ov.remove(); });
     document.body.appendChild(ov);
   };
-  function legalLinksHtml() { return '<div class="legal-links"><a class="lg-a" data-act="legal" data-k="terms">이용약관</a> · <a class="lg-a" data-act="legal" data-k="privacy">개인정보 처리방침</a></div>'; }
+  function legalLinksHtml() { return '<div class="legal-links"><a class="lg-a" data-act="legal" data-k="terms">이용약관</a> · <a class="lg-a" data-act="legal" data-k="privacy">개인정보 처리방침</a> · <a class="lg-a" data-act="legal" data-k="oss">오픈소스 고지</a></div>'; }
 
 
   function flowEntryHtml() { return `<button class="mg-entry" data-act="flow"><span class="mg-ico">${IC.repeat}</span><span class="mg-txt"><b>4단계 집중 학습</b><small>보기, 고르기, 쓰기, 시험으로 확실하게</small></span><span class="mg-chev"></span></button>`; }
@@ -170,8 +176,17 @@
     spell: [['Enter', '확인 · 다음'], ['Esc', '나가기']],
     listen: [['Space', '재생 · 정지'], ['← →', '이전 · 다음'], ['Esc', '나가기']]
   };
-  KBD.lchoice = KBD.choice; KBD.mix = [['1~4', '고르기'], ['Enter', '확인 · 다음'], ['Esc', '나가기']]; KBD.scramble = [['Esc', '나가기']];
+  KBD.lchoice = KBD.choice; KBD.mix = [['1~4', '고르기'], ['Enter', '확인 · 다음'], ['Esc', '나가기']]; KBD.scramble = [['A~Z', '글자 넣기'], ['⌫', '한 글자 지우기'], ['Esc', '나가기']];
   KBD.rchoice = KBD.choice; KBD.dict = KBD.spell; KBD.test = [['1~4', '고르기'], ['Enter', '제출'], ['Esc', '나가기']]; KBD.cloze = KBD.choice;
+  // PC: 스크롤하면 위 바에 선, '/' 또는 Ctrl+K 로 단어 검색
+  let scrolledOn = false;
+  window.addEventListener('scroll', () => { const on = window.scrollY > 4; if (on !== scrolledOn) { scrolledOn = on; document.body.classList.toggle('scrolled', on); } }, { passive: true });
+  document.addEventListener('keydown', e => {
+    const t = e.target, typing = t && (/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.isContentEditable);
+    const k = (e.key === '/' && !e.ctrlKey && !e.metaKey && !e.altKey && !typing) || ((e.ctrlKey || e.metaKey) && !e.altKey && (e.key === 'k' || e.key === 'K'));
+    if (!k || e.isComposing || document.querySelector('.dlg-ov') || $('authScreen').style.display !== 'none' || $('studyScreen').classList.contains('open') || $('sheetOv').classList.contains('open') || $('trOv') || $('lgOv') || $('obOv')) return;
+    e.preventDefault(); ACTIONS['dict-open']();
+  });
   function kbdHint(mode) { const el = $('kbdHint'); if (el) el.innerHTML = (KBD[mode] || []).map(([k, t]) => `<span><kbd>${k}</kbd>${t}</span>`).join(''); }
   document.addEventListener('keydown', e => {
     if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
@@ -194,6 +209,17 @@
       return;
     }
     if (typing || $('trOv') || $('lgOv')) return;
+    // 철자 퍼즐: 글자를 키보드로 쳐도 그 글자 타일이 눌려요. Backspace는 한 글자 지우기
+    if (study && S.active && !S.finished && !S.locked && S.scr && $('scrTiles') && !isHanWord(S.queue[S.idx].w.word)) {
+      if (e.key === 'Backspace') { e.preventDefault(); ACTIONS['scr-back'](); return; }
+      if ([...e.key].length === 1 && e.key !== ' ') {
+        const s = S.scr, k = e.key.toLowerCase(), i = s.order.find(j => !s.picked.includes(j) && s.letters[j].toLowerCase() === k);
+        e.preventDefault();
+        if (i != null) ACTIONS['scr-pick']({ dataset: { i: String(i) } });
+        else { const tl = $('scrTiles'); tl.classList.remove('nope'); void tl.offsetWidth; tl.classList.add('nope'); }
+        return;
+      }
+    }
     if (/^[1-4]$/.test(e.key)) {
       const scope = $('flOv') || $('ltOv') || (study ? $('stBody') : null);
       const b = scope && scope.querySelectorAll('.opt')[+e.key - 1];
@@ -218,16 +244,6 @@
   if ('speechSynthesis' in window) { try { window.speechSynthesis.getVoices(); } catch (e) {} }
   try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
   if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
-  /* 예전 주소(hijujuwon.kro.kr)로 들어오면 새 주소 안내. 기기에만 저장한 데이터는 주소마다 따로라 바로 넘기지 않고 백업 방법을 알려 줘요. */
-  const NEW_HOST = 'vocapro.kro.kr';
-  // 새 주소 DNS가 아직 연결되지 않아(NXDOMAIN) 안내를 잠시 꺼 둬요. vocapro.kro.kr 이 열리면 true 로 바꾸세요.
-  const MOVE_READY = false;
-  if (MOVE_READY && location.hostname === 'hijujuwon.kro.kr') {
-    const bar = document.createElement('div'); bar.className = 'move-bar'; bar.setAttribute('role', 'status');
-    bar.innerHTML = `<div><b>주소가 ${NEW_HOST} 로 바뀌었어요</b><small>서버 계정은 새 주소에서 같은 아이디로 로그인하면 그대로예요. 이 기기에만 저장한 계정은 설정 > 백업 파일 내려받기를 한 뒤 새 주소에서 불러오세요.</small></div><a class="btn btn-primary btn-sm" href="https://${NEW_HOST}/">새 주소로 가기</a><button class="move-x" aria-label="닫기">${IC.x}</button>`;
-    bar.querySelector('.move-x').addEventListener('click', () => bar.remove());
-    document.body.appendChild(bar);
-  }
   let deferredInstall = null;
   window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredInstall = e; });
   ACTIONS.install = async () => {

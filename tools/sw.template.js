@@ -12,6 +12,7 @@ self.addEventListener('fetch', e => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (url.origin !== location.origin) return;
+  if (url.pathname.includes('/asr/')) return; // 기기 음성 AI 파일은 앱이 따로(vp-asr-1 캐시) 저장해요
   e.respondWith(fetch(req).then(res => {
     if (res && res.ok && res.type === 'basic') { const copy = res.clone(); caches.open(CACHE).then(c => c.put(req, copy)).catch(() => {}); }
     return res;

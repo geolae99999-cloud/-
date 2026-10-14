@@ -8,7 +8,7 @@
     const due = b.words.filter(w => w.box >= 1 && w.due <= end).length;
     const pct = total ? Math.round(mastered / total * 100) : 0;
     return `
-      <div class="book" style="--bk:${bookColor(b.id)}" data-act="open-book" data-id="${esc(b.id)}" role="button" tabindex="0" aria-label="${esc(b.name)} 단어장 열기">
+      <div class="book${bookSel ? ' sel' + (bookSel.has(b.id) ? ' on' : '') : ''}" style="--bk:${bookColor(b.id)}" data-act="${bookSel ? 'book-pick' : 'open-book'}" data-id="${esc(b.id)}" role="${bookSel ? 'checkbox' : 'button'}"${bookSel ? ` aria-checked="${bookSel.has(b.id)}"` : ''} tabindex="0" aria-label="${esc(b.name)} 단어장 ${bookSel ? '고르기' : '열기'}">${bookSel ? `<span class="bk-chk">${IC.tick}</span>` : ''}
         <div class="book-spine"><b>${total}</b><small>단어</small></div>
         <div class="book-body">
           <div class="book-top"><span class="book-name">${esc(b.name)}</span>${due ? `<span class="badge b-learn">복습 ${due}</span>` : ''}</div>
@@ -17,10 +17,25 @@
         </div>
       </div>`;
   }
+  // 단어장 여러 개 골라 지우기: bookSel 이 있으면 카드를 누를 때 열지 않고 골라요
+  let bookSel = null;
   function renderBooks() {
-    $('folderContainer').innerHTML = categories.map(bookCardHtml).join('') ||
-      emptyHtml('단어장이 없어요', '위에서 이름을 입력하고 만들기를 눌러 보세요.');
+    if (bookSel) bookSel.forEach(id => { if (!findBook(id)) bookSel.delete(id); });
+    const eb = $('bkEdit'); if (eb) { eb.textContent = bookSel ? '취소' : '여러 개 지우기'; eb.hidden = !bookSel && !categories.length; }
+    $('folderContainer').innerHTML = (bookSel && categories.length ? `<div class="bk-bar"><button class="btn btn-sm btn-soft" data-act="book-all">${bookSel.size === categories.length ? '모두 풀기' : '모두 고르기'}</button><span>${bookSel.size}개 골랐어요</span><button class="btn btn-sm btn-soft cl-danger" data-act="books-del"${bookSel.size ? '' : ' disabled'}>지우기</button></div>` : '') +
+      (categories.map(bookCardHtml).join('') || emptyHtml('단어장이 없어요', '위에서 이름을 입력하고 만들기를 눌러 보세요.'));
   }
+  ACTIONS['books-edit'] = () => { bookSel = bookSel ? null : new Set(); renderBooks(); };
+  ACTIONS['book-pick'] = el => { if (!bookSel) return; const id = el.dataset.id; if (bookSel.has(id)) bookSel.delete(id); else bookSel.add(id); renderBooks(); const c = document.querySelector(`.book[data-id="${CSS.escape(id)}"]`); if (c) c.focus(); };
+  ACTIONS['book-all'] = () => { if (!bookSel) return; bookSel = bookSel.size === categories.length ? new Set() : new Set(categories.map(c => c.id)); renderBooks(); };
+  ACTIONS['books-del'] = async () => {
+    if (!bookSel || !bookSel.size) return;
+    const pick = categories.filter(c => bookSel.has(c.id)), nw = pick.reduce((a, c) => a + c.words.length, 0);
+    if (!await ask(`단어장 ${pick.length}개와 안의 단어 ${nw}개를 모두 삭제할까요?\n${pick.slice(0, 5).map(c => '· ' + c.name).join('\n')}${pick.length > 5 ? `\n· 그 밖에 ${pick.length - 5}개` : ''}\n지운 단어장은 되돌릴 수 없어요.`, { ok: `${pick.length}개 삭제`, danger: true })) return;
+    const ids = new Set(pick.map(c => c.id)); categories = categories.filter(c => !ids.has(c.id));
+    if (ids.has(currentCategoryId)) currentCategoryId = null;
+    bookSel = null; syncStorage(); renderBooks(); toast(`단어장 ${pick.length}개를 삭제했어요.`);
+  };
   ACTIONS['add-book'] = () => {
     const input = $('inCatName');
     const val = input.value.trim();
@@ -394,7 +409,7 @@
   ACTIONS['book-rename'] = async () => {
     const cat = curCat(); if (!cat) return;
     const name = await ask('새 이름을 입력하세요.', { input: cat.name });
-    if (name && name.trim()) { cat.name = name.trim().slice(0, 40); syncStorage(); closeSheet(); $('headTitle').textContent = cat.name; }
+    if (name && name.trim()) { cat.name = name.trim().slice(0, 40); syncStorage(); closeSheet(); headText(cat.name); }
   };
   ACTIONS['book-del'] = async () => {
     const cat = curCat(); if (!cat) return;
@@ -404,7 +419,7 @@
   };
   ACTIONS['csv-export'] = () => {
     const cat = curCat(); if (!cat) return;
-    const q = v => '"' + String(v).replace(/"/g, '""') + '"';
+    const q = v => { let x = String(v == null ? '' : v); if (/^[=+\-@\t\r]/.test(x)) x = "'" + x; return '"' + x.replace(/"/g, '""') + '"'; }; // 엑셀 수식으로 실행되지 않게
     const rows = [['word', 'meaning', 'phonetic', 'koreanPron', 'example', 'synonyms', 'exampleKo'].join(',')]
       .concat(cat.words.map(w => [w.word, w.meaning, w.phonetic, w.koreanPron, w.example, w.synonyms, w.exampleKo].map(q).join(',')));
     download(`${cat.name.replace(/[\\/:*?"<>|]/g, '_')}.csv`, '﻿' + rows.join('\r\n'), 'text/csv;charset=utf-8');

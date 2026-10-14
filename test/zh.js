@@ -94,7 +94,7 @@ const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); if (!c) fails++
 
   // 7) 중국어 사전: 병음, 한글, 한자로 찾기
   await p.evaluate(() => go('tabHome'));
-  await p.click('#btnDict'); await p.waitForSelector('#dictQ');
+  await p.click('#btnDict:visible, .hd-search:visible'); await p.waitForSelector('#dictQ');
   for (const q of ['xuexi', '공부', '学']) {
     await p.fill('#dictQ', q); await p.waitForTimeout(450);
     const n = await p.locator('#dictOut .dict-row').count();

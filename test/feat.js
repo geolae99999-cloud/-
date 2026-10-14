@@ -22,7 +22,7 @@ const srv = http.createServer((q, r) => { let f = path.join(root, decodeURICompo
     res[tag + ' hello'] = await p.evaluate(() => document.querySelector('.hello-name').textContent + ' | ' + (document.querySelector('.hello-school') || {}).textContent);
     res[tag + ' wotd'] = await p.evaluate(() => { const e = document.querySelector('.wotd-body b'); return e ? e.textContent + ' / ' + (document.querySelector('#wotdEx') || {}).textContent : null; });
     await shot('01-home');
-    await p.click('#btnDict'); await p.waitForSelector('#dictQ');
+    await p.click('#btnDict:visible, .hd-search:visible'); await p.waitForSelector('#dictQ');
     await p.fill('#dictQ', 'went'); await p.waitForSelector('.dict-card'); await p.waitForTimeout(200);
     res[tag + ' went'] = await p.textContent('.dict-m');
     await shot('02-dict-went');
@@ -64,7 +64,7 @@ const srv = http.createServer((q, r) => { let f = path.join(root, decodeURICompo
       res[tag + ' share in'] = await q.evaluate(() => { const c = categories.find(c => /추천/.test(c.name)); return c ? c.name + ' ' + c.words.length + ' ex:' + c.words.filter(w => w.example).length + ' hash:' + location.hash : null; });
       await c2.close(); }
     // 숙어
-    await p.click('#btnDict'); await p.waitForSelector('#dictQ');
+    await p.click('#btnDict:visible, .hd-search:visible'); await p.waitForSelector('#dictQ');
     await p.fill('#dictQ', 'give'); await p.waitForSelector('.dict-card'); await p.waitForTimeout(300);
     res[tag + ' give phr'] = await p.$$eval('.dict-sug', a => a.map(x => x.querySelector('h4').textContent + ': ' + [...x.querySelectorAll('.dict-row b')].slice(0, 4).map(y => y.textContent).join(', ')));
     await shot('08-dict-phrases');
