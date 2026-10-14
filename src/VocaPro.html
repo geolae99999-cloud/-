@@ -7390,7 +7390,9 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
   if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
   /* 예전 주소(hijujuwon.kro.kr)로 들어오면 새 주소 안내. 기기에만 저장한 데이터는 주소마다 따로라 바로 넘기지 않고 백업 방법을 알려 줘요. */
   const NEW_HOST = 'vocapro.kro.kr';
-  if (location.hostname === 'hijujuwon.kro.kr') {
+  // 새 주소 DNS가 아직 연결되지 않아(NXDOMAIN) 안내를 잠시 꺼 둬요. vocapro.kro.kr 이 열리면 true 로 바꾸세요.
+  const MOVE_READY = false;
+  if (MOVE_READY && location.hostname === 'hijujuwon.kro.kr') {
     const bar = document.createElement('div'); bar.className = 'move-bar'; bar.setAttribute('role', 'status');
     bar.innerHTML = `<div><b>주소가 ${NEW_HOST} 로 바뀌었어요</b><small>서버 계정은 새 주소에서 같은 아이디로 로그인하면 그대로예요. 이 기기에만 저장한 계정은 설정 > 백업 파일 내려받기를 한 뒤 새 주소에서 불러오세요.</small></div><a class="btn btn-primary btn-sm" href="https://${NEW_HOST}/">새 주소로 가기</a><button class="move-x" aria-label="닫기">${IC.x}</button>`;
     bar.querySelector('.move-x').addEventListener('click', () => bar.remove());
