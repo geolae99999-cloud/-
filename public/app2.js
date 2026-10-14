@@ -232,7 +232,7 @@
     document.body.classList.toggle('dark', !!config.darkMode);
     $('btnTheme').innerHTML = config.darkMode ? IC.sun : IC.moon;
     const m = document.querySelector('meta[name="theme-color"]');
-    if (m) m.setAttribute('content', config.darkMode ? '#17171c' : '#f2f4f6');
+    if (m) m.setAttribute('content', config.darkMode ? '#101113' : '#f2f4f6');
   }
   /* 영어 ↔ 중국어 전환: 머리글의 EN/中 스위치나 설정에서 바꿔요. 단어장과 기록은 언어마다 따로예요. */
   function applyLang() {
