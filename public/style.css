@@ -2076,3 +2076,80 @@
     .tg:checked { background: var(--blue); }
     .tg:checked::after { transform: translateX(20px); }
     .tg:focus-visible { outline: none; box-shadow: var(--ring); }
+
+    /* ---- 발음 평가 (수행평가): 녹음 카드, 빨간 녹음 버튼 + 남은 시간 링, 점수 배지 ---- */
+    .cl [hidden] { display: none !important; }
+    .sp { display: flex; flex-direction: column; gap: 12px; }
+    .sp-top { display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .sp-step b { font-size: 22px; font-weight: 800; color: var(--ink); margin-right: 2px; }
+    .sp-dots { display: flex; gap: 4px; margin-top: -6px; }
+    .sp-dots button { flex: 1; min-width: 0; height: 18px; padding: 6px 0; border: none; border-radius: 99px; background: var(--surface-3); background-clip: content-box; }
+    .sp-dots button.ok { background-color: var(--mint); } .sp-dots button.cur { background-color: var(--blue); }
+    .sp-card { background: var(--surface-2); border-radius: 22px; padding: 26px 20px 20px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+    .sp-kind { font-size: 12px; font-weight: 700; color: var(--blue-ink); background: var(--blue-soft); padding: 4px 10px; border-radius: 99px; }
+    .sp-text { font-size: 34px; font-weight: 800; letter-spacing: -.02em; line-height: 1.25; word-break: break-word; color: var(--ink); }
+    .sp-text.long { font-size: 21px; font-weight: 700; line-height: 1.45; letter-spacing: -.01em; }
+    .sp-text.zh, .sp-ri-t b:lang(zh-CN) { font-family: 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Microsoft YaHei', var(--font); }
+    .sp-mean { font-size: 15px; color: var(--ink-2); font-weight: 500; line-height: 1.45; word-break: keep-all; }
+    .sp-card .sp-listen { margin-top: 6px; background: var(--surface); color: var(--ink); }
+    .sp-recbox { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 10px 0 0; }
+    .sp-mic { --p: 1; position: relative; width: 84px; height: 84px; border-radius: 50%; border: none; background: var(--coral); color: #fff; display: grid; place-items: center; cursor: pointer; transition: transform .12s var(--ease), background-color .15s; }
+    .sp-mic .ic { width: 34px; height: 34px; stroke-width: 2; }
+    .sp-mic:active:not(:disabled) { transform: scale(.94); }
+    .sp-mic:disabled { background: var(--off); cursor: default; }
+    .sp-mic:focus-visible { outline: none; box-shadow: var(--ring); }
+    .sp-mic::before { content: ''; position: absolute; inset: -8px; border-radius: 50%; background: conic-gradient(var(--coral) calc(var(--p) * 360deg), var(--surface-3) 0); -webkit-mask: radial-gradient(circle, transparent 61%, #000 62%); mask: radial-gradient(circle, transparent 61%, #000 62%); opacity: 0; transition: opacity .2s; }
+    .sp-mic.on::before { opacity: 1; }
+    .sp-stop { width: 26px; height: 26px; border-radius: 7px; background: #fff; }
+    .sp-meter { width: 160px; height: 6px; border-radius: 99px; background: var(--surface-3); overflow: hidden; }
+    .sp-meter i { display: block; height: 100%; background: var(--mint); transform-origin: left center; transform: scaleX(0); transition: transform .08s linear; }
+    .sp-recbox:not(.on) .sp-meter { visibility: hidden; }
+    .sp-hint { margin: 0; font-size: 14px; font-weight: 600; color: var(--muted); text-align: center; font-variant-numeric: tabular-nums; word-break: keep-all; }
+    .sp-recbox.on .sp-hint { color: var(--coral); }
+    .sp-note { margin: 0; padding: 12px 14px; border-radius: 14px; background: var(--coral-soft); color: var(--coral); font-size: 14px; font-weight: 600; line-height: 1.5; word-break: keep-all; }
+    .sp-mine { display: flex; align-items: center; gap: 12px; background: var(--surface-2); border-radius: 16px; padding: 10px 12px 10px 10px; }
+    .sp-mine span { flex: 1; font-weight: 700; font-size: 15px; } .sp-mine small { color: var(--muted); font-weight: 600; margin-left: 4px; }
+    .sp-play { flex: none; width: 40px; height: 40px; border-radius: 50%; border: none; background: var(--blue); color: #fff; display: grid; place-items: center; cursor: pointer; }
+    .sp-play .ic { width: 16px; height: 16px; margin-left: 2px; }
+    .sp-play.on { background: var(--ink); color: var(--bg); } .sp-play:disabled { background: var(--surface-3); color: var(--off); cursor: default; }
+    .sp-sc { flex: none; font-style: normal; font-weight: 800; font-size: 14px; padding: 5px 10px; border-radius: 99px; background: var(--surface-3); color: var(--ink-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .sp-sc.good { background: var(--mint-soft); color: var(--mint); } .sp-sc.mid { background: var(--sun-soft); color: #b86e00; } .sp-sc.low { background: var(--coral-soft); color: var(--coral); }
+    .cl-tr .sp-sc { padding: 3px 9px; }
+    .sp-wait { background: var(--sun-soft) !important; color: #b86e00 !important; }
+    body.dark :is(.sp-sc.mid, .sp-wait) { color: var(--sun) !important; }
+    .sp-nav .btn { flex: 1; }
+    .sp-foot { text-align: center; }
+    .sp-sum { background: var(--surface-2); border-radius: 22px; padding: 22px 20px 20px; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+    .sp-sum small { font-size: 14px; font-weight: 600; color: var(--muted); }
+    .sp-sum b { font-size: 52px; font-weight: 800; letter-spacing: -.03em; line-height: 1.15; color: var(--ink); font-variant-numeric: tabular-nums; }
+    .sp-sum b.good { color: var(--mint); } .sp-sum b.mid { color: var(--sun); } .sp-sum b.low { color: var(--coral); }
+    .sp-sum em { font-style: normal; font-size: 22px; margin-left: 2px; }
+    .sp-sum span { font-size: 13px; color: var(--muted); font-weight: 600; }
+    .sp-list { display: flex; flex-direction: column; gap: 8px; }
+    .sp-ri { background: var(--surface-2); border-radius: 18px; padding: 12px 14px 12px 12px; display: flex; flex-direction: column; gap: 6px; }
+    .sp-ri-top { display: flex; align-items: center; gap: 12px; }
+    .sp-ri-t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+    .sp-ri-t b { font-size: 16px; font-weight: 700; line-height: 1.4; word-break: break-word; } .sp-ri-t small { font-size: 13px; color: var(--muted); }
+    .sp-ri > p, .sp-ri > div:not(.sp-ri-top) { margin-left: 52px; }
+    .sp-heard, .sp-tip, .sp-tnote { margin: 0; font-size: 14px; line-height: 1.5; word-break: keep-all; }
+    .sp-heard { color: var(--muted); font-size: 13px; } .sp-heard b { color: var(--ink-2); font-weight: 600; margin-left: 4px; word-break: break-word; }
+    .sp-tip { color: var(--ink); font-weight: 500; }
+    .sp-tnote { color: var(--blue-ink); font-weight: 600; } .sp-tnote small { color: var(--muted); font-weight: 500; }
+    .sp-prob { display: flex; flex-wrap: wrap; gap: 4px; } .sp-prob span { font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 99px; background: var(--coral-soft); color: var(--coral); }
+    .sp-tform { display: grid; grid-template-columns: 84px minmax(0, 1fr) auto; gap: 6px; margin-top: 4px; }
+    .sp-tform input[type=number], .sp-tform input[type=text] { padding: 9px 12px; font-size: 15px; border-radius: 12px; background: var(--surface); min-width: 0; }
+    .sp-tform .btn { height: auto; min-height: 40px; }
+    .sp-who { display: flex; align-items: center; gap: 12px; } .sp-who > div { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+    .sp-who b { font-size: 18px; font-weight: 800; } .sp-who small { color: var(--muted); font-size: 13px; }
+    .sp-who .icon-btn { flex: none; width: 40px; height: 40px; background: var(--surface-2); }
+    .sp-who-sc { display: flex; flex-direction: column; align-items: flex-end; } .sp-who-sc small { font-size: 12px; } .sp-who-sc b { font-size: 28px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+    .sp-who-sc b.good { color: var(--mint); } .sp-who-sc b.mid { color: var(--sun); } .sp-who-sc b.low { color: var(--coral); }
+    .sp-tt .sp-full { color: var(--mint); font-weight: 700; }
+    .sp-tt .cl-tr small { font-size: .74rem; }
+    @keyframes spPulse { 50% { box-shadow: 0 0 0 12px color-mix(in srgb, var(--coral) 16%, transparent); } }
+    .sp-mic.on { animation: spPulse 1.3s ease-in-out infinite; }
+    @media (prefers-reduced-motion: reduce) { .sp-mic.on { animation: none; } }
+    /* 폰: 점수 + 저장 한 줄, 메모는 아래 한 줄 */
+    @media (max-width: 520px) { .sp-tform { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 's b' 'm m'; } .sp-tform input[type=number] { grid-area: s; } .sp-tform input[type=text] { grid-area: m; } .sp-tform .btn { grid-area: b; padding: 0 18px; } }
+    @media (max-width: 380px) { .sp-ri > p, .sp-ri > div:not(.sp-ri-top) { margin-left: 0; } }
+    @media (min-width: 900px) { .sp-text { font-size: 40px; } .sp-text.long { font-size: 23px; } }

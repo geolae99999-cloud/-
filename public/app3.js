@@ -196,14 +196,14 @@
   /* ----- 시트 ----- */
   let sheetTok = 0; // 시트를 열고 닫을 때마다 바뀌어요 — 늦게 끝난 불러오기가 다른 시트를 덮지 않게
   function openSheet(title, html) {
-    sheetTok++;
+    sheetTok++; spEnd(); // 발음 평가 화면을 떠나면 마이크 · 재생 정리
     $('sheetTitle').textContent = title;
     $('sheetBody').innerHTML = html;
     $('sheetOv').classList.add('open');
     document.body.classList.add('no-scroll');
   }
   function closeSheet() {
-    bulkCancel = true; sheetTok++;
+    bulkCancel = true; sheetTok++; spEnd();
     $('sheetOv').classList.remove('open');
     if (!$('studyScreen').classList.contains('open')) document.body.classList.remove('no-scroll');
   }

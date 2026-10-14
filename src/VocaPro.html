@@ -2101,6 +2101,83 @@
     .tg:checked { background: var(--blue); }
     .tg:checked::after { transform: translateX(20px); }
     .tg:focus-visible { outline: none; box-shadow: var(--ring); }
+
+    /* ---- 발음 평가 (수행평가): 녹음 카드, 빨간 녹음 버튼 + 남은 시간 링, 점수 배지 ---- */
+    .cl [hidden] { display: none !important; }
+    .sp { display: flex; flex-direction: column; gap: 12px; }
+    .sp-top { display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .sp-step b { font-size: 22px; font-weight: 800; color: var(--ink); margin-right: 2px; }
+    .sp-dots { display: flex; gap: 4px; margin-top: -6px; }
+    .sp-dots button { flex: 1; min-width: 0; height: 18px; padding: 6px 0; border: none; border-radius: 99px; background: var(--surface-3); background-clip: content-box; }
+    .sp-dots button.ok { background-color: var(--mint); } .sp-dots button.cur { background-color: var(--blue); }
+    .sp-card { background: var(--surface-2); border-radius: 22px; padding: 26px 20px 20px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+    .sp-kind { font-size: 12px; font-weight: 700; color: var(--blue-ink); background: var(--blue-soft); padding: 4px 10px; border-radius: 99px; }
+    .sp-text { font-size: 34px; font-weight: 800; letter-spacing: -.02em; line-height: 1.25; word-break: break-word; color: var(--ink); }
+    .sp-text.long { font-size: 21px; font-weight: 700; line-height: 1.45; letter-spacing: -.01em; }
+    .sp-text.zh, .sp-ri-t b:lang(zh-CN) { font-family: 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Microsoft YaHei', var(--font); }
+    .sp-mean { font-size: 15px; color: var(--ink-2); font-weight: 500; line-height: 1.45; word-break: keep-all; }
+    .sp-card .sp-listen { margin-top: 6px; background: var(--surface); color: var(--ink); }
+    .sp-recbox { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 10px 0 0; }
+    .sp-mic { --p: 1; position: relative; width: 84px; height: 84px; border-radius: 50%; border: none; background: var(--coral); color: #fff; display: grid; place-items: center; cursor: pointer; transition: transform .12s var(--ease), background-color .15s; }
+    .sp-mic .ic { width: 34px; height: 34px; stroke-width: 2; }
+    .sp-mic:active:not(:disabled) { transform: scale(.94); }
+    .sp-mic:disabled { background: var(--off); cursor: default; }
+    .sp-mic:focus-visible { outline: none; box-shadow: var(--ring); }
+    .sp-mic::before { content: ''; position: absolute; inset: -8px; border-radius: 50%; background: conic-gradient(var(--coral) calc(var(--p) * 360deg), var(--surface-3) 0); -webkit-mask: radial-gradient(circle, transparent 61%, #000 62%); mask: radial-gradient(circle, transparent 61%, #000 62%); opacity: 0; transition: opacity .2s; }
+    .sp-mic.on::before { opacity: 1; }
+    .sp-stop { width: 26px; height: 26px; border-radius: 7px; background: #fff; }
+    .sp-meter { width: 160px; height: 6px; border-radius: 99px; background: var(--surface-3); overflow: hidden; }
+    .sp-meter i { display: block; height: 100%; background: var(--mint); transform-origin: left center; transform: scaleX(0); transition: transform .08s linear; }
+    .sp-recbox:not(.on) .sp-meter { visibility: hidden; }
+    .sp-hint { margin: 0; font-size: 14px; font-weight: 600; color: var(--muted); text-align: center; font-variant-numeric: tabular-nums; word-break: keep-all; }
+    .sp-recbox.on .sp-hint { color: var(--coral); }
+    .sp-note { margin: 0; padding: 12px 14px; border-radius: 14px; background: var(--coral-soft); color: var(--coral); font-size: 14px; font-weight: 600; line-height: 1.5; word-break: keep-all; }
+    .sp-mine { display: flex; align-items: center; gap: 12px; background: var(--surface-2); border-radius: 16px; padding: 10px 12px 10px 10px; }
+    .sp-mine span { flex: 1; font-weight: 700; font-size: 15px; } .sp-mine small { color: var(--muted); font-weight: 600; margin-left: 4px; }
+    .sp-play { flex: none; width: 40px; height: 40px; border-radius: 50%; border: none; background: var(--blue); color: #fff; display: grid; place-items: center; cursor: pointer; }
+    .sp-play .ic { width: 16px; height: 16px; margin-left: 2px; }
+    .sp-play.on { background: var(--ink); color: var(--bg); } .sp-play:disabled { background: var(--surface-3); color: var(--off); cursor: default; }
+    .sp-sc { flex: none; font-style: normal; font-weight: 800; font-size: 14px; padding: 5px 10px; border-radius: 99px; background: var(--surface-3); color: var(--ink-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .sp-sc.good { background: var(--mint-soft); color: var(--mint); } .sp-sc.mid { background: var(--sun-soft); color: #b86e00; } .sp-sc.low { background: var(--coral-soft); color: var(--coral); }
+    .cl-tr .sp-sc { padding: 3px 9px; }
+    .sp-wait { background: var(--sun-soft) !important; color: #b86e00 !important; }
+    body.dark :is(.sp-sc.mid, .sp-wait) { color: var(--sun) !important; }
+    .sp-nav .btn { flex: 1; }
+    .sp-foot { text-align: center; }
+    .sp-sum { background: var(--surface-2); border-radius: 22px; padding: 22px 20px 20px; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+    .sp-sum small { font-size: 14px; font-weight: 600; color: var(--muted); }
+    .sp-sum b { font-size: 52px; font-weight: 800; letter-spacing: -.03em; line-height: 1.15; color: var(--ink); font-variant-numeric: tabular-nums; }
+    .sp-sum b.good { color: var(--mint); } .sp-sum b.mid { color: var(--sun); } .sp-sum b.low { color: var(--coral); }
+    .sp-sum em { font-style: normal; font-size: 22px; margin-left: 2px; }
+    .sp-sum span { font-size: 13px; color: var(--muted); font-weight: 600; }
+    .sp-list { display: flex; flex-direction: column; gap: 8px; }
+    .sp-ri { background: var(--surface-2); border-radius: 18px; padding: 12px 14px 12px 12px; display: flex; flex-direction: column; gap: 6px; }
+    .sp-ri-top { display: flex; align-items: center; gap: 12px; }
+    .sp-ri-t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+    .sp-ri-t b { font-size: 16px; font-weight: 700; line-height: 1.4; word-break: break-word; } .sp-ri-t small { font-size: 13px; color: var(--muted); }
+    .sp-ri > p, .sp-ri > div:not(.sp-ri-top) { margin-left: 52px; }
+    .sp-heard, .sp-tip, .sp-tnote { margin: 0; font-size: 14px; line-height: 1.5; word-break: keep-all; }
+    .sp-heard { color: var(--muted); font-size: 13px; } .sp-heard b { color: var(--ink-2); font-weight: 600; margin-left: 4px; word-break: break-word; }
+    .sp-tip { color: var(--ink); font-weight: 500; }
+    .sp-tnote { color: var(--blue-ink); font-weight: 600; } .sp-tnote small { color: var(--muted); font-weight: 500; }
+    .sp-prob { display: flex; flex-wrap: wrap; gap: 4px; } .sp-prob span { font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 99px; background: var(--coral-soft); color: var(--coral); }
+    .sp-tform { display: grid; grid-template-columns: 84px minmax(0, 1fr) auto; gap: 6px; margin-top: 4px; }
+    .sp-tform input[type=number], .sp-tform input[type=text] { padding: 9px 12px; font-size: 15px; border-radius: 12px; background: var(--surface); min-width: 0; }
+    .sp-tform .btn { height: auto; min-height: 40px; }
+    .sp-who { display: flex; align-items: center; gap: 12px; } .sp-who > div { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+    .sp-who b { font-size: 18px; font-weight: 800; } .sp-who small { color: var(--muted); font-size: 13px; }
+    .sp-who .icon-btn { flex: none; width: 40px; height: 40px; background: var(--surface-2); }
+    .sp-who-sc { display: flex; flex-direction: column; align-items: flex-end; } .sp-who-sc small { font-size: 12px; } .sp-who-sc b { font-size: 28px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+    .sp-who-sc b.good { color: var(--mint); } .sp-who-sc b.mid { color: var(--sun); } .sp-who-sc b.low { color: var(--coral); }
+    .sp-tt .sp-full { color: var(--mint); font-weight: 700; }
+    .sp-tt .cl-tr small { font-size: .74rem; }
+    @keyframes spPulse { 50% { box-shadow: 0 0 0 12px color-mix(in srgb, var(--coral) 16%, transparent); } }
+    .sp-mic.on { animation: spPulse 1.3s ease-in-out infinite; }
+    @media (prefers-reduced-motion: reduce) { .sp-mic.on { animation: none; } }
+    /* 폰: 점수 + 저장 한 줄, 메모는 아래 한 줄 */
+    @media (max-width: 520px) { .sp-tform { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 's b' 'm m'; } .sp-tform input[type=number] { grid-area: s; } .sp-tform input[type=text] { grid-area: m; } .sp-tform .btn { grid-area: b; padding: 0 18px; } }
+    @media (max-width: 380px) { .sp-ri > p, .sp-ri > div:not(.sp-ri-top) { margin-left: 0; } }
+    @media (min-width: 900px) { .sp-text { font-size: 40px; } .sp-text.long { font-size: 23px; } }
   </style>
 </head>
 <body>
@@ -2348,19 +2425,20 @@ window.VOCA_CLOUD = {
     changePw: (o, n) => rpc('voca_change_pw', { p_token: getTok(), p_old: o, p_new: n }),
     call: (fn, args) => rpc(fn, Object.assign({ p_token: getTok() }, args || {})),
     async remove() { await rpc('voca_delete', { p_token: getTok() }); setTok(null); cur = null; },
-    async ai(prompt, task) {
-      let r; const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 20000);
+    async ai(prompt, task, ms) {
+      const sec = Math.round((ms || 20000) / 1000);
+      let r; const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), ms || 20000);
       try { r = await fetch(cfg.url.replace(/\/+$/, '') + '/functions/v1/ai', { method: 'POST', headers: hdr, body: JSON.stringify(Object.assign({ token: getTok(), prompt }, task || {})), signal: ctl.signal }); }
       catch (e) {
         clearTimeout(tm);
-        const x = new Error(e && e.name === 'AbortError' ? 'AI 응답이 20초 넘게 없어요. 다시 시도해 주세요.' : '서버에 연결하지 못했어요. 인터넷 연결을 확인해 주세요.');
+        const x = new Error(e && e.name === 'AbortError' ? `AI 응답이 ${sec}초 넘게 없어요. 다시 시도해 주세요.` : '서버에 연결하지 못했어요. 인터넷 연결을 확인해 주세요.');
         x.status = e && e.name === 'AbortError' ? 408 : 0; throw x;
       }
       clearTimeout(tm);
       let j = null; try { j = await r.json(); } catch (e) {}
       if (!r.ok || !j || typeof j.text !== 'string') {
         const m = r.status === 404 ? '서버 AI가 아직 준비되지 않았어요. 설정에서 내 API 키를 입력하면 바로 쓸 수 있어요.' : r.status === 429 ? ((j && j.error) || '오늘 AI 사용 한도를 다 썼어요. 내일 다시 쓸 수 있어요.') : (j && j.error) || 'AI 호출에 실패했어요.';
-        const x = new Error(m); x.status = r.status; throw x;
+        const x = new Error(m); x.status = r.status; x.code = j && j.code; throw x;
       }
       return j.text;
     }
@@ -2399,6 +2477,7 @@ window.VOCA_CLOUD = {
     sparkles: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z"/><path d="M19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8L19 16z"/></svg>',
     trend: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>',
     x: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+    back: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>',
     cards: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="14" height="12" rx="2"/><path d="M7 3h12a2 2 0 0 1 2 2v10"/></svg>',
     keyboard: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg>',
     play: '<svg class="ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg>',
@@ -3131,14 +3210,14 @@ window.VOCA_CLOUD = {
   /* ----- 시트 ----- */
   let sheetTok = 0; // 시트를 열고 닫을 때마다 바뀌어요 — 늦게 끝난 불러오기가 다른 시트를 덮지 않게
   function openSheet(title, html) {
-    sheetTok++;
+    sheetTok++; spEnd(); // 발음 평가 화면을 떠나면 마이크 · 재생 정리
     $('sheetTitle').textContent = title;
     $('sheetBody').innerHTML = html;
     $('sheetOv').classList.add('open');
     document.body.classList.add('no-scroll');
   }
   function closeSheet() {
-    bulkCancel = true; sheetTok++;
+    bulkCancel = true; sheetTok++; spEnd();
     $('sheetOv').classList.remove('open');
     if (!$('studyScreen').classList.contains('open')) document.body.classList.remove('no-scroll');
   }
@@ -6704,15 +6783,20 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     const d = CLV.data; if (!d) return; el.disabled = true; const old = el.textContent; el.textContent = '만드는 중...';
     try {
       const asg = d.assignments.slice().reverse(), res = [];
-      for (const a of asg) res.push(await Cloud.call('voca_assign_results', { p_assign: a.id }));
+      // 발음 평가는 학생별 AI 평균 · 선생님 점수도 받아요 (서버 v11이 없으면 빈칸)
+      for (const a of asg) res.push(a.kind === 'speak' ? await Cloud.call('voca_speak_results', { p_assign: a.id }).catch(() => ({ rows: [] })) : await Cloud.call('voca_assign_results', { p_assign: a.id }));
       const q = x => { const s = String(x == null ? '' : x); return /[",\n]/.test(s) || /^[=+\-@\t\r]/.test(s) ? `"${s.replace(/^([=+\-@\t\r])/, "'$1").replace(/"/g, '""')}"` : s; };
-      const head = ['학번', '이름', '최근 학습', '7일 단어', '7일 정답률(%)', '연속 학습(일)', '전체 단어', '마스터', '과제 완료'].concat(asg.map(a => `${a.title} (${CL_KIND[a.kind]})`));
+      const head = ['학번', '이름', '최근 학습', '7일 단어', '7일 정답률(%)', '연속 학습(일)', '전체 단어', '마스터', '과제 완료'].concat(...asg.map(a => a.kind === 'speak' ? [`${a.title} (발음 평가)`, `${a.title} AI 평균`, `${a.title} 선생님 점수`] : [`${a.title} (${CL_KIND[a.kind] || ''})`]));
       // 결과 행에 uid가 있으면 uid로, 없으면 이름+학번으로 맞추고 한 행은 한 학생에게만 써요(동명이인 중복 방지)
       const pool = res.map(r => (r.rows || []).slice());
       const rows = d.members.map(m => {
         const p = m.progress || {};
-        const scores = pool.map(rs => { let k = rs.findIndex(y => y.uid != null && y.uid === m.uid); if (k < 0) k = rs.findIndex(y => y.uid == null && y.name === m.name && y.sno === m.sno); const x = k < 0 ? null : rs.splice(k, 1)[0]; return x && x.score != null ? x.score : ''; });
-        return [m.sno, m.name, p.last || '', p.n7 != null ? p.n7 : '', p.acc7 != null ? p.acc7 : '', p.streak || 0, p.total || 0, p.mastered || 0, `${m.done}/${asg.length}`].concat(scores);
+        const scores = pool.map((rs, j) => {
+          let k = rs.findIndex(y => y.uid != null && y.uid === m.uid); if (k < 0) k = rs.findIndex(y => y.uid == null && y.name === m.name && y.sno === m.sno);
+          const x = k < 0 ? null : rs.splice(k, 1)[0], v = y => y != null ? y : '';
+          return asg[j].kind === 'speak' ? [x && x.submitted ? v(x.score) : '', v(x && x.ai_avg), v(x && x.t_avg)] : [x && x.score != null ? x.score : ''];
+        });
+        return [m.sno, m.name, p.last || '', p.n7 != null ? p.n7 : '', p.acc7 != null ? p.acc7 : '', p.streak || 0, p.total || 0, p.mastered || 0, `${m.done}/${asg.length}`].concat(...scores);
       });
       const csv = '﻿' + [head].concat(rows).map(r => r.map(q).join(',')).join('\r\n');
       download(`${d.class.name}_학습현황_${dayKey()}.csv`, csv, 'text/csv;charset=utf-8');
@@ -6806,10 +6890,15 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     too_many: '더 만들거나 참여할 수 없어요. 쓰지 않는 반을 먼저 정리해 주세요.', full: '이 반은 인원이 꽉 찼어요(200명).',
     no_assign: '과제를 찾지 못했어요. 선생님이 지웠을 수 있어요.', bad_input: '입력한 내용을 다시 확인해 주세요.',
     auth: '로그인이 만료됐어요. 다시 로그인해 주세요.', missing: '우리 반 기능은 아직 준비 중이에요. 운영자가 서버 설정을 마치면 바로 쓸 수 있어요.',
-    network: '서버에 연결하지 못했어요. 인터넷 연결을 확인해 주세요.', too_many_tries: '틀린 코드를 너무 많이 넣었어요. 내일 다시 시도하거나 선생님께 코드를 확인해 주세요.'
+    network: '서버에 연결하지 못했어요. 인터넷 연결을 확인해 주세요.', too_many_tries: '틀린 코드를 너무 많이 넣었어요. 내일 다시 시도하거나 선생님께 코드를 확인해 주세요.',
+    too_big: '녹음이 너무 길어요. 조금 더 짧게 읽어 주세요.', bad_audio: '녹음 파일을 읽지 못했어요. 다시 녹음해 주세요.', not_done: '아직 녹음하지 않은 문항이 있어요.',
+    no_rec: '녹음을 찾지 못했어요. 60일이 지나 지워졌을 수 있어요.'
   };
-  const clMsg = e => CL_ERR[e && e.code] || '잠시 후 다시 시도해 주세요.';
-  const CL_KIND = { test: '시험', study: '단어 학습' };
+  const clMsg = e => e && e.code === 'sp_missing' ? SP_MISSING : CL_ERR[e && e.code] || '잠시 후 다시 시도해 주세요.';
+  const CL_KIND = { test: '시험', study: '단어 학습', speak: '발음 평가' };
+  const clCount = a => a.kind === 'speak' ? `${a.count}문항` : `${a.count}단어`;
+  // 학생 목록 오른쪽: 발음 평가는 채점이 끝나야 점수를 보여 줘요
+  const clMine = a => !a.mine ? '<span class="cl-todo">시작</span>' : a.kind === 'speak' && a.mine.n && a.mine.ok < a.mine.n ? '<span class="cl-done sp-wait">채점 중</span>' : `<span class="cl-done">${esc(a.mine.score)}점</span>`;
   const clKey = () => 'vocapro_cls:' + currentUser;
   const clCache = () => loadJson(clKey()) || { joined: 0, pending: 0 };
   let CL = null, CLV = { id: null, tab: 'stu', open: null, data: null };
@@ -6845,9 +6934,9 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     }
     if (!teach || r.joined.length) {
       h += r.joined.map(c => `<div class="cl-sec card cl-cls"><div class="cl-head"><div><b>${esc(c.name)}</b><small>${esc([c.school, c.teacher && c.teacher + ' 선생님'].filter(Boolean).join(' · '))}</small></div><button class="btn btn-sm btn-soft" data-act="cl-leave" data-id="${c.id}">나가기</button></div>
-        ${c.assignments.length ? c.assignments.map(a => `<button class="cl-asg" data-act="cl-do" data-id="${a.id}"><span class="cl-li"><b>${esc(a.title)}</b><small>${CL_KIND[a.kind] || ''} · ${a.count}단어${a.due ? ' · ' + clDue(a.due) : ''}</small></span>${a.mine ? `<span class="cl-done">${a.mine.score}점</span>` : '<span class="cl-todo">시작</span>'}</button>`).join('') : '<p class="muted cl-p">아직 과제가 없어요.</p>'}</div>`).join('');
+        ${c.assignments.length ? c.assignments.map(a => `<button class="cl-asg" data-act="cl-do" data-id="${a.id}"><span class="cl-li"><b>${esc(a.title)}</b><small>${CL_KIND[a.kind] || ''} · ${clCount(a)}${a.due ? ' · ' + clDue(a.due) : ''}</small></span>${clMine(a)}</button>`).join('') : '<p class="muted cl-p">아직 과제가 없어요.</p>'}</div>`).join('');
       h += `<div class="cl-sec"><h4 class="syn-h">반 참여하기</h4><div class="cl-new"><input type="text" id="clCode" maxlength="6" placeholder="초대 코드 6자리" autocapitalize="characters" autocomplete="off"><button class="btn btn-primary" data-act="cl-join">참여</button></div>
-        <label class="cl-agree"><input type="checkbox" id="clAgree"> 이 반 선생님에게 내 이름${isTeacher() ? '' : ', 학번'}, 학습 요약(학습한 단어 수, 정답률, 연속 학습, 많이 틀린 단어, 최근 시험 점수), 과제 결과, 앱을 켜 두는 동안의 접속 상태와 지금 하는 학습을 보여 주는 데 동의해요. 반에서 나가면 선생님 화면에서 바로 지워져요.</label></div>`;
+        <label class="cl-agree"><input type="checkbox" id="clAgree"> 이 반 선생님에게 내 이름${isTeacher() ? '' : ', 학번'}, 학습 요약(학습한 단어 수, 정답률, 연속 학습, 많이 틀린 단어, 최근 시험 점수), 과제 결과(발음 평가 녹음과 점수 포함), 앱을 켜 두는 동안의 접속 상태와 지금 하는 학습을 보여 주는 데 동의해요. 반에서 나가면 선생님 화면에서 바로 지워져요.</label></div>`;
     }
     $('sheetTitle').textContent = '우리 반';
     $('sheetBody').innerHTML = `<div class="form-stack cl">${h}</div>`;
@@ -6904,7 +6993,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
         : `<div class="cl-load">${MASCOT('happy')}<span>아직 들어온 학생이 없어요. 초대 코드를 칠판에 적어 주세요.</span></div>`;
     } else {
       body = `<button class="btn btn-primary btn-block" data-act="cl-anew">${IC.plus} 과제 내기</button>
-        ${asg.length ? `<div class="menu-list">${asg.map(a => `<button data-act="cl-ares" data-id="${a.id}"><span class="cl-li"><b>${esc(a.title)}</b><small>${CL_KIND[a.kind]} · ${a.count}단어${a.kind === 'test' ? ` · ${a.n}문제` : ''}${a.due ? ' · ' + clDue(a.due) : ''} · 제출 ${a.subs}/${mem.length}${a.avg != null ? ` · 평균 ${a.avg}점` : ''}</small></span></button>`).join('')}</div>` : '<p class="muted cl-p">아직 낸 과제가 없어요.</p>'}`;
+        ${asg.length ? `<div class="menu-list">${asg.map(a => `<button data-act="cl-ares" data-id="${a.id}"><span class="cl-li"><b>${esc(a.title)}</b><small>${CL_KIND[a.kind] || ''} · ${clCount(a)}${a.kind === 'test' ? ` · ${a.n}문제` : ''}${a.due ? ' · ' + clDue(a.due) : ''} · 제출 ${a.subs}/${mem.length}${a.avg != null ? ` · 평균 ${a.avg}점` : ''}</small></span></button>`).join('')}</div>` : '<p class="muted cl-p">아직 낸 과제가 없어요.</p>'}`;
     }
     $('sheetBody').innerHTML = `<div class="form-stack cl">${head}${body}<button class="btn btn-soft btn-block" data-act="cl-csv">학습 현황 · 과제 점수 엑셀로 받기</button><div class="row cl-foot"><button class="btn btn-soft" data-act="cl-home">반 목록</button><button class="btn btn-soft cl-danger" data-act="cl-delete">반 삭제</button></div></div>`;
   }
@@ -6967,27 +7056,44 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
       <label class="setting-label" for="caTitle">과제 이름 (비우면 단어장 이름)</label>
       <input type="text" id="caTitle" maxlength="60" placeholder="예: Day 3 단어 시험">
       <label class="setting-label">종류</label>
-      <div class="seg" id="caKind"><button class="on" data-act="pt-opt" data-g="caKind" data-v="test">시험 (점수 제출)</button><button data-act="pt-opt" data-g="caKind" data-v="study">단어 학습 (뜻 고르기)</button></div>
-      <label class="setting-label">시험 문제 수</label>
-      <div class="seg" id="caNum">${[10, 20, 30, 50].map(k => `<button class="${k === 20 ? 'on' : ''}" data-act="pt-opt" data-g="caNum" data-v="${k}">${k}문제</button>`).join('')}</div>
+      <div class="seg" id="caKind"><button class="on" data-act="ca-kind" data-g="caKind" data-v="test">시험</button><button data-act="ca-kind" data-g="caKind" data-v="study">단어 학습</button><button data-act="ca-kind" data-g="caKind" data-v="speak">발음 평가</button></div>
+      <div id="caNumBox" class="form-stack"><label class="setting-label">시험 문제 수</label>
+      <div class="seg" id="caNum">${[10, 20, 30, 50].map(k => `<button class="${k === 20 ? 'on' : ''}" data-act="pt-opt" data-g="caNum" data-v="${k}">${k}문제</button>`).join('')}</div></div>
+      <div id="caSpBox" class="form-stack" hidden><label class="setting-label">읽을 내용</label>
+      <div class="seg" id="caSp"><button class="on" data-act="pt-opt" data-g="caSp" data-v="w">단어만</button><button data-act="pt-opt" data-g="caSp" data-v="s">예문까지</button></div>
+      <p class="muted cl-p">단어장 앞에서부터 20개까지 들어가요. '예문까지'는 예문이 있는 단어는 예문을, 없으면 단어를 읽어요. 학생이 녹음해 내면 AI가 0~100점으로 채점하고, 선생님이 듣고 점수를 고칠 수 있어요. 녹음은 선생님과 학생 본인만 들을 수 있고 60일 뒤 지워져요.</p></div>
       <label class="setting-label" for="caDue">마감일</label>
       <input type="date" id="caDue" value="${dv}">
-      <p class="muted cl-p">학생은 단어장을 그대로 받아 풀고, 끝나면 점수와 틀린 단어가 자동으로 제출돼요. 여러 번 풀면 가장 높은 점수가 남아요.</p>
+      <p class="muted cl-p" id="caNote">학생은 단어장을 그대로 받아 풀고, 끝나면 점수와 틀린 단어가 자동으로 제출돼요. 여러 번 풀면 가장 높은 점수가 남아요.</p>
       <div class="row"><button class="btn btn-soft" data-act="cl-back">취소</button><button class="btn btn-primary" data-act="cl-acreate">과제 내기</button></div></div>`;
+  };
+  // 종류를 바꾸면 시험 문제 수 / 발음 평가 설정을 바꿔 보여 줘요
+  ACTIONS['ca-kind'] = el => {
+    ACTIONS['pt-opt'](el); const sp = el.dataset.v === 'speak';
+    $('caNumBox').hidden = el.dataset.v !== 'test'; $('caSpBox').hidden = !sp; $('caNote').hidden = sp;
   };
   ACTIONS['cl-back'] = () => clDetail(CLV.id, true);
   ACTIONS['cl-acreate'] = async el => {
     const cat = categories.find(c => c.id === ($('caBook') || {}).value); if (!cat) return;
     const kind = (document.querySelector('#caKind .on') || { dataset: { v: 'test' } }).dataset.v, n = +(document.querySelector('#caNum .on') || { dataset: { v: 20 } }).dataset.v;
-    const words = cat.words.slice(0, 500).map(w => [w.word.slice(0, 80), (w.meaning || '').slice(0, 120)]);
+    const sent = kind === 'speak' && (document.querySelector('#caSp .on') || { dataset: {} }).dataset.v === 's';
+    // 발음 평가 문항: [읽을 글, 뜻, 언어, 'w' 단어 | 's' 문장] 20개까지
+    const words = kind === 'speak'
+      ? cat.words.slice(0, SP_MAX).map(w => sent && w.example ? [w.example.slice(0, 200), (w.exampleKo || w.meaning || '').slice(0, 160), LANG, 's'] : [w.word.slice(0, 80), (w.meaning || '').slice(0, 120), LANG, 'w'])
+      : cat.words.slice(0, 500).map(w => [w.word.slice(0, 80), (w.meaning || '').slice(0, 120)]);
     el.disabled = true;
     try {
-      await Cloud.call('voca_assign_create', { p_class: CLV.id, p_title: (($('caTitle') || {}).value || '').trim() || cat.name, p_kind: kind, p_n: n, p_due: ($('caDue') || {}).value || null, p_words: words });
-      toast(cat.words.length > 500 ? '과제를 냈어요. 앞의 500단어만 들어갔어요.' : '과제를 냈어요.'); CLV.tab = 'asg'; clDetail(CLV.id, true);
-    } catch (e) { el.disabled = false; say(clMsg(e)); }
+      // 발음 평가는 서버 v11이 있어야 해요. 없으면 과제를 만들기 전에 알려 줘요
+      if (kind === 'speak') { try { await Cloud.call('voca_speak_results', { p_assign: 0 }); } catch (e) { if (e && e.code === 'missing') { el.disabled = false; return say(SP_MISSING); } } }
+      await Cloud.call('voca_assign_create', { p_class: CLV.id, p_title: (($('caTitle') || {}).value || '').trim() || cat.name, p_kind: kind, p_n: kind === 'speak' ? words.length : n, p_due: ($('caDue') || {}).value || null, p_words: words });
+      const cut = kind === 'speak' ? cat.words.length > SP_MAX && `앞의 ${SP_MAX}개만` : cat.words.length > 500 && '앞의 500단어만';
+      toast(cut ? `과제를 냈어요. ${cut} 들어갔어요.` : '과제를 냈어요.'); CLV.tab = 'asg'; clDetail(CLV.id, true);
+    } catch (e) { el.disabled = false; say(kind === 'speak' && e && e.code === 'bad_input' ? SP_MISSING : clMsg(e)); }
   };
   ACTIONS['cl-ares'] = async el => {
-    const id = +el.dataset.id; openSheet('과제 결과', clLoading()); const tok = sheetTok;
+    const id = +el.dataset.id, a0 = CLV.data && CLV.data.assignments.find(x => x.id === id);
+    if (a0 && a0.kind === 'speak') return spResults(id);
+    openSheet('과제 결과', clLoading()); const tok = sheetTok;
     let r; try { r = await Cloud.call('voca_assign_results', { p_assign: id }); } catch (e) { return tok === sheetTok && clFail(e, 'cl-back'); }
     if (tok !== sheetTok) return;
     const a = r.assign, done = r.rows.filter(x => x.score != null), left = r.rows.filter(x => x.score == null);
@@ -6995,7 +7101,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     const weak = clWeakTop(done.map(x => x.wrong), 10);
     $('sheetTitle').textContent = a.title;
     $('sheetBody').innerHTML = `<div class="form-stack cl">
-      <div class="cl-kv"><span>${CL_KIND[a.kind]}</span><span>${a.count}단어</span>${a.due ? `<span>${clDue(a.due)}</span>` : ''}<span>제출 <b>${done.length}/${r.rows.length}</b></span>${avg != null ? `<span>평균 <b>${avg}점</b></span>` : ''}</div>
+      <div class="cl-kv"><span>${CL_KIND[a.kind] || ''}</span><span>${clCount(a)}</span>${a.due ? `<span>${clDue(a.due)}</span>` : ''}<span>제출 <b>${done.length}/${r.rows.length}</b></span>${avg != null ? `<span>평균 <b>${avg}점</b></span>` : ''}</div>
       ${weak.length ? `<h4 class="syn-h">많이 틀린 단어</h4><div class="cl-chips">${weak.map(x => `<span>${esc(x.w)} <b>${x.c}명</b></span>`).join('')}</div>` : ''}
       ${done.length ? `<div class="cl-table"><div class="cl-tr cl-th"><span>이름</span><span>점수</span><span>정답</span><span>시간</span><span>횟수</span></div>${done.sort((x, y) => y.score - x.score).map(x => `<div class="cl-tr"><span><b>${esc(x.name || '이름 없음')}</b>${x.sno ? `<small>${esc(x.sno)}</small>` : ''}</span><span><b>${x.score}</b></span><span>${x.ok}/${x.n}</span><span>${x.sec >= 60 ? Math.floor(x.sec / 60) + '분' : x.sec + '초'}</span><span>${x.tries}회</span></div>`).join('')}</div>` : '<p class="muted cl-p">아직 제출한 학생이 없어요.</p>'}
       ${left.length ? `<h4 class="syn-h">아직 안 한 학생 ${left.length}명</h4><div class="cl-chips">${left.map(x => `<span>${esc(x.name || '이름 없음')}${x.sno ? ` <small>${esc(x.sno)}</small>` : ''}</span>`).join('')}</div>` : ''}
@@ -7006,10 +7112,334 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     try { await Cloud.call('voca_assign_delete', { p_assign: +el.dataset.id }); CLV.tab = 'asg'; clDetail(CLV.id, true); } catch (e) { say(clMsg(e)); }
   };
 
+  /* =========================================================
+   * 발음 평가 (수행평가): 학생 녹음 -> 16kHz WAV -> 서버 저장 -> AI 채점 -> 선생님 듣기·점수
+   * ======================================================= */
+  const SP_MAX = 20, SP_RATE = 16000;
+  const SP_MISSING = '발음 평가는 서버 설정이 필요해요. 운영자(선생님)가 Supabase SQL Editor에서 supabase_update_v11.sql을 실행하면 바로 쓸 수 있어요.';
+  const SP_AI_OLD = 'AI 채점은 서버의 AI 함수를 새로 배포하면 돼요. 녹음은 선생님께 그대로 제출됐어요.';
+  const spMsg = e => e && e.code === 'missing' ? SP_MISSING : clMsg(e);
+  const spCap = it => it[3] === 's' ? 10 : 4; // 녹음 최대 길이(초): 단어 4초, 문장 10초
+  const spTone = v => v == null ? '' : v >= 80 ? ' good' : v >= 60 ? ' mid' : ' low';
+  const spLang = it => it[2] === 'zh' ? 'zh' : 'en';
+  let SP = null; // 학생 녹음 화면 상태
+  let SPT = null; // 선생님 결과 화면 상태
+  const spUrls = new Set();
+  let spAudio = null;
+  const spBtn = (b, on) => { b.classList.toggle('on', on); b.innerHTML = on ? IC.pause : IC.play; };
+  function spStopAudio() { if (spAudio) { try { spAudio.pause(); } catch (e) {} spAudio = null; } document.querySelectorAll('.sp-play.on').forEach(b => spBtn(b, false)); }
+  function spPlayUrl(url, btn) {
+    spStopAudio(); try { window.speechSynthesis.cancel(); } catch (e) {}
+    const au = new Audio(url); spAudio = au;
+    if (btn) spBtn(btn, true);
+    const off = () => { if (spAudio === au) spAudio = null; if (btn) spBtn(btn, false); };
+    au.addEventListener('ended', off); au.addEventListener('pause', off);
+    au.play().catch(() => { off(); toast('이 기기에서 녹음을 재생하지 못했어요.'); });
+  }
+  const spBlobUrl = u8 => { const url = URL.createObjectURL(new Blob([u8], { type: 'audio/wav' })); spUrls.add(url); return url; };
+  const spB64 = u8 => { let s = ''; for (let i = 0; i < u8.length; i += 8192) s += String.fromCharCode.apply(null, u8.subarray(i, i + 8192)); return btoa(s); };
+  const spUnB64 = b => { const s = atob(b), u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return u; };
+  // 시트를 닫거나 다른 화면으로 가면: 녹음 중지, 마이크 끄기, 재생 멈춤, blob 주소 반납
+  function spEnd() {
+    if (SP) { spRecStop(true); if (SP.stream) SP.stream.getTracks().forEach(t => t.stop()); if (SP.ctx) SP.ctx.close().catch(() => {}); SP = null; }
+    SPT = null; spStopAudio(); spUrls.forEach(u => URL.revokeObjectURL(u)); spUrls.clear();
+  }
+
+  /* ----- 녹음 -> WAV (16kHz · 모노 · 16비트, 앞뒤 무음 자르기) ----- */
+  function spWav(chunks, rate) {
+    let n = 0; chunks.forEach(c => { n += c.length; });
+    const x = new Float32Array(n); let o = 0; chunks.forEach(c => { x.set(c, o); o += c.length; });
+    // 16kHz로 바꾸기: 줄일 때는 구간 평균(잡음 줄이기), 늘릴 때는 가까운 값
+    const r = rate / SP_RATE, m = Math.floor(n / r), y = new Float32Array(m);
+    for (let i = 0; i < m; i++) {
+      const a = Math.floor(i * r), b = Math.min(n, Math.max(a + 1, Math.floor((i + 1) * r)));
+      let s = 0; for (let k = a; k < b; k++) s += x[k]; y[i] = s / (b - a);
+    }
+    // 20ms 단위 소리 크기로 앞뒤 무음 자르기 (앞 0.15초, 뒤 0.2초 여유)
+    const F = 320, fr = [];
+    for (let i = 0; i + F <= m; i += F) { let s = 0; for (let k = i; k < i + F; k++) s += y[k] * y[k]; fr.push(Math.sqrt(s / F)); }
+    const peak = Math.max(0, ...fr); if (peak < 0.006) return null;
+    const th = Math.max(0.005, peak * 0.12), first = fr.findIndex(v => v >= th);
+    let last = fr.length - 1; while (last > first && fr[last] < th) last--;
+    const s0 = Math.max(0, (first - 8) * F), s1 = Math.min(m, (last + 11) * F), len = s1 - s0;
+    if (len < SP_RATE * 0.15) return null;
+    let mx = 0; for (let i = s0; i < s1; i++) mx = Math.max(mx, Math.abs(y[i]));
+    const g = Math.min(4, 0.9 / (mx || 1)); // 너무 작게 녹음됐으면 키워요(최대 4배)
+    const buf = new ArrayBuffer(44 + len * 2), v = new DataView(buf), w = (p, t) => { for (let i = 0; i < t.length; i++) v.setUint8(p + i, t.charCodeAt(i)); };
+    w(0, 'RIFF'); v.setUint32(4, 36 + len * 2, true); w(8, 'WAVE'); w(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+    v.setUint32(24, SP_RATE, true); v.setUint32(28, SP_RATE * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, 'data'); v.setUint32(40, len * 2, true);
+    for (let i = 0; i < len; i++) { const s = Math.max(-1, Math.min(1, y[s0 + i] * g)); v.setInt16(44 + i * 2, s < 0 ? s * 0x8000 : s * 0x7fff, true); }
+    return { u8: new Uint8Array(buf), ms: Math.round(len / SP_RATE * 1000) };
+  }
+  async function spMic() {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.isSecureContext) throw { code: 'unsupported' };
+    if (!SP.ctx) SP.ctx = new AC();
+    if (SP.ctx.state === 'suspended') await SP.ctx.resume().catch(() => {});
+    if (!SP.stream || !SP.stream.getAudioTracks().some(t => t.readyState === 'live')) {
+      try { SP.stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true } }); }
+      catch (e) { throw { code: e && (e.name === 'NotAllowedError' || e.name === 'SecurityError') ? 'denied' : e && (e.name === 'NotFoundError' || e.name === 'OverconstrainedError') ? 'nomic' : 'unsupported' }; }
+      if (SP.ctx.state !== 'running') await SP.ctx.resume().catch(() => {}); // 아이폰: 마이크를 켠 뒤 소리 처리가 멈춰 있을 수 있어요
+    }
+  }
+  const SP_MIC_ERR = {
+    denied: '마이크를 쓸 수 없어요. 브라우저 주소창의 자물쇠(또는 설정 > 사이트 권한)에서 마이크를 허용한 뒤 다시 눌러 주세요.',
+    nomic: '마이크를 찾지 못했어요. 이어폰 마이크나 기기 마이크가 연결됐는지 확인해 주세요.',
+    unsupported: '이 브라우저에서는 녹음할 수 없어요. 최신 Chrome, Safari(iPhone은 iOS 14.3 이상)에서 열어 주세요.'
+  };
+  async function spRecStart() {
+    const it = SP.items[SP.i], cap = spCap(it), ctx = SP.ctx;
+    const src = ctx.createMediaStreamSource(SP.stream), proc = ctx.createScriptProcessor(4096, 1, 1), mute = ctx.createGain();
+    mute.gain.value = 0; // 내 목소리가 스피커로 다시 나오지 않게
+    const R = { chunks: [], n: 0, lv: 0, t0: performance.now(), cap, src, proc, mute, idx: SP.i, max: Math.ceil(cap * ctx.sampleRate) };
+    proc.onaudioprocess = e => {
+      if (SP.rec !== R) return;
+      const d = e.inputBuffer.getChannelData(0); let s = 0; for (let i = 0; i < d.length; i += 4) s += d[i] * d[i];
+      R.lv = Math.min(1, Math.sqrt(s / (d.length / 4)) * 6);
+      if (R.n < R.max) { const c = d.subarray(0, Math.min(d.length, R.max - R.n)); R.chunks.push(new Float32Array(c)); R.n += c.length; }
+      if (R.n >= R.max) spRecStop();
+    };
+    src.connect(proc); proc.connect(mute); mute.connect(ctx.destination);
+    SP.rec = R; spDraw();
+    const tick = () => {
+      if (SP && SP.rec === R) {
+        const left = Math.max(0, cap - (performance.now() - R.t0) / 1000), lv = $('spLv'), cd = $('spCd'), ring = $('spRing');
+        if (lv) lv.style.transform = `scaleX(${R.lv.toFixed(3)})`;
+        if (ring) ring.style.setProperty('--p', (left / cap).toFixed(3));
+        if (cd) cd.textContent = `${left.toFixed(1)}초 남았어요 · 다 읽으면 버튼을 눌러요`;
+        if (left <= 0) spRecStop(); else requestAnimationFrame(tick);
+      }
+    };
+    requestAnimationFrame(tick);
+  }
+  // 녹음 멈춤 -> WAV 만들기 -> 바로 올리기 (drop 이면 버리기)
+  function spRecStop(drop) {
+    const R = SP && SP.rec; if (!R) return;
+    SP.rec = null;
+    try { R.src.disconnect(); R.proc.disconnect(); R.mute.disconnect(); } catch (e) {}
+    R.proc.onaudioprocess = null;
+    // 녹음이 끝나면 마이크를 꺼요(주소창 마이크 표시가 계속 켜져 있지 않게). 다음 녹음 때 다시 켜요
+    if (SP.stream) { SP.stream.getTracks().forEach(t => t.stop()); SP.stream = null; }
+    if (drop) return;
+    const wav = spWav(R.chunks, SP.ctx.sampleRate);
+    if (!wav) { SP.note = '소리가 들리지 않았어요. 마이크 가까이에서 또렷하게 다시 읽어 주세요.'; return spDraw(); }
+    spUpload(R.idx, wav);
+  }
+  async function spUpload(idx, wav) {
+    const sp = SP; sp.busy = idx; sp.note = ''; spDraw();
+    try {
+      const r = await Cloud.call('voca_speak_put', { p_assign: sp.a.id, p_idx: idx, p_b64: spB64(wav.u8) });
+      if (SP !== sp) return;
+      const old = sp.local[idx]; if (old) { URL.revokeObjectURL(old); spUrls.delete(old); }
+      sp.local[idx] = spBlobUrl(wav.u8);
+      sp.mine[idx] = Object.assign(sp.mine[idx] || {}, { idx, dur_ms: r.dur_ms, audio: true, ai_score: null, ai_detail: null });
+      sp.dirty = true;
+    } catch (e) { if (SP !== sp) return; sp.note = '녹음을 올리지 못했어요. ' + spMsg(e); }
+    sp.busy = null; spDraw();
+  }
+
+  /* ----- 학생: 발음 평가 열기 ----- */
+  async function spOpen(a) {
+    spEnd();
+    const items = (Array.isArray(a.words) ? a.words : []).filter(x => Array.isArray(x) && x[0]).slice(0, SP_MAX);
+    if (!items.length) return say('과제에 문항이 없어요.');
+    openSheet(a.title, clLoading()); const tok = sheetTok;
+    let m; try { m = await Cloud.call('voca_speak_mine', { p_assign: a.id }); } catch (e) { return tok === sheetTok && clFail(e && e.code === 'missing' ? { code: 'sp_missing' } : e, 'cl-home'); }
+    if (tok !== sheetTok) return;
+    SP = { a, items, i: 0, mine: {}, local: {}, submitted: !!m.submitted, score: m.score, view: 'rec', rec: null, busy: null, note: '' };
+    (m.items || []).forEach(x => { SP.mine[x.idx] = x; });
+    const graded = items.every((_, i) => SP.mine[i] && SP.mine[i].ai_score != null);
+    if (SP.submitted && graded) SP.view = 'res';
+    else { const k = items.findIndex((_, i) => !SP.mine[i]); SP.i = k < 0 ? 0 : k; }
+    spDraw();
+    // 제출했는데 채점이 안 된 문항이 있으면(예: AI가 바빴음) 다시 채점해요
+    if (SP.submitted && !graded && items.every((_, i) => SP.mine[i])) spGrade();
+  }
+  const spDone = () => SP.items.filter((_, i) => SP.mine[i]).length;
+  function spDraw() {
+    const sp = SP; if (!sp || !$('sheetOv').classList.contains('open')) return;
+    $('sheetTitle').textContent = sp.a.title;
+    if (sp.view === 'grading') { $('sheetBody').innerHTML = `<div class="sp">${clLoading('AI가 발음을 듣고 채점하고 있어요. 1분 정도 걸릴 수 있어요...')}</div>`; return; }
+    if (sp.view === 'res') return spResDraw();
+    const it = sp.items[sp.i], r = sp.mine[sp.i], rec = sp.rec && sp.rec.idx === sp.i, busy = sp.busy === sp.i, n = spDone(), last = sp.i === sp.items.length - 1;
+    const zh = spLang(it) === 'zh', cap = spCap(it);
+    $('sheetBody').innerHTML = `<div class="sp">
+      <div class="sp-top"><span class="sp-step"><b>${sp.i + 1}</b> / ${sp.items.length}</span><span class="sp-got">녹음 ${n}/${sp.items.length}</span></div>
+      <div class="sp-dots">${sp.items.map((_, i) => `<button class="${i === sp.i ? 'cur ' : ''}${sp.mine[i] ? 'ok' : ''}" data-act="sp-go" data-i="${i}" aria-label="${i + 1}번 문항"></button>`).join('')}</div>
+      <div class="sp-card">
+        <small class="sp-kind">${it[3] === 's' ? '문장' : '단어'} · ${zh ? '중국어' : '영어'}</small>
+        <b class="sp-text${zh ? ' zh' : ''}${it[3] === 's' ? ' long' : ''}" lang="${zh ? 'zh-CN' : 'en'}">${esc(it[0])}</b>
+        ${it[1] ? `<span class="sp-mean">${esc(it[1])}</span>` : ''}
+        <button class="btn btn-sm btn-soft sp-listen" data-act="sp-listen">${IC.speaker} 원어민 발음 듣기</button>
+      </div>
+      <div class="sp-recbox${rec ? ' on' : ''}">
+        <button class="sp-mic${rec ? ' on' : ''}" id="spRing" data-act="sp-rec"${busy ? ' disabled' : ''} aria-label="${rec ? '녹음 멈추기' : r ? '다시 녹음하기' : '녹음 시작'}">${rec ? '<i class="sp-stop"></i>' : IC.mic}</button>
+        <div class="sp-meter"><i id="spLv"></i></div>
+        <p class="sp-hint" id="spCd">${rec ? `${cap}초 남았어요` : busy ? '올리는 중...' : r ? '다시 누르면 새로 녹음해요' : `버튼을 누르고 읽어 주세요 · 최대 ${cap}초`}</p>
+      </div>
+      ${sp.note ? `<p class="sp-note">${esc(sp.note)}</p>` : ''}
+      ${r ? `<div class="sp-mine"><button class="sp-play" data-act="sp-play" data-i="${sp.i}" aria-label="내 녹음 듣기">${IC.play}</button><span>내 녹음 <small>${(r.dur_ms / 1000).toFixed(1)}초</small></span>${r.ai_score != null ? `<em class="sp-sc${spTone(r.ai_score)}">${esc(r.ai_score)}점</em>` : ''}</div>` : ''}
+      <div class="row sp-nav"><button class="btn btn-soft" data-act="sp-go" data-i="${sp.i - 1}"${sp.i && !rec ? '' : ' disabled'}>이전</button>${last
+        ? `<button class="btn btn-primary" data-act="sp-submit"${n < sp.items.length || sp.busy != null || rec ? ' disabled' : ''}>${n < sp.items.length ? `${sp.items.length - n}개 더 녹음해요` : sp.submitted && !sp.dirty ? '채점 결과 보기' : '제출하고 채점받기'}</button>`
+        : `<button class="btn btn-primary" data-act="sp-go" data-i="${sp.i + 1}"${rec ? ' disabled' : ''}>다음</button>`}</div>
+      <p class="muted cl-p sp-foot">녹음은 선생님만 들을 수 있고 60일 뒤 자동으로 지워져요.</p></div>`;
+  }
+  function spResDraw() {
+    const sp = SP, list = sp.items.map((it, i) => ({ it, i, r: sp.mine[i] || {} }));
+    const fin = list.map(x => x.r.t_score != null ? x.r.t_score : x.r.ai_score).filter(v => v != null);
+    const avg = fin.length ? Math.round(fin.reduce((s, v) => s + v, 0) / fin.length) : null;
+    $('sheetBody').innerHTML = `<div class="sp">
+      <div class="sp-sum"><small>발음 점수</small><b class="${spTone(avg).trim()}">${avg != null ? avg : '-'}<em>점</em></b><span>${fin.length}/${sp.items.length}문항 채점${list.some(x => x.r.t_score != null) ? ' · 선생님 점수 반영' : ''}</span></div>
+      ${sp.note ? `<p class="sp-note">${esc(sp.note)}</p>${fin.length < sp.items.length ? '<button class="btn btn-soft btn-block" data-act="sp-grade">AI 채점 다시 하기</button>' : ''}` : ''}
+      <div class="sp-list">${list.map(({ it, i, r }) => { const d = r.ai_detail || {}, sc = r.t_score != null ? r.t_score : r.ai_score; return `<div class="sp-ri">
+        <div class="sp-ri-top"><button class="sp-play" data-act="sp-play" data-i="${i}" aria-label="내 녹음 듣기"${r.idx == null ? ' disabled' : ''}>${IC.play}</button>
+          <div class="sp-ri-t"><b lang="${spLang(it) === 'zh' ? 'zh-CN' : 'en'}">${esc(it[0])}</b>${it[1] ? `<small>${esc(it[1])}</small>` : ''}</div>
+          <em class="sp-sc${spTone(sc)}">${sc != null ? esc(sc) : '-'}</em></div>
+        ${d.heard ? `<p class="sp-heard">AI가 들은 말 <b>${esc(d.heard)}</b></p>` : ''}${d.tips ? `<p class="sp-tip">${esc(d.tips)}</p>` : ''}
+        ${Array.isArray(d.problems) && d.problems.length ? `<div class="sp-prob">${d.problems.map(x => `<span>${esc(x)}</span>`).join('')}</div>` : ''}
+        ${r.t_score != null || r.t_note ? `<p class="sp-tnote">선생님${r.t_score != null ? ` <b>${esc(r.t_score)}점</b>` : ''}${r.t_note ? ` · ${esc(r.t_note)}` : ''}${r.ai_score != null && r.t_score != null ? ` <small>(AI ${esc(r.ai_score)}점)</small>` : ''}</p>` : ''}</div>`; }).join('')}</div>
+      <p class="muted cl-p">AI 점수는 참고용이에요. 선생님이 녹음을 듣고 점수를 고칠 수 있어요.</p>
+      <div class="row"><button class="btn btn-soft" data-act="sp-redo">다시 녹음하기</button><button class="btn btn-primary" data-act="cl-home">반 목록</button></div></div>`;
+  }
+  ACTIONS['sp-go'] = el => { if (!SP || SP.rec) return; const i = +el.dataset.i; if (i < 0 || i >= SP.items.length) return; SP.i = i; SP.note = ''; spStopAudio(); spDraw(); };
+  ACTIONS['sp-listen'] = () => { if (!SP) return; const it = SP.items[SP.i]; spStopAudio(); speak(it[0], spLang(it) === 'zh' ? 'zh-CN' : 'en-US'); };
+  ACTIONS['sp-rec'] = async () => {
+    const sp = SP; if (!sp || sp.busy != null) return;
+    if (sp.rec) return spRecStop();
+    // 처음 한 번: 녹음 안내 + 마이크 허락
+    const k = 'vocapro_sp_ok:' + currentUser;
+    if (!LS.getItem(k)) {
+      if (!await ask('녹음 안내\n녹음은 선생님만 들을 수 있고 60일 뒤 자동으로 지워져요.\n제출하면 AI가 발음을 채점해요(녹음을 Google Gemini로 보내요).\n다음 화면에서 마이크 사용을 허락해 주세요.', { ok: '녹음 시작' })) return;
+      try { LS.setItem(k, '1'); } catch (e) {}
+    }
+    if (SP !== sp) return;
+    try { await spMic(); } catch (e) { if (SP === sp) { sp.note = SP_MIC_ERR[e.code] || SP_MIC_ERR.unsupported; spDraw(); } return; }
+    if (SP !== sp || sp.rec) return;
+    try { window.speechSynthesis.cancel(); } catch (e) {} spStopAudio();
+    try { await spRecStart(); } catch (e) { sp.note = SP_MIC_ERR.unsupported; spDraw(); }
+  };
+  ACTIONS['sp-play'] = async el => {
+    const sp = SP, i = +el.dataset.i; if (!sp || !sp.mine[i]) return;
+    if (el.classList.contains('on')) return spStopAudio();
+    let url = sp.local[i];
+    if (!url) {
+      el.disabled = true;
+      try { const r = await Cloud.call('voca_speak_audio', { p_assign: sp.a.id, p_uid: String(currentUser), p_idx: i }); url = sp.local[i] = spBlobUrl(spUnB64(r.b64)); }
+      catch (e) { el.disabled = false; return toast(spMsg(e)); }
+      el.disabled = false;
+    }
+    spPlayUrl(url, el);
+  };
+  ACTIONS['sp-redo'] = () => { if (!SP) return; SP.view = 'rec'; SP.i = 0; SP.note = ''; spDraw(); };
+  ACTIONS['sp-submit'] = async el => {
+    const sp = SP; if (!sp) return;
+    if (sp.submitted && !sp.dirty && sp.items.every((_, i) => sp.mine[i] && sp.mine[i].ai_score != null)) { sp.view = 'res'; return spDraw(); }
+    el.disabled = true;
+    try { await Cloud.call('voca_speak_submit', { p_assign: sp.a.id }); }
+    catch (e) { el.disabled = false; return say(spMsg(e)); }
+    if (SP !== sp) return;
+    const first = !sp.submitted; sp.submitted = true; sp.dirty = false;
+    if (first) { const c = clCache(); if (c.pending > 0) { c.pending--; try { LS.setItem(clKey(), JSON.stringify(c)); } catch (e) {} } }
+    spGrade();
+  };
+  ACTIONS['sp-grade'] = () => spGrade();
+  // AI 채점: 서버가 채점 안 된 녹음을 꺼내 Gemini로 한 번에 채점하고 점수를 저장해요
+  async function spGrade() {
+    const sp = SP; if (!sp) return;
+    sp.view = 'grading'; sp.note = ''; spDraw();
+    try {
+      const t = await Cloud.ai(undefined, { task: 'pron', assign: sp.a.id }, 75000);
+      if (SP !== sp) return;
+      let j = {}; try { j = JSON.parse(t); } catch (e) {}
+      (Array.isArray(j.items) ? j.items : []).forEach(x => { const r = sp.mine[x.idx]; if (r) { r.ai_score = x.score; r.ai_detail = { heard: x.heard, tips: x.tips, problems: x.problems }; } });
+      if (sp.items.some((_, i) => sp.mine[i] && sp.mine[i].ai_score == null)) sp.note = 'AI가 일부 문항을 채점하지 못했어요. 잠시 뒤 다시 해 주세요.';
+    } catch (e) {
+      if (SP !== sp) return;
+      sp.note = 'AI 채점을 하지 못했어요. ' + (e && e.code === 'missing' ? SP_MISSING : e && e.status === 400 ? SP_AI_OLD : (e && e.message) || '') + ' 녹음은 선생님께 제출됐어요.';
+    }
+    sp.view = 'res'; spDraw();
+  }
+
+  /* ----- 선생님: 발음 평가 결과 (학생별 -> 문항별 듣기 · 점수) ----- */
+  async function spResults(id, keepUid) {
+    spEnd();
+    openSheet('발음 평가', clLoading()); const tok = sheetTok;
+    let r; try { r = await Cloud.call('voca_speak_results', { p_assign: id }); } catch (e) { return tok === sheetTok && clFail(e && e.code === 'missing' ? { code: 'sp_missing' } : e, 'cl-back'); }
+    if (tok !== sheetTok) return;
+    SPT = { id, r, open: keepUid || null, cache: {} };
+    spTDraw();
+  }
+  function spTDraw() {
+    const t = SPT; if (!t) return;
+    const a = t.r.assign, rows = t.r.rows || [], items = (Array.isArray(a.words) ? a.words : []).slice(0, SP_MAX);
+    $('sheetTitle').textContent = a.title;
+    const m = t.open != null && rows.find(x => x.uid === t.open);
+    if (m) {
+      $('sheetBody').innerHTML = `<div class="form-stack cl sp">
+        <div class="sp-who"><button class="icon-btn" data-act="sp-tlist" aria-label="목록으로">${IC.back}</button><div><b>${esc(m.name || '이름 없음')}</b><small>${esc(m.sno || '')} · 녹음 ${esc(m.n)}/${items.length}${m.submitted ? ' · 제출함' : ' · 아직 제출 전'}</small></div>
+          <span class="sp-who-sc"><small>점수</small><b class="${spTone(m.submitted ? m.score : null).trim()}">${m.submitted && m.score != null ? esc(m.score) : '-'}</b></span></div>
+        <div class="sp-list">${items.map((it, i) => { const r = (m.items || []).find(x => x.idx === i), d = (r && r.ai_detail) || {}; return `<div class="sp-ri">
+          <div class="sp-ri-top"><button class="sp-play" data-act="sp-tplay" data-i="${i}" aria-label="${i + 1}번 녹음 듣기"${r && r.audio ? '' : ' disabled'}>${IC.play}</button>
+            <div class="sp-ri-t"><b lang="${spLang(it) === 'zh' ? 'zh-CN' : 'en'}">${esc(it[0])}</b><small>${esc([it[1], r ? (r.audio ? `${(r.dur_ms / 1000).toFixed(1)}초` : '녹음 파일 지워짐(60일)') : '녹음 없음'].filter(Boolean).join(' · '))}</small></div>
+            <em class="sp-sc${spTone(r && r.ai_score)}" title="AI 점수">${r && r.ai_score != null ? 'AI ' + esc(r.ai_score) : r ? '채점 전' : '-'}</em></div>
+          ${d.heard ? `<p class="sp-heard">AI가 들은 말 <b>${esc(d.heard)}</b></p>` : ''}${d.tips ? `<p class="sp-tip">${esc(d.tips)}</p>` : ''}
+          ${Array.isArray(d.problems) && d.problems.length ? `<div class="sp-prob">${d.problems.map(x => `<span>${esc(x)}</span>`).join('')}</div>` : ''}
+          ${r ? `<div class="sp-tform"><input type="number" id="spT${i}" min="0" max="100" inputmode="numeric" placeholder="점수" value="${r.t_score != null ? esc(r.t_score) : ''}" aria-label="${i + 1}번 선생님 점수"><input type="text" id="spN${i}" maxlength="200" placeholder="한 줄 메모 (학생에게 보여요)" value="${esc(r.t_note || '')}" aria-label="${i + 1}번 메모"><button class="btn btn-sm btn-primary" data-act="sp-tsave" data-i="${i}">저장</button></div>` : ''}</div>`; }).join('')}</div>
+        <p class="muted cl-p">선생님 점수를 넣으면 그 문항은 AI 점수 대신 선생님 점수로 계산해요. 비우고 저장하면 AI 점수로 돌아가요.</p>
+        <button class="btn btn-soft btn-block" data-act="sp-regrade"${m.n ? '' : ' disabled'}>${IC.sparkles} AI 다시 채점</button>
+        <button class="btn btn-soft btn-block" data-act="sp-tlist">학생 목록</button></div>`;
+      return;
+    }
+    const sub = rows.filter(x => x.submitted), avg = v => v.length ? Math.round(v.reduce((s, x) => s + x, 0) / v.length) : null;
+    const total = avg(sub.map(x => x.score).filter(v => v != null)), ai = avg(rows.map(x => x.ai_avg).filter(v => v != null));
+    $('sheetBody').innerHTML = `<div class="form-stack cl sp">
+      <div class="cl-kv"><span>발음 평가</span><span>${items.length}문항</span>${a.due ? `<span>${clDue(a.due)}</span>` : ''}<span>제출 <b>${sub.length}/${rows.length}</b></span>${total != null ? `<span>평균 <b>${total}점</b></span>` : ''}${ai != null ? `<span>AI 평균 <b>${ai}점</b></span>` : ''}</div>
+      ${rows.length ? `<div class="cl-table sp-tt"><div class="cl-tr cl-th"><span>이름</span><span>녹음</span><span>AI</span><span>선생님</span><span>점수</span></div>
+        ${rows.map(x => `<button class="cl-tr" data-act="sp-stu" data-uid="${esc(x.uid)}"><span><b>${esc(x.name || '이름 없음')}</b>${x.sno ? `<small>${esc(x.sno)}</small>` : ''}</span><span class="${x.n >= items.length ? 'sp-full' : ''}">${esc(x.n)}/${items.length}</span><span>${x.ai_avg != null ? esc(x.ai_avg) : '-'}</span><span>${x.t_avg != null ? esc(x.t_avg) : '-'}</span><span>${x.submitted && x.score != null ? `<b class="sp-sc${spTone(x.score)}">${esc(x.score)}</b>` : '<small>미제출</small>'}</span></button>`).join('')}</div>`
+        : '<p class="muted cl-p">아직 반에 학생이 없어요.</p>'}
+      <p class="muted cl-p">학생을 누르면 문항마다 녹음을 듣고 점수를 고칠 수 있어요. AI 점수는 참고용이에요.</p>
+      <div class="row cl-foot"><button class="btn btn-soft" data-act="cl-back">돌아가기</button><button class="btn btn-soft cl-danger" data-act="cl-adel" data-id="${a.id}">과제 삭제</button></div></div>`;
+  }
+  ACTIONS['sp-stu'] = el => { if (!SPT) return; spStopAudio(); SPT.open = el.dataset.uid; spTDraw(); $('sheetBody').scrollTop = 0; };
+  ACTIONS['sp-tlist'] = () => { if (!SPT) return; spStopAudio(); SPT.open = null; spTDraw(); };
+  ACTIONS['sp-tplay'] = async el => {
+    const t = SPT; if (!t || t.open == null) return;
+    if (el.classList.contains('on')) return spStopAudio();
+    const i = +el.dataset.i, key = t.open + ':' + i;
+    if (!t.cache[key]) {
+      el.disabled = true;
+      try { const r = await Cloud.call('voca_speak_audio', { p_assign: t.id, p_uid: t.open, p_idx: i }); t.cache[key] = spBlobUrl(spUnB64(r.b64)); }
+      catch (e) { el.disabled = false; return toast(spMsg(e)); }
+      el.disabled = false; if (SPT !== t) return;
+    }
+    spPlayUrl(t.cache[key], el);
+  };
+  ACTIONS['sp-tsave'] = async el => {
+    const t = SPT; if (!t || t.open == null) return;
+    const i = +el.dataset.i, raw = (($('spT' + i) || {}).value || '').trim(), note = (($('spN' + i) || {}).value || '').trim();
+    const sc = raw === '' ? null : Math.round(+raw);
+    if (sc != null && !(sc >= 0 && sc <= 100)) return toast('점수는 0부터 100까지 적어 주세요.');
+    el.disabled = true;
+    try {
+      await Cloud.call('voca_speak_teacher', { p_assign: t.id, p_uid: t.open, p_idx: i, p_score: sc, p_note: note });
+      toast('점수를 저장했어요.');
+      const pos = $('sheetBody').scrollTop; await spResults(t.id, t.open); $('sheetBody').scrollTop = pos;
+    } catch (e) { el.disabled = false; say(spMsg(e)); }
+  };
+  ACTIONS['sp-regrade'] = async el => {
+    const t = SPT; if (!t || t.open == null) return;
+    if (!await ask('이 학생의 녹음을 AI로 다시 채점할까요?\n선생님이 넣은 점수는 그대로 남아요. AI 사용 1회로 세요.', { ok: '다시 채점' })) return;
+    el.disabled = true; el.textContent = 'AI가 듣는 중... (1분 정도)';
+    try { await Cloud.ai(undefined, { task: 'pron', assign: t.id, student: t.open }, 75000); toast('AI가 다시 채점했어요.'); }
+    catch (e) { say('AI 채점을 하지 못했어요. ' + (e && e.code === 'missing' ? SP_MISSING : e && e.status === 400 ? 'AI 함수를 새로 배포하면 쓸 수 있어요.' : (e && e.message) || '')); }
+    if (SPT === t) { const pos = $('sheetBody').scrollTop; await spResults(t.id, t.open); $('sheetBody').scrollTop = pos; }
+  };
+
   /* ----- 학생: 과제 풀기 · 결과 제출 ----- */
   ACTIONS['cl-do'] = async el => {
     const id = +el.dataset.id; el.disabled = true;
     let a; try { a = await Cloud.call('voca_assign_get', { p_assign: id }); } catch (e) { el.disabled = false; return say(clMsg(e)); }
+    if (a.kind === 'speak') return spOpen(a);
     const list = (Array.isArray(a.words) ? a.words : []).filter(x => Array.isArray(x) && x[0] && x[1]);
     if (!list.length) { el.disabled = false; return say('과제에 단어가 없어요.'); }
     const name = `${a.class} · ${a.title}`.slice(0, 60);
@@ -7200,7 +7630,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
 - 이용자가 입력한 단어장(단어, 뜻, 발음, 예문, 메모 등), 학습 기록과 통계, 앱 설정
 - 로그인 세션 정보(토큰은 해시로 바꿔 저장), 가입·로그인 일시, 로그인 실패 횟수
 - AI 기능의 날짜별 사용 횟수
-- 우리 반을 쓰는 경우: 반 이름, 초대 코드, 과제(제목, 단어 목록, 마감일), 반에 참여할 때의 이름과 학번, 학습 요약(학습한 단어 수, 정답률, 연속 학습일, 많이 틀린 단어, 최근 시험 점수), 과제 결과(점수, 정답 수, 걸린 시간, 틀린 단어, 푼 횟수), 앱이 열려 있는 동안의 접속 상태와 지금 하는 학습(학습 방법, 진행한 문제 수, 맞은·틀린 수, 마지막 접속 시각)
+- 우리 반을 쓰는 경우: 반 이름, 초대 코드, 과제(제목, 단어 목록, 마감일), 반에 참여할 때의 이름과 학번, 학습 요약(학습한 단어 수, 정답률, 연속 학습일, 많이 틀린 단어, 최근 시험 점수), 과제 결과(점수, 정답 수, 걸린 시간, 틀린 단어, 푼 횟수), 발음 평가 과제의 녹음(음성)과 AI·선생님 채점 결과, 앱이 열려 있는 동안의 접속 상태와 지금 하는 학습(학습 방법, 진행한 문제 수, 맞은·틀린 수, 마지막 접속 시각)
 자동으로 생성되는 정보
 - 서비스에 접속하는 과정에서 IP 주소, 브라우저 종류, 접속 일시가 호스팅·서버 업체의 접속 기록에 남을 수 있습니다.
 수집하지 않는 정보
@@ -7209,6 +7639,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
         ['제3조 개인정보의 처리 및 보유 기간', `- 계정 정보, 단어장, 학습 기록, 설정: 회원 탈퇴(계정 삭제) 시까지. 탈퇴하면 즉시 삭제합니다.
 - 로그인 세션 정보: 로그인 후 90일 또는 로그아웃할 때까지
 - AI 날짜별 사용 횟수: 30일
+- 발음 평가 녹음(음성): 녹음한 날부터 60일이 지나면 녹음 파일을 자동으로 삭제합니다(점수는 아래 우리 반 정보와 같이 보관).
 - 우리 반 정보: 학생이 반에서 나가거나 선생님이 내보내면 그 학생의 반 기록을, 선생님이 반이나 과제를 삭제하면 관련 기록을 즉시 삭제합니다. 회원 탈퇴 시에도 함께 삭제합니다.
 - 접속 기록(IP 주소 등): 호스팅·서버 업체의 기록 보관 기간 동안. 운영자는 따로 보관하지 않습니다.
 서비스는 무료이며 결제 기능이 없어, 법령에 따라 별도로 보관해야 하는 정보는 없습니다.`],
@@ -7216,16 +7647,16 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
 이용자가 초대 코드로 반에 참여하면서 동의한 경우에는 다음과 같이 제공합니다.
 - 받는 자: 이용자가 참여한 반을 만든 선생님(회원)
 - 목적: 수업 중 학습 지도와 과제 확인
-- 항목: 이름, 학번, 학습 요약(학습한 단어 수, 정답률, 연속 학습일, 많이 틀린 단어, 최근 시험 점수), 과제 결과, 실시간 접속 상태와 지금 하는 학습
+- 항목: 이름, 학번, 학습 요약(학습한 단어 수, 정답률, 연속 학습일, 많이 틀린 단어, 최근 시험 점수), 과제 결과(발음 평가 녹음과 점수 포함), 실시간 접속 상태와 지금 하는 학습
 - 보유 기간: 이용자가 반에서 나가거나, 선생님이 내보내거나 반을 삭제할 때까지
 - 동의를 거부할 수 있으며, 거부하면 반에 참여할 수 없을 뿐 다른 기능은 그대로 이용할 수 있습니다.`],
         ['제5조 개인정보 처리의 위탁', `운영자는 서비스 제공을 위해 다음과 같이 개인정보 처리 업무를 위탁합니다. 위탁 기간은 회원 탈퇴 또는 위탁 계약 종료 시까지입니다.
 - Supabase, Inc.: 계정과 학습 데이터 저장, 서버 기능 실행 (서버 위치: ${region})
 - Cloudflare, Inc.: 웹앱 배포와 호스팅 (미국)
-- Google LLC: AI 단어 완성과 번역 처리(Gemini API) (미국)
+- Google LLC: AI 단어 완성, 번역, 발음 평가 채점 처리(Gemini API) (미국)
 운영자는 「개인정보 보호법」 제26조에 따라 수탁자가 개인정보를 안전하게 처리하는지 관리합니다.`],
         ['제6조 개인정보의 국외 이전', `서비스 이용 과정에서 다음과 같이 개인정보가 국외로 이전됩니다. 모든 전송은 암호화된 통신(HTTPS)으로 이루어집니다.
-- Google LLC (미국, https://policies.google.com/privacy): AI 완성·번역을 누를 때 입력한 영어·중국어 단어나 문장을 보냅니다. 아이디 등 계정 정보는 보내지 않습니다. 목적은 AI 결과 생성이며, 보유 기간은 Google의 Gemini API 약관을 따릅니다.
+- Google LLC (미국, https://policies.google.com/privacy): AI 완성·번역을 누를 때 입력한 영어·중국어 단어나 문장을, 발음 평가를 제출하거나 선생님이 다시 채점할 때 녹음(음성)과 읽을 단어·문장을 보냅니다. 아이디 등 계정 정보는 보내지 않습니다. 목적은 AI 결과 생성이며, 보유 기간은 Google의 Gemini API 약관을 따릅니다.
 - Cloudflare, Inc. (미국, privacyquestions@cloudflare.com): 서비스에 접속할 때 IP 주소, 브라우저 정보가 전송됩니다. 목적은 웹앱 전송이며, 보유 기간은 Cloudflare의 기록 보관 기간을 따릅니다.
 - Translated srl, MyMemory (이탈리아, https://mymemory.translated.net): AI 번역을 쓸 수 없을 때 번역할 문장을 보냅니다. 목적은 번역 결과 생성입니다.
 - jsDelivr (Prospect One, 폴란드, https://www.jsdelivr.com/terms/privacy-policy-jsdelivr-net): 글꼴 파일을 받을 때 IP 주소가 전송됩니다.

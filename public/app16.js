@@ -245,15 +245,20 @@
     const d = CLV.data; if (!d) return; el.disabled = true; const old = el.textContent; el.textContent = '만드는 중...';
     try {
       const asg = d.assignments.slice().reverse(), res = [];
-      for (const a of asg) res.push(await Cloud.call('voca_assign_results', { p_assign: a.id }));
+      // 발음 평가는 학생별 AI 평균 · 선생님 점수도 받아요 (서버 v11이 없으면 빈칸)
+      for (const a of asg) res.push(a.kind === 'speak' ? await Cloud.call('voca_speak_results', { p_assign: a.id }).catch(() => ({ rows: [] })) : await Cloud.call('voca_assign_results', { p_assign: a.id }));
       const q = x => { const s = String(x == null ? '' : x); return /[",\n]/.test(s) || /^[=+\-@\t\r]/.test(s) ? `"${s.replace(/^([=+\-@\t\r])/, "'$1").replace(/"/g, '""')}"` : s; };
-      const head = ['학번', '이름', '최근 학습', '7일 단어', '7일 정답률(%)', '연속 학습(일)', '전체 단어', '마스터', '과제 완료'].concat(asg.map(a => `${a.title} (${CL_KIND[a.kind]})`));
+      const head = ['학번', '이름', '최근 학습', '7일 단어', '7일 정답률(%)', '연속 학습(일)', '전체 단어', '마스터', '과제 완료'].concat(...asg.map(a => a.kind === 'speak' ? [`${a.title} (발음 평가)`, `${a.title} AI 평균`, `${a.title} 선생님 점수`] : [`${a.title} (${CL_KIND[a.kind] || ''})`]));
       // 결과 행에 uid가 있으면 uid로, 없으면 이름+학번으로 맞추고 한 행은 한 학생에게만 써요(동명이인 중복 방지)
       const pool = res.map(r => (r.rows || []).slice());
       const rows = d.members.map(m => {
         const p = m.progress || {};
-        const scores = pool.map(rs => { let k = rs.findIndex(y => y.uid != null && y.uid === m.uid); if (k < 0) k = rs.findIndex(y => y.uid == null && y.name === m.name && y.sno === m.sno); const x = k < 0 ? null : rs.splice(k, 1)[0]; return x && x.score != null ? x.score : ''; });
-        return [m.sno, m.name, p.last || '', p.n7 != null ? p.n7 : '', p.acc7 != null ? p.acc7 : '', p.streak || 0, p.total || 0, p.mastered || 0, `${m.done}/${asg.length}`].concat(scores);
+        const scores = pool.map((rs, j) => {
+          let k = rs.findIndex(y => y.uid != null && y.uid === m.uid); if (k < 0) k = rs.findIndex(y => y.uid == null && y.name === m.name && y.sno === m.sno);
+          const x = k < 0 ? null : rs.splice(k, 1)[0], v = y => y != null ? y : '';
+          return asg[j].kind === 'speak' ? [x && x.submitted ? v(x.score) : '', v(x && x.ai_avg), v(x && x.t_avg)] : [x && x.score != null ? x.score : ''];
+        });
+        return [m.sno, m.name, p.last || '', p.n7 != null ? p.n7 : '', p.acc7 != null ? p.acc7 : '', p.streak || 0, p.total || 0, p.mastered || 0, `${m.done}/${asg.length}`].concat(...scores);
       });
       const csv = '﻿' + [head].concat(rows).map(r => r.map(q).join(',')).join('\r\n');
       download(`${d.class.name}_학습현황_${dayKey()}.csv`, csv, 'text/csv;charset=utf-8');

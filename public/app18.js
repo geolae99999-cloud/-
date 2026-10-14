@@ -7,10 +7,15 @@
     too_many: '더 만들거나 참여할 수 없어요. 쓰지 않는 반을 먼저 정리해 주세요.', full: '이 반은 인원이 꽉 찼어요(200명).',
     no_assign: '과제를 찾지 못했어요. 선생님이 지웠을 수 있어요.', bad_input: '입력한 내용을 다시 확인해 주세요.',
     auth: '로그인이 만료됐어요. 다시 로그인해 주세요.', missing: '우리 반 기능은 아직 준비 중이에요. 운영자가 서버 설정을 마치면 바로 쓸 수 있어요.',
-    network: '서버에 연결하지 못했어요. 인터넷 연결을 확인해 주세요.', too_many_tries: '틀린 코드를 너무 많이 넣었어요. 내일 다시 시도하거나 선생님께 코드를 확인해 주세요.'
+    network: '서버에 연결하지 못했어요. 인터넷 연결을 확인해 주세요.', too_many_tries: '틀린 코드를 너무 많이 넣었어요. 내일 다시 시도하거나 선생님께 코드를 확인해 주세요.',
+    too_big: '녹음이 너무 길어요. 조금 더 짧게 읽어 주세요.', bad_audio: '녹음 파일을 읽지 못했어요. 다시 녹음해 주세요.', not_done: '아직 녹음하지 않은 문항이 있어요.',
+    no_rec: '녹음을 찾지 못했어요. 60일이 지나 지워졌을 수 있어요.'
   };
-  const clMsg = e => CL_ERR[e && e.code] || '잠시 후 다시 시도해 주세요.';
-  const CL_KIND = { test: '시험', study: '단어 학습' };
+  const clMsg = e => e && e.code === 'sp_missing' ? SP_MISSING : CL_ERR[e && e.code] || '잠시 후 다시 시도해 주세요.';
+  const CL_KIND = { test: '시험', study: '단어 학습', speak: '발음 평가' };
+  const clCount = a => a.kind === 'speak' ? `${a.count}문항` : `${a.count}단어`;
+  // 학생 목록 오른쪽: 발음 평가는 채점이 끝나야 점수를 보여 줘요
+  const clMine = a => !a.mine ? '<span class="cl-todo">시작</span>' : a.kind === 'speak' && a.mine.n && a.mine.ok < a.mine.n ? '<span class="cl-done sp-wait">채점 중</span>' : `<span class="cl-done">${esc(a.mine.score)}점</span>`;
   const clKey = () => 'vocapro_cls:' + currentUser;
   const clCache = () => loadJson(clKey()) || { joined: 0, pending: 0 };
   let CL = null, CLV = { id: null, tab: 'stu', open: null, data: null };
@@ -46,9 +51,9 @@
     }
     if (!teach || r.joined.length) {
       h += r.joined.map(c => `<div class="cl-sec card cl-cls"><div class="cl-head"><div><b>${esc(c.name)}</b><small>${esc([c.school, c.teacher && c.teacher + ' 선생님'].filter(Boolean).join(' · '))}</small></div><button class="btn btn-sm btn-soft" data-act="cl-leave" data-id="${c.id}">나가기</button></div>
-        ${c.assignments.length ? c.assignments.map(a => `<button class="cl-asg" data-act="cl-do" data-id="${a.id}"><span class="cl-li"><b>${esc(a.title)}</b><small>${CL_KIND[a.kind] || ''} · ${a.count}단어${a.due ? ' · ' + clDue(a.due) : ''}</small></span>${a.mine ? `<span class="cl-done">${a.mine.score}점</span>` : '<span class="cl-todo">시작</span>'}</button>`).join('') : '<p class="muted cl-p">아직 과제가 없어요.</p>'}</div>`).join('');
+        ${c.assignments.length ? c.assignments.map(a => `<button class="cl-asg" data-act="cl-do" data-id="${a.id}"><span class="cl-li"><b>${esc(a.title)}</b><small>${CL_KIND[a.kind] || ''} · ${clCount(a)}${a.due ? ' · ' + clDue(a.due) : ''}</small></span>${clMine(a)}</button>`).join('') : '<p class="muted cl-p">아직 과제가 없어요.</p>'}</div>`).join('');
       h += `<div class="cl-sec"><h4 class="syn-h">반 참여하기</h4><div class="cl-new"><input type="text" id="clCode" maxlength="6" placeholder="초대 코드 6자리" autocapitalize="characters" autocomplete="off"><button class="btn btn-primary" data-act="cl-join">참여</button></div>
-        <label class="cl-agree"><input type="checkbox" id="clAgree"> 이 반 선생님에게 내 이름${isTeacher() ? '' : ', 학번'}, 학습 요약(학습한 단어 수, 정답률, 연속 학습, 많이 틀린 단어, 최근 시험 점수), 과제 결과, 앱을 켜 두는 동안의 접속 상태와 지금 하는 학습을 보여 주는 데 동의해요. 반에서 나가면 선생님 화면에서 바로 지워져요.</label></div>`;
+        <label class="cl-agree"><input type="checkbox" id="clAgree"> 이 반 선생님에게 내 이름${isTeacher() ? '' : ', 학번'}, 학습 요약(학습한 단어 수, 정답률, 연속 학습, 많이 틀린 단어, 최근 시험 점수), 과제 결과(발음 평가 녹음과 점수 포함), 앱을 켜 두는 동안의 접속 상태와 지금 하는 학습을 보여 주는 데 동의해요. 반에서 나가면 선생님 화면에서 바로 지워져요.</label></div>`;
     }
     $('sheetTitle').textContent = '우리 반';
     $('sheetBody').innerHTML = `<div class="form-stack cl">${h}</div>`;
@@ -105,7 +110,7 @@
         : `<div class="cl-load">${MASCOT('happy')}<span>아직 들어온 학생이 없어요. 초대 코드를 칠판에 적어 주세요.</span></div>`;
     } else {
       body = `<button class="btn btn-primary btn-block" data-act="cl-anew">${IC.plus} 과제 내기</button>
-        ${asg.length ? `<div class="menu-list">${asg.map(a => `<button data-act="cl-ares" data-id="${a.id}"><span class="cl-li"><b>${esc(a.title)}</b><small>${CL_KIND[a.kind]} · ${a.count}단어${a.kind === 'test' ? ` · ${a.n}문제` : ''}${a.due ? ' · ' + clDue(a.due) : ''} · 제출 ${a.subs}/${mem.length}${a.avg != null ? ` · 평균 ${a.avg}점` : ''}</small></span></button>`).join('')}</div>` : '<p class="muted cl-p">아직 낸 과제가 없어요.</p>'}`;
+        ${asg.length ? `<div class="menu-list">${asg.map(a => `<button data-act="cl-ares" data-id="${a.id}"><span class="cl-li"><b>${esc(a.title)}</b><small>${CL_KIND[a.kind] || ''} · ${clCount(a)}${a.kind === 'test' ? ` · ${a.n}문제` : ''}${a.due ? ' · ' + clDue(a.due) : ''} · 제출 ${a.subs}/${mem.length}${a.avg != null ? ` · 평균 ${a.avg}점` : ''}</small></span></button>`).join('')}</div>` : '<p class="muted cl-p">아직 낸 과제가 없어요.</p>'}`;
     }
     $('sheetBody').innerHTML = `<div class="form-stack cl">${head}${body}<button class="btn btn-soft btn-block" data-act="cl-csv">학습 현황 · 과제 점수 엑셀로 받기</button><div class="row cl-foot"><button class="btn btn-soft" data-act="cl-home">반 목록</button><button class="btn btn-soft cl-danger" data-act="cl-delete">반 삭제</button></div></div>`;
   }
@@ -168,27 +173,44 @@
       <label class="setting-label" for="caTitle">과제 이름 (비우면 단어장 이름)</label>
       <input type="text" id="caTitle" maxlength="60" placeholder="예: Day 3 단어 시험">
       <label class="setting-label">종류</label>
-      <div class="seg" id="caKind"><button class="on" data-act="pt-opt" data-g="caKind" data-v="test">시험 (점수 제출)</button><button data-act="pt-opt" data-g="caKind" data-v="study">단어 학습 (뜻 고르기)</button></div>
-      <label class="setting-label">시험 문제 수</label>
-      <div class="seg" id="caNum">${[10, 20, 30, 50].map(k => `<button class="${k === 20 ? 'on' : ''}" data-act="pt-opt" data-g="caNum" data-v="${k}">${k}문제</button>`).join('')}</div>
+      <div class="seg" id="caKind"><button class="on" data-act="ca-kind" data-g="caKind" data-v="test">시험</button><button data-act="ca-kind" data-g="caKind" data-v="study">단어 학습</button><button data-act="ca-kind" data-g="caKind" data-v="speak">발음 평가</button></div>
+      <div id="caNumBox" class="form-stack"><label class="setting-label">시험 문제 수</label>
+      <div class="seg" id="caNum">${[10, 20, 30, 50].map(k => `<button class="${k === 20 ? 'on' : ''}" data-act="pt-opt" data-g="caNum" data-v="${k}">${k}문제</button>`).join('')}</div></div>
+      <div id="caSpBox" class="form-stack" hidden><label class="setting-label">읽을 내용</label>
+      <div class="seg" id="caSp"><button class="on" data-act="pt-opt" data-g="caSp" data-v="w">단어만</button><button data-act="pt-opt" data-g="caSp" data-v="s">예문까지</button></div>
+      <p class="muted cl-p">단어장 앞에서부터 20개까지 들어가요. '예문까지'는 예문이 있는 단어는 예문을, 없으면 단어를 읽어요. 학생이 녹음해 내면 AI가 0~100점으로 채점하고, 선생님이 듣고 점수를 고칠 수 있어요. 녹음은 선생님과 학생 본인만 들을 수 있고 60일 뒤 지워져요.</p></div>
       <label class="setting-label" for="caDue">마감일</label>
       <input type="date" id="caDue" value="${dv}">
-      <p class="muted cl-p">학생은 단어장을 그대로 받아 풀고, 끝나면 점수와 틀린 단어가 자동으로 제출돼요. 여러 번 풀면 가장 높은 점수가 남아요.</p>
+      <p class="muted cl-p" id="caNote">학생은 단어장을 그대로 받아 풀고, 끝나면 점수와 틀린 단어가 자동으로 제출돼요. 여러 번 풀면 가장 높은 점수가 남아요.</p>
       <div class="row"><button class="btn btn-soft" data-act="cl-back">취소</button><button class="btn btn-primary" data-act="cl-acreate">과제 내기</button></div></div>`;
+  };
+  // 종류를 바꾸면 시험 문제 수 / 발음 평가 설정을 바꿔 보여 줘요
+  ACTIONS['ca-kind'] = el => {
+    ACTIONS['pt-opt'](el); const sp = el.dataset.v === 'speak';
+    $('caNumBox').hidden = el.dataset.v !== 'test'; $('caSpBox').hidden = !sp; $('caNote').hidden = sp;
   };
   ACTIONS['cl-back'] = () => clDetail(CLV.id, true);
   ACTIONS['cl-acreate'] = async el => {
     const cat = categories.find(c => c.id === ($('caBook') || {}).value); if (!cat) return;
     const kind = (document.querySelector('#caKind .on') || { dataset: { v: 'test' } }).dataset.v, n = +(document.querySelector('#caNum .on') || { dataset: { v: 20 } }).dataset.v;
-    const words = cat.words.slice(0, 500).map(w => [w.word.slice(0, 80), (w.meaning || '').slice(0, 120)]);
+    const sent = kind === 'speak' && (document.querySelector('#caSp .on') || { dataset: {} }).dataset.v === 's';
+    // 발음 평가 문항: [읽을 글, 뜻, 언어, 'w' 단어 | 's' 문장] 20개까지
+    const words = kind === 'speak'
+      ? cat.words.slice(0, SP_MAX).map(w => sent && w.example ? [w.example.slice(0, 200), (w.exampleKo || w.meaning || '').slice(0, 160), LANG, 's'] : [w.word.slice(0, 80), (w.meaning || '').slice(0, 120), LANG, 'w'])
+      : cat.words.slice(0, 500).map(w => [w.word.slice(0, 80), (w.meaning || '').slice(0, 120)]);
     el.disabled = true;
     try {
-      await Cloud.call('voca_assign_create', { p_class: CLV.id, p_title: (($('caTitle') || {}).value || '').trim() || cat.name, p_kind: kind, p_n: n, p_due: ($('caDue') || {}).value || null, p_words: words });
-      toast(cat.words.length > 500 ? '과제를 냈어요. 앞의 500단어만 들어갔어요.' : '과제를 냈어요.'); CLV.tab = 'asg'; clDetail(CLV.id, true);
-    } catch (e) { el.disabled = false; say(clMsg(e)); }
+      // 발음 평가는 서버 v11이 있어야 해요. 없으면 과제를 만들기 전에 알려 줘요
+      if (kind === 'speak') { try { await Cloud.call('voca_speak_results', { p_assign: 0 }); } catch (e) { if (e && e.code === 'missing') { el.disabled = false; return say(SP_MISSING); } } }
+      await Cloud.call('voca_assign_create', { p_class: CLV.id, p_title: (($('caTitle') || {}).value || '').trim() || cat.name, p_kind: kind, p_n: kind === 'speak' ? words.length : n, p_due: ($('caDue') || {}).value || null, p_words: words });
+      const cut = kind === 'speak' ? cat.words.length > SP_MAX && `앞의 ${SP_MAX}개만` : cat.words.length > 500 && '앞의 500단어만';
+      toast(cut ? `과제를 냈어요. ${cut} 들어갔어요.` : '과제를 냈어요.'); CLV.tab = 'asg'; clDetail(CLV.id, true);
+    } catch (e) { el.disabled = false; say(kind === 'speak' && e && e.code === 'bad_input' ? SP_MISSING : clMsg(e)); }
   };
   ACTIONS['cl-ares'] = async el => {
-    const id = +el.dataset.id; openSheet('과제 결과', clLoading()); const tok = sheetTok;
+    const id = +el.dataset.id, a0 = CLV.data && CLV.data.assignments.find(x => x.id === id);
+    if (a0 && a0.kind === 'speak') return spResults(id);
+    openSheet('과제 결과', clLoading()); const tok = sheetTok;
     let r; try { r = await Cloud.call('voca_assign_results', { p_assign: id }); } catch (e) { return tok === sheetTok && clFail(e, 'cl-back'); }
     if (tok !== sheetTok) return;
     const a = r.assign, done = r.rows.filter(x => x.score != null), left = r.rows.filter(x => x.score == null);
@@ -196,7 +218,7 @@
     const weak = clWeakTop(done.map(x => x.wrong), 10);
     $('sheetTitle').textContent = a.title;
     $('sheetBody').innerHTML = `<div class="form-stack cl">
-      <div class="cl-kv"><span>${CL_KIND[a.kind]}</span><span>${a.count}단어</span>${a.due ? `<span>${clDue(a.due)}</span>` : ''}<span>제출 <b>${done.length}/${r.rows.length}</b></span>${avg != null ? `<span>평균 <b>${avg}점</b></span>` : ''}</div>
+      <div class="cl-kv"><span>${CL_KIND[a.kind] || ''}</span><span>${clCount(a)}</span>${a.due ? `<span>${clDue(a.due)}</span>` : ''}<span>제출 <b>${done.length}/${r.rows.length}</b></span>${avg != null ? `<span>평균 <b>${avg}점</b></span>` : ''}</div>
       ${weak.length ? `<h4 class="syn-h">많이 틀린 단어</h4><div class="cl-chips">${weak.map(x => `<span>${esc(x.w)} <b>${x.c}명</b></span>`).join('')}</div>` : ''}
       ${done.length ? `<div class="cl-table"><div class="cl-tr cl-th"><span>이름</span><span>점수</span><span>정답</span><span>시간</span><span>횟수</span></div>${done.sort((x, y) => y.score - x.score).map(x => `<div class="cl-tr"><span><b>${esc(x.name || '이름 없음')}</b>${x.sno ? `<small>${esc(x.sno)}</small>` : ''}</span><span><b>${x.score}</b></span><span>${x.ok}/${x.n}</span><span>${x.sec >= 60 ? Math.floor(x.sec / 60) + '분' : x.sec + '초'}</span><span>${x.tries}회</span></div>`).join('')}</div>` : '<p class="muted cl-p">아직 제출한 학생이 없어요.</p>'}
       ${left.length ? `<h4 class="syn-h">아직 안 한 학생 ${left.length}명</h4><div class="cl-chips">${left.map(x => `<span>${esc(x.name || '이름 없음')}${x.sno ? ` <small>${esc(x.sno)}</small>` : ''}</span>`).join('')}</div>` : ''}
@@ -206,57 +228,4 @@
     if (!await ask('이 과제를 삭제할까요?\n학생들의 제출 결과도 함께 지워져요.', { ok: '삭제', danger: true })) return;
     try { await Cloud.call('voca_assign_delete', { p_assign: +el.dataset.id }); CLV.tab = 'asg'; clDetail(CLV.id, true); } catch (e) { say(clMsg(e)); }
   };
-
-  /* ----- 학생: 과제 풀기 · 결과 제출 ----- */
-  ACTIONS['cl-do'] = async el => {
-    const id = +el.dataset.id; el.disabled = true;
-    let a; try { a = await Cloud.call('voca_assign_get', { p_assign: id }); } catch (e) { el.disabled = false; return say(clMsg(e)); }
-    const list = (Array.isArray(a.words) ? a.words : []).filter(x => Array.isArray(x) && x[0] && x[1]);
-    if (!list.length) { el.disabled = false; return say('과제에 단어가 없어요.'); }
-    const name = `${a.class} · ${a.title}`.slice(0, 60);
-    // 이름이 아니라 과제 번호로 찾아요(이름은 40자로 잘리고 같은 이름 단어장이 있을 수 있어요). 비었으면 다시 채워요
-    let cat = categories.find(c => c.asg === a.id);
-    if (!cat || !cat.words.length) {
-      el.textContent = '단어장 준비 중...';
-      await dictPreload(list.map(x => x[0]));
-      const isNew = !cat; if (isNew) cat = { id: 'c' + uid(), name, words: [], asg: a.id }; const seen = new Set();
-      for (const [w, m] of list) {
-        const k = String(w).toLowerCase(); if (seen.has(k)) continue; seen.add(k);
-        let full = null; try { full = await dictGet(w); } catch (e) {}
-        cat.words.push(sanitizeWord({ ...(full || {}), id: uid(), word: String(w), meaning: String(m) }));
-      }
-      if (isNew) categories.push(cat); syncStorage();
-    }
-    closeSheet();
-    if (allWords().length < 4) return say('시험과 뜻 고르기는 전체 단어가 4개 이상 있어야 해요.');
-    if (a.kind === 'test') startSession('test', { type: 'cat', id: cat.id }, Math.min(a.n || 20, cat.words.length));
-    else startSession('choice', { type: 'cat', id: cat.id }, 0);
-    if (S.active) S.assign = { id: a.id, title: a.title };
-  };
-  async function clSubmit(asg, ok, n, sec, wrong) {
-    const box = document.createElement('div'); box.className = 'cl-sub'; box.textContent = `'${asg.title}' 결과를 선생님에게 보내는 중...`;
-    const res = document.querySelector('#stBody .result'); if (res) res.insertBefore(box, res.firstChild);
-    try {
-      const r = await Cloud.call('voca_assign_submit', { p_assign: asg.id, p_ok: ok, p_n: Math.max(1, n), p_sec: sec, p_wrong: wrong.slice(0, 100) });
-      box.classList.add('ok'); box.textContent = `과제를 제출했어요. 이번 ${r.score}점${r.tries > 1 ? `, 최고 ${r.best}점(${r.tries}번째)` : ''}`;
-      const c = clCache(); if (r.tries === 1 && c.pending > 0) { c.pending--; try { LS.setItem(clKey(), JSON.stringify(c)); } catch (e) {} }
-      clReport(true);
-    } catch (e) { box.classList.add('bad'); box.textContent = '제출하지 못했어요. ' + clMsg(e) + ' 과제를 다시 풀면 다시 제출돼요.'; }
-  }
-
-  /* ----- 학생: 학습 요약 올리기 ----- */
-  let clLastReport = 0;
-  async function clReport(force) {
-    if (!clOk() || isTeacher() && !force) return;
-    if (!clCache().joined) return;
-    if (!force && Date.now() - clLastReport < 180000) return;
-    clLastReport = Date.now();
-    const c = counts(); let n7 = 0, ok7 = 0, last = '';
-    for (let i = 0; i < 7; i++) { const d = stats.days[dayKey(addDays(startOfDay(), -i))]; if (d) { n7 += d.n || 0; ok7 += d.ok || 0; } }
-    Object.keys(stats.days).forEach(k => { if ((stats.days[k].n || 0) > 0 && k > last) last = k; });
-    const weak = allWords().filter(x => x.w.miss > 0).sort((a, b) => b.w.miss - a.w.miss).slice(0, 10).map(x => [x.w.word.slice(0, 60), (x.w.meaning || '').slice(0, 40), x.w.miss]);
-    const tests = (stats.tests || []).slice(-5).reverse().map(t => [t.d, Math.round(t.ok / t.n * 100), String(t.src || '').slice(0, 40)]);
-    const p = { total: c.total, mastered: c.mastered, due: c.due, streak: streak(), today: (stats.days[dayKey()] || { n: 0 }).n, n7, acc7: n7 ? Math.round(ok7 / n7 * 100) : null, last, weak, tests, at: Date.now() };
-    try { await Cloud.call('voca_class_report', { p_progress: p }); } catch (e) {}
-  }
 
