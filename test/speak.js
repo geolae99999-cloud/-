@@ -88,8 +88,8 @@ globalThis.fetch = async (url, o) => {
   const b = JSON.parse(o.body), parts = b.contents[0].parts;
   const items = parts.filter(p => p.text).flatMap(p => p.text.split('\n')).filter(l => /^Item idx=/.test(l)).map(l => { const m = l.match(/idx=(\d+)\. Language: ([^.]+)\. TARGET (\w+): (".*")$/); return { idx: +m[1], lang: m[2], kind: m[3], text: JSON.parse(m[4]) }; });
   const audio = parts.filter(p => p.inlineData).map(p => Object.assign({ mime: p.inlineData.mimeType }, mp3Info(p.inlineData.data)));
-  const res = items.map((x, k) => { const a = audio[Math.min(k, audio.length - 1)] || { len: 0 }; return { idx: x.idx, score: 60 + (a.len + x.idx * 13) % 37, heard: x.text, tips: x.idx === 0 ? '끝소리 l을 혀끝으로 또렷하게 해 보세요.' : '또렷하고 자연스러워요. 강세만 조금 더 살려요.', problems: x.idx === 0 ? ['l'] : [] }; });
-  gemReqs.push({ url: String(url), text: parts.filter(p => p.text).map(p => p.text).join('\n'), items, audio, res, schema: b.generationConfig.responseSchema });
+  const res = items.map((x, k) => { const a = audio[Math.min(k, audio.length - 1)] || { len: 0 }; const sc = 60 + (a.len + x.idx * 13) % 37; return { idx: x.idx, score: sc, accuracy: sc, fluency: sc, read: !(globalThis.HEARD && HEARD(x) === null), heard: globalThis.HEARD ? HEARD(x) || '' : x.text, tips: x.idx === 0 ? '끝소리 l을 혀끝으로 또렷하게 해 보세요.' : '또렷하고 자연스러워요. 강세만 조금 더 살려요.', problems: x.idx === 0 ? ['l'] : [] }; });
+  gemReqs.push({ url: String(url), text: parts.filter(p => p.text).map(p => p.text).join('\n'), items, audio, res, schema: b.generationConfig.responseSchema, cfg: b.generationConfig });
   if (GEMINI === 'busy') return new Response('{}', { status: 503 });
   return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify({ items: res }) }] } }] }), { status: 200, headers: { 'Content-Type': 'application/json' } });
 };
@@ -281,15 +281,17 @@ const AI_KEYS = /"(ai_score|ai_detail|ai_avg|ai_n|heard|tips|problems)"/;
   const g = gemReqs[0];
   ok(aiBodies.length === 1 && aiBodies[0].student === '2' && !aiBodies[0].file && gemReqs.length === 1, '카드 "AI 채점": 그 학생만 AI 함수 1번, Gemini 1번');
   ok(!!g && g.audio.length === 4 && g.audio.every(a => a.mime === 'audio/mp3' && mp3Ok(a)) && g.items.length === 4 && g.items.every(x => x.kind === 'word' && x.lang === 'English'), 'Gemini 요청: 문항 글 4개 + MP3(audio/mp3, 16kHz 모노) 4개');
-  ok(/Korean middle and high school/.test(g.text) && /0: silence/.test(g.text) && g.schema.properties.items.items.required.includes('score'), '채점 기준 프롬프트 + JSON 스키마');
+  ok(/Korean middle and high school/.test(g.text) && /never copy or correct toward the target/.test(g.text) && ['accuracy', 'fluency', 'read', 'heard'].every(k => g.schema.properties.items.items.required.includes(k)), '채점 기준 프롬프트(정확도 · 유창성 · 들은 그대로) + JSON 스키마');
+  ok(g.cfg.temperature === 0 && g.cfg.seed > 0 && g.cfg.topK === 1 && g.cfg.thinkingConfig.thinkingBudget === 1024 && /gemini-2\.5-flash:/.test(g.url), '수행평가 채점: temperature 0 · 고정 seed · 생각 1024 · 2.5-flash');
   const want2 = g.res.map(x => x.score).join(',');
   ok(psql(`select string_agg(ai_score::text, ',' order by idx) from voca_speak_recs where assign_id = ${A1} and uid = '2'`) === want2, 'AI 점수가 DB에 저장돼요 ' + want2);
   ok(usage('pron:1') === 1 && usage('1') === 0, 'AI 사용량: 발음 채점은 선생님의 따로 센 한도(pron:계정)에 1회');
   ok(!AI_KEYS.test(JSON.stringify(call('anon', 'voca_speak_mine', { p_token: 't2', p_assign: A1 }))) && call('anon', 'voca_class_mine', { p_token: 't2' }).joined[0].assignments.find(a => a.id === A1).mine.score === null, '채점 뒤에도 학생 voca_speak_mine · voca_class_mine 에 AI 점수가 없어요');
   // AI가 바쁠 때
-  GEMINI = 'busy';
+  GEMINI = 'busy'; const gb = gemReqs.length;
   await T.click('.sp-bc[data-uid="21"] [data-act="sp-grade1"]'); await T.waitForSelector('.dlg', { timeout: 20000 });
   ok(/AI 채점을 하지 못했어요/.test(await T.textContent('.dlg p')), 'AI가 바쁘면 안내하고 점수는 그대로');
+  ok(gemReqs.length - gb === 2 && gemReqs.slice(gb).every(r => /gemini-2\.5-flash:/.test(r.url)), 'AI가 바쁘면 다른(약한) 모델로 넘어가지 않고 같은 모델로 한 번 더');
   await confirm(T); GEMINI = 'ok';
   // 전체 AI 채점: 채점 안 된 학생 4명을 학번 순서로 한 명씩
   gemReqs = []; aiBodies = [];
@@ -301,7 +303,7 @@ const AI_KEYS = /"(ai_score|ai_detail|ai_avg|ai_n|heard|tips|problems)"/;
   const prog = await T.textContent('.sp-acts').catch(() => '');
   await T.waitForSelector('[data-act="sp-gall"]', { timeout: 60000 });
   ok(/AI 채점 중 \d\/4/.test(prog), '채점 중 진행 표시 ' + JSON.stringify(prog.trim()));
-  ok(aiBodies.length === 4 && aiBodies.map(x => x.student).join(',') === '3,21,22,23' && gemReqs.length === 4 && aiBodies.every(x => !x.all), '전체 AI 채점: 학생마다 한 번씩 차례로(학번 순) 4번');
+  ok(aiBodies.length === 4 && aiBodies.map(x => x.student).sort().join(',') === '21,22,23,3' && gemReqs.length === 4 && aiBodies.every(x => !x.all), '전체 AI 채점: 학생마다 한 번씩 4번 (4명씩 동시에)');
   ok(psql(`select count(*) from voca_speak_recs where assign_id = ${A1} and ai_score is null`) === '0', '모든 녹음에 AI 점수');
   ok(usage('pron:1') === 6, 'AI 사용량: 채점 한 번마다 1회 (실패 포함 6회)');
   ok(/모두 AI 채점했어요/.test(await T.textContent('[data-act="sp-gall"]')) && await T.isDisabled('[data-act="sp-gall"]'), '다 채점하면 버튼이 꺼져요');
@@ -484,6 +486,17 @@ const AI_KEYS = /"(ai_score|ai_detail|ai_avg|ai_n|heard|tips|problems)"/;
   ok(usage('pron:1') === u0, 'AI 함수: 거절한 요청은 AI 사용량을 쓰지 않아요');
   const [fs1, fj] = await edgeCall('t1', { assign: A1, file: mkMp3(3).toString('base64'), items: [{ text: 'apple' }, { text: '我喜欢学习。', lang: 'zh', kind: 's' }] }, '?t=pron');
   ok(fs1 === 200 && fj.items.length === 2 && fj.items.every(x => x.score >= 0 && x.heard != null && !('v' in x)) && /Mandarin Chinese/.test(gemReqs[gemReqs.length - 1].text), 'AI 함수: 선생님 파일 채점은 결과만 돌려줘요(중국어는 성조까지)');
+  // 점수 계산: (정확도 70% + 유창성 30%) × 완성도(들은 말과 목표 비교). 단어는 정확도 80% + 강세 20%
+  const S1 = 'I eat an apple every day.', its = [{ text: S1, kind: 's' }, { text: 'rice' }, { text: 'library' }, { text: '我喜欢学习。', lang: 'zh', kind: 's' }];
+  globalThis.HEARD = x => x.idx === 0 ? 'I eat apple every day' : x.idx === 1 ? 'lice' : x.idx === 2 ? null : '我喜欢学';
+  const [ss, sj] = await edgeCall('t1', { assign: A1, file: mkMp3(3).toString('base64'), items: its }, '?t=pron');
+  globalThis.HEARD = null;
+  const gr = gemReqs[gemReqs.length - 1].res, by = i => sj.items.find(x => x.idx === i), base = (i, w) => gr[i].accuracy * w + gr[i].fluency * (1 - w);
+  ok(ss === 200 && by(0).comp === 83 && by(0).score === Math.round(base(0, 0.7) * (5 / 6) / 0.95), '빠진 단어(an)가 있으면 완성도 83% 만큼 깎여요 ' + JSON.stringify(by(0)));
+  ok(by(1).comp === 100 && by(1).score === Math.round(base(1, 0.8)), '발음을 틀려 다르게 들린 단어(rice→lice)는 완성도에서 또 깎지 않아요(정확도에서만)');
+  ok(by(2).score === 0 && by(2).comp === 0, '읽지 않은 문항은 0점');
+  ok(by(3).comp === 80 && by(3).score === Math.round(base(3, 0.7) * (4 / 5) / 0.95), '중국어는 글자 단위로 완성도 (5자 중 4자)');
+  ok(sj.items.every(x => x.acc != null && x.flu != null && x.model === 'gemini-2.5-flash'), '결과에 정확도 · 유창성 · 완성도 · 모델');
   // 발음 채점 한도: 선생님마다 하루 200회(AI_PRON_LIMIT), 일반 AI 한도(40)와 따로
   psql(`insert into voca_ai_usage(uid, day, n) values ('1', current_date, 40) on conflict (uid, day) do update set n = 40`);
   ok((await edgeCall('t1', { assign: A1, student: '2', all: true }))[0] === 200, '일반 AI 한도(40)를 다 써도 발음 채점은 돼요');
