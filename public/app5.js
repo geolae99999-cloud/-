@@ -65,7 +65,7 @@
     const a = Math.random() < 0.5 ? 'm' : 'w', f = a === 'm' ? 'm' : 'w', seen = new Set([cur[f]]), d = [];
     for (let t = 0; t < 60 && d.length < 3; t++) { const o = pool[Math.floor(Math.random() * pool.length)]; if (o !== cur && o[f] && !seen.has(o[f])) { seen.add(o[f]); d.push(o); } }
     for (const o of pool) { if (d.length >= 3) break; if (o !== cur && o[f] && !seen.has(o[f])) { seen.add(o[f]); d.push(o); } }
-    g.q = { cur, a, opts: shuffled([cur, ...d]) }; g.lock = false;
+    g.q = { cur, a, opts: shuffled([cur, ...d]) }; g.lock = false; g.qAt = Date.now();
   }
   function wqStart() {
     const g = WQ; if (!g) return;
@@ -107,6 +107,7 @@
   }
   function wqPick(i) {
     const g = WQ; if (!g || g.view !== 'play' || g.lock || !g.q) return;
+    if (Date.now() - (g.qAt || 0) < 150) return; // 문제가 뜬 직후 0.15초 동안의 눌림(두 번 누름)은 무시해요. 서버도 답 사이 0.4초 미만은 받지 않아요.
     const q = g.q, ok = q.opts[i] === q.cur, btns = document.querySelectorAll('#wqOv .wq-opt');
     g.lock = true; g.n++; g.log.push([ok ? 1 : 0, Date.now() - g.t0]);
     if (ok) {
@@ -233,8 +234,8 @@
   document.addEventListener('keydown', e => {
     if (!WQ || !$('wqOv') || document.querySelector('.dlg-ov')) return;
     if (WQ.view === 'play' && /^[1-4]$/.test(e.key)) { e.preventDefault(); e.stopImmediatePropagation(); wqPick(+e.key - 1); }
-    else if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); if (WQ.view === 'play') { clearInterval(WQ.timer); wqEnd(); } else if (WQ.view === 'lobby') wqClose(); else wqLobby(); }
-    else if (e.key === 'Enter' && (WQ.view === 'lobby' || WQ.view === 'end')) { e.preventDefault(); e.stopImmediatePropagation(); wqStart(); }
+    else if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); if (WQ.view === 'play') { clearInterval(WQ.timer); wqEnd(); } else if (WQ.view === 'lobby') wqClose(); else { clearInterval(WQ.timer); clearTimeout(WQ.cd); wqLobby(); } }
+    else if (e.key === 'Enter' && (WQ.view === 'lobby' || WQ.view === 'end') && !(e.target.closest && e.target.closest('button, input, a, select, textarea'))) { e.preventDefault(); e.stopImmediatePropagation(); wqStart(); }
   }, true);
 
   /* ----- 문장 빈칸 ----- */
@@ -468,7 +469,7 @@
     recordResult(item, ok); nextQuestion();
   }
   document.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && S.active && (S.mode === 'spell' || S.mode === 'dict' || (S.mode === 'test' && $('typeInput'))) && !S.finished) {
+    if (e.key === 'Enter' && S.active && (S.mode === 'spell' || S.mode === 'dict' || ((S.mode === 'test' || S.mode === 'mix') && $('typeInput'))) && !S.finished) {
       if (e.target.id === 'typeInput' || S.answered) { e.preventDefault(); ACTIONS['type-submit'](); }
     }
   });
@@ -564,9 +565,10 @@
   };
   ACTIONS['retry-wrong'] = () => {
     const items = [...S.wrong.values()].map(i => ({ w: i.w, catId: i.catId }));
-    startSession(S.mode, S.src, 0, items);
+    const base = S.baseCount != null ? S.baseCount : S.count;
+    startSession(S.mode, S.src, 0, items); S.baseCount = base;
   };
-  ACTIONS.again = () => startSession(S.mode, S.src, S.count);
+  ACTIONS.again = () => startSession(S.mode, S.src, S.baseCount != null ? S.baseCount : S.count);
 
   async function exitSession(force) {
     if (!force && S.active && !S.finished && S.idx > 0 && S.mode !== 'listen') {

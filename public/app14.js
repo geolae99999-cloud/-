@@ -115,7 +115,11 @@
     if (recIO) recIO.disconnect();
     if ('IntersectionObserver' in window) { recIO = new IntersectionObserver(es => { if (es.some(x => x.isIntersecting)) recMore(); }, { rootMargin: '400px 0px' }); recIO.observe($('recMore')); }
   }
-  ACTIONS['rec-tab'] = el => recSheet(el.dataset.g);
+  ACTIONS['rec-tab'] = async el => {
+    const g = el.dataset.g;
+    if (ZH_PACK_NAMES[g] && !zhIdx) { const d = await zhLoad(); if (!d.length) return toast('단어 목록을 불러오지 못했어요. 인터넷을 확인해 주세요.'); } // 중국어 책장은 목록부터
+    recSheet(g);
+  };
   const REC_STEP = 150;
   let recRowsAt = 0, recOwn = new Set(), recIO = null;
   const recRowHtml = (e, i, has) => `<label class="rec-row ${has ? 'has' : ''}"><input type="checkbox" value="${i}" ${has ? 'checked disabled' : ''}><span class="w-no">${String(i + 1).padStart(3, '0')}</span><b>${esc(e.w)}</b><span class="rec-m">${e.p ? `<i class="rec-py">${esc(e.p)}</i> ` : ''}${esc(e.m)}</span>${has ? '<em>담음</em>' : ''}</label>`;

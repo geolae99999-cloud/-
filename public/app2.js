@@ -61,7 +61,9 @@
       const wIds = new Set();
       const words = (Array.isArray(c.words) ? c.words : []).filter(w => w && typeof w === 'object' && str(w.word)).map(sanitizeWord);
       words.forEach(w => { if (wIds.has(w.id)) w.id = uid(); wIds.add(w.id); });
-      return { id, name: str(c.name).slice(0, 40) || '이름 없음', words };
+      const o = { id, name: str(c.name).slice(0, 40) || '이름 없음', words };
+      if (/^\d+$/.test(String(c.asg))) o.asg = +c.asg; // 과제로 만든 단어장 표시
+      return o;
     });
   }
   function sanitizeStats(s) {
@@ -105,6 +107,7 @@
       cfg.grade = GRADE_NAMES[saved.grade] ? saved.grade : '';
       cfg.role = saved.role === 'teacher' ? 'teacher' : '';
       cfg.profile = cleanProfile(saved.profile);
+      if (saved.gameName) cfg.gameName = String(saved.gameName).replace(/[\u0000-\u001f<>]/g, '').slice(0, 12);
       for (const p of Object.keys(cfg.keys)) {
         if (saved.keys && saved.keys[p]) cfg.keys[p] = saved.keys[p];
         if (saved.models && saved.models[p]) cfg.models[p] = saved.models[p];
@@ -140,7 +143,7 @@
     try {
       LS.setItem(KEY_DATA, JSON.stringify(dataBlob()));
       LS.setItem(KEY_CFG, JSON.stringify(config));
-      LS.setItem(KEY_DATA + ':ts', String(Date.now())); cloudQueue();
+      LS.setItem(KEY_DATA + ':ts', String(Date.now())); if (cloudMode) LS.setItem(KEY_DATA + ':dirty', '1'); cloudQueue();
     } catch (e) {
       toast('저장 공간이 부족하거나 저장이 차단되었어요. 백업을 받아두세요.');
     }

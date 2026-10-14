@@ -16,11 +16,13 @@
   }
   const ttTop = (title, right) => `<div class="pv-top"><span class="pv-name">${esc(title)}</span>${right || ''}<button class="pv-x" data-tt="x" aria-label="닫기">${IC.x}</button></div>`;
   function ttDraw() { if (!TT) return; ({ qs: qsDraw, timer: tmDraw, pick: pkDraw, rank: rkDraw })[TT.kind](); }
+  // 소리 재생기는 하나만 — 버튼을 누를 때(사용자 동작) 만들거나 깨워 둬야 자동 재생 차단에 안 걸려요
+  let ttCtx = null;
+  function ttAudio() { try { const A = window.AudioContext || window.webkitAudioContext; if (!A) return null; if (!ttCtx) ttCtx = new A(); if (ttCtx.state === 'suspended') ttCtx.resume().catch(() => {}); } catch (e) {} return ttCtx; }
   function ttBeep(n) {
     try {
-      const A = window.AudioContext || window.webkitAudioContext; if (!A) return; const ctx = new A();
+      const ctx = ttCtx || ttAudio(); if (!ctx) return;
       for (let i = 0; i < (n || 3); i++) { const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.value = 880; o.connect(g); g.connect(ctx.destination); const t = ctx.currentTime + i * 0.35; g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.3, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.25); o.start(t); o.stop(t + 0.3); }
-      setTimeout(() => { try { ctx.close(); } catch (e) {} }, 2000);
     } catch (e) {}
   }
 
@@ -40,7 +42,7 @@
       <button class="btn btn-primary btn-block" data-act="qs-go">${IC.play} 퀴즈 쇼 시작</button></div>`);
   };
   ACTIONS['qs-go'] = () => {
-    const cat = curCat(); if (!cat) return;
+    const cat = curCat(); if (!cat) return; ttAudio();
     const v = id => { const b = document.querySelector(`#${id} .on`); return b ? b.dataset.v : ''; };
     const ask = v('qsAsk') || 'm', n = +v('qsNum') || 10, sec = +v('qsSec'), teams = +v('qsTeam');
     const ws = cat.words.filter(w => w.word && w.meaning), list = shuffled(ws).slice(0, n);
@@ -54,8 +56,8 @@
     qsTick();
   };
   function qsTick() {
-    if (!TT || TT.kind !== 'qs') return; clearInterval(TT.timer);
-    if (!TT.sec) return;
+    if (!TT || TT.kind !== 'qs') return; clearInterval(TT.timer); TT.timer = null;
+    if (!TT.sec || TT.i >= TT.qs.length) return; // 결과 화면에서는 시간 재지 않아요
     TT.left = TT.sec;
     TT.timer = setInterval(() => {
       if (!TT || TT.kind !== 'qs') return; if (TT.show) return clearInterval(TT.timer);
@@ -139,8 +141,8 @@
       try { const d = await Cloud.call('voca_class_detail', { p_class: +src.slice(1) }); names = d.members.map(m => (m.name || '이름 없음') + (m.sno ? ' ' + m.sno.slice(-2) + '번' : '')); }
       catch (e) { el.disabled = false; return say(clMsg(e)); }
     } else if (src === 'num') { const n = Math.max(2, Math.min(60, parseInt(($('pkNum') || {}).value, 10) || 30)); names = Array.from({ length: n }, (_, i) => `${i + 1}번`); }
-    else { const raw = ($('pkNames') || {}).value || ''; names = raw.split(/[\n,]+/).map(x => x.trim()).filter(Boolean).slice(0, 80); try { LS.setItem('vocapro_pick_names:' + currentUser, raw); } catch (e) {} }
-    names = [...new Set(names)];
+    else { const raw = ($('pkNames') || {}).value || ''; names = [...new Set(raw.split(/[\n,]+/).map(x => x.trim()).filter(Boolean))].slice(0, 80); try { LS.setItem('vocapro_pick_names:' + currentUser, raw); } catch (e) {} }
+    { const seen = {}; names = names.map(n => { seen[n] = (seen[n] || 0) + 1; return seen[n] > 1 ? `${n} (${seen[n]})` : n; }); } // 반 명단의 동명이인도 모두 남겨요(뒤에 번호)
     if (names.length < 2) { el.disabled = false; return toast('두 명 이상 있어야 해요.'); }
     closeSheet(); ttOpen('pick', { names, used: [], cur: '', mode: 'one', size: 4, groups: null });
   };
@@ -172,7 +174,7 @@
       let left = t.names.filter(n => !t.used.includes(n)); if (!left.length) { t.used = []; left = t.names.slice(); }
       const win = left[Math.floor(Math.random() * left.length)]; let n = 0;
       t.spin = setInterval(() => {
-        const e = $('pkName'); if (!e || !TT) return clearInterval(t.spin);
+        const e = $('pkName'); if (!e || !TT) { clearInterval(t.spin); t.spin = null; return; } // 모드를 바꾸면 멈추고 다시 뽑을 수 있게
         e.textContent = left[Math.floor(Math.random() * left.length)]; n++;
         if (n > 18) { clearInterval(t.spin); t.spin = null; t.cur = win; t.used.push(win); ttBeep(1); pkDraw(); }
       }, 70);
@@ -183,7 +185,7 @@
   // 오버레이 클릭 · 키보드
   document.addEventListener('click', e => {
     const b = e.target.closest('[data-tt]'); if (!b || !$('ttOv') || !TT) return; e.preventDefault();
-    const k = b.dataset.tt, t = TT;
+    const k = b.dataset.tt, t = TT; ttAudio();
     if (k === 'x') return ttClose();
     if (t.kind === 'qs') {
       if (k === 'show') { t.show = true; clearInterval(t.timer); return qsDraw(); }
@@ -199,6 +201,7 @@
     if (!$('ttOv') || !TT || e.ctrlKey || e.metaKey || e.altKey || document.querySelector('.dlg-ov')) return;
     const t = TT, click = sel => { const b = $('ttOv').querySelector(sel); if (b && !b.disabled) b.click(); };
     if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); return ttClose(); }
+    if ((e.key === ' ' || e.key === 'Enter') && e.target.closest && e.target.closest('#ttOv') && /^(BUTTON|INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName)) return; // 포커스된 버튼은 제 동작대로
     if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); e.stopImmediatePropagation(); return click(t.kind === 'qs' ? '[data-tt="show"], [data-tt="next"], [data-tt="again"]' : t.kind === 'timer' ? '[data-tt="tm-go"]' : t.mode === 'one' ? '[data-tt="pk-spin"]' : '[data-tt="pk-grp"]'); }
     if (t.kind === 'qs' && /^[1-4]$/.test(e.key)) { e.preventDefault(); e.stopImmediatePropagation(); click(`[data-tt="team"][data-k="${+e.key - 1}"]`); }
     else if (t.kind === 'qs' && (e.key === 's' || e.key === 'S')) { e.preventDefault(); e.stopImmediatePropagation(); playAudio(t.qs[t.i] && t.qs[t.i].w.word); }
@@ -243,11 +246,13 @@
     try {
       const asg = d.assignments.slice().reverse(), res = [];
       for (const a of asg) res.push(await Cloud.call('voca_assign_results', { p_assign: a.id }));
-      const q = x => { const s = String(x == null ? '' : x); return /[",\n]/.test(s) || /^[=+\-@]/.test(s) ? `"${s.replace(/^([=+\-@])/, "'$1").replace(/"/g, '""')}"` : s; };
+      const q = x => { const s = String(x == null ? '' : x); return /[",\n]/.test(s) || /^[=+\-@\t\r]/.test(s) ? `"${s.replace(/^([=+\-@\t\r])/, "'$1").replace(/"/g, '""')}"` : s; };
       const head = ['학번', '이름', '최근 학습', '7일 단어', '7일 정답률(%)', '연속 학습(일)', '전체 단어', '마스터', '과제 완료'].concat(asg.map(a => `${a.title} (${CL_KIND[a.kind]})`));
+      // 결과 행에 uid가 있으면 uid로, 없으면 이름+학번으로 맞추고 한 행은 한 학생에게만 써요(동명이인 중복 방지)
+      const pool = res.map(r => (r.rows || []).slice());
       const rows = d.members.map(m => {
         const p = m.progress || {};
-        const scores = res.map(r => { const x = (r.rows || []).find(y => y.name === m.name && y.sno === m.sno); return x && x.score != null ? x.score : ''; });
+        const scores = pool.map(rs => { let k = rs.findIndex(y => y.uid != null && y.uid === m.uid); if (k < 0) k = rs.findIndex(y => y.uid == null && y.name === m.name && y.sno === m.sno); const x = k < 0 ? null : rs.splice(k, 1)[0]; return x && x.score != null ? x.score : ''; });
         return [m.sno, m.name, p.last || '', p.n7 != null ? p.n7 : '', p.acc7 != null ? p.acc7 : '', p.streak || 0, p.total || 0, p.mastered || 0, `${m.done}/${asg.length}`].concat(scores);
       });
       const csv = '﻿' + [head].concat(rows).map(r => r.map(q).join(',')).join('\r\n');
@@ -255,81 +260,5 @@
       toast('엑셀에서 열 수 있는 파일로 받았어요.');
     } catch (e) { say(clMsg(e)); }
     el.disabled = false; el.textContent = old;
-  };
-
-  /* =========================================================
-   * 단어장 공유 (링크 하나로 반 친구, 선생님과 나눠요)
-   * ======================================================= */
-  const b64u = u8 => { let s = ''; for (let i = 0; i < u8.length; i += 8192) s += String.fromCharCode.apply(null, u8.subarray(i, i + 8192)); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
-  const unb64u = t => { const s = atob(t.replace(/-/g, '+').replace(/_/g, '/')); const u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return u; };
-  async function zipBytes(u8, inflate) {
-    const cs = inflate ? new DecompressionStream('deflate-raw') : new CompressionStream('deflate-raw');
-    return new Uint8Array(await new Response(new Blob([u8]).stream().pipeThrough(cs)).arrayBuffer());
-  }
-  async function shareEncode(cat) {
-    const raw = new TextEncoder().encode(JSON.stringify({ n: cat.name, w: cat.words.map(w => [w.word, w.meaning]) }));
-    if (typeof CompressionStream === 'function') { try { return 'z' + b64u(await zipBytes(raw)); } catch (e) {} }
-    return 'j' + b64u(raw);
-  }
-  async function shareDecode(code) {
-    const t = String(code || ''), body = unb64u(t.slice(1));
-    const raw = t[0] === 'z' ? await zipBytes(body, true) : body;
-    const o = JSON.parse(new TextDecoder().decode(raw));
-    const words = (Array.isArray(o.w) ? o.w : []).filter(a => Array.isArray(a) && a[0] && a[1]).slice(0, 2000).map(a => [String(a[0]).slice(0, 80), String(a[1]).slice(0, 200)]);
-    if (!words.length) throw new Error('empty');
-    return { name: String(o.n || '공유받은 단어장').slice(0, 40), words };
-  }
-  ACTIONS['book-share'] = async () => {
-    const cat = curCat(); if (!cat) return;
-    if (!cat.words.length) return toast('단어를 먼저 담아 주세요.');
-    const url = location.origin + location.pathname + '#s=' + await shareEncode(cat);
-    openSheet('단어장 공유', `<div class="form-stack">
-      <div class="share-card"><span class="mg-ico i-mint">${IC.book}</span><div><b>${esc(cat.name)}</b><small>단어 ${cat.words.length}개 · 받는 사람도 VocaPro에서 바로 공부할 수 있어요</small></div></div>
-      <input id="shareUrl" readonly value="${esc(url)}" data-act="select-all">
-      <div class="row"><button class="btn btn-soft" data-act="share-copy">링크 복사</button>${navigator.share ? '<button class="btn btn-primary" data-act="share-send">보내기</button>' : ''}</div>
-      <p class="muted" style="font-size:.78rem;line-height:1.6;margin:0;">링크 안에 단어와 뜻이 들어 있어요. 서버에 따로 저장되지 않고, 학습 기록은 함께 보내지 않아요.${url.length > 8000 ? ' 단어가 많아서 링크가 길어요. 메신저에 따라 잘릴 수 있으니 CSV 내보내기도 함께 써 보세요.' : ''}</p></div>`);
-  };
-  ACTIONS['share-copy'] = async () => { const i = $('shareUrl'); if (!i) return; try { await navigator.clipboard.writeText(i.value); toast('링크를 복사했어요.'); } catch (e) { i.select(); toast('링크를 길게 눌러 복사해 주세요.'); } };
-  ACTIONS['share-send'] = async () => { const i = $('shareUrl'), cat = curCat(); if (!i) return; try { await navigator.share({ title: 'VocaPro 단어장', text: `${cat ? cat.name : '단어장'} (VocaPro)`, url: i.value }); } catch (e) {} };
-
-  // 공유 링크로 들어오면: 로그인 뒤에 담을지 물어봐요
-  const SHARE_KEY = 'vocapro_share_in';
-  (function shareCapture() {
-    try {
-      const m = location.hash.match(/^#s=([A-Za-z0-9_-]+)$/); if (!m) return;
-      sessionStorage.setItem(SHARE_KEY, m[1]); history.replaceState(null, '', location.pathname + location.search);
-    } catch (e) {}
-  })();
-  let shareWait = 0;
-  function shareCheck() {
-    let code = ''; try { code = sessionStorage.getItem(SHARE_KEY) || ''; } catch (e) {}
-    if (!code || !currentUser) return;
-    clearTimeout(shareWait);
-    if ($('pfOv') || $('obOv') || $('ltOv') || document.querySelector('#recOv.show') || $('sheetOv').classList.contains('open') || S.active) { shareWait = setTimeout(shareCheck, 800); return; }
-    shareDecode(code).then(d => {
-      shareIn = d;
-      openSheet('공유받은 단어장', `<div class="form-stack">
-        <div class="share-card"><span class="mg-ico i-mint">${IC.book}</span><div><b>${esc(d.name)}</b><small>단어 ${d.words.length}개</small></div></div>
-        <div class="share-prev">${d.words.slice(0, 8).map(([w, m]) => `<div><b>${esc(w)}</b><span>${esc(m)}</span></div>`).join('')}${d.words.length > 8 ? `<div class="muted">외 ${d.words.length - 8}개</div>` : ''}</div>
-        <button class="btn btn-primary btn-block" data-act="share-take">내 단어장으로 담기</button>
-        <button class="btn btn-soft btn-block" data-act="share-skip">담지 않기</button></div>`);
-    }).catch(() => { try { sessionStorage.removeItem(SHARE_KEY); } catch (e) {} toast('공유 링크를 읽지 못했어요. 링크가 잘리지 않았는지 확인해 주세요.'); });
-  }
-  let shareIn = null;
-  ACTIONS['share-skip'] = () => { try { sessionStorage.removeItem(SHARE_KEY); } catch (e) {} shareIn = null; closeSheet(); };
-  ACTIONS['share-take'] = async el => {
-    const d = shareIn; if (!d) return; el.disabled = true; el.textContent = '담는 중...';
-    try { sessionStorage.removeItem(SHARE_KEY); } catch (e) {}
-    await dictPreload(d.words.map(a => a[0]));
-    let nm = d.name, k = 2; while (categories.some(c => c.name === nm)) nm = `${d.name} (${k++})`;
-    const cat = { id: 'c' + uid(), name: nm, words: [] }, seen = new Set();
-    for (const [w, m] of d.words) {
-      if (seen.has(w.toLowerCase())) continue; seen.add(w.toLowerCase());
-      let full = null; try { full = await dictGet(w); } catch (e) {}
-      cat.words.push(sanitizeWord({ ...(full || {}), id: uid(), word: w, meaning: m }));
-    }
-    categories.push(cat); syncStorage(); shareIn = null; closeSheet();
-    toast(`'${nm}' 단어장에 ${cat.words.length}개를 담았어요.`);
-    try { openBook(cat.id); } catch (e) { go('tabBooks'); }
   };
 

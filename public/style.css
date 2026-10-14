@@ -41,7 +41,7 @@
     body.no-scroll { overflow: hidden; }
     button, input, select, textarea { font-family: inherit; color: inherit; font-size: inherit; letter-spacing: inherit; }
     button { cursor: pointer; touch-action: manipulation; }
-    button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, a:focus-visible { outline: none; box-shadow: var(--ring); }
+    button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, a:focus-visible, [role="button"]:focus-visible { outline: none; box-shadow: var(--ring); }
     ::selection { background: var(--mark); color: var(--mark-ink); }
     .ic { width: 1.2em; height: 1.2em; flex: none; vertical-align: -.2em; }
     .muted { color: var(--muted); }

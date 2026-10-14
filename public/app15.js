@@ -243,6 +243,7 @@
   document.addEventListener('click', e => { const b = e.target.closest('[data-pv]'); if (b && $('pvOv')) { e.preventDefault(); pvDo(b.dataset.pv); } });
   document.addEventListener('keydown', e => {
     if (!$('pvOv') || e.ctrlKey || e.metaKey || e.altKey) return;
+    if ((e.key === ' ' || e.key === 'Enter') && e.target.closest && e.target.closest('#pvOv') && /^(BUTTON|INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName)) return; // 포커스된 버튼은 제 동작대로
     const m = { Escape: 'x', ' ': 'flip', Enter: 'flip', ArrowRight: 'next', ArrowLeft: 'prev', ArrowDown: 'flip', ArrowUp: 'flip', s: 'say', S: 'say' }[e.key];
     if (m) { e.preventDefault(); e.stopImmediatePropagation(); pvDo(m); }
   }, true);

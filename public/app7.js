@@ -301,7 +301,8 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     try {
       const fromDict = await dictGet(query);
       const r = fromDict || await lookupWord(query, true);
-      if (run !== aiRun || !$('fieldMeaning') || $('fieldWord').value.trim() !== query) return;
+      if (run !== aiRun || !$('fieldMeaning')) return;
+      if ($('fieldWord').value.trim() !== query) { clearInterval(timer); aiState(''); return; } // 단어를 바꿨으면 '채우는 중' 표시를 지워요
       const force = !edit;
       set('fieldMeaning', r.meaning, force || $('fieldMeaning').value === local); set('fieldPhonetic', r.phonetic, force); set('fieldKoreanPron', r.koreanPron, force);
       set('fieldExample', r.example, force); set('fieldExampleKo', r.exampleKo, force); set('fieldSynonyms', r.synonyms, force);

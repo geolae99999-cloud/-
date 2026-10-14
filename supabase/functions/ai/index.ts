@@ -153,7 +153,11 @@ Deno.serve(async (req) => {
     const global = Number(Deno.env.get("AI_GLOBAL_LIMIT") ?? "3000");
     let { data: ok, error: useErr } = await sb.rpc("voca_ai_use", { p_uid: String(me.id), p_limit: limit, p_global: global });
     // supabase_update_v8.sql 을 아직 실행하지 않았으면 예전 함수(계정별 한도만)로 세요.
-    if (useErr) ({ data: ok } = await sb.rpc("voca_ai_use", { p_uid: String(me.id), p_limit: limit }));
+    // 함수가 없을 때(PGRST202, 42883)만 예전 함수로 바꾸고, 다른 오류면 전체 한도를 건너뛰지 않게 멈춰요.
+    if (useErr) {
+      if (useErr.code !== "PGRST202" && useErr.code !== "42883") return out({ error: "잠시 후 다시 시도해 주세요." }, 503);
+      ({ data: ok } = await sb.rpc("voca_ai_use", { p_uid: String(me.id), p_limit: limit }));
+    }
     if (!ok) return out({ error: "오늘 AI 사용 한도를 다 썼어요. 내일 다시 쓸 수 있어요." }, 429);
 
     const models = [Deno.env.get("GEMINI_MODEL") ?? "gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-2.0-flash"]

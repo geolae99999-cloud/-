@@ -6,9 +6,9 @@
   if (/^eyJ/.test(cfg.apiKey)) hdr.Authorization = 'Bearer ' + cfg.apiKey;
   const getTok = () => { try { return localStorage.getItem(TK) || sessionStorage.getItem(TK); } catch (e) { return null; } };
   const setTok = (t, keep) => { try { localStorage.removeItem(TK); sessionStorage.removeItem(TK); if (t) (keep ? localStorage : sessionStorage).setItem(TK, t); } catch (e) {} };
-  async function rpc(fn, args) {
+  async function rpc(fn, args, ka) {
     let r;
-    try { r = await fetch(cfg.url.replace(/\/+$/, '') + '/rest/v1/rpc/' + fn, { method: 'POST', headers: hdr, body: JSON.stringify(args) }); }
+    try { r = await fetch(cfg.url.replace(/\/+$/, '') + '/rest/v1/rpc/' + fn, { method: 'POST', headers: hdr, body: JSON.stringify(args), keepalive: !!ka }); }
     catch (e) { throw { code: 'network', message: String(e.message || e) }; }
     const t = await r.text(); let j = null; try { j = JSON.parse(t); } catch (e) {}
     if (!r.ok) throw { code: r.status === 404 ? 'missing' : 'server', status: r.status, message: (j && (j.message || j.hint)) || t.slice(0, 150) };
@@ -36,7 +36,7 @@
     async logout() { const t = getTok(); setTok(null); cur = null; if (t) { try { await rpc('voca_logout', { p_token: t }); } catch (e) {} } },
     async reset() { throw { code: 'bad_input' }; },
     async load() { const j = await rpc('voca_load', { p_token: getTok() }); return j && j.data ? { data: j.data, updated: Number(j.updated) } : null; },
-    save: d => rpc('voca_save', { p_token: getTok(), p_data: d.data, p_updated: d.updated }),
+    save: (d, o) => rpc('voca_save', { p_token: getTok(), p_data: d.data, p_updated: d.updated }, o && o.keepalive),
     changePw: (o, n) => rpc('voca_change_pw', { p_token: getTok(), p_old: o, p_new: n }),
     call: (fn, args) => rpc(fn, Object.assign({ p_token: getTok() }, args || {})),
     async remove() { await rpc('voca_delete', { p_token: getTok() }); setTok(null); cur = null; },

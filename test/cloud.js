@@ -7,13 +7,13 @@ const srv = http.createServer((q, r) => { let f = path.join(root, q.url.split('?
   const errs = []; p.on('pageerror', e => errs.push(e.message));
   await require('./undef')(p, errs);
   await p.route(/fonts|jsdelivr/, r => r.abort());
-  let saved = null, aiBody = null;
+  let saved = null, aiBody = null, failSave = false;
   await p.route('https://psmmrwhmpezyeehjivav.supabase.co/**', async r => {
     const u = r.request().url(), body = JSON.parse(r.request().postData() || '{}');
     const j = x => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(x) });
     if (u.endsWith('/voca_signup')) return j({ token: 'tok', id: 1, username: body.p_user });
     if (u.endsWith('/voca_load')) return j(null);
-    if (u.endsWith('/voca_save')) { saved = body; return j({ ok: true }); }
+    if (u.endsWith('/voca_save')) { if (failSave) return r.fulfill({ status: 500, body: 'x' }); saved = body; return j({ ok: true }); }
     if (u.endsWith('/voca_me')) return j({ id: 1, username: 'kim' });
     if (u.includes('/functions/v1/ai')) { aiBody = body; await new Promise(x => setTimeout(x, 300)); return j({ text: JSON.stringify({ meaning: '형 꾸준한', phonetic: '/x/', koreanPron: '엑스', example: 'Keep going.', exampleKo: '계속 가.', synonyms: 'steady' }) }); }
     return j({});
@@ -27,5 +27,14 @@ const srv = http.createServer((q, r) => { let f = path.join(root, q.url.split('?
   await p.evaluate(() => openBook(categories[0].id)); await p.click('.fab'); await p.fill('#fieldWord', 'zyzzyvax'); await p.click('#btnRunAi');
   await p.waitForSelector('.ai-state.ok');
   console.log('ai body:', JSON.stringify({ ...aiBody, prompt: aiBody.prompt.slice(0, 30) + '...' }));
+  // AI가 채우는 중에 단어를 바꾸면 '채우는 중' 표시가 남지 않아요
+  await p.fill('#fieldWord', 'qwertyx'); await p.click('#btnRunAi'); await p.waitForTimeout(100); await p.fill('#fieldWord', 'other'); await p.waitForTimeout(600);
+  console.log('ai state after word change:', JSON.stringify(await p.textContent('#aiState')));
+  await p.keyboard.press('Escape');
+  // 서버 저장 실패 → 표시가 남고, 다시 연결되면 다시 올려요
+  failSave = true; saved = null; await p.evaluate(() => syncStorage()); await p.waitForTimeout(2200);
+  const d1 = await p.evaluate(() => cloudDirty()); failSave = false;
+  await p.evaluate(() => window.dispatchEvent(new Event('online'))); await p.waitForTimeout(600);
+  console.log('dirty retry:', d1, '->', await p.evaluate(() => cloudDirty()), 'saved:', !!saved);
   console.log('errors:', errs.length ? errs : 'none'); await b.close(); srv.close();
 })();

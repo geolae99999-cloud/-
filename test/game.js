@@ -39,7 +39,7 @@ async function signup(p, port, id, role, name, sno) {
 async function play(p, ok, bad) {
   await p.click('[data-wq="go"]'); await p.waitForSelector('.wq-opt', { timeout: 6000 });
   for (let i = 0; i < ok + bad; i++) {
-    await p.waitForFunction(() => WQ && WQ.view === 'play' && !WQ.lock && document.querySelector('.wq-opt'));
+    await p.waitForFunction(() => WQ && WQ.view === 'play' && !WQ.lock && document.querySelector('.wq-opt') && Date.now() - WQ.qAt > 160);
     const k = await p.evaluate(wrong => { const q = WQ.q, c = q.opts.indexOf(q.cur); return wrong ? (c + 1) % 4 : c; }, i >= ok);
     await p.keyboard.press(String(k + 1));
   }
@@ -69,14 +69,14 @@ async function play(p, ok, bad) {
   await P.click('[data-wq="go"]'); await P.waitForSelector('.wq-cd'); await shot('02-countdown');
   await P.waitForSelector('.wq-opt', { timeout: 6000 }); await shot('03-play');
   res.firstQ = await P.evaluate(() => ({ a: WQ.q.a, opts: WQ.q.opts.length, uniq: new Set(WQ.q.opts.map(o => WQ.q.a === 'm' ? o.m : o.w)).size, left: +document.getElementById('wqLeft').textContent }));
-  for (let i = 0; i < 6; i++) { await P.waitForFunction(() => WQ && !WQ.lock); await P.keyboard.press(String(await P.evaluate(() => WQ.q.opts.indexOf(WQ.q.cur)) + 1)); }
-  await P.waitForFunction(() => WQ && !WQ.lock); await shot('04-combo');
+  for (let i = 0; i < 6; i++) { await P.waitForFunction(() => WQ && !WQ.lock && Date.now() - WQ.qAt > 160); await P.keyboard.press(String(await P.evaluate(() => WQ.q.opts.indexOf(WQ.q.cur)) + 1)); }
+  await P.waitForFunction(() => WQ && !WQ.lock && Date.now() - WQ.qAt > 160); await shot('04-combo');
   res.afterSix = await P.evaluate(() => ({ score: WQ.score, combo: WQ.combo, badge: document.getElementById('wqCombo').textContent }));
   const before = await P.evaluate(() => WQ.end);
   await P.keyboard.press(String(await P.evaluate(() => (WQ.q.opts.indexOf(WQ.q.cur) + 1) % 4) + 1)); await P.waitForTimeout(150); await shot('05-wrong');
   res.wrong = await P.evaluate(b4 => ({ combo: WQ.combo, penaltyMs: b4 - WQ.end, wrongWords: WQ.wrong.length }), before);
-  await P.waitForFunction(() => WQ && !WQ.lock);
-  for (let i = 0; i < 4; i++) { await P.waitForFunction(() => WQ && !WQ.lock); await P.keyboard.press(String(await P.evaluate(() => WQ.q.opts.indexOf(WQ.q.cur)) + 1)); }
+  await P.waitForFunction(() => WQ && !WQ.lock && Date.now() - WQ.qAt > 160);
+  for (let i = 0; i < 4; i++) { await P.waitForFunction(() => WQ && !WQ.lock && Date.now() - WQ.qAt > 160); await P.keyboard.press(String(await P.evaluate(() => WQ.q.opts.indexOf(WQ.q.cur)) + 1)); }
   await P.waitForTimeout(400); await P.evaluate(() => { WQ.end = Date.now(); });
   await P.waitForSelector('.wq-rkres', { timeout: 5000 }); await shot('06-result');
   res.result = await P.evaluate(() => ({ score: WQ.score, ok: WQ.ok, n: WQ.n, sent: WQ.sent, h2: document.querySelector('.wq-end h2').textContent, rk: document.querySelector('.wq-rkres').textContent.replace(/\s+/g, ' ') }));
@@ -112,10 +112,10 @@ async function play(p, ok, bad) {
   await P.click('[data-wq="lobby"]'); await P.click('[data-wq="lang"][data-l="zh"]'); await P.waitForSelector('[data-wq="go"]:not([disabled])', { timeout: 8000 });
   await P.click('[data-wq="lv"][data-k="l1"]'); await shot('09-zh-lobby');
   await P.click('[data-wq="go"]'); await P.waitForSelector('.wq-opt', { timeout: 6000 });
-  for (let t = 0; t < 8 && (await P.evaluate(() => WQ.q.a)) !== 'm'; t++) { await P.keyboard.press(String(await P.evaluate(() => WQ.q.opts.indexOf(WQ.q.cur)) + 1)); await P.waitForFunction(() => WQ && !WQ.lock); }
+  for (let t = 0; t < 8 && (await P.evaluate(() => WQ.q.a)) !== 'm'; t++) { await P.keyboard.press(String(await P.evaluate(() => WQ.q.opts.indexOf(WQ.q.cur)) + 1)); await P.waitForFunction(() => WQ && !WQ.lock && Date.now() - WQ.qAt > 160); }
   await shot('10-zh-play');
   res.zhQ = await P.evaluate(() => ({ word: WQ.q.cur.w, py: (document.querySelector('.wq-py') || {}).textContent || '', han: /[一-鿿]/.test(WQ.q.cur.w) }));
-  for (let i = 0; i < 3; i++) { await P.waitForFunction(() => WQ && !WQ.lock); await P.keyboard.press(String(await P.evaluate(() => WQ.q.opts.indexOf(WQ.q.cur)) + 1)); }
+  for (let i = 0; i < 3; i++) { await P.waitForFunction(() => WQ && !WQ.lock && Date.now() - WQ.qAt > 160); await P.keyboard.press(String(await P.evaluate(() => WQ.q.opts.indexOf(WQ.q.cur)) + 1)); }
   await P.waitForTimeout(400); await P.evaluate(() => { WQ.end = Date.now(); }); await P.waitForSelector('.wq-rkres', { timeout: 5000 }); await shot('11-zh-result');
   res.zhDb = psql(`select lang || lvl || ':' || score from voca_game_scores where uid = '2' and lang = 'zh' and period = 'all'`);
   // 홈 항목에 최고 기록
@@ -153,7 +153,7 @@ async function play(p, ok, bad) {
   if (!res.db.includes(':' + res.result.score)) fails.push('db');
   if (!res.meHighlighted || res.rankRows < 8) fails.push('board');
   if (!/참여한 반이 없어요/.test(res.noClass)) fails.push('noclass');
-  if (!res.classNames.includes('이지우') || !res.classNames.includes('박민') || res.classNames.includes('친구')) fails.push('class names ' + res.classNames);
+  if (res.classNames.includes('이지우') || !res.classNames.includes('이*우') || res.classNames.includes('친구')) fails.push('class names ' + res.classNames); // 우리 반 랭킹도 게임 별명(기본은 가린 이름)으로 보여요.
   if (res.renamed !== '단어왕b') fails.push('rename ' + res.renamed);
   if (res.sec.old !== 'missing' || res.sec.again !== 'too_fast' || res.sec.fast !== 'bad_input' || res.sec.reuse !== 'used' || res.sec.fake !== 'bad_run' || res.tableDirect !== 'denied') fails.push('security ' + JSON.stringify(res.sec) + res.tableDirect);
   if (res.result.sent.score !== res.result.score) fails.push('server score');

@@ -11,7 +11,11 @@
       const done = v => { ov.remove(); document.removeEventListener('keydown', kd, true); res(v); };
       const kd = e => {
         if (e.key === 'Escape') { e.stopImmediatePropagation(); done(inp ? null : false); }
-        else if (e.key === 'Enter') { e.preventDefault(); e.stopImmediatePropagation(); done(inp ? inp.value : true); }
+        else if (e.key === 'Enter') {
+          const f = document.activeElement, b = f && ov.contains(f) && f.closest('[data-d]');
+          e.preventDefault(); e.stopImmediatePropagation();
+          if (b && b.dataset.d === '0') done(inp ? null : false); else done(inp ? inp.value : true);
+        }
       };
       ov.addEventListener('click', e => { const b = e.target.closest('[data-d]'); if (b) done(b.dataset.d === '1' ? (inp ? inp.value : true) : (inp ? null : false)); });
       document.addEventListener('keydown', kd, true);
@@ -184,9 +188,9 @@
       try {
         if (!window.Cloud) throw { code: 'offline' };
         const u = su0 ? await Cloud.signup(email, pw0, keep0) : await Cloud.login(email, pw0, keep0);
-        let remote = null;
-        try { remote = await Cloud.load(); } catch (e) { toast('서버에서 불러오지 못해 이 기기의 저장본을 써요.'); }
-        enterApp(u.uid, remote, u.email);
+        let remote = null, stale = false;
+        try { remote = await Cloud.load(); } catch (e) { stale = true; toast('서버에서 불러오지 못해 이 기기의 저장본을 써요.'); }
+        enterApp(u.uid, remote, u.email, stale);
       } catch (e) { fail(cloudMsg(e)); }
       return;
     }
@@ -216,7 +220,9 @@
     try { LS.removeItem(KEY_SESS); sessionStorage.removeItem(KEY_SESS); (keep ? LS : sessionStorage).setItem(KEY_SESS, key); } catch (e) {}
     enterApp(key);
   };
-  function enterApp(key, remote, label) {
+  // 서버에서 불러오지 못한 채 열었으면(cloudStale) 서버 사본을 다시 확인하기 전에는 올리지 않아요. 빈 기기 데이터가 서버를 덮어쓰는 것을 막아요.
+  let cloudStale = false, cloudBaseTs = 0;
+  function enterApp(key, remote, label, stale) {
     currentUser = key; currentLabel = label || key; KEY_DATA = 'vocapro_v11_data:' + key; KEY_CFG = 'vocapro_v10_cfg:' + key;
     if (cloudMode) {
       try {
@@ -234,6 +240,7 @@
     document.body.classList.remove('no-scroll');
     $('authScreen').style.display = 'none';
     let applied = false;
+    cloudStale = !!(cloudMode && stale); cloudBaseTs = +LS.getItem(KEY_DATA + ':ts') || 0;
     if (remote && remote.updated > (+LS.getItem(KEY_DATA + ':ts') || 0)) { try { applyRemote(remote); applied = true; } catch (e) { toast('서버 데이터를 읽지 못했어요.'); } }
     if (pendingGrade) { if (pendingGrade === 'teacher') { config.role = 'teacher'; config.grade = ''; } else { config.role = ''; config.grade = pendingGrade; } pendingGrade = ''; applied = false; }
     if (pendingProfile) { config.profile = pendingProfile; pendingProfile = null; applied = false; }
@@ -267,12 +274,21 @@
       server: '서버 설정에 문제가 있어요. SQL을 실행했는지, config.js 값이 맞는지 확인해 주세요.', offline: '서버에 연결하지 못했어요. 잠시 후 다시 해 주세요.' })[c] || ('오류: ' + (c || (e && e.message) || '알 수 없음'));
   }
   function cloudQueue() { if (!cloudMode || !window.Cloud || !currentUser) return; clearTimeout(cloudTimer); cloudTimer = setTimeout(cloudPush, 1500); }
-  async function cloudPush() {
+  // 서버에 아직 못 올린 변경이 있는지(:dirty) — 저장 실패 후에도 기기에 남아 있어 다시 시도해요
+  const cloudDirty = () => { try { return !!LS.getItem(KEY_DATA + ':dirty'); } catch (e) { return false; } };
+  async function cloudPush(ka) {
     clearTimeout(cloudTimer); cloudTimer = null;
     if (!cloudMode || !window.Cloud || !currentUser || !Cloud.user()) return;
-    const json = JSON.stringify({ ...dataBlob(), cfg: { ...ttsCfgOut(), goal: config.goal, darkMode: config.darkMode, provider: config.provider, grade: config.grade, role: config.role || '', profile: config.profile || cleanProfile() } });
+    if (cloudStale) {
+      let r; try { r = await Cloud.load(); } catch (e) { cloudTimer = setTimeout(cloudPush, 30000); return; }
+      cloudStale = false;
+      if (r && r.updated > cloudBaseTs) { applyRemote(r); if (!(S && S.active)) go(curTab); toast('서버에 더 새로운 저장본이 있어 그걸 불러왔어요.'); return; }
+    }
+    const json = JSON.stringify({ ...dataBlob(), cfg: { ...ttsCfgOut(), goal: config.goal, darkMode: config.darkMode, provider: config.provider, grade: config.grade, role: config.role || '', profile: config.profile || cleanProfile(), gameName: config.gameName || '' } });
     if (json.length > 900000) toast('데이터가 서버 저장 한도(약 1MB)에 가까워요. 단어장을 줄이거나 백업해 두세요.');
-    try { await Cloud.save({ data: json, updated: +LS.getItem(KEY_DATA + ':ts') || Date.now() }); clReport(); }
+    const up = +LS.getItem(KEY_DATA + ':ts') || Date.now(), key = KEY_DATA;
+    // 페이지를 떠날 때는 keepalive로 최대한 보내요(본문 64KB 제한이 있어 작을 때만)
+    try { await Cloud.save({ data: json, updated: up }, { keepalive: ka === true && json.length < 60000 }); if ((+LS.getItem(key + ':ts') || 0) === up) LS.removeItem(key + ':dirty'); clReport(); }
     catch (e) { toast('서버 저장에 실패했어요. 인터넷을 확인하세요. (' + (e.code || e.message) + ')'); }
   }
   function applyRemote(r) {
@@ -284,34 +300,41 @@
       if (GRADE_NAMES[d.cfg.grade]) config.grade = d.cfg.grade;
       if (d.cfg.role !== undefined) config.role = d.cfg.role === 'teacher' ? 'teacher' : '';
       if (d.cfg.profile) config.profile = cleanProfile(d.cfg.profile);
+      if (d.cfg.gameName) config.gameName = String(d.cfg.gameName).replace(/[\u0000-\u001f<>]/g, '').slice(0, 12);
     }
-    LS.setItem(KEY_DATA, JSON.stringify(dataBlob())); LS.setItem(KEY_CFG, JSON.stringify(config)); LS.setItem(KEY_DATA + ':ts', String(r.updated));
+    LS.setItem(KEY_DATA, JSON.stringify(dataBlob())); LS.setItem(KEY_CFG, JSON.stringify(config)); LS.setItem(KEY_DATA + ':ts', String(r.updated)); LS.removeItem(KEY_DATA + ':dirty');
     applyTheme(); applyLang();
   }
+  // 단어를 붙잡고 있는 화면(4단계·게임·발표)이 열려 있으면 서버 사본으로 바꾸지 않아요
+  const wordOvOpen = () => ['flOv', 'wqOv', 'rnOv', 'mgOv', 'pvOv'].some(i => $(i));
   async function cloudPull() {
-    if (!cloudMode || !window.Cloud || !currentUser || cloudTimer || (S && S.active) || $('sheetOv').classList.contains('open') || !Cloud.user()) return;
+    if (!cloudMode || !window.Cloud || !currentUser || cloudTimer || !Cloud.user()) return;
+    if (cloudDirty()) return cloudPush(); // 못 올린 변경이 먼저 — 서버 사본으로 덮지 않아요(stale이면 cloudPush가 서버 사본부터 확인)
+    if ((S && S.active) || $('sheetOv').classList.contains('open') || wordOvOpen()) return;
     try {
       const r = await Cloud.load();
+      if (cloudStale) { cloudStale = false; if (r && r.updated > cloudBaseTs) { applyRemote(r); go(curTab); toast('서버의 저장본을 불러왔어요.'); } else cloudQueue(); return; }
       if (r && r.updated > (+LS.getItem(KEY_DATA + ':ts') || 0)) { applyRemote(r); go(curTab); toast('다른 기기의 변경 내용을 불러왔어요.'); }
     } catch (e) {}
   }
-  window.addEventListener('pagehide', () => { if (cloudTimer) cloudPush(); });
-  document.addEventListener('visibilitychange', () => { if (document.hidden) { if (cloudTimer) cloudPush(); } else cloudPull(); });
+  window.addEventListener('pagehide', () => { if (cloudTimer) cloudPush(true); });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) { if (cloudTimer) cloudPush(true); } else cloudPull(); });
+  window.addEventListener('online', () => { if (currentUser && !cloudTimer && cloudDirty()) cloudPush(); });
   async function bootCloud() {
     $('authScreen').style.display = 'flex';
     $('authScreen').innerHTML = '<div class="auth-box"><p class="muted" style="text-align:center">불러오는 중...</p></div>';
     const ok = await new Promise(r => { if (window.Cloud) return r(true); window.addEventListener('cloudready', () => r(true), { once: true }); setTimeout(() => r(false), 8000); });
     if (!ok) {
       const last = LS.getItem('vocapro_last_uid');
-      if (last) { toast('서버에 연결하지 못해 이 기기의 저장본으로 열었어요.'); return enterApp(last, null, LS.getItem('vocapro_last_label')); }
+      if (last) { toast('서버에 연결하지 못해 이 기기의 저장본으로 열었어요.'); return enterApp(last, null, LS.getItem('vocapro_last_label'), true); }
       showAuth(); const m = $('auMsg'); if (m) { m.textContent = '서버에 연결하지 못했어요. 인터넷을 확인하세요.'; m.style.display = 'block'; } return;
     }
     const u = await Cloud.first;
     if (!u) return showAuth();
-    let remote = null; try { remote = await Cloud.load(); } catch (e) {}
-    enterApp(u.uid, remote, u.email);
+    let remote = null, stale = false; try { remote = await Cloud.load(); } catch (e) { stale = true; }
+    enterApp(u.uid, remote, u.email, stale);
   }
   document.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && e.target.closest && e.target.closest('#authScreen')) { e.preventDefault(); ACTIONS['auth-go'](); }
+    if (e.key === 'Enter' && /^(INPUT|SELECT)$/.test(e.target.tagName) && e.target.closest('#authScreen')) { e.preventDefault(); ACTIONS['auth-go'](); }
   });
 

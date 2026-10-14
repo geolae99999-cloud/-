@@ -66,7 +66,7 @@
     body.no-scroll { overflow: hidden; }
     button, input, select, textarea { font-family: inherit; color: inherit; font-size: inherit; letter-spacing: inherit; }
     button { cursor: pointer; touch-action: manipulation; }
-    button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, a:focus-visible { outline: none; box-shadow: var(--ring); }
+    button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, a:focus-visible, [role="button"]:focus-visible { outline: none; box-shadow: var(--ring); }
     ::selection { background: var(--mark); color: var(--mark-ink); }
     .ic { width: 1.2em; height: 1.2em; flex: none; vertical-align: -.2em; }
     .muted { color: var(--muted); }
@@ -1762,9 +1762,9 @@ window.VOCA_CLOUD = {
   if (/^eyJ/.test(cfg.apiKey)) hdr.Authorization = 'Bearer ' + cfg.apiKey;
   const getTok = () => { try { return localStorage.getItem(TK) || sessionStorage.getItem(TK); } catch (e) { return null; } };
   const setTok = (t, keep) => { try { localStorage.removeItem(TK); sessionStorage.removeItem(TK); if (t) (keep ? localStorage : sessionStorage).setItem(TK, t); } catch (e) {} };
-  async function rpc(fn, args) {
+  async function rpc(fn, args, ka) {
     let r;
-    try { r = await fetch(cfg.url.replace(/\/+$/, '') + '/rest/v1/rpc/' + fn, { method: 'POST', headers: hdr, body: JSON.stringify(args) }); }
+    try { r = await fetch(cfg.url.replace(/\/+$/, '') + '/rest/v1/rpc/' + fn, { method: 'POST', headers: hdr, body: JSON.stringify(args), keepalive: !!ka }); }
     catch (e) { throw { code: 'network', message: String(e.message || e) }; }
     const t = await r.text(); let j = null; try { j = JSON.parse(t); } catch (e) {}
     if (!r.ok) throw { code: r.status === 404 ? 'missing' : 'server', status: r.status, message: (j && (j.message || j.hint)) || t.slice(0, 150) };
@@ -1792,7 +1792,7 @@ window.VOCA_CLOUD = {
     async logout() { const t = getTok(); setTok(null); cur = null; if (t) { try { await rpc('voca_logout', { p_token: t }); } catch (e) {} } },
     async reset() { throw { code: 'bad_input' }; },
     async load() { const j = await rpc('voca_load', { p_token: getTok() }); return j && j.data ? { data: j.data, updated: Number(j.updated) } : null; },
-    save: d => rpc('voca_save', { p_token: getTok(), p_data: d.data, p_updated: d.updated }),
+    save: (d, o) => rpc('voca_save', { p_token: getTok(), p_data: d.data, p_updated: d.updated }, o && o.keepalive),
     changePw: (o, n) => rpc('voca_change_pw', { p_token: getTok(), p_old: o, p_new: n }),
     call: (fn, args) => rpc(fn, Object.assign({ p_token: getTok() }, args || {})),
     async remove() { await rpc('voca_delete', { p_token: getTok() }); setTok(null); cur = null; },
@@ -1952,6 +1952,10 @@ window.VOCA_CLOUD = {
     const fn = ACTIONS[el.dataset.act];
     if (fn) fn(el, e);
   });
+  // 버튼처럼 쓰는 div(role=button)도 키보드 Enter/Space로 눌러요
+  document.addEventListener('keydown', e => {
+    if ((e.key === 'Enter' || e.key === ' ') && !e.repeat && e.target.matches && e.target.matches('[data-act][role="button"]')) { e.preventDefault(); e.target.click(); }
+  });
   /* 입력 이벤트도 같은 방식으로 위임해요. HTML 속성에 onclick 같은 인라인 코드를 쓰면
      보안 정책(CSP)에 막히니 data-change / data-input / data-enter 와 아래 ON 표를 쓰세요. */
   const ON = { change: {}, input: {}, enter: {} };
@@ -2043,7 +2047,9 @@ window.VOCA_CLOUD = {
       const wIds = new Set();
       const words = (Array.isArray(c.words) ? c.words : []).filter(w => w && typeof w === 'object' && str(w.word)).map(sanitizeWord);
       words.forEach(w => { if (wIds.has(w.id)) w.id = uid(); wIds.add(w.id); });
-      return { id, name: str(c.name).slice(0, 40) || '이름 없음', words };
+      const o = { id, name: str(c.name).slice(0, 40) || '이름 없음', words };
+      if (/^\d+$/.test(String(c.asg))) o.asg = +c.asg; // 과제로 만든 단어장 표시
+      return o;
     });
   }
   function sanitizeStats(s) {
@@ -2087,6 +2093,7 @@ window.VOCA_CLOUD = {
       cfg.grade = GRADE_NAMES[saved.grade] ? saved.grade : '';
       cfg.role = saved.role === 'teacher' ? 'teacher' : '';
       cfg.profile = cleanProfile(saved.profile);
+      if (saved.gameName) cfg.gameName = String(saved.gameName).replace(/[\u0000-\u001f<>]/g, '').slice(0, 12);
       for (const p of Object.keys(cfg.keys)) {
         if (saved.keys && saved.keys[p]) cfg.keys[p] = saved.keys[p];
         if (saved.models && saved.models[p]) cfg.models[p] = saved.models[p];
@@ -2122,7 +2129,7 @@ window.VOCA_CLOUD = {
     try {
       LS.setItem(KEY_DATA, JSON.stringify(dataBlob()));
       LS.setItem(KEY_CFG, JSON.stringify(config));
-      LS.setItem(KEY_DATA + ':ts', String(Date.now())); cloudQueue();
+      LS.setItem(KEY_DATA + ':ts', String(Date.now())); if (cloudMode) LS.setItem(KEY_DATA + ':dirty', '1'); cloudQueue();
     } catch (e) {
       toast('저장 공간이 부족하거나 저장이 차단되었어요. 백업을 받아두세요.');
     }
@@ -2360,7 +2367,7 @@ window.VOCA_CLOUD = {
     const due = b.words.filter(w => w.box >= 1 && w.due <= end).length;
     const pct = total ? Math.round(mastered / total * 100) : 0;
     return `
-      <div class="book" style="--bk:${bookColor(b.id)}" data-act="open-book" data-id="${esc(b.id)}">
+      <div class="book" style="--bk:${bookColor(b.id)}" data-act="open-book" data-id="${esc(b.id)}" role="button" tabindex="0" aria-label="${esc(b.name)} 단어장 열기">
         <div class="book-spine"><b>${total}</b><small>단어</small></div>
         <div class="book-body">
           <div class="book-top"><span class="book-name">${esc(b.name)}</span>${due ? `<span class="badge b-learn">복습 ${due}</span>` : ''}</div>
@@ -2491,7 +2498,7 @@ window.VOCA_CLOUD = {
       <div class="wcard ${w.box >= 5 ? 'mastered' : ''} ${open ? 'open' : ''}" data-wid="${esc(w.id)}">
         <div class="w-row">
           <span class="w-no">${String(i + 1).padStart(3, '0')}</span>
-          <div class="w-main" data-act="expand">
+          <div class="w-main" data-act="expand" role="button" tabindex="0" aria-expanded="${open}">
             <div class="w-head"><span class="w-word ${w.star ? 'hl' : ''}">${esc(w.word)}</span>${w.phonetic ? `<span class="w-pron">${esc(w.phonetic)}</span>` : ''}${w.koreanPron ? `<span class="w-kpron">[${esc(w.koreanPron)}]</span>` : ''}</div>
             <div class="w-mean">${esc(w.meaning)}</div>
             <div class="w-badges">${lvlBadge(w)}${w.miss > 0 ? '<span class="badge b-bad">오답</span>' : ''}</div>
@@ -2527,7 +2534,8 @@ window.VOCA_CLOUD = {
     const mean = el.querySelector('.w-mean');
     if (document.body.classList.contains('hide-content') && mean && !mean.classList.contains('reveal')) { mean.classList.add('reveal'); return; }
     openDrawers.has(w.id) ? openDrawers.delete(w.id) : openDrawers.add(w.id);
-    renderWordList();
+    const had = document.activeElement === el; renderWordList();
+    if (had) { const n = [...document.querySelectorAll('.wcard')].find(c => c.dataset.wid === w.id); if (n && n.querySelector('.w-main')) n.querySelector('.w-main').focus(); } // 키보드 포커스 유지
   };
   ACTIONS.speak = (el, e) => { e.stopPropagation(); playAudio(el.dataset.text); };
   ACTIONS.mem = el => {
@@ -2545,14 +2553,16 @@ window.VOCA_CLOUD = {
   ACTIONS.syn = el => inspectSynonym(el.dataset.word);
 
   /* ----- 시트 ----- */
+  let sheetTok = 0; // 시트를 열고 닫을 때마다 바뀌어요 — 늦게 끝난 불러오기가 다른 시트를 덮지 않게
   function openSheet(title, html) {
+    sheetTok++;
     $('sheetTitle').textContent = title;
     $('sheetBody').innerHTML = html;
     $('sheetOv').classList.add('open');
     document.body.classList.add('no-scroll');
   }
   function closeSheet() {
-    bulkCancel = true;
+    bulkCancel = true; sheetTok++;
     $('sheetOv').classList.remove('open');
     if (!$('studyScreen').classList.contains('open')) document.body.classList.remove('no-scroll');
   }
@@ -2693,7 +2703,7 @@ window.VOCA_CLOUD = {
     const items = [], failed = [];
     entries.forEach(e => {
       const r = res.get(e.word.toLowerCase());
-      if (r) items.push(sanitizeWord({ id: uid(), word: e.word, ...r, meaning: e.um || r.meaning }));
+      if (r) items.push(sanitizeWord({ id: uid(), ...r, word: e.word, meaning: e.um || r.meaning }));
       else if (e.um) items.push(sanitizeWord({ id: uid(), word: e.word, meaning: e.um }));
       else failed.push(e.word);
     });
@@ -2711,7 +2721,7 @@ window.VOCA_CLOUD = {
 
   ACTIONS['book-split'] = () => {
     const cat = curCat(); if (!cat) return;
-    if (cat.words.length < 10) return toast('단어가 10개 이상일 때 나눌 수 있어요.');
+    if (cat.words.length < 11) return toast('단어가 11개 이상일 때 나눌 수 있어요.');
     openSheet('Day별로 나누기', `<div class="form-stack">
       <p class="muted" style="margin:0;font-size:.86rem;line-height:1.6;">'${esc(cat.name)}' 단어 ${cat.words.length}개를 하루 분량씩 새 단어장으로 나눠요. 원래 단어장과 학습 기록은 그대로 남아요.</p>
       <label class="setting-label">하루에 몇 개씩?</label>
@@ -2719,7 +2729,7 @@ window.VOCA_CLOUD = {
       <button class="btn btn-primary btn-block" data-act="split-go">나누기</button></div>`);
   };
   ACTIONS['split-go'] = () => {
-    const cat = curCat(), b = document.querySelector('#spN .on'), n = b ? +b.dataset.v : 20; if (!cat) return;
+    const cat = curCat(), b = document.querySelector('#spN .on'), n = b ? +b.dataset.v : 10; if (!cat) return;
     const days = Math.ceil(cat.words.length / n);
     for (let d = 0; d < days; d++) categories.push({ id: 'c' + uid(), name: `${cat.name} Day ${d + 1}`.slice(0, 40), words: cat.words.slice(d * n, d * n + n).map(w => ({ ...w, id: uid() })) });
     syncStorage(); closeSheet(); toast(`Day 1부터 Day ${days}까지 ${days}개 단어장을 만들었어요.`); go('tabBooks');
@@ -3331,7 +3341,7 @@ window.VOCA_CLOUD = {
     const a = Math.random() < 0.5 ? 'm' : 'w', f = a === 'm' ? 'm' : 'w', seen = new Set([cur[f]]), d = [];
     for (let t = 0; t < 60 && d.length < 3; t++) { const o = pool[Math.floor(Math.random() * pool.length)]; if (o !== cur && o[f] && !seen.has(o[f])) { seen.add(o[f]); d.push(o); } }
     for (const o of pool) { if (d.length >= 3) break; if (o !== cur && o[f] && !seen.has(o[f])) { seen.add(o[f]); d.push(o); } }
-    g.q = { cur, a, opts: shuffled([cur, ...d]) }; g.lock = false;
+    g.q = { cur, a, opts: shuffled([cur, ...d]) }; g.lock = false; g.qAt = Date.now();
   }
   function wqStart() {
     const g = WQ; if (!g) return;
@@ -3373,6 +3383,7 @@ window.VOCA_CLOUD = {
   }
   function wqPick(i) {
     const g = WQ; if (!g || g.view !== 'play' || g.lock || !g.q) return;
+    if (Date.now() - (g.qAt || 0) < 150) return; // 문제가 뜬 직후 0.15초 동안의 눌림(두 번 누름)은 무시해요. 서버도 답 사이 0.4초 미만은 받지 않아요.
     const q = g.q, ok = q.opts[i] === q.cur, btns = document.querySelectorAll('#wqOv .wq-opt');
     g.lock = true; g.n++; g.log.push([ok ? 1 : 0, Date.now() - g.t0]);
     if (ok) {
@@ -3499,8 +3510,8 @@ window.VOCA_CLOUD = {
   document.addEventListener('keydown', e => {
     if (!WQ || !$('wqOv') || document.querySelector('.dlg-ov')) return;
     if (WQ.view === 'play' && /^[1-4]$/.test(e.key)) { e.preventDefault(); e.stopImmediatePropagation(); wqPick(+e.key - 1); }
-    else if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); if (WQ.view === 'play') { clearInterval(WQ.timer); wqEnd(); } else if (WQ.view === 'lobby') wqClose(); else wqLobby(); }
-    else if (e.key === 'Enter' && (WQ.view === 'lobby' || WQ.view === 'end')) { e.preventDefault(); e.stopImmediatePropagation(); wqStart(); }
+    else if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); if (WQ.view === 'play') { clearInterval(WQ.timer); wqEnd(); } else if (WQ.view === 'lobby') wqClose(); else { clearInterval(WQ.timer); clearTimeout(WQ.cd); wqLobby(); } }
+    else if (e.key === 'Enter' && (WQ.view === 'lobby' || WQ.view === 'end') && !(e.target.closest && e.target.closest('button, input, a, select, textarea'))) { e.preventDefault(); e.stopImmediatePropagation(); wqStart(); }
   }, true);
 
   /* ----- 문장 빈칸 ----- */
@@ -3734,7 +3745,7 @@ window.VOCA_CLOUD = {
     recordResult(item, ok); nextQuestion();
   }
   document.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && S.active && (S.mode === 'spell' || S.mode === 'dict' || (S.mode === 'test' && $('typeInput'))) && !S.finished) {
+    if (e.key === 'Enter' && S.active && (S.mode === 'spell' || S.mode === 'dict' || ((S.mode === 'test' || S.mode === 'mix') && $('typeInput'))) && !S.finished) {
       if (e.target.id === 'typeInput' || S.answered) { e.preventDefault(); ACTIONS['type-submit'](); }
     }
   });
@@ -3830,9 +3841,10 @@ window.VOCA_CLOUD = {
   };
   ACTIONS['retry-wrong'] = () => {
     const items = [...S.wrong.values()].map(i => ({ w: i.w, catId: i.catId }));
-    startSession(S.mode, S.src, 0, items);
+    const base = S.baseCount != null ? S.baseCount : S.count;
+    startSession(S.mode, S.src, 0, items); S.baseCount = base;
   };
-  ACTIONS.again = () => startSession(S.mode, S.src, S.count);
+  ACTIONS.again = () => startSession(S.mode, S.src, S.baseCount != null ? S.baseCount : S.count);
 
   async function exitSession(force) {
     if (!force && S.active && !S.finished && S.idx > 0 && S.mode !== 'listen') {
@@ -4429,7 +4441,8 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     try {
       const fromDict = await dictGet(query);
       const r = fromDict || await lookupWord(query, true);
-      if (run !== aiRun || !$('fieldMeaning') || $('fieldWord').value.trim() !== query) return;
+      if (run !== aiRun || !$('fieldMeaning')) return;
+      if ($('fieldWord').value.trim() !== query) { clearInterval(timer); aiState(''); return; } // 단어를 바꿨으면 '채우는 중' 표시를 지워요
       const force = !edit;
       set('fieldMeaning', r.meaning, force || $('fieldMeaning').value === local); set('fieldPhonetic', r.phonetic, force); set('fieldKoreanPron', r.koreanPron, force);
       set('fieldExample', r.example, force); set('fieldExampleKo', r.exampleKo, force); set('fieldSynonyms', r.synonyms, force);
@@ -4757,8 +4770,11 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     const ws = allWords().map(x => x.w).filter(w => w.word && w.meaning);
     if (ws.length < 4) return toast('단어가 4개 이상 있어야 해요.');
     closeMatch();
-    const pick = shuffled(ws).slice(0, 6), tiles = [];
-    pick.forEach((w, i) => { tiles.push({ id: i, t: w.word, en: true }, { id: i, t: String(w.meaning).split(/[,;/]/)[0].trim() || w.meaning, en: false }); });
+    // 같은 단어·같은 뜻 타일이 두 번 나오면 짝이 모호해져요 → 단어(소문자)·표시 뜻으로 중복 제거
+    const mT = w => String(w.meaning).split(/[,;/]/)[0].trim() || String(w.meaning), seenW = new Set(), seenM = new Set(), pick = [], tiles = [];
+    for (const w of shuffled(ws)) { const k = w.word.trim().toLowerCase(), m = mT(w); if (seenW.has(k) || seenM.has(m)) continue; seenW.add(k); seenM.add(m); pick.push(w); if (pick.length >= 6) break; }
+    if (pick.length < 4) return toast('서로 다른 단어가 4개 이상 있어야 해요.');
+    pick.forEach((w, i) => { tiles.push({ id: i, t: w.word, en: true }, { id: i, t: mT(w), en: false }); });
     shuffled(tiles).forEach((t, i) => { tiles[i] = t; });
     const ov = document.createElement('div'); ov.className = 'mg'; ov.id = 'mgOv';
     ov.innerHTML = `<div class="mg-top"><button class="round-btn" data-mg="x" aria-label="닫기">${IC.x}</button><b>짝 맞추기</b><span id="mgTime">0.0초</span></div><p class="mg-sub">${LN()}와 뜻을 짝지어 눌러 보세요</p><div class="mg-grid">${tiles.map((t, i) => `<button class="mg-tile" data-i="${i}">${esc(t.t)}</button>`).join('')}</div>`;
@@ -4801,7 +4817,11 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
       const done = v => { ov.remove(); document.removeEventListener('keydown', kd, true); res(v); };
       const kd = e => {
         if (e.key === 'Escape') { e.stopImmediatePropagation(); done(inp ? null : false); }
-        else if (e.key === 'Enter') { e.preventDefault(); e.stopImmediatePropagation(); done(inp ? inp.value : true); }
+        else if (e.key === 'Enter') {
+          const f = document.activeElement, b = f && ov.contains(f) && f.closest('[data-d]');
+          e.preventDefault(); e.stopImmediatePropagation();
+          if (b && b.dataset.d === '0') done(inp ? null : false); else done(inp ? inp.value : true);
+        }
       };
       ov.addEventListener('click', e => { const b = e.target.closest('[data-d]'); if (b) done(b.dataset.d === '1' ? (inp ? inp.value : true) : (inp ? null : false)); });
       document.addEventListener('keydown', kd, true);
@@ -4974,9 +4994,9 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
       try {
         if (!window.Cloud) throw { code: 'offline' };
         const u = su0 ? await Cloud.signup(email, pw0, keep0) : await Cloud.login(email, pw0, keep0);
-        let remote = null;
-        try { remote = await Cloud.load(); } catch (e) { toast('서버에서 불러오지 못해 이 기기의 저장본을 써요.'); }
-        enterApp(u.uid, remote, u.email);
+        let remote = null, stale = false;
+        try { remote = await Cloud.load(); } catch (e) { stale = true; toast('서버에서 불러오지 못해 이 기기의 저장본을 써요.'); }
+        enterApp(u.uid, remote, u.email, stale);
       } catch (e) { fail(cloudMsg(e)); }
       return;
     }
@@ -5006,7 +5026,9 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     try { LS.removeItem(KEY_SESS); sessionStorage.removeItem(KEY_SESS); (keep ? LS : sessionStorage).setItem(KEY_SESS, key); } catch (e) {}
     enterApp(key);
   };
-  function enterApp(key, remote, label) {
+  // 서버에서 불러오지 못한 채 열었으면(cloudStale) 서버 사본을 다시 확인하기 전에는 올리지 않아요. 빈 기기 데이터가 서버를 덮어쓰는 것을 막아요.
+  let cloudStale = false, cloudBaseTs = 0;
+  function enterApp(key, remote, label, stale) {
     currentUser = key; currentLabel = label || key; KEY_DATA = 'vocapro_v11_data:' + key; KEY_CFG = 'vocapro_v10_cfg:' + key;
     if (cloudMode) {
       try {
@@ -5024,6 +5046,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     document.body.classList.remove('no-scroll');
     $('authScreen').style.display = 'none';
     let applied = false;
+    cloudStale = !!(cloudMode && stale); cloudBaseTs = +LS.getItem(KEY_DATA + ':ts') || 0;
     if (remote && remote.updated > (+LS.getItem(KEY_DATA + ':ts') || 0)) { try { applyRemote(remote); applied = true; } catch (e) { toast('서버 데이터를 읽지 못했어요.'); } }
     if (pendingGrade) { if (pendingGrade === 'teacher') { config.role = 'teacher'; config.grade = ''; } else { config.role = ''; config.grade = pendingGrade; } pendingGrade = ''; applied = false; }
     if (pendingProfile) { config.profile = pendingProfile; pendingProfile = null; applied = false; }
@@ -5057,12 +5080,21 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
       server: '서버 설정에 문제가 있어요. SQL을 실행했는지, config.js 값이 맞는지 확인해 주세요.', offline: '서버에 연결하지 못했어요. 잠시 후 다시 해 주세요.' })[c] || ('오류: ' + (c || (e && e.message) || '알 수 없음'));
   }
   function cloudQueue() { if (!cloudMode || !window.Cloud || !currentUser) return; clearTimeout(cloudTimer); cloudTimer = setTimeout(cloudPush, 1500); }
-  async function cloudPush() {
+  // 서버에 아직 못 올린 변경이 있는지(:dirty) — 저장 실패 후에도 기기에 남아 있어 다시 시도해요
+  const cloudDirty = () => { try { return !!LS.getItem(KEY_DATA + ':dirty'); } catch (e) { return false; } };
+  async function cloudPush(ka) {
     clearTimeout(cloudTimer); cloudTimer = null;
     if (!cloudMode || !window.Cloud || !currentUser || !Cloud.user()) return;
-    const json = JSON.stringify({ ...dataBlob(), cfg: { ...ttsCfgOut(), goal: config.goal, darkMode: config.darkMode, provider: config.provider, grade: config.grade, role: config.role || '', profile: config.profile || cleanProfile() } });
+    if (cloudStale) {
+      let r; try { r = await Cloud.load(); } catch (e) { cloudTimer = setTimeout(cloudPush, 30000); return; }
+      cloudStale = false;
+      if (r && r.updated > cloudBaseTs) { applyRemote(r); if (!(S && S.active)) go(curTab); toast('서버에 더 새로운 저장본이 있어 그걸 불러왔어요.'); return; }
+    }
+    const json = JSON.stringify({ ...dataBlob(), cfg: { ...ttsCfgOut(), goal: config.goal, darkMode: config.darkMode, provider: config.provider, grade: config.grade, role: config.role || '', profile: config.profile || cleanProfile(), gameName: config.gameName || '' } });
     if (json.length > 900000) toast('데이터가 서버 저장 한도(약 1MB)에 가까워요. 단어장을 줄이거나 백업해 두세요.');
-    try { await Cloud.save({ data: json, updated: +LS.getItem(KEY_DATA + ':ts') || Date.now() }); clReport(); }
+    const up = +LS.getItem(KEY_DATA + ':ts') || Date.now(), key = KEY_DATA;
+    // 페이지를 떠날 때는 keepalive로 최대한 보내요(본문 64KB 제한이 있어 작을 때만)
+    try { await Cloud.save({ data: json, updated: up }, { keepalive: ka === true && json.length < 60000 }); if ((+LS.getItem(key + ':ts') || 0) === up) LS.removeItem(key + ':dirty'); clReport(); }
     catch (e) { toast('서버 저장에 실패했어요. 인터넷을 확인하세요. (' + (e.code || e.message) + ')'); }
   }
   function applyRemote(r) {
@@ -5074,35 +5106,42 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
       if (GRADE_NAMES[d.cfg.grade]) config.grade = d.cfg.grade;
       if (d.cfg.role !== undefined) config.role = d.cfg.role === 'teacher' ? 'teacher' : '';
       if (d.cfg.profile) config.profile = cleanProfile(d.cfg.profile);
+      if (d.cfg.gameName) config.gameName = String(d.cfg.gameName).replace(/[\u0000-\u001f<>]/g, '').slice(0, 12);
     }
-    LS.setItem(KEY_DATA, JSON.stringify(dataBlob())); LS.setItem(KEY_CFG, JSON.stringify(config)); LS.setItem(KEY_DATA + ':ts', String(r.updated));
+    LS.setItem(KEY_DATA, JSON.stringify(dataBlob())); LS.setItem(KEY_CFG, JSON.stringify(config)); LS.setItem(KEY_DATA + ':ts', String(r.updated)); LS.removeItem(KEY_DATA + ':dirty');
     applyTheme(); applyLang();
   }
+  // 단어를 붙잡고 있는 화면(4단계·게임·발표)이 열려 있으면 서버 사본으로 바꾸지 않아요
+  const wordOvOpen = () => ['flOv', 'wqOv', 'rnOv', 'mgOv', 'pvOv'].some(i => $(i));
   async function cloudPull() {
-    if (!cloudMode || !window.Cloud || !currentUser || cloudTimer || (S && S.active) || $('sheetOv').classList.contains('open') || !Cloud.user()) return;
+    if (!cloudMode || !window.Cloud || !currentUser || cloudTimer || !Cloud.user()) return;
+    if (cloudDirty()) return cloudPush(); // 못 올린 변경이 먼저 — 서버 사본으로 덮지 않아요(stale이면 cloudPush가 서버 사본부터 확인)
+    if ((S && S.active) || $('sheetOv').classList.contains('open') || wordOvOpen()) return;
     try {
       const r = await Cloud.load();
+      if (cloudStale) { cloudStale = false; if (r && r.updated > cloudBaseTs) { applyRemote(r); go(curTab); toast('서버의 저장본을 불러왔어요.'); } else cloudQueue(); return; }
       if (r && r.updated > (+LS.getItem(KEY_DATA + ':ts') || 0)) { applyRemote(r); go(curTab); toast('다른 기기의 변경 내용을 불러왔어요.'); }
     } catch (e) {}
   }
-  window.addEventListener('pagehide', () => { if (cloudTimer) cloudPush(); });
-  document.addEventListener('visibilitychange', () => { if (document.hidden) { if (cloudTimer) cloudPush(); } else cloudPull(); });
+  window.addEventListener('pagehide', () => { if (cloudTimer) cloudPush(true); });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) { if (cloudTimer) cloudPush(true); } else cloudPull(); });
+  window.addEventListener('online', () => { if (currentUser && !cloudTimer && cloudDirty()) cloudPush(); });
   async function bootCloud() {
     $('authScreen').style.display = 'flex';
     $('authScreen').innerHTML = '<div class="auth-box"><p class="muted" style="text-align:center">불러오는 중...</p></div>';
     const ok = await new Promise(r => { if (window.Cloud) return r(true); window.addEventListener('cloudready', () => r(true), { once: true }); setTimeout(() => r(false), 8000); });
     if (!ok) {
       const last = LS.getItem('vocapro_last_uid');
-      if (last) { toast('서버에 연결하지 못해 이 기기의 저장본으로 열었어요.'); return enterApp(last, null, LS.getItem('vocapro_last_label')); }
+      if (last) { toast('서버에 연결하지 못해 이 기기의 저장본으로 열었어요.'); return enterApp(last, null, LS.getItem('vocapro_last_label'), true); }
       showAuth(); const m = $('auMsg'); if (m) { m.textContent = '서버에 연결하지 못했어요. 인터넷을 확인하세요.'; m.style.display = 'block'; } return;
     }
     const u = await Cloud.first;
     if (!u) return showAuth();
-    let remote = null; try { remote = await Cloud.load(); } catch (e) {}
-    enterApp(u.uid, remote, u.email);
+    let remote = null, stale = false; try { remote = await Cloud.load(); } catch (e) { stale = true; }
+    enterApp(u.uid, remote, u.email, stale);
   }
   document.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && e.target.closest && e.target.closest('#authScreen')) { e.preventDefault(); ACTIONS['auth-go'](); }
+    if (e.key === 'Enter' && /^(INPUT|SELECT)$/.test(e.target.tagName) && e.target.closest('#authScreen')) { e.preventDefault(); ACTIONS['auth-go'](); }
   });
 
   /* =========================================================
@@ -5171,7 +5210,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     if (v === q.m) LT.ok[q.lv]++;
     const ov = $('ltOv');
     ov.querySelectorAll('.opt').forEach(b => { if (b.dataset.v === q.m) b.classList.add('correct'); else if (b.dataset.v === v) b.classList.add('wrong'); });
-    setTimeout(() => { if (LT) { LT.i++; ltDraw(); } }, v === q.m ? 450 : 900);
+    const lt = LT; setTimeout(() => { if (LT === lt) { LT.i++; ltDraw(); } }, v === q.m ? 450 : 900); // 닫고 새로 연 테스트엔 영향 없게
   }
   function ltLevel() { let r = 0; for (let l = 0; l < 4; l++) { if (LT.ok[l] >= 2) r++; else break; } return r; }
   function ltResult() {
@@ -5268,7 +5307,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     }
     ov.innerHTML = head + (st === 0 ? `<div class="ob-body">${body}</div>` : body) + `<div class="ob-foot">${foot}</div>`;
   }
-  function flAdvance(ms) { setTimeout(() => { if (FL) { FL.i++; flDraw(); } }, ms); }
+  function flAdvance(ms) { const fl = FL; setTimeout(() => { if (FL === fl && fl) { FL.i++; flDraw(); } }, ms); }
   function flAnswer(v) {
     if (!FL || FL.locked) return; FL.locked = true;
     const it = FL.items[FL.i], w = it.w, rev = FL.step === 3, ans = rev ? w.word : w.meaning, ok = v === ans;
@@ -5472,7 +5511,11 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     if (recIO) recIO.disconnect();
     if ('IntersectionObserver' in window) { recIO = new IntersectionObserver(es => { if (es.some(x => x.isIntersecting)) recMore(); }, { rootMargin: '400px 0px' }); recIO.observe($('recMore')); }
   }
-  ACTIONS['rec-tab'] = el => recSheet(el.dataset.g);
+  ACTIONS['rec-tab'] = async el => {
+    const g = el.dataset.g;
+    if (ZH_PACK_NAMES[g] && !zhIdx) { const d = await zhLoad(); if (!d.length) return toast('단어 목록을 불러오지 못했어요. 인터넷을 확인해 주세요.'); } // 중국어 책장은 목록부터
+    recSheet(g);
+  };
   const REC_STEP = 150;
   let recRowsAt = 0, recOwn = new Set(), recIO = null;
   const recRowHtml = (e, i, has) => `<label class="rec-row ${has ? 'has' : ''}"><input type="checkbox" value="${i}" ${has ? 'checked disabled' : ''}><span class="w-no">${String(i + 1).padStart(3, '0')}</span><b>${esc(e.w)}</b><span class="rec-m">${e.p ? `<i class="rec-py">${esc(e.p)}</i> ` : ''}${esc(e.m)}</span>${has ? '<em>담음</em>' : ''}</label>`;
@@ -5780,6 +5823,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
   document.addEventListener('click', e => { const b = e.target.closest('[data-pv]'); if (b && $('pvOv')) { e.preventDefault(); pvDo(b.dataset.pv); } });
   document.addEventListener('keydown', e => {
     if (!$('pvOv') || e.ctrlKey || e.metaKey || e.altKey) return;
+    if ((e.key === ' ' || e.key === 'Enter') && e.target.closest && e.target.closest('#pvOv') && /^(BUTTON|INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName)) return; // 포커스된 버튼은 제 동작대로
     const m = { Escape: 'x', ' ': 'flip', Enter: 'flip', ArrowRight: 'next', ArrowLeft: 'prev', ArrowDown: 'flip', ArrowUp: 'flip', s: 'say', S: 'say' }[e.key];
     if (m) { e.preventDefault(); e.stopImmediatePropagation(); pvDo(m); }
   }, true);
@@ -5802,11 +5846,13 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
   }
   const ttTop = (title, right) => `<div class="pv-top"><span class="pv-name">${esc(title)}</span>${right || ''}<button class="pv-x" data-tt="x" aria-label="닫기">${IC.x}</button></div>`;
   function ttDraw() { if (!TT) return; ({ qs: qsDraw, timer: tmDraw, pick: pkDraw, rank: rkDraw })[TT.kind](); }
+  // 소리 재생기는 하나만 — 버튼을 누를 때(사용자 동작) 만들거나 깨워 둬야 자동 재생 차단에 안 걸려요
+  let ttCtx = null;
+  function ttAudio() { try { const A = window.AudioContext || window.webkitAudioContext; if (!A) return null; if (!ttCtx) ttCtx = new A(); if (ttCtx.state === 'suspended') ttCtx.resume().catch(() => {}); } catch (e) {} return ttCtx; }
   function ttBeep(n) {
     try {
-      const A = window.AudioContext || window.webkitAudioContext; if (!A) return; const ctx = new A();
+      const ctx = ttCtx || ttAudio(); if (!ctx) return;
       for (let i = 0; i < (n || 3); i++) { const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.value = 880; o.connect(g); g.connect(ctx.destination); const t = ctx.currentTime + i * 0.35; g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.3, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.25); o.start(t); o.stop(t + 0.3); }
-      setTimeout(() => { try { ctx.close(); } catch (e) {} }, 2000);
     } catch (e) {}
   }
 
@@ -5826,7 +5872,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
       <button class="btn btn-primary btn-block" data-act="qs-go">${IC.play} 퀴즈 쇼 시작</button></div>`);
   };
   ACTIONS['qs-go'] = () => {
-    const cat = curCat(); if (!cat) return;
+    const cat = curCat(); if (!cat) return; ttAudio();
     const v = id => { const b = document.querySelector(`#${id} .on`); return b ? b.dataset.v : ''; };
     const ask = v('qsAsk') || 'm', n = +v('qsNum') || 10, sec = +v('qsSec'), teams = +v('qsTeam');
     const ws = cat.words.filter(w => w.word && w.meaning), list = shuffled(ws).slice(0, n);
@@ -5840,8 +5886,8 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     qsTick();
   };
   function qsTick() {
-    if (!TT || TT.kind !== 'qs') return; clearInterval(TT.timer);
-    if (!TT.sec) return;
+    if (!TT || TT.kind !== 'qs') return; clearInterval(TT.timer); TT.timer = null;
+    if (!TT.sec || TT.i >= TT.qs.length) return; // 결과 화면에서는 시간 재지 않아요
     TT.left = TT.sec;
     TT.timer = setInterval(() => {
       if (!TT || TT.kind !== 'qs') return; if (TT.show) return clearInterval(TT.timer);
@@ -5925,8 +5971,8 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
       try { const d = await Cloud.call('voca_class_detail', { p_class: +src.slice(1) }); names = d.members.map(m => (m.name || '이름 없음') + (m.sno ? ' ' + m.sno.slice(-2) + '번' : '')); }
       catch (e) { el.disabled = false; return say(clMsg(e)); }
     } else if (src === 'num') { const n = Math.max(2, Math.min(60, parseInt(($('pkNum') || {}).value, 10) || 30)); names = Array.from({ length: n }, (_, i) => `${i + 1}번`); }
-    else { const raw = ($('pkNames') || {}).value || ''; names = raw.split(/[\n,]+/).map(x => x.trim()).filter(Boolean).slice(0, 80); try { LS.setItem('vocapro_pick_names:' + currentUser, raw); } catch (e) {} }
-    names = [...new Set(names)];
+    else { const raw = ($('pkNames') || {}).value || ''; names = [...new Set(raw.split(/[\n,]+/).map(x => x.trim()).filter(Boolean))].slice(0, 80); try { LS.setItem('vocapro_pick_names:' + currentUser, raw); } catch (e) {} }
+    { const seen = {}; names = names.map(n => { seen[n] = (seen[n] || 0) + 1; return seen[n] > 1 ? `${n} (${seen[n]})` : n; }); } // 반 명단의 동명이인도 모두 남겨요(뒤에 번호)
     if (names.length < 2) { el.disabled = false; return toast('두 명 이상 있어야 해요.'); }
     closeSheet(); ttOpen('pick', { names, used: [], cur: '', mode: 'one', size: 4, groups: null });
   };
@@ -5958,7 +6004,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
       let left = t.names.filter(n => !t.used.includes(n)); if (!left.length) { t.used = []; left = t.names.slice(); }
       const win = left[Math.floor(Math.random() * left.length)]; let n = 0;
       t.spin = setInterval(() => {
-        const e = $('pkName'); if (!e || !TT) return clearInterval(t.spin);
+        const e = $('pkName'); if (!e || !TT) { clearInterval(t.spin); t.spin = null; return; } // 모드를 바꾸면 멈추고 다시 뽑을 수 있게
         e.textContent = left[Math.floor(Math.random() * left.length)]; n++;
         if (n > 18) { clearInterval(t.spin); t.spin = null; t.cur = win; t.used.push(win); ttBeep(1); pkDraw(); }
       }, 70);
@@ -5969,7 +6015,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
   // 오버레이 클릭 · 키보드
   document.addEventListener('click', e => {
     const b = e.target.closest('[data-tt]'); if (!b || !$('ttOv') || !TT) return; e.preventDefault();
-    const k = b.dataset.tt, t = TT;
+    const k = b.dataset.tt, t = TT; ttAudio();
     if (k === 'x') return ttClose();
     if (t.kind === 'qs') {
       if (k === 'show') { t.show = true; clearInterval(t.timer); return qsDraw(); }
@@ -5985,6 +6031,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     if (!$('ttOv') || !TT || e.ctrlKey || e.metaKey || e.altKey || document.querySelector('.dlg-ov')) return;
     const t = TT, click = sel => { const b = $('ttOv').querySelector(sel); if (b && !b.disabled) b.click(); };
     if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); return ttClose(); }
+    if ((e.key === ' ' || e.key === 'Enter') && e.target.closest && e.target.closest('#ttOv') && /^(BUTTON|INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName)) return; // 포커스된 버튼은 제 동작대로
     if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); e.stopImmediatePropagation(); return click(t.kind === 'qs' ? '[data-tt="show"], [data-tt="next"], [data-tt="again"]' : t.kind === 'timer' ? '[data-tt="tm-go"]' : t.mode === 'one' ? '[data-tt="pk-spin"]' : '[data-tt="pk-grp"]'); }
     if (t.kind === 'qs' && /^[1-4]$/.test(e.key)) { e.preventDefault(); e.stopImmediatePropagation(); click(`[data-tt="team"][data-k="${+e.key - 1}"]`); }
     else if (t.kind === 'qs' && (e.key === 's' || e.key === 'S')) { e.preventDefault(); e.stopImmediatePropagation(); playAudio(t.qs[t.i] && t.qs[t.i].w.word); }
@@ -6029,11 +6076,13 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     try {
       const asg = d.assignments.slice().reverse(), res = [];
       for (const a of asg) res.push(await Cloud.call('voca_assign_results', { p_assign: a.id }));
-      const q = x => { const s = String(x == null ? '' : x); return /[",\n]/.test(s) || /^[=+\-@]/.test(s) ? `"${s.replace(/^([=+\-@])/, "'$1").replace(/"/g, '""')}"` : s; };
+      const q = x => { const s = String(x == null ? '' : x); return /[",\n]/.test(s) || /^[=+\-@\t\r]/.test(s) ? `"${s.replace(/^([=+\-@\t\r])/, "'$1").replace(/"/g, '""')}"` : s; };
       const head = ['학번', '이름', '최근 학습', '7일 단어', '7일 정답률(%)', '연속 학습(일)', '전체 단어', '마스터', '과제 완료'].concat(asg.map(a => `${a.title} (${CL_KIND[a.kind]})`));
+      // 결과 행에 uid가 있으면 uid로, 없으면 이름+학번으로 맞추고 한 행은 한 학생에게만 써요(동명이인 중복 방지)
+      const pool = res.map(r => (r.rows || []).slice());
       const rows = d.members.map(m => {
         const p = m.progress || {};
-        const scores = res.map(r => { const x = (r.rows || []).find(y => y.name === m.name && y.sno === m.sno); return x && x.score != null ? x.score : ''; });
+        const scores = pool.map(rs => { let k = rs.findIndex(y => y.uid != null && y.uid === m.uid); if (k < 0) k = rs.findIndex(y => y.uid == null && y.name === m.name && y.sno === m.sno); const x = k < 0 ? null : rs.splice(k, 1)[0]; return x && x.score != null ? x.score : ''; });
         return [m.sno, m.name, p.last || '', p.n7 != null ? p.n7 : '', p.acc7 != null ? p.acc7 : '', p.streak || 0, p.total || 0, p.mastered || 0, `${m.done}/${asg.length}`].concat(scores);
       });
       const csv = '﻿' + [head].concat(rows).map(r => r.map(q).join(',')).join('\r\n');
@@ -6061,7 +6110,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     const t = String(code || ''), body = unb64u(t.slice(1));
     const raw = t[0] === 'z' ? await zipBytes(body, true) : body;
     const o = JSON.parse(new TextDecoder().decode(raw));
-    const words = (Array.isArray(o.w) ? o.w : []).filter(a => Array.isArray(a) && a[0] && a[1]).slice(0, 2000).map(a => [String(a[0]).slice(0, 80), String(a[1]).slice(0, 200)]);
+    const words = (Array.isArray(o.w) ? o.w : []).filter(a => Array.isArray(a) && a[0]).slice(0, 2000).map(a => [String(a[0]).slice(0, 80), String(a[1] == null ? '' : a[1]).slice(0, 200)]); // 뜻이 빈 단어도 남겨요
     if (!words.length) throw new Error('empty');
     return { name: String(o.n || '공유받은 단어장').slice(0, 40), words };
   }
@@ -6073,7 +6122,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
       <div class="share-card"><span class="mg-ico i-mint">${IC.book}</span><div><b>${esc(cat.name)}</b><small>단어 ${cat.words.length}개 · 받는 사람도 VocaPro에서 바로 공부할 수 있어요</small></div></div>
       <input id="shareUrl" readonly value="${esc(url)}" data-act="select-all">
       <div class="row"><button class="btn btn-soft" data-act="share-copy">링크 복사</button>${navigator.share ? '<button class="btn btn-primary" data-act="share-send">보내기</button>' : ''}</div>
-      <p class="muted" style="font-size:.78rem;line-height:1.6;margin:0;">링크 안에 단어와 뜻이 들어 있어요. 서버에 따로 저장되지 않고, 학습 기록은 함께 보내지 않아요.${url.length > 8000 ? ' 단어가 많아서 링크가 길어요. 메신저에 따라 잘릴 수 있으니 CSV 내보내기도 함께 써 보세요.' : ''}</p></div>`);
+      <p class="muted" style="font-size:.78rem;line-height:1.6;margin:0;">링크 안에 단어와 뜻이 들어 있어요. 서버에 따로 저장되지 않고, 학습 기록은 함께 보내지 않아요.${url.length > 8000 ? ' 단어가 많아서 링크가 길어요. 메신저에 따라 잘릴 수 있으니 CSV 내보내기도 함께 써 보세요.' : ''}${cat.words.length > 2000 ? ` <b>공유 링크로는 앞의 2000개만 받을 수 있어요(나머지 ${cat.words.length - 2000}개는 CSV로 보내 주세요).</b>` : ''}</p></div>`);
   };
   ACTIONS['share-copy'] = async () => { const i = $('shareUrl'); if (!i) return; try { await navigator.clipboard.writeText(i.value); toast('링크를 복사했어요.'); } catch (e) { i.select(); toast('링크를 길게 눌러 복사해 주세요.'); } };
   ACTIONS['share-send'] = async () => { const i = $('shareUrl'), cat = curCat(); if (!i) return; try { await navigator.share({ title: 'VocaPro 단어장', text: `${cat ? cat.name : '단어장'} (VocaPro)`, url: i.value }); } catch (e) {} };
@@ -6112,7 +6161,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     for (const [w, m] of d.words) {
       if (seen.has(w.toLowerCase())) continue; seen.add(w.toLowerCase());
       let full = null; try { full = await dictGet(w); } catch (e) {}
-      cat.words.push(sanitizeWord({ ...(full || {}), id: uid(), word: w, meaning: m }));
+      cat.words.push(sanitizeWord({ ...(full || {}), id: uid(), word: w, meaning: m || (full && full.meaning) || '' }));
     }
     categories.push(cat); syncStorage(); shareIn = null; closeSheet();
     toast(`'${nm}' 단어장에 ${cat.words.length}개를 담았어요.`);
@@ -6153,9 +6202,9 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
 
   ACTIONS['class-open'] = async () => {
     if (!clOk()) return say(kidMode ? '이 기기에만 저장하는 계정(만 14세 미만)은 반에 참여할 수 없어요.' : '우리 반은 로그인한 서버 계정에서만 쓸 수 있어요.');
-    openSheet('우리 반', clLoading());
-    try { CL = await Cloud.call('voca_class_mine'); } catch (e) { return clFail(e); }
-    clSaveCache(CL); clHome();
+    openSheet('우리 반', clLoading()); const tok = sheetTok;
+    let r; try { r = await Cloud.call('voca_class_mine'); } catch (e) { return tok === sheetTok && clFail(e); }
+    CL = r; clSaveCache(CL); if (tok !== sheetTok) return; clHome();
     if (CL.joined.length) clReport(true);
   };
   function clHome() {
@@ -6197,9 +6246,9 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
   /* ----- 선생님: 반 상세 ----- */
   async function clDetail(id, keep) {
     CLV.id = id; if (!keep) { CLV.tab = 'stu'; CLV.open = null; }
-    openSheet('우리 반', clLoading());
-    try { CLV.data = await Cloud.call('voca_class_detail', { p_class: id }); } catch (e) { return clFail(e, 'cl-home'); }
-    clDraw();
+    openSheet('우리 반', clLoading()); const tok = sheetTok;
+    let d; try { d = await Cloud.call('voca_class_detail', { p_class: id }); } catch (e) { return tok === sheetTok && clFail(e, 'cl-home'); }
+    if (tok !== sheetTok || CLV.id !== id) return; CLV.data = d; clDraw();
   }
   ACTIONS['cl-class'] = el => clDetail(+el.dataset.id);
   ACTIONS['cl-tab'] = el => { CLV.tab = el.dataset.t; clDraw(); };
@@ -6309,8 +6358,9 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     } catch (e) { el.disabled = false; say(clMsg(e)); }
   };
   ACTIONS['cl-ares'] = async el => {
-    const id = +el.dataset.id; openSheet('과제 결과', clLoading());
-    let r; try { r = await Cloud.call('voca_assign_results', { p_assign: id }); } catch (e) { return clFail(e, 'cl-back'); }
+    const id = +el.dataset.id; openSheet('과제 결과', clLoading()); const tok = sheetTok;
+    let r; try { r = await Cloud.call('voca_assign_results', { p_assign: id }); } catch (e) { return tok === sheetTok && clFail(e, 'cl-back'); }
+    if (tok !== sheetTok) return;
     const a = r.assign, done = r.rows.filter(x => x.score != null), left = r.rows.filter(x => x.score == null);
     const avg = done.length ? Math.round(done.reduce((s, x) => s + x.score, 0) / done.length) : null;
     const weak = clWeakTop(done.map(x => x.wrong), 10);
@@ -6334,17 +6384,18 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     const list = (Array.isArray(a.words) ? a.words : []).filter(x => Array.isArray(x) && x[0] && x[1]);
     if (!list.length) { el.disabled = false; return say('과제에 단어가 없어요.'); }
     const name = `${a.class} · ${a.title}`.slice(0, 60);
-    let cat = categories.find(c => c.name === name);
-    if (!cat) {
+    // 이름이 아니라 과제 번호로 찾아요(이름은 40자로 잘리고 같은 이름 단어장이 있을 수 있어요). 비었으면 다시 채워요
+    let cat = categories.find(c => c.asg === a.id);
+    if (!cat || !cat.words.length) {
       el.textContent = '단어장 준비 중...';
       await dictPreload(list.map(x => x[0]));
-      cat = { id: 'c' + uid(), name, words: [] }; const seen = new Set();
+      const isNew = !cat; if (isNew) cat = { id: 'c' + uid(), name, words: [], asg: a.id }; const seen = new Set();
       for (const [w, m] of list) {
         const k = String(w).toLowerCase(); if (seen.has(k)) continue; seen.add(k);
         let full = null; try { full = await dictGet(w); } catch (e) {}
         cat.words.push(sanitizeWord({ ...(full || {}), id: uid(), word: String(w), meaning: String(m) }));
       }
-      categories.push(cat); syncStorage();
+      if (isNew) categories.push(cat); syncStorage();
     }
     closeSheet();
     if (allWords().length < 4) return say('시험과 뜻 고르기는 전체 단어가 4개 이상 있어야 해요.');
@@ -6417,8 +6468,8 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     const ov = document.createElement('div'); ov.id = 'lvOv'; ov.className = 'pv lv'; document.body.appendChild(ov); document.body.classList.add('no-scroll');
     LV = { id, seen: new Map(), feed: [], timer: null, first: true };
     ov.innerHTML = `<div class="cl-load">${MASCOT('think')}<span>학생들을 불러오는 중...</span></div>`;
-    await lvTick();
-    LV && (LV.timer = setInterval(lvTick, 5000));
+    const lv = LV; await lvTick();
+    if (LV === lv && !lv.stop) lv.timer = setInterval(lvTick, 5000); // 기다리는 사이 닫고 다시 열었으면 옛 타이머를 만들지 않아요
   };
   function lvClose() { if (!LV) return; clearInterval(LV.timer); LV = null; const o = $('lvOv'); if (o) o.remove(); document.body.classList.remove('no-scroll'); }
   ACTIONS['lv-close'] = () => { const id = CLV.id; lvClose(); if (id) clDetail(id, true); };
@@ -6428,7 +6479,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     let r; try { r = await Cloud.call('voca_class_live', { p_class: lv.id }); }
     catch (e) {
       if (LV !== lv) return;
-      const o = $('lvOv'); if (o && (lv.first || e.code === 'missing')) { clearInterval(lv.timer); o.innerHTML = `<div class="lv-top"><b>실시간 보기</b><button class="icon-btn" data-act="lv-close" aria-label="닫기">${IC.x}</button></div><div class="cl-load">${MASCOT('sleep')}<span>${esc(e.code === 'missing' ? '실시간 보기는 서버 설정(supabase_update_v7.sql)을 마치면 쓸 수 있어요.' : clMsg(e))}</span></div>`; }
+      const o = $('lvOv'); if (o && (lv.first || e.code === 'missing')) { clearInterval(lv.timer); lv.stop = true; o.innerHTML = `<div class="lv-top"><b>실시간 보기</b><button class="icon-btn" data-act="lv-close" aria-label="닫기">${IC.x}</button></div><div class="cl-load">${MASCOT('sleep')}<span>${esc(e.code === 'missing' ? '실시간 보기는 서버 설정(supabase_update_v7.sql)을 마치면 쓸 수 있어요.' : clMsg(e))}</span></div>`; }
       return;
     }
     if (LV !== lv) return;

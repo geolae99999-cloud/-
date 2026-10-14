@@ -4,7 +4,7 @@ const http = require('http'), fs = require('fs'), path = require('path');
 const root = path.join(__dirname, 'site2'), shots = path.join(__dirname, 'shots', 'tools');
 fs.mkdirSync(shots, { recursive: true });
 const srv = http.createServer((q, r) => { let f = path.join(root, decodeURIComponent(q.url.split('?')[0])); if (f.endsWith('/')) f += 'index.html'; fs.readFile(f, (e, d) => { if (e) { r.writeHead(404); return r.end(); } r.writeHead(200, { 'Content-Type': f.endsWith('.js') ? 'text/javascript' : f.endsWith('.css') ? 'text/css' : f.endsWith('.json') ? 'application/json' : 'text/html; charset=utf-8' }); r.end(d); }); }).listen(8783);
-const members = [{ uid: '2', name: '이지우', sno: '20315', progress: { last: '2026-10-13', n7: 40, acc7: 85, streak: 3, total: 120, mastered: 10 }, done: 1 }, { uid: '3', name: '박민', sno: '20301', progress: {}, done: 0 }, { uid: '4', name: '=cmd', sno: '20302', progress: {}, done: 0 }, { uid: '5', name: '최서연', sno: '20322', progress: { last: '2026-10-13', n7: 72, acc7: 91, streak: 6, total: 210, mastered: 44 }, done: 1 }, { uid: '6', name: '정하늘', sno: '20327', progress: { last: '2026-10-12', n7: 55, acc7: 78, streak: 9, total: 160, mastered: 30 }, done: 1 }, { uid: '7', name: '김도윤', sno: '20305', progress: { last: '2026-10-11', n7: 18, acc7: 66, streak: 1, total: 60, mastered: 5 }, done: 0 }];
+const members = [{ uid: '2', name: '이지우', sno: '20315', progress: { last: '2026-10-13', n7: 40, acc7: 85, streak: 3, total: 120, mastered: 10 }, done: 1 }, { uid: '3', name: '박민', sno: '20301', progress: {}, done: 0 }, { uid: '4', name: '=cmd', sno: '20302', progress: {}, done: 0 }, { uid: '5', name: '최서연', sno: '20322', progress: { last: '2026-10-13', n7: 72, acc7: 91, streak: 6, total: 210, mastered: 44 }, done: 1 }, { uid: '6', name: '정하늘', sno: '20327', progress: { last: '2026-10-12', n7: 55, acc7: 78, streak: 9, total: 160, mastered: 30 }, done: 1 }, { uid: '7', name: '김도윤', sno: '20305', progress: { last: '2026-10-11', n7: 18, acc7: 66, streak: 1, total: 60, mastered: 5 }, done: 0 }, { uid: '8', name: '김도윤', sno: '20305', progress: {}, done: 0 }];
 (async () => {
   const b = await chromium.launch(), errs = [], res = {};
   const ctx = await b.newContext({ viewport: { width: 1280, height: 800 }, acceptDownloads: true }), p = await ctx.newPage();
@@ -20,7 +20,7 @@ const members = [{ uid: '2', name: '이지우', sno: '20315', progress: { last: 
     if (fn === 'voca_load') return j(null);
     if (fn === 'voca_class_mine') return j({ owned: [{ id: 7, name: '2학년 3반', code: 'ABC234', members: 3, assignments: 1 }], joined: [] });
     if (fn === 'voca_class_detail') return j({ class: { id: 7, name: '2학년 3반', code: 'ABC234' }, members, assignments: [{ id: 9, title: 'Day 1', kind: 'test', n: 10, count: 30, subs: 1, avg: 90 }] });
-    if (fn === 'voca_assign_results') return j({ assign: { id: 9, title: 'Day 1', kind: 'test' }, rows: [{ name: '이지우', sno: '20315', score: 90 }, { name: '박민', sno: '20301', score: null }, { name: '=cmd', sno: '20302', score: null }] });
+    if (fn === 'voca_assign_results') return j({ assign: { id: 9, title: 'Day 1', kind: 'test' }, rows: [{ name: '이지우', sno: '20315', score: 90 }, { name: '박민', sno: '20301', score: null }, { name: '=cmd', sno: '20302', score: null }, { name: '김도윤', sno: '20305', score: 70 }] });
     return j({ ok: true });
   });
   const shot = n => p.screenshot({ path: path.join(shots, n + '.png') });
@@ -38,7 +38,7 @@ const members = [{ uid: '2', name: '이지우', sno: '20315', progress: { last: 
   await p.keyboard.press(' '); await p.waitForTimeout(200); res.qsShown = await p.$$eval('.qs-opt.ok', a => a.length);
   await p.keyboard.press('2'); await p.waitForTimeout(200); res.qsTeam = await p.$$eval('.qs-team b', a => a.map(x => x.textContent).join(',')); await shot('03-quiz-answer');
   await p.keyboard.press('2'); res.qsNoDouble = await p.$$eval('.qs-team b', a => a.map(x => x.textContent).join(','));
-  await p.evaluate(() => { TT.i = TT.qs.length - 1; TT.show = true; qsDraw(); }); await p.click('[data-tt="next"]'); await p.waitForSelector('.qs-end'); res.qsEnd = await p.textContent('.qs-end h2'); await shot('04-quiz-end');
+  await p.evaluate(() => { TT.i = TT.qs.length - 1; TT.show = true; qsDraw(); }); await p.click('[data-tt="next"]'); await p.waitForSelector('.qs-end'); res.qsEnd = await p.textContent('.qs-end h2'); res.qsEndNoTimer = await p.evaluate(() => TT.timer == null); await shot('04-quiz-end');
   await p.keyboard.press('Escape'); res.qsClosed = await p.evaluate(() => !document.getElementById('ttOv'));
   // 빙고판
   await p.click('.teach-card[data-next="bingo"]'); await p.click('[data-act="teach-go"] >> nth=0'); await p.waitForSelector('#bgSize');
@@ -48,6 +48,7 @@ const members = [{ uid: '2', name: '이지우', sno: '20315', progress: { last: 
   await p.click('.teach-card[data-next="picker"]'); await p.waitForSelector('#pkSrc'); await shot('05-picker-sheet');
   res.pkOptions = await p.$$eval('#pkSrc option', a => a.map(x => x.textContent));
   await p.click('[data-act="pk-go"]'); await p.waitForSelector('#pkName');
+  res.pkSameName = await p.evaluate(() => TT.names.filter(n => n.startsWith('김도윤')).join('|')); // 동명이인 둘 다 남아야 해요
   await p.keyboard.press(' '); await p.waitForTimeout(1700); res.pkPicked = await p.textContent('#pkName'); await shot('06-picker');
   await p.keyboard.press(' '); await p.waitForTimeout(1700); await p.keyboard.press(' '); await p.waitForTimeout(1700);
   res.pkAllDifferent = await p.evaluate(() => TT.used.length + ' / ' + new Set(TT.used).size + ' left:' + TT.names.filter(n => !TT.used.includes(n)).length);
@@ -57,7 +58,11 @@ const members = [{ uid: '2', name: '이지우', sno: '20315', progress: { last: 
   await p.keyboard.press('Escape');
   // 번호로 뽑기
   await p.click('.teach-card[data-next="picker"]'); await p.waitForSelector('#pkSrc'); await p.selectOption('#pkSrc', 'num'); await p.fill('#pkNum', '25'); await p.click('[data-act="pk-go"]'); await p.waitForSelector('#pkName');
-  res.pkNum = await p.evaluate(() => TT.names.length + ' ' + TT.names[24]); await p.keyboard.press('Escape');
+  res.pkNum = await p.evaluate(() => TT.names.length + ' ' + TT.names[24]);
+  // 뽑는 도중 모드를 바꿨다 돌아와도 다시 뽑을 수 있어야 해요
+  await p.click('[data-tt="pk-spin"]'); await p.click('[data-tt="pk-mode"][data-m="grp"]'); await p.waitForTimeout(200); await p.click('[data-tt="pk-mode"][data-m="one"]');
+  res.pkSpinUnlock = await p.evaluate(() => TT.spin == null && !document.querySelector('[data-tt="pk-spin"]').disabled);
+  await p.keyboard.press('Escape');
   // 타이머
   await p.click('.teach-card[data-next="ctimer"]'); await p.waitForSelector('.tm-time');
   await p.click('[data-tt="tm-set"][data-s="60"]'); await p.keyboard.press(' '); await p.waitForTimeout(1600); res.timer = await p.textContent('#tmTime'); await shot('08-timer');

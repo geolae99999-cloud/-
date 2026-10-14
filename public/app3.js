@@ -8,7 +8,7 @@
     const due = b.words.filter(w => w.box >= 1 && w.due <= end).length;
     const pct = total ? Math.round(mastered / total * 100) : 0;
     return `
-      <div class="book" style="--bk:${bookColor(b.id)}" data-act="open-book" data-id="${esc(b.id)}">
+      <div class="book" style="--bk:${bookColor(b.id)}" data-act="open-book" data-id="${esc(b.id)}" role="button" tabindex="0" aria-label="${esc(b.name)} 단어장 열기">
         <div class="book-spine"><b>${total}</b><small>단어</small></div>
         <div class="book-body">
           <div class="book-top"><span class="book-name">${esc(b.name)}</span>${due ? `<span class="badge b-learn">복습 ${due}</span>` : ''}</div>
@@ -139,7 +139,7 @@
       <div class="wcard ${w.box >= 5 ? 'mastered' : ''} ${open ? 'open' : ''}" data-wid="${esc(w.id)}">
         <div class="w-row">
           <span class="w-no">${String(i + 1).padStart(3, '0')}</span>
-          <div class="w-main" data-act="expand">
+          <div class="w-main" data-act="expand" role="button" tabindex="0" aria-expanded="${open}">
             <div class="w-head"><span class="w-word ${w.star ? 'hl' : ''}">${esc(w.word)}</span>${w.phonetic ? `<span class="w-pron">${esc(w.phonetic)}</span>` : ''}${w.koreanPron ? `<span class="w-kpron">[${esc(w.koreanPron)}]</span>` : ''}</div>
             <div class="w-mean">${esc(w.meaning)}</div>
             <div class="w-badges">${lvlBadge(w)}${w.miss > 0 ? '<span class="badge b-bad">오답</span>' : ''}</div>
@@ -175,7 +175,8 @@
     const mean = el.querySelector('.w-mean');
     if (document.body.classList.contains('hide-content') && mean && !mean.classList.contains('reveal')) { mean.classList.add('reveal'); return; }
     openDrawers.has(w.id) ? openDrawers.delete(w.id) : openDrawers.add(w.id);
-    renderWordList();
+    const had = document.activeElement === el; renderWordList();
+    if (had) { const n = [...document.querySelectorAll('.wcard')].find(c => c.dataset.wid === w.id); if (n && n.querySelector('.w-main')) n.querySelector('.w-main').focus(); } // 키보드 포커스 유지
   };
   ACTIONS.speak = (el, e) => { e.stopPropagation(); playAudio(el.dataset.text); };
   ACTIONS.mem = el => {
@@ -193,14 +194,16 @@
   ACTIONS.syn = el => inspectSynonym(el.dataset.word);
 
   /* ----- 시트 ----- */
+  let sheetTok = 0; // 시트를 열고 닫을 때마다 바뀌어요 — 늦게 끝난 불러오기가 다른 시트를 덮지 않게
   function openSheet(title, html) {
+    sheetTok++;
     $('sheetTitle').textContent = title;
     $('sheetBody').innerHTML = html;
     $('sheetOv').classList.add('open');
     document.body.classList.add('no-scroll');
   }
   function closeSheet() {
-    bulkCancel = true;
+    bulkCancel = true; sheetTok++;
     $('sheetOv').classList.remove('open');
     if (!$('studyScreen').classList.contains('open')) document.body.classList.remove('no-scroll');
   }
@@ -341,7 +344,7 @@
     const items = [], failed = [];
     entries.forEach(e => {
       const r = res.get(e.word.toLowerCase());
-      if (r) items.push(sanitizeWord({ id: uid(), word: e.word, ...r, meaning: e.um || r.meaning }));
+      if (r) items.push(sanitizeWord({ id: uid(), ...r, word: e.word, meaning: e.um || r.meaning }));
       else if (e.um) items.push(sanitizeWord({ id: uid(), word: e.word, meaning: e.um }));
       else failed.push(e.word);
     });
@@ -359,7 +362,7 @@
 
   ACTIONS['book-split'] = () => {
     const cat = curCat(); if (!cat) return;
-    if (cat.words.length < 10) return toast('단어가 10개 이상일 때 나눌 수 있어요.');
+    if (cat.words.length < 11) return toast('단어가 11개 이상일 때 나눌 수 있어요.');
     openSheet('Day별로 나누기', `<div class="form-stack">
       <p class="muted" style="margin:0;font-size:.86rem;line-height:1.6;">'${esc(cat.name)}' 단어 ${cat.words.length}개를 하루 분량씩 새 단어장으로 나눠요. 원래 단어장과 학습 기록은 그대로 남아요.</p>
       <label class="setting-label">하루에 몇 개씩?</label>
@@ -367,7 +370,7 @@
       <button class="btn btn-primary btn-block" data-act="split-go">나누기</button></div>`);
   };
   ACTIONS['split-go'] = () => {
-    const cat = curCat(), b = document.querySelector('#spN .on'), n = b ? +b.dataset.v : 20; if (!cat) return;
+    const cat = curCat(), b = document.querySelector('#spN .on'), n = b ? +b.dataset.v : 10; if (!cat) return;
     const days = Math.ceil(cat.words.length / n);
     for (let d = 0; d < days; d++) categories.push({ id: 'c' + uid(), name: `${cat.name} Day ${d + 1}`.slice(0, 40), words: cat.words.slice(d * n, d * n + n).map(w => ({ ...w, id: uid() })) });
     syncStorage(); closeSheet(); toast(`Day 1부터 Day ${days}까지 ${days}개 단어장을 만들었어요.`); go('tabBooks');

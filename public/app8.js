@@ -282,8 +282,11 @@
     const ws = allWords().map(x => x.w).filter(w => w.word && w.meaning);
     if (ws.length < 4) return toast('단어가 4개 이상 있어야 해요.');
     closeMatch();
-    const pick = shuffled(ws).slice(0, 6), tiles = [];
-    pick.forEach((w, i) => { tiles.push({ id: i, t: w.word, en: true }, { id: i, t: String(w.meaning).split(/[,;/]/)[0].trim() || w.meaning, en: false }); });
+    // 같은 단어·같은 뜻 타일이 두 번 나오면 짝이 모호해져요 → 단어(소문자)·표시 뜻으로 중복 제거
+    const mT = w => String(w.meaning).split(/[,;/]/)[0].trim() || String(w.meaning), seenW = new Set(), seenM = new Set(), pick = [], tiles = [];
+    for (const w of shuffled(ws)) { const k = w.word.trim().toLowerCase(), m = mT(w); if (seenW.has(k) || seenM.has(m)) continue; seenW.add(k); seenM.add(m); pick.push(w); if (pick.length >= 6) break; }
+    if (pick.length < 4) return toast('서로 다른 단어가 4개 이상 있어야 해요.');
+    pick.forEach((w, i) => { tiles.push({ id: i, t: w.word, en: true }, { id: i, t: mT(w), en: false }); });
     shuffled(tiles).forEach((t, i) => { tiles[i] = t; });
     const ov = document.createElement('div'); ov.className = 'mg'; ov.id = 'mgOv';
     ov.innerHTML = `<div class="mg-top"><button class="round-btn" data-mg="x" aria-label="닫기">${IC.x}</button><b>짝 맞추기</b><span id="mgTime">0.0초</span></div><p class="mg-sub">${LN()}와 뜻을 짝지어 눌러 보세요</p><div class="mg-grid">${tiles.map((t, i) => `<button class="mg-tile" data-i="${i}">${esc(t.t)}</button>`).join('')}</div>`;

@@ -64,7 +64,7 @@
     if (v === q.m) LT.ok[q.lv]++;
     const ov = $('ltOv');
     ov.querySelectorAll('.opt').forEach(b => { if (b.dataset.v === q.m) b.classList.add('correct'); else if (b.dataset.v === v) b.classList.add('wrong'); });
-    setTimeout(() => { if (LT) { LT.i++; ltDraw(); } }, v === q.m ? 450 : 900);
+    const lt = LT; setTimeout(() => { if (LT === lt) { LT.i++; ltDraw(); } }, v === q.m ? 450 : 900); // 닫고 새로 연 테스트엔 영향 없게
   }
   function ltLevel() { let r = 0; for (let l = 0; l < 4; l++) { if (LT.ok[l] >= 2) r++; else break; } return r; }
   function ltResult() {
@@ -161,7 +161,7 @@
     }
     ov.innerHTML = head + (st === 0 ? `<div class="ob-body">${body}</div>` : body) + `<div class="ob-foot">${foot}</div>`;
   }
-  function flAdvance(ms) { setTimeout(() => { if (FL) { FL.i++; flDraw(); } }, ms); }
+  function flAdvance(ms) { const fl = FL; setTimeout(() => { if (FL === fl && fl) { FL.i++; flDraw(); } }, ms); }
   function flAnswer(v) {
     if (!FL || FL.locked) return; FL.locked = true;
     const it = FL.items[FL.i], w = it.w, rev = FL.step === 3, ans = rev ? w.word : w.meaning, ok = v === ans;

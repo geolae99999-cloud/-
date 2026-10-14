@@ -92,6 +92,25 @@ const srv = http.createServer((q, r) => { let f = path.join(root, decodeURICompo
     await p.click('.rec-tabs [data-act="rec-tab"][data-g="h3"]'); await p.waitForTimeout(200);
     res[tag + ' h3 first'] = await p.$$eval('#recList .rec-row b', a => a.slice(0, 5).map(x => x.textContent));
     await shot('07-rec-h3');
+    await p.keyboard.press('Escape'); await p.waitForTimeout(200);
+    // 섞어서 학습: 철자 문제도 Enter로 제출
+    res[tag + ' mix enter'] = await p.evaluate(async () => { startSession('mix', { type: 'all' }, 10); S.queue[S.idx].t = 'spell'; renderQuestion(); document.getElementById('typeInput').value = 'zzz'; document.getElementById('typeInput').focus(); return true; });
+    await p.keyboard.press('Enter'); await p.waitForTimeout(150); res[tag + ' mix enter'] = await p.evaluate(() => S.answered); await p.evaluate(() => exitSession(true)); await p.waitForTimeout(200);
+    // 짝 맞추기: 같은 단어·같은 뜻 타일이 겹치지 않아요
+    res[tag + ' match dedupe'] = await p.evaluate(() => {
+      const keep = categories.splice(0); categories.push({ id: 'cdup', name: 'dup', words: [['shop', '가게'], ['store', '가게'], ['Shop', '상점'], ['apple', '사과'], ['red', '빨강'], ['blue', '파랑'], ['cat', '고양이']].map(([w, m]) => sanitizeWord({ id: uid(), word: w, meaning: m })) });
+      let bad = 0; for (let i = 0; i < 15; i++) { openMatch(); const t = [...document.querySelectorAll('#mgOv .mg-tile')].map(x => x.textContent.toLowerCase()); if (new Set(t).size !== t.length) bad++; closeMatch(); }
+      categories.splice(0, categories.length, ...keep); return bad;
+    });
+    // 공유 링크: 뜻이 빈 단어도 남아요
+    res[tag + ' share empty'] = await p.evaluate(async () => (await shareDecode(await shareEncode({ name: 'x', words: [{ word: 'a', meaning: '' }, { word: 'b', meaning: '비' }] }))).words.length);
+    // 키보드로 단어장 열기 · 단어 펼치기
+    await p.click('.nav-item[data-t="tabBooks"]'); await p.waitForTimeout(300);
+    { const bid = await p.evaluate(() => categories.find(c => c.words.length).id); await p.locator(`.book[role="button"][data-id="${bid}"]:visible`).first().focus(); } await p.keyboard.press('Enter'); await p.waitForTimeout(300);
+    await p.locator('.w-main[role="button"]:visible').first().focus(); await p.keyboard.press('Enter'); await p.waitForTimeout(200);
+    // 4단계: 닫고 바로 다시 열면 옛 타이머가 새 학습을 넘기지 않아요
+    res[tag + ' fl stale'] = await p.evaluate(async () => { flOpen(); FL.step = 1; flDraw(); flAnswer('x'); document.querySelector('#flOv [data-fl="close"]').click(); flOpen(); await new Promise(r => setTimeout(r, 1200)); const i = FL.i + '/' + FL.step; document.querySelector('#flOv [data-fl="close"]').click(); return i; });
+    res[tag + ' kbd a11y'] = await p.evaluate(() => !!document.querySelector('.wcard.open') && document.activeElement.classList.contains('w-main'));
     await ctx.close();
   }
   console.log(JSON.stringify(res, null, 1)); console.log('ERRORS:', errs.length ? errs.join('\n') : 'none'); await b.close(); srv.close();
