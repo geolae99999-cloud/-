@@ -2153,3 +2153,96 @@
     @media (max-width: 520px) { .sp-tform { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 's b' 'm m'; } .sp-tform input[type=number] { grid-area: s; } .sp-tform input[type=text] { grid-area: m; } .sp-tform .btn { grid-area: b; padding: 0 18px; } }
     @media (max-width: 380px) { .sp-ri > p, .sp-ri > div:not(.sp-ri-top) { margin-left: 0; } }
     @media (min-width: 900px) { .sp-text { font-size: 40px; } .sp-text.long { font-size: 23px; } }
+    /* ---- 글·사진에서 단어 뽑기: 붙여넣기 · 사진 · 후보 목록(체크, 수준 배지, 글 속 문장) ---- */
+    .gx-tabs { margin-bottom: 14px; }
+    .gx-pane[hidden], .gx-clear[hidden], #gxName[hidden] { display: none !important; }
+    .gx-pane { display: flex; flex-direction: column; gap: 10px; }
+    .gx-in { min-height: 240px; max-height: 46vh; resize: vertical; font-size: 15px; line-height: 1.6; }
+    .gx-meta { display: flex; align-items: center; justify-content: flex-end; gap: 10px; margin-top: -4px; font-size: 13px; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .gx-clear { margin-right: auto; border: none; background: none; padding: 4px 0; color: var(--muted); font: inherit; font-weight: 600; cursor: pointer; }
+    .gx-clear:active { opacity: .6; }
+    .gx-tips { margin: 6px 0 0; padding: 0 0 0 18px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; line-height: 1.55; color: var(--muted); word-break: keep-all; }
+    .gx-tips b { color: var(--ink-2); font-weight: 700; }
+    .gx-note { display: flex; gap: 8px; align-items: flex-start; margin: 0; padding: 12px 14px; border-radius: 14px; background: var(--blue-soft); color: var(--blue-ink); font-size: 14px; font-weight: 600; line-height: 1.5; word-break: keep-all; }
+    .gx-note.ok { background: var(--mint-soft); color: color-mix(in srgb, var(--mint) 80%, var(--ink)); }
+    .gx-note .ic { width: 18px; height: 18px; flex: none; margin-top: 1px; }
+    .gx-need { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; padding: 26px 20px 20px; border-radius: 22px; background: var(--surface-2); }
+    .gx-need-ico { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; background: var(--blue-soft); color: var(--blue); }
+    .gx-need-ico .ic { width: 26px; height: 26px; }
+    .gx-need > b { font-size: 17px; font-weight: 700; line-height: 1.4; color: var(--ink); word-break: keep-all; }
+    .gx-need p { margin: 0; font-size: 14px; line-height: 1.6; color: var(--ink-2); word-break: keep-all; }
+    .gx-need .gx-tips { text-align: left; align-self: stretch; margin: 4px 0 8px; }
+    .gx-need .btn { align-self: stretch; }
+    .sheet .gx-need .btn-soft { background: var(--surface); color: var(--blue-ink); }
+    body.dark .sheet .gx-need .btn-soft { background: var(--surface-2); }
+    body.dark .gx-need { background: var(--bg); }
+    .gx-shots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+    .gx-shot { position: relative; aspect-ratio: 3 / 4; border-radius: 16px; overflow: hidden; background: var(--surface-2); }
+    .gx-shot img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: inherit; border: 1px solid var(--line); box-sizing: border-box; }
+    .gx-shot button { position: absolute; top: 6px; right: 6px; width: 28px; height: 28px; border: none; border-radius: 50%; background: rgba(0, 0, 0, .55); color: #fff; display: grid; place-items: center; cursor: pointer; }
+    .gx-shot button .ic { width: 14px; height: 14px; stroke-width: 2.4; }
+    .gx-drop { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-height: 200px; padding: 24px 16px; border-radius: 22px; background: var(--surface-2); text-align: center; }
+    .gx-drop .gx-need-ico { margin-bottom: 6px; }
+    .gx-drop b { font-size: 16px; font-weight: 700; color: var(--ink); }
+    .gx-drop small { font-size: 13px; color: var(--muted); }
+    .gx-picks { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .gx-pick { cursor: pointer; font-size: 15px; padding: 0 10px; white-space: nowrap; }
+    .gx-pick:focus-within { box-shadow: var(--ring) !important; }
+    body.dark :is(.gx-drop, .gx-shot) { background: var(--bg); }
+    .gx-hint { margin: 0; font-size: 13px; line-height: 1.55; color: var(--muted); word-break: keep-all; }
+    .gx-hint.small { font-size: 12px; text-align: center; }
+    .gx-backbtn { display: inline-flex; align-items: center; gap: 4px; border: none; background: none; padding: 2px 0; margin: -4px 0 10px; color: var(--muted); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+    .gx-backbtn .ic { width: 16px; height: 16px; }
+    .gx-sum b { display: block; font-size: 22px; font-weight: 800; letter-spacing: -.02em; line-height: 1.35; color: var(--ink); word-break: keep-all; }
+    .gx-sum em { font-style: normal; color: var(--blue); }
+    .gx-sum small { display: block; margin-top: 6px; font-size: 13px; font-weight: 500; line-height: 1.55; color: var(--muted); word-break: keep-all; }
+    .gx-dest { display: flex; flex-direction: column; gap: 8px; margin: 16px 0 0; padding: 14px; border-radius: 18px; background: var(--surface-2); }
+    .gx-dest .f-lab { margin: 0 2px; font-size: 13px; font-weight: 600; }
+    .gx-dest :is(select, input[type=text]) { background: var(--surface); padding-top: 13px; padding-bottom: 13px; }
+    .gx-dest .gx-ai { margin-top: 4px; }
+    body.dark .gx-dest { background: var(--bg); }
+    body.dark .gx-dest :is(select, input[type=text]) { background: var(--surface-2); }
+    .gx-bar { position: sticky; top: -8px; z-index: 2; display: flex; align-items: center; gap: 6px; margin: 14px 0 0; padding: 10px 0; background: var(--surface); }
+    .gx-bar span { flex: 1; font-size: 15px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+    .gx-bar button { height: 32px; padding: 0 12px; border: none; border-radius: 99px; background: var(--surface-2); color: var(--ink-2); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+    .gx-bar button:active { background: var(--surface-3); }
+    .gx-list { display: flex; flex-direction: column; }
+    .gx-row { display: flex; align-items: flex-start; gap: 12px; padding: 14px 2px; border-bottom: 1px solid var(--line); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    .gx-row:last-of-type { border-bottom: none; }
+    .gx-row input { flex: none; width: 22px; height: 22px; margin: 2px 0 0; accent-color: var(--blue); cursor: pointer; }
+    .gx-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+    .gx-top { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 7px; }
+    .gx-w { font-size: 18px; font-weight: 800; letter-spacing: -.01em; color: var(--ink); word-break: break-word; }
+    .gx-py { font-style: normal; font-size: 13px; font-weight: 500; color: var(--muted); }
+    .gx-form { font-size: 12px; font-weight: 600; color: var(--muted); }
+    .gx-tags { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; align-self: center; }
+    .gx-n { font-size: 12px; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .gx-lv { font-style: normal; font-size: 11px; font-weight: 700; padding: 3px 7px; border-radius: 6px; white-space: nowrap; background: var(--surface-2); color: var(--ink-2); }
+    .gx-lv.t1 { background: var(--mint-soft); color: color-mix(in srgb, var(--mint) 82%, var(--ink)); }
+    .gx-lv.t2 { background: var(--blue-soft); color: var(--blue-ink); }
+    .gx-lv.t3 { background: var(--sun-soft); color: color-mix(in srgb, var(--sun) 70%, var(--ink)); }
+    .gx-lv.t4 { background: var(--coral-soft); color: var(--coral); }
+    .gx-m { font-size: 15px; font-weight: 500; line-height: 1.45; color: var(--ink-2); word-break: keep-all; overflow-wrap: anywhere; }
+    .gx-m.none { font-size: 13px; color: var(--muted); }
+    .gx-ctx { margin-top: 5px; padding: 8px 10px; border-radius: 10px; background: var(--surface-2); font-size: 13px; line-height: 1.55; color: var(--ink-2); overflow-wrap: anywhere; }
+    .gx-ctx mark { background: color-mix(in srgb, var(--blue) 18%, transparent); color: var(--ink); font-weight: 700; border-radius: 4px; padding: 0 2px; }
+    body.dark .gx-ctx { background: var(--bg); }
+    body.dark .gx-ctx mark { background: color-mix(in srgb, var(--blue) 34%, transparent); }
+    .gx-row.easy .gx-w { color: var(--ink-2); }
+    .gx-more, .gx-empty { margin: 0; padding: 22px 8px; text-align: center; font-size: 14px; color: var(--muted); word-break: keep-all; }
+    .gx-easy { margin: 6px 0 0; padding: 14px 2px 4px; border-top: 1px solid var(--line); }
+    .gx-foot { position: sticky; bottom: calc(-22px - env(safe-area-inset-bottom, 0px)); z-index: 3; margin: 14px -20px calc(-22px - env(safe-area-inset-bottom, 0px)); padding: 12px 20px calc(14px + env(safe-area-inset-bottom, 0px)); background: var(--surface); }
+    .gx-to { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 0 0 10px; font-size: 13px; font-weight: 600; color: var(--muted); min-width: 0; }
+    .gx-to span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+    .gx-to button { flex: none; border: none; background: none; padding: 2px 0; color: var(--blue); font: inherit; font-weight: 700; cursor: pointer; }
+    .gx-foot::before { content: ''; position: absolute; left: 0; right: 0; bottom: 100%; height: 24px; background: linear-gradient(transparent, var(--surface)); pointer-events: none; }
+    body.lang-zh :is(.gx-w, .gx-ctx, .gx-in) { font-family: 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Microsoft YaHei', var(--font); }
+    .gx-entry { width: 100%; display: flex; align-items: center; gap: 14px; margin: 0 0 16px; padding: 16px 18px; border: none; border-radius: var(--r-card); background: var(--surface); color: var(--ink); text-align: left; font: inherit; box-shadow: var(--shadow); cursor: pointer; transition: transform .12s var(--ease), background-color .15s; }
+    .gx-entry:active { transform: scale(.98); }
+    .gx-entry > span:last-child { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .gx-entry b { font-size: 16px; font-weight: 700; }
+    .gx-entry small { font-size: 13px; color: var(--muted); font-weight: 500; }
+    .gx-entry-ico { flex: none; width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: var(--mint-soft); color: var(--mint); }
+    .gx-entry-ico .ic { width: 22px; height: 22px; }
+    @media (hover: hover) { .gx-entry:hover { background: color-mix(in srgb, var(--surface) 96%, var(--ink) 4%); } }
+    @media (min-width: 900px) { .gx-in { min-height: 300px; } }

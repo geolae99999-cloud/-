@@ -139,8 +139,10 @@
 
   const ownKey = () => { try { return cleanKey(config.keys && config.keys[config.provider]); } catch (e) { return ''; } };
   const aiReady = () => !!ownKey() || !!(cloudMode && window.Cloud && Cloud.ai);
-  /* task: 서버 AI가 프롬프트를 직접 만들 수 있게 보내는 정보 ({task:'word'|'batch'|'translate', ...}) */
-  async function callAi(prompt, normalize, task) {
+  /* task: 서버 AI가 프롬프트를 직접 만들 수 있게 보내는 정보 ({task:'word'|'batch'|'translate'|'ctx', ...})
+     opt: { ms: 기다릴 시간, once: 실패해도 다시 보내지 않기(AI 사용 1회만) } */
+  async function callAi(prompt, normalize, task, opt) {
+    opt = opt || {};
     normalize = normalize || normalizeResult;
     const p = config.provider;
     const key = cleanKey(config.keys && config.keys[p]);
@@ -148,16 +150,17 @@
     if (!key) {
       if (cloudMode && window.Cloud && Cloud.ai) {
         let last = null;
-        for (let a = 0; a < 2; a++) {
-          try { const r = finish(await Cloud.ai(prompt, task)); if (r) return r; last = new ApiError('AI 응답을 해석하지 못했어요. 다시 시도해 주세요.', 0); }
+        const tries = opt.once ? 1 : 2;
+        for (let a = 0; a < tries; a++) {
+          try { const r = finish(await Cloud.ai(prompt, task, opt.ms)); if (r) return r; last = new ApiError('AI 응답을 해석하지 못했어요. 다시 시도해 주세요.', 0); }
           catch (e) { last = e; if (e.status && e.status < 500 && e.status !== 408) break; }
-          if (a < 1) await sleep(600);
+          if (a < tries - 1) await sleep(600);
         }
         throw new ApiError(last && last.message ? last.message : 'AI를 쓸 수 없어요.', last && last.status);
       }
       throw new ApiError(`AI를 쓰려면 로그인하거나 설정에서 ${PROVIDERS[p].label} API 키를 입력해 주세요.`, 401);
     }
-    const deadline = Date.now() + 30000;
+    const deadline = Date.now() + (opt.ms || 30000);
     const tryModels = async models => {
       let lastErr = null;
       for (const model of models) {

@@ -141,7 +141,7 @@
           <span class="w-no">${String(i + 1).padStart(3, '0')}</span>
           <div class="w-main" data-act="expand" role="button" tabindex="0" aria-expanded="${open}">
             <div class="w-head"><span class="w-word ${w.star ? 'hl' : ''}">${esc(w.word)}</span>${w.phonetic ? `<span class="w-pron">${esc(w.phonetic)}</span>` : ''}${w.koreanPron ? `<span class="w-kpron">[${esc(w.koreanPron)}]</span>` : ''}</div>
-            <div class="w-mean">${esc(w.meaning)}</div>
+            <div class="w-mean">${w.meaning ? esc(w.meaning) : '<span class="muted">뜻이 비어 있어요 · 더보기에서 채울 수 있어요</span>'}</div>
             <div class="w-badges">${lvlBadge(w)}${w.miss > 0 ? '<span class="badge b-bad">오답</span>' : ''}</div>
           </div>
           <div class="w-side">
@@ -216,6 +216,7 @@
       <div class="seg" style="margin-bottom:14px;">
         <button class="on" data-act="add-tab" data-t="one">한 개씩</button>
         <button data-act="add-tab" data-t="bulk">여러 개 한 번에</button>
+        <button data-act="gx-open" data-from="book">글·사진에서</button>
       </div>
       <div id="addOne" class="form-stack">${wordFormHtml(null)}</div>
       <div id="addBulk" class="form-stack" style="display:none;">
@@ -378,7 +379,7 @@
   /* ----- 단어장 메뉴 / CSV ----- */
   ACTIONS['book-menu'] = () => {
     openSheet('단어장 관리', `<div class="menu-list">
-      <button data-act="book-fill">비어 있는 발음·예문 채우기</button>
+      <button data-act="book-fill">비어 있는 뜻·발음·예문 채우기</button>
       <button data-act="exam-open">이 단어장으로 실전 시험 보기</button>
       <button data-act="present">수업용 큰 화면으로 보기</button>
       <button data-act="book-print">단어 시험지 만들기 (인쇄, PDF)</button>
@@ -425,7 +426,7 @@
   }
   ACTIONS['book-fill'] = async () => {
     const cat = curCat(); if (!cat || fillBusy) return;
-    const empty = w => !w.phonetic || !w.example;
+    const empty = w => !w.meaning || !w.phonetic || !w.example;
     if (!cat.words.some(empty)) { closeSheet(); return toast('비어 있는 칸이 없어요.'); }
     closeSheet(); fillBusy = true;
     const fromDict = await dictFill(cat.words.filter(empty));
@@ -442,7 +443,7 @@
         ch.forEach(w => {
           const r = m[w.word.toLowerCase()]; if (!r) { fail++; return; }
           aicSet(w.word, r);
-          ['phonetic', 'koreanPron', 'example', 'exampleKo', 'synonyms'].forEach(k => { if (!w[k] && r[k]) w[k] = r[k]; });
+          ['meaning', 'phonetic', 'koreanPron', 'example', 'exampleKo', 'synonyms'].forEach(k => { if (!w[k] && r[k]) w[k] = r[k]; });
           done++;
         });
         syncStorage(); if (curTab === 'paneBook') renderWordList();
