@@ -21,6 +21,8 @@
     $('cfgProvider').value = config.provider;
     ttsUI();
     $('cfgGoal').value = String(config.goal);
+    $('cfgHaptic').checked = config.haptic !== false;
+    if (!('vibrate' in navigator)) $('hapticSub').textContent = '이 기기(브라우저)는 진동을 지원하지 않아서 켜 둬도 울리지 않아요.';
     $('cfgGrade').innerHTML = `<option value="">선택 안 함</option>${roleOptions(isTeacher() ? 'teacher' : config.grade)}`;
     onProviderChange(config.provider, true);
     $('cfgStatus').className = 'cfg-status';
@@ -75,7 +77,7 @@
 
   /* ----- 백업 ----- */
   ACTIONS['export-json'] = () => {
-    const data = { app: 'VocaPro', version: 13, settings: { ...ttsCfgOut(), darkMode: config.darkMode, goal: config.goal, grade: config.grade }, ...dataBlob() };
+    const data = { app: 'VocaPro', version: 13, settings: { ...ttsCfgOut(), darkMode: config.darkMode, goal: config.goal, grade: config.grade, haptic: config.haptic !== false }, ...dataBlob() };
     download(`VocaPro_${dayKey()}.json`, JSON.stringify(data, null, 2), 'application/json');
     toast('백업 파일을 내려받았어요. API 키는 포함되지 않아요.');
   };
@@ -98,6 +100,7 @@
           ttsCfgIn(config, res.settings);
           if (res.settings.goal) config.goal = parseInt(res.settings.goal, 10) || config.goal;
           if (typeof res.settings.darkMode === 'boolean') config.darkMode = res.settings.darkMode;
+          if (typeof res.settings.haptic === 'boolean') config.haptic = res.settings.haptic;
           if (GRADE_NAMES[res.settings.grade]) config.grade = res.settings.grade;
         }
         currentCategoryId = null; viewOrder = null; openDrawers.clear();
@@ -306,10 +309,10 @@
       if (sel < 0) { sel = i; b.classList.add('sel'); if (tiles[i].en) playAudio(tiles[i].t); return; }
       const a = tiles[sel], c = tiles[i], ba = ov.querySelector(`[data-i="${sel}"]`);
       if (a.id === c.id && a.en !== c.en) {
-        [ba, b].forEach(x => { x.classList.remove('sel'); x.classList.add('ok'); }); sel = -1; done++;
+        [ba, b].forEach(x => { x.classList.remove('sel'); x.classList.add('ok'); }); sel = -1; done++; haptic(true);
         if (done === pick.length) { clearInterval(mgT); setTimeout(finish, 450); }
       } else {
-        wrong++; locked = true; [ba, b].forEach(x => x.classList.add('no'));
+        wrong++; locked = true; haptic(false); [ba, b].forEach(x => x.classList.add('no'));
         setTimeout(() => { [ba, b].forEach(x => x.classList.remove('no', 'sel')); sel = -1; locked = false; }, 450);
       }
     });

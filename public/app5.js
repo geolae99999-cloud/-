@@ -122,7 +122,7 @@
       const t = document.createElement('em'); t.className = 'wq-pen'; t.textContent = `-${WQ_PEN}초`; const tp = document.querySelector('#wqOv .wq-clock'); if (tp) tp.appendChild(t);
     }
     const b = document.body; b.classList.remove('ans-ok', 'ans-no'); void b.offsetWidth; b.classList.add(ok ? 'ans-ok' : 'ans-no'); clearTimeout(fxTimer); fxTimer = setTimeout(() => b.classList.remove('ans-ok', 'ans-no'), 600);
-    try { if (navigator.vibrate) navigator.vibrate(ok ? 12 : [24, 40, 24]); } catch (e) {}
+    haptic(ok);
     const sc = $('wqScore'); if (sc) sc.textContent = g.score.toLocaleString() + '점';
     wqTime(); if (g.view !== 'play') return;
     setTimeout(() => { if (WQ !== g || g.view !== 'play') return; wqQuestion(); wqDraw(); }, ok ? 260 : 750);

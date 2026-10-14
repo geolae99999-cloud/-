@@ -167,14 +167,14 @@
     const it = FL.items[FL.i], w = it.w, rev = FL.step === 3, ans = rev ? w.word : w.meaning, ok = v === ans;
     if (FL.step === 3) FL.res[w.id] = ok; if (!ok) FL.miss[w.id] = true;
     $('flOv').querySelectorAll('.opt').forEach(b => { if (b.dataset.v === ans) b.classList.add('correct'); else if (b.dataset.v === v) b.classList.add('wrong'); });
-    flAdvance(ok ? 450 : 1000);
+    haptic(ok); flAdvance(ok ? 450 : 1000);
   }
   function flType() {
     if (!FL) return; const it = FL.items[FL.i], w = it.w, inp = $('flIn'), fb = $('flFb'), btn = $('flGo'); if (!inp) return;
     if (FL.locked) { FL.i++; return flDraw(); }
     const v = inp.value.trim().toLowerCase(); if (!v) return toast('단어를 입력해 주세요.');
     const ok = answerOk(v, w); if (!ok) FL.miss[w.id] = true;
-    FL.locked = true; inp.disabled = true;
+    FL.locked = true; inp.disabled = true; haptic(ok);
     fb.innerHTML = ok ? `<b style="color:var(--blue)">정답이에요!${w.phonetic && isHanWord(w.word) ? ` ${esc(w.word)} ${esc(w.phonetic)}` : ''}</b>` : `<b style="color:var(--coral)">정답: ${esc(w.word)}${w.phonetic && isHanWord(w.word) ? ` (${esc(w.phonetic)})` : ''}</b>`;
     btn.textContent = '다음';
   }

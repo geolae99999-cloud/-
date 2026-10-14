@@ -15,7 +15,7 @@
     models: { gemini: '', xai: '', openai: '', anthropic: '' },
     modelLists: { gemini: [], xai: [], openai: [], anthropic: [] },
     ttsRate: 0.9, koRate: 1, ttsPitch: 1, gap: 0.9, wordRep: 1, matchVoice: true, voice: { en: '', zh: '', ko: '' },
-    goal: 20, darkMode: false, grade: '', lang: 'en'
+    goal: 20, darkMode: false, grade: '', lang: 'en', haptic: true
   };
 
   function sanitizeNote(n) {
@@ -73,11 +73,15 @@
         if (/^\d{4}-\d{2}-\d{2}$/.test(k)) {
           const d = s.days[k] || {};
           days[k] = { n: Math.max(0, Math.floor(+d.n) || 0), ok: Math.max(0, Math.floor(+d.ok) || 0) };
+          if (+d.m > 0) days[k].m = Math.floor(+d.m); // 그날 새로 마스터한 단어 수(주간 리포트)
         }
       }
     }
     const tests = Array.isArray(s && s.tests) ? s.tests.filter(t => t && +t.d > 0 && +t.n > 0).slice(-30).map(t => ({ d: +t.d, n: Math.floor(+t.n), ok: Math.max(0, Math.floor(+t.ok) || 0), sec: Math.max(0, Math.floor(+t.sec) || 0), src: String(t.src || '').slice(0, 40) })) : [];
-    return tests.length ? { days, tests } : { days };
+    const o = { days };
+    if (tests.length) o.tests = tests;
+    if (s && /^\d{4}-\d{2}-\d{2}$/.test(s.frzSeen)) o.frzSeen = s.frzSeen; // 보호권 알림을 이미 보여 준 날
+    return o;
   }
   const defaultCats = () => [
     { id: 'cat_today', name: '오늘 (Day 1)', words: [] },
@@ -103,6 +107,7 @@
       ttsCfgIn(cfg, saved);
       cfg.goal = saved.goal || cfg.goal;
       cfg.darkMode = !!saved.darkMode;
+      if (typeof saved.haptic === 'boolean') cfg.haptic = saved.haptic;
       cfg.lang = saved.lang === 'zh' ? 'zh' : 'en';
       cfg.grade = GRADE_NAMES[saved.grade] ? saved.grade : '';
       cfg.role = saved.role === 'teacher' ? 'teacher' : '';
@@ -173,7 +178,10 @@
     const today = startOfDay();
     const key = dayKey();
     if (ok) {
-      if (w.last !== key) { w.box = Math.min(5, w.box + 1); w.due = addDays(today, INTERVALS[w.box]); }
+      if (w.last !== key) {
+        const was = w.box; w.box = Math.min(5, w.box + 1); w.due = addDays(today, INTERVALS[w.box]);
+        if (was < 5 && w.box === 5) { const d = stats.days[key] || (stats.days[key] = { n: 0, ok: 0 }); d.m = (d.m || 0) + 1; }
+      }
       w.reps++;
       if (w.miss > 0) w.miss--;
     } else {
@@ -188,23 +196,37 @@
     if (diff === 1) return '내일 복습';
     return diff + '일 뒤 복습';
   }
-  function streak() {
-    let t = startOfDay();
-    const has = x => (stats.days[dayKey(x)] || {}).n > 0;
-    if (!has(t)) t = addDays(t, -1);
-    let n = 0;
-    while (has(t)) { n++; t = addDays(t, -1); }
-    return n;
-  }
-  function bestStreak() {
-    const keys = Object.keys(stats.days).filter(k => stats.days[k].n > 0).sort();
-    let best = 0, cur = 0, prev = null;
+  /* 연속 학습 + 보호권(Duolingo 의 스트릭 프리즈처럼): 7일 연속을 채울 때마다 1장(최대 2장)을 받고,
+     딱 하루를 빠지면 갖고 있던 보호권이 저절로 그날을 지켜 줘요(보호된 날은 연속 일수에 더하지 않아요).
+     따로 저장하지 않고 stats.days 만으로 처음부터 다시 세서, 다른 기기·반 리포트에서도 같은 숫자가 나와요. */
+  const FRZ_EVERY = 7, FRZ_MAX = 2;
+  const dNum = k => Date.UTC(+k.slice(0, 4), +k.slice(5, 7) - 1, +k.slice(8, 10)) / DAY;
+  const dKeyOf = n => new Date(n * DAY).toISOString().slice(0, 10);
+  function streakInfo() {
+    const keys = Object.keys(stats.days).filter(k => stats.days[k].n > 0).sort(), prot = [];
+    let cur = 0, best = 0, frz = 0, prev = null;
     keys.forEach(k => {
-      const t = new Date(k + 'T00:00:00').getTime();
-      cur = (prev !== null && Math.round((t - prev) / DAY) === 1) ? cur + 1 : 1;
+      const t = dNum(k), g = prev === null ? 0 : t - prev;
+      if (g === 1) cur++;
+      else if (g === 2 && frz > 0) { frz--; prot.push(dKeyOf(t - 1)); cur++; }
+      else cur = 1;
+      if (cur % FRZ_EVERY === 0) frz = Math.min(FRZ_MAX, frz + 1);
       best = Math.max(best, cur); prev = t;
     });
-    return best;
+    const g = prev === null ? 99 : dNum(dayKey()) - prev;
+    let n = g <= 1 ? cur : 0;
+    if (g === 2 && frz > 0) { frz--; prot.push(dKeyOf(prev + 1)); n = cur; } // 어제를 빠졌어요: 오늘 하면 이어져요
+    return { n, best, frz, prot };
+  }
+  function streak() { return streakInfo().n; }
+  function bestStreak() { return streakInfo().best; }
+  // 보호권이 새로 쓰였으면 한 번만 알려 줘요(오래된 기록은 조용히 넘어가요)
+  function frzNotice(si) {
+    const last = si.prot[si.prot.length - 1];
+    if (!last || last <= (stats.frzSeen || '') || dNum(dayKey()) - dNum(last) > 7) return;
+    stats.frzSeen = last; syncStorage();
+    const when = last === dayKey(addDays(startOfDay(), -1)) ? '어제' : `${+last.slice(5, 7)}월 ${+last.slice(8, 10)}일`;
+    toast(`보호권이 ${when}${when === '어제' ? '를' : '을'} 지켜 줬어요. ${si.n}일 연속 그대로예요!`);
   }
   function recordStat(ok) {
     const k = dayKey();
@@ -305,7 +327,7 @@
     const goal = config.goal || 20;
     const today = stats.days[dayKey()] || { n: 0, ok: 0 };
     const pct = Math.min(1, today.n / goal);
-    const st = streak();
+    const si = streakInfo(), st = si.n, prot = new Set(si.prot);
 
     let cta;
     if (c.total === 0) cta = { big: '0', unit: '개', label: '오늘의 복습', sub: '단어를 추가하면 복습 일정이 자동으로 만들어져요.', btn: '단어 추가하기', attrs: 'data-act="tab" data-t="tabBooks"' };
@@ -317,8 +339,8 @@
     let week = '';
     for (let i = 6; i >= 0; i--) {
       const t = addDays(startOfDay(), -i);
-      const d = stats.days[dayKey(t)];
-      week += `<div class="day ${d && d.n > 0 ? 'done' : ''} ${i === 0 ? 'today' : ''}"><i>${d && d.n > 0 ? IC.tick : ''}</i>${labels[new Date(t).getDay()]}</div>`;
+      const d = stats.days[dayKey(t)], fz = prot.has(dayKey(t)); // 보호권이 지켜 준 날은 방패로 표시해요
+      week += `<div class="day ${d && d.n > 0 ? 'done' : fz ? 'frz' : ''} ${i === 0 ? 'today' : ''}"${fz ? ' title="보호됨" aria-label="보호됨"' : ''}><i>${d && d.n > 0 ? IC.tick : fz ? IC.shield : ''}</i>${fz ? '보호됨' : labels[new Date(t).getDay()]}</div>`;
     }
 
     const hour = new Date().getHours();
@@ -344,8 +366,8 @@
       </section></div>
 
       <div class="h-streak"><div class="card streak-card">
-        <div class="streak-fire ${st > 0 ? '' : 'off'}">${st > 0 ? IC.flame : IC.sprout}</div>
-        <div class="streak-txt"><div class="streak-n">${st}일 연속</div><div class="muted">${st > 0 ? '학습 중이에요' : '오늘 시작해요'}</div></div>
+        <div class="streak-fire ${st > 0 ? '' : 'off'}">${st > 0 ? IC.flame : IC.sprout}${si.frz ? `<span class="frz-badge" title="연속 학습 보호권 ${si.frz}장" aria-label="보호권 ${si.frz}장">${IC.shield}<b>${si.frz}</b></span>` : ''}</div>
+        <div class="streak-txt"><div class="streak-n">${st}일 연속</div><div class="muted">${st > 0 && today.n === 0 && prot.has(dayKey(addDays(startOfDay(), -1))) ? '어제 보호됨' : si.frz ? `보호권 ${si.frz}장` : st > 0 ? `보호권까지 ${FRZ_EVERY - st % FRZ_EVERY}일` : '오늘 시작해요'}</div></div>
         <div class="week">${week}</div>
       </div>${wotdHtml()}</div>
 
@@ -366,7 +388,7 @@
       <div class="book-list">${books || emptyHtml('아직 단어장이 없어요', '단어장 탭에서 새로 만들어 보세요.')}</div></div>
       </div>
     `;
-    recMaybeShow(); wotdFill();
+    recMaybeShow(); wotdFill(); frzNotice(si);
   }
 
   ACTIONS.start = el => startSession(el.dataset.mode, parseSrc(el.dataset.src), el.dataset.count !== undefined ? parseInt(el.dataset.count, 10) : SESSION_DEFAULT);

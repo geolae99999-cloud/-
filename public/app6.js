@@ -1,6 +1,50 @@
   /* =========================================================
    * 통계
    * ======================================================= */
+  /* 주간 리포트: 이번 주(월~일)와 지난주를 stats.days 로 비교해요. m 은 그날 새로 마스터한 단어 수예요. */
+  function weekReport() {
+    const t0 = startOfDay(), di = (new Date(t0).getDay() + 6) % 7, mon = addDays(t0, -di);
+    const wk = start => {
+      const o = { n: 0, ok: 0, days: 0, m: 0, best: null };
+      for (let i = 0; i < 7; i++) {
+        const t = addDays(start, i), d = stats.days[dayKey(t)] || {}, n = d.n || 0;
+        o.n += n; o.ok += d.ok || 0; o.m += d.m || 0;
+        if (n > 0) { o.days++; if (!o.best || n > o.best.n) o.best = { t, n }; }
+      }
+      o.acc = o.n ? Math.round(o.ok / o.n * 100) : null; return o;
+    };
+    return { mon, left: 6 - di, cur: wk(mon), prev: wk(addDays(mon, -7)) };
+  }
+  // 바뀐 만큼 한 줄 응원. 숫자만 넣어서 esc 가 필요 없어요.
+  function weekMsg(r) {
+    const a = r.cur.n, b = r.prev.n, d = a - b;
+    if (!a && !b) return '이번 주 첫 학습을 시작해 볼까요?';
+    if (!b) return `이번 주 벌써 <em>${a}개</em> 공부했어요. 좋은 출발이에요!`;
+    if (d > 0) return `지난주보다 <em>${d}개</em> 더 공부했어요. 대단해요!`;
+    if (d === 0) return '지난주만큼 꾸준히 공부했어요. 멋져요!';
+    if (!a) return `지난주엔 ${b}개 공부했어요. 이번 주도 시작해 볼까요?`;
+    if (r.left > 0) return `지난주 기록까지 <em>${-d}개</em> 남았어요. 조금만 더 힘내요!`;
+    return `지난주보다 ${-d}개 적었지만 괜찮아요. 다음 주에 다시 힘내요!`;
+  }
+  function weekReportHtml() {
+    const r = weekReport(), c = r.cur, p = r.prev, mx = Math.max(c.n, p.n, 1);
+    const md = t => `${new Date(t).getMonth() + 1}.${new Date(t).getDate()}`;
+    // 늘면 초록 +, 줄면 깎아내리지 않고 지난주 값만 보여 줘요
+    const delta = (x, y, u, pu = u) => x == null || y == null ? '' : x > y ? `<em class="up">지난주보다 +${x - y}${u}</em>` : x < y ? `<em>지난주 ${y}${pu}</em>` : '<em>지난주와 같아요</em>';
+    const DOW = ['일', '월', '화', '수', '목', '금', '토'];
+    const row = (lab, o, cls) => `<div class="wr-row ${cls}"><span>${lab}</span><div class="wr-track"><i style="width:${Math.round(o.n / mx * 100)}%"></i></div><b>${o.n}개</b></div>`;
+    return `<section class="card wr" aria-label="주간 리포트">
+        <div class="card-head"><b>주간 리포트</b><span class="muted wr-range">${md(r.mon)} – ${md(addDays(r.mon, 6))}</span></div>
+        <p class="wr-msg">${weekMsg(r)}</p>
+        <div class="wr-cmp">${row('이번 주', c, 'cur')}${row('지난주', p, 'prev')}</div>
+        <div class="wr-kv">
+          <div><span>정답률</span><b>${c.acc == null ? '–' : c.acc + '%'}</b>${delta(c.acc, p.acc, '%p', '%') || '<em>아직 기록이 없어요</em>'}</div>
+          <div><span>학습한 날</span><b>${c.days}일</b>${delta(c.days, p.days, '일')}</div>
+          <div><span>새로 마스터</span><b>${c.m}개</b>${delta(c.m, p.m, '개')}</div>
+          <div><span>최고의 날</span><b>${c.best ? DOW[new Date(c.best.t).getDay()] + '요일' : '–'}</b><em>${c.best ? c.best.n + '개 학습' : '아직 없어요'}</em></div>
+        </div>
+      </section>`;
+  }
   function renderStats() {
     const days = stats.days, goal = config.goal || 20, c = counts();
     let totalN = 0, totalOk = 0;
@@ -36,6 +80,7 @@
     ].map(([on, ic, t, d]) => ({ on, ic, t, d }));
     $('tabStats').innerHTML = `
       <h2 class="page-title">학습 통계</h2>
+      ${weekReportHtml()}
       <div class="stat-tiles">
         <div class="stat-tile"><b>${streak()}일</b><span>연속 학습</span></div>
         <div class="stat-tile"><b>${bestStreak()}일</b><span>최고 기록</span></div>

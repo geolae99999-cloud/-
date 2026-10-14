@@ -41,7 +41,8 @@
     bell: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4l2-2z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>',
     translate: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>',
     rows: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="7" height="5" rx="1.5"/><rect x="12" y="4" width="9" height="5" rx="1.5"/><rect x="3" y="15" width="10" height="5" rx="1.5"/><path d="M16 17.5h5M19 15l2.5 2.5L19 20"/></svg>',
-    podium: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21V10h6v11M3 21v-6h6M15 21v-8h6v8M2 21h20"/><path d="M12 2.5l.9 1.9 2 .3-1.5 1.4.4 2-1.8-1-1.8 1 .4-2-1.5-1.4 2-.3z"/></svg>'
+    podium: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21V10h6v11M3 21v-6h6M15 21v-8h6v8M2 21h20"/><path d="M12 2.5l.9 1.9 2 .3-1.5 1.4.4 2-1.8-1-1.8 1 .4-2-1.5-1.4 2-.3z"/></svg>',
+    shield: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 2.8v5.4c0 4.4-3 8-7 9.8-4-1.8-7-5.4-7-9.8V5.8z"/><path d="M9 12l2.2 2.2L15.5 10"/></svg>',
   }, {
     /* 없는 이름을 쓰면 'undefined' 글자 대신 기본 아이콘(별)을 그려요. */
     get: (o, k) => (k in o || typeof k !== 'string' ? o[k] : (console.warn('IC: 없는 아이콘', k), o.sparkles))
@@ -149,6 +150,7 @@
     goal: el => { config.goal = parseInt(el.value, 10) || 20; syncStorage(); },
     'tts-voice': el => { config.voice = Object.assign({ en: '', zh: '', ko: '' }, config.voice); config.voice[el.dataset.l] = el.value; syncStorage(); ttsTry(el.dataset.l); },
     'tts-match': el => { config.matchVoice = el.checked; syncStorage(); },
+    haptic: el => { config.haptic = el.checked; syncStorage(); if (el.checked) haptic(true); },
     provider: el => onProviderChange(el.value),
     rm: () => rmSave(),
     'import-backup': (el, e) => importBackup(e),

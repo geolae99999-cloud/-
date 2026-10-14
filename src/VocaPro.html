@@ -1391,7 +1391,7 @@
     .tts-play .ic { width: 20px; height: 20px; }
     .tts-match { font-size: .84rem; flex-wrap: wrap; } .tts-match small { font-weight: 500; }
     .tts-note { font-size: .82rem; margin: 0; }
-    .tts-btns { display: flex; gap: 8px; } .tts-btns .btn-primary { flex: 1; }
+    .tts-btns { display: flex; gap: 8px; } .tts-btns .btn { min-width: 0; white-space: nowrap; padding-left: 14px; padding-right: 14px; } .tts-btns .btn-soft { flex: 0 0 auto; } .tts-btns .btn-primary { flex: 1 1 0; overflow: hidden; text-overflow: ellipsis; }
     .l-speed { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 6px; margin: 4px 0 10px; font-size: .84rem; color: var(--muted); font-weight: 700; }
     .l-speed > button:not(.chip) { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-size: 1rem; font-weight: 700; }
     .l-speed b { min-width: 48px; text-align: center; color: var(--ink); font-variant-numeric: tabular-nums; }
@@ -2050,6 +2050,57 @@
       .btn:active:not(:disabled), :is(.tile, .mode, .book, .teach-card, .wq-lv, .grade-btn, .src, .cl-asg):active { transform: none !important; }
       .toast { transition: opacity .01ms; }
     }
+
+    /* ---- 주간 리포트 (통계 맨 위) ---- */
+    .wr-range { font-size: 13px; font-weight: 500; }
+    .wr-msg { margin: 6px 0 18px; font-size: 20px; font-weight: 700; letter-spacing: -.02em; line-height: 1.4; color: var(--ink); word-break: keep-all; }
+    .wr-msg em { font-style: normal; color: var(--blue); }
+    .wr-cmp { display: grid; gap: 10px; }
+    .wr-row { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; align-items: center; gap: 10px; font-size: 13px; font-weight: 600; color: var(--ink-2); }
+    .wr-row b { min-width: 48px; text-align: right; font-size: 15px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+    .wr-track { height: 12px; border-radius: 99px; background: var(--surface-2); overflow: hidden; }
+    .wr-track i { display: block; height: 100%; min-width: 0; border-radius: inherit; background: var(--blue); transition: width .5s var(--spring); }
+    .wr-row.prev .wr-track i { background: var(--off); }
+    .wr-row.prev b { color: var(--ink-2); font-weight: 600; }
+    .wr-kv { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 18px; }
+    .wr-kv > div { background: var(--surface-2); border-radius: 16px; padding: 14px 14px 12px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .wr-kv span { font-size: 13px; font-weight: 500; color: var(--muted); }
+    .wr-kv b { font-size: 20px; font-weight: 800; letter-spacing: -.03em; color: var(--ink); font-variant-numeric: tabular-nums; }
+    .wr-kv em { font-style: normal; font-size: 12px; font-weight: 600; color: var(--muted); word-break: keep-all; line-height: 1.35; }
+    .wr-kv em.up { color: var(--mint); }
+    body.dark .wr-kv > div { background: var(--bg); }
+    body.dark .wr-track { background: var(--surface-3); }
+    @media (min-width: 900px) {
+      #tabStats .wr { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); column-gap: 28px; align-items: center; }
+      #tabStats .wr .card-head { grid-column: 1 / -1; }
+      .wr-kv { grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: 0; grid-column: 2; grid-row: 2 / span 2; }
+      .wr-msg { margin-top: 2px; }
+    }
+
+    /* ---- 연속 학습 보호권 ---- */
+    .streak-fire { position: relative; }
+    .frz-badge { position: absolute; right: -7px; bottom: -5px; display: inline-flex; align-items: center; gap: 1px; height: 18px; padding: 0 5px 0 3px; border-radius: 99px; background: var(--blue); color: #fff; box-shadow: 0 0 0 2px var(--surface); font-size: 11px; line-height: 1; }
+    .frz-badge .ic { width: 12px !important; height: 12px !important; stroke-width: 2.4; }
+    .frz-badge b { font-weight: 800; font-variant-numeric: tabular-nums; }
+    .day.frz i { background: var(--blue-soft); color: var(--blue); }
+    .day.frz { color: var(--blue); letter-spacing: -.05em; white-space: nowrap; font-size: 10px; }
+    .day.frz i .ic { width: 15px; height: 15px; }
+    /* 좁은 폰(360~390px)에서 요일 점이 카드 밖으로 밀리지 않게 남은 폭을 7칸으로 나눠요 */
+    .streak-card .week { flex: 1 1 0; min-width: 0; gap: 0; }
+    .streak-card .day { flex: 1 1 0; min-width: 0; }
+    .streak-card .day i { width: 100%; max-width: 24px; height: auto; aspect-ratio: 1; }
+    @media (max-width: 380px) { .streak-card { gap: 10px; padding-left: 16px; padding-right: 16px; } }
+
+    /* ---- 설정: 토스식 스위치 ---- */
+    .tg-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; cursor: pointer; }
+    .tg-txt { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+    .tg-txt b { font-size: 16px; font-weight: 600; color: var(--ink); }
+    .tg-txt small { font-size: 13px; font-weight: 500; color: var(--muted); line-height: 1.45; word-break: keep-all; }
+    .tg { -webkit-appearance: none; appearance: none; flex: none; position: relative; width: 50px; height: 30px; margin: 0; border-radius: 99px; background: var(--surface-3); cursor: pointer; transition: background-color .2s var(--ease); }
+    .tg::after { content: ''; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; box-shadow: 0 2px 4px rgba(0, 27, 55, .18); transition: transform .25s var(--spring); }
+    .tg:checked { background: var(--blue); }
+    .tg:checked::after { transform: translateX(20px); }
+    .tg:focus-visible { outline: none; box-shadow: var(--ring); }
   </style>
 </head>
 <body>
@@ -2107,6 +2158,11 @@
     <div class="settings-card">
       <div class="settings-title">읽어주기 · 목소리</div>
       <div id="ttsBox" class="tts-box"></div>
+    </div>
+
+    <div class="settings-card">
+      <div class="settings-title">학습 반응</div>
+      <label class="tg-row"><span class="tg-txt"><b>진동 피드백</b><small id="hapticSub">맞히면 톡, 틀리면 부르르 짧게 울려요</small></span><input type="checkbox" class="tg" id="cfgHaptic" role="switch" data-change="haptic" aria-label="진동 피드백"></label>
     </div>
 
     <details class="settings-card adv">
@@ -2356,7 +2412,8 @@ window.VOCA_CLOUD = {
     bell: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4l2-2z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>',
     translate: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>',
     rows: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="7" height="5" rx="1.5"/><rect x="12" y="4" width="9" height="5" rx="1.5"/><rect x="3" y="15" width="10" height="5" rx="1.5"/><path d="M16 17.5h5M19 15l2.5 2.5L19 20"/></svg>',
-    podium: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21V10h6v11M3 21v-6h6M15 21v-8h6v8M2 21h20"/><path d="M12 2.5l.9 1.9 2 .3-1.5 1.4.4 2-1.8-1-1.8 1 .4-2-1.5-1.4 2-.3z"/></svg>'
+    podium: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21V10h6v11M3 21v-6h6M15 21v-8h6v8M2 21h20"/><path d="M12 2.5l.9 1.9 2 .3-1.5 1.4.4 2-1.8-1-1.8 1 .4-2-1.5-1.4 2-.3z"/></svg>',
+    shield: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 2.8v5.4c0 4.4-3 8-7 9.8-4-1.8-7-5.4-7-9.8V5.8z"/><path d="M9 12l2.2 2.2L15.5 10"/></svg>',
   }, {
     /* 없는 이름을 쓰면 'undefined' 글자 대신 기본 아이콘(별)을 그려요. */
     get: (o, k) => (k in o || typeof k !== 'string' ? o[k] : (console.warn('IC: 없는 아이콘', k), o.sparkles))
@@ -2464,6 +2521,7 @@ window.VOCA_CLOUD = {
     goal: el => { config.goal = parseInt(el.value, 10) || 20; syncStorage(); },
     'tts-voice': el => { config.voice = Object.assign({ en: '', zh: '', ko: '' }, config.voice); config.voice[el.dataset.l] = el.value; syncStorage(); ttsTry(el.dataset.l); },
     'tts-match': el => { config.matchVoice = el.checked; syncStorage(); },
+    haptic: el => { config.haptic = el.checked; syncStorage(); if (el.checked) haptic(true); },
     provider: el => onProviderChange(el.value),
     rm: () => rmSave(),
     'import-backup': (el, e) => importBackup(e),
@@ -2497,7 +2555,7 @@ window.VOCA_CLOUD = {
     models: { gemini: '', xai: '', openai: '', anthropic: '' },
     modelLists: { gemini: [], xai: [], openai: [], anthropic: [] },
     ttsRate: 0.9, koRate: 1, ttsPitch: 1, gap: 0.9, wordRep: 1, matchVoice: true, voice: { en: '', zh: '', ko: '' },
-    goal: 20, darkMode: false, grade: '', lang: 'en'
+    goal: 20, darkMode: false, grade: '', lang: 'en', haptic: true
   };
 
   function sanitizeNote(n) {
@@ -2555,11 +2613,15 @@ window.VOCA_CLOUD = {
         if (/^\d{4}-\d{2}-\d{2}$/.test(k)) {
           const d = s.days[k] || {};
           days[k] = { n: Math.max(0, Math.floor(+d.n) || 0), ok: Math.max(0, Math.floor(+d.ok) || 0) };
+          if (+d.m > 0) days[k].m = Math.floor(+d.m); // 그날 새로 마스터한 단어 수(주간 리포트)
         }
       }
     }
     const tests = Array.isArray(s && s.tests) ? s.tests.filter(t => t && +t.d > 0 && +t.n > 0).slice(-30).map(t => ({ d: +t.d, n: Math.floor(+t.n), ok: Math.max(0, Math.floor(+t.ok) || 0), sec: Math.max(0, Math.floor(+t.sec) || 0), src: String(t.src || '').slice(0, 40) })) : [];
-    return tests.length ? { days, tests } : { days };
+    const o = { days };
+    if (tests.length) o.tests = tests;
+    if (s && /^\d{4}-\d{2}-\d{2}$/.test(s.frzSeen)) o.frzSeen = s.frzSeen; // 보호권 알림을 이미 보여 준 날
+    return o;
   }
   const defaultCats = () => [
     { id: 'cat_today', name: '오늘 (Day 1)', words: [] },
@@ -2585,6 +2647,7 @@ window.VOCA_CLOUD = {
       ttsCfgIn(cfg, saved);
       cfg.goal = saved.goal || cfg.goal;
       cfg.darkMode = !!saved.darkMode;
+      if (typeof saved.haptic === 'boolean') cfg.haptic = saved.haptic;
       cfg.lang = saved.lang === 'zh' ? 'zh' : 'en';
       cfg.grade = GRADE_NAMES[saved.grade] ? saved.grade : '';
       cfg.role = saved.role === 'teacher' ? 'teacher' : '';
@@ -2655,7 +2718,10 @@ window.VOCA_CLOUD = {
     const today = startOfDay();
     const key = dayKey();
     if (ok) {
-      if (w.last !== key) { w.box = Math.min(5, w.box + 1); w.due = addDays(today, INTERVALS[w.box]); }
+      if (w.last !== key) {
+        const was = w.box; w.box = Math.min(5, w.box + 1); w.due = addDays(today, INTERVALS[w.box]);
+        if (was < 5 && w.box === 5) { const d = stats.days[key] || (stats.days[key] = { n: 0, ok: 0 }); d.m = (d.m || 0) + 1; }
+      }
       w.reps++;
       if (w.miss > 0) w.miss--;
     } else {
@@ -2670,23 +2736,37 @@ window.VOCA_CLOUD = {
     if (diff === 1) return '내일 복습';
     return diff + '일 뒤 복습';
   }
-  function streak() {
-    let t = startOfDay();
-    const has = x => (stats.days[dayKey(x)] || {}).n > 0;
-    if (!has(t)) t = addDays(t, -1);
-    let n = 0;
-    while (has(t)) { n++; t = addDays(t, -1); }
-    return n;
-  }
-  function bestStreak() {
-    const keys = Object.keys(stats.days).filter(k => stats.days[k].n > 0).sort();
-    let best = 0, cur = 0, prev = null;
+  /* 연속 학습 + 보호권(Duolingo 의 스트릭 프리즈처럼): 7일 연속을 채울 때마다 1장(최대 2장)을 받고,
+     딱 하루를 빠지면 갖고 있던 보호권이 저절로 그날을 지켜 줘요(보호된 날은 연속 일수에 더하지 않아요).
+     따로 저장하지 않고 stats.days 만으로 처음부터 다시 세서, 다른 기기·반 리포트에서도 같은 숫자가 나와요. */
+  const FRZ_EVERY = 7, FRZ_MAX = 2;
+  const dNum = k => Date.UTC(+k.slice(0, 4), +k.slice(5, 7) - 1, +k.slice(8, 10)) / DAY;
+  const dKeyOf = n => new Date(n * DAY).toISOString().slice(0, 10);
+  function streakInfo() {
+    const keys = Object.keys(stats.days).filter(k => stats.days[k].n > 0).sort(), prot = [];
+    let cur = 0, best = 0, frz = 0, prev = null;
     keys.forEach(k => {
-      const t = new Date(k + 'T00:00:00').getTime();
-      cur = (prev !== null && Math.round((t - prev) / DAY) === 1) ? cur + 1 : 1;
+      const t = dNum(k), g = prev === null ? 0 : t - prev;
+      if (g === 1) cur++;
+      else if (g === 2 && frz > 0) { frz--; prot.push(dKeyOf(t - 1)); cur++; }
+      else cur = 1;
+      if (cur % FRZ_EVERY === 0) frz = Math.min(FRZ_MAX, frz + 1);
       best = Math.max(best, cur); prev = t;
     });
-    return best;
+    const g = prev === null ? 99 : dNum(dayKey()) - prev;
+    let n = g <= 1 ? cur : 0;
+    if (g === 2 && frz > 0) { frz--; prot.push(dKeyOf(prev + 1)); n = cur; } // 어제를 빠졌어요: 오늘 하면 이어져요
+    return { n, best, frz, prot };
+  }
+  function streak() { return streakInfo().n; }
+  function bestStreak() { return streakInfo().best; }
+  // 보호권이 새로 쓰였으면 한 번만 알려 줘요(오래된 기록은 조용히 넘어가요)
+  function frzNotice(si) {
+    const last = si.prot[si.prot.length - 1];
+    if (!last || last <= (stats.frzSeen || '') || dNum(dayKey()) - dNum(last) > 7) return;
+    stats.frzSeen = last; syncStorage();
+    const when = last === dayKey(addDays(startOfDay(), -1)) ? '어제' : `${+last.slice(5, 7)}월 ${+last.slice(8, 10)}일`;
+    toast(`보호권이 ${when}${when === '어제' ? '를' : '을'} 지켜 줬어요. ${si.n}일 연속 그대로예요!`);
   }
   function recordStat(ok) {
     const k = dayKey();
@@ -2787,7 +2867,7 @@ window.VOCA_CLOUD = {
     const goal = config.goal || 20;
     const today = stats.days[dayKey()] || { n: 0, ok: 0 };
     const pct = Math.min(1, today.n / goal);
-    const st = streak();
+    const si = streakInfo(), st = si.n, prot = new Set(si.prot);
 
     let cta;
     if (c.total === 0) cta = { big: '0', unit: '개', label: '오늘의 복습', sub: '단어를 추가하면 복습 일정이 자동으로 만들어져요.', btn: '단어 추가하기', attrs: 'data-act="tab" data-t="tabBooks"' };
@@ -2799,8 +2879,8 @@ window.VOCA_CLOUD = {
     let week = '';
     for (let i = 6; i >= 0; i--) {
       const t = addDays(startOfDay(), -i);
-      const d = stats.days[dayKey(t)];
-      week += `<div class="day ${d && d.n > 0 ? 'done' : ''} ${i === 0 ? 'today' : ''}"><i>${d && d.n > 0 ? IC.tick : ''}</i>${labels[new Date(t).getDay()]}</div>`;
+      const d = stats.days[dayKey(t)], fz = prot.has(dayKey(t)); // 보호권이 지켜 준 날은 방패로 표시해요
+      week += `<div class="day ${d && d.n > 0 ? 'done' : fz ? 'frz' : ''} ${i === 0 ? 'today' : ''}"${fz ? ' title="보호됨" aria-label="보호됨"' : ''}><i>${d && d.n > 0 ? IC.tick : fz ? IC.shield : ''}</i>${fz ? '보호됨' : labels[new Date(t).getDay()]}</div>`;
     }
 
     const hour = new Date().getHours();
@@ -2826,8 +2906,8 @@ window.VOCA_CLOUD = {
       </section></div>
 
       <div class="h-streak"><div class="card streak-card">
-        <div class="streak-fire ${st > 0 ? '' : 'off'}">${st > 0 ? IC.flame : IC.sprout}</div>
-        <div class="streak-txt"><div class="streak-n">${st}일 연속</div><div class="muted">${st > 0 ? '학습 중이에요' : '오늘 시작해요'}</div></div>
+        <div class="streak-fire ${st > 0 ? '' : 'off'}">${st > 0 ? IC.flame : IC.sprout}${si.frz ? `<span class="frz-badge" title="연속 학습 보호권 ${si.frz}장" aria-label="보호권 ${si.frz}장">${IC.shield}<b>${si.frz}</b></span>` : ''}</div>
+        <div class="streak-txt"><div class="streak-n">${st}일 연속</div><div class="muted">${st > 0 && today.n === 0 && prot.has(dayKey(addDays(startOfDay(), -1))) ? '어제 보호됨' : si.frz ? `보호권 ${si.frz}장` : st > 0 ? `보호권까지 ${FRZ_EVERY - st % FRZ_EVERY}일` : '오늘 시작해요'}</div></div>
         <div class="week">${week}</div>
       </div>${wotdHtml()}</div>
 
@@ -2848,7 +2928,7 @@ window.VOCA_CLOUD = {
       <div class="book-list">${books || emptyHtml('아직 단어장이 없어요', '단어장 탭에서 새로 만들어 보세요.')}</div></div>
       </div>
     `;
-    recMaybeShow(); wotdFill();
+    recMaybeShow(); wotdFill(); frzNotice(si);
   }
 
   ACTIONS.start = el => startSession(el.dataset.mode, parseSrc(el.dataset.src), el.dataset.count !== undefined ? parseInt(el.dataset.count, 10) : SESSION_DEFAULT);
@@ -3482,7 +3562,12 @@ window.VOCA_CLOUD = {
     if (S.mode === 'test') return;
     const b = document.body; b.classList.remove('ans-ok', 'ans-no'); void b.offsetWidth; b.classList.add(ok ? 'ans-ok' : 'ans-no');
     clearTimeout(fxTimer); fxTimer = setTimeout(() => b.classList.remove('ans-ok', 'ans-no'), 600);
-    try { if (navigator.vibrate) navigator.vibrate(ok ? 12 : [24, 40, 24]); } catch (e) {}
+    haptic(ok);
+  }
+  /* 진동 피드백: 정답은 톡(10ms), 오답은 두 번 부르르. 설정에서 끌 수 있고, 진동이 없는 기기에선 아무 일도 안 해요. */
+  function haptic(ok) {
+    if (config.haptic === false) return;
+    try { if (navigator.vibrate) navigator.vibrate(ok ? 10 : [30, 40, 30]); } catch (e) {}
   }
 
   /* ----- 플래시카드 ----- */
@@ -3750,12 +3835,12 @@ window.VOCA_CLOUD = {
     const ok = r.opts[i] === r.cur, btn = $('rnOpts').children[i];
     if (!ok) return rnMiss(i);
     r.lock = true; cancelAnimationFrame(r.raf); r.n++; r.score += 10 + Math.max(0, Math.round((100 - r.y) / 10));
-    btn.classList.add('correct'); $('rnDrop').classList.add('pop'); $('rnScore').textContent = r.score + '점';
+    btn.classList.add('correct'); $('rnDrop').classList.add('pop'); haptic(true); $('rnScore').textContent = r.score + '점';
     playAudio(r.cur.word); setTimeout(() => RN === r && rnNext(), 450);
   }
   function rnMiss(i) {
     const r = RN; if (!r) return;
-    r.lock = true; cancelAnimationFrame(r.raf); r.life--;
+    r.lock = true; cancelAnimationFrame(r.raf); r.life--; haptic(false);
     const btns = $('rnOpts').children; if (i >= 0 && btns[i]) btns[i].classList.add('wrong');
     const ci = r.opts.indexOf(r.cur); if (btns[ci]) btns[ci].classList.add('correct');
     $('rnDrop').classList.add('miss'); $('rnLife').innerHTML = [0, 1, 2].map(k => `<i class="${k < r.life ? 'on' : ''}"></i>`).join('');
@@ -3894,7 +3979,7 @@ window.VOCA_CLOUD = {
       const t = document.createElement('em'); t.className = 'wq-pen'; t.textContent = `-${WQ_PEN}초`; const tp = document.querySelector('#wqOv .wq-clock'); if (tp) tp.appendChild(t);
     }
     const b = document.body; b.classList.remove('ans-ok', 'ans-no'); void b.offsetWidth; b.classList.add(ok ? 'ans-ok' : 'ans-no'); clearTimeout(fxTimer); fxTimer = setTimeout(() => b.classList.remove('ans-ok', 'ans-no'), 600);
-    try { if (navigator.vibrate) navigator.vibrate(ok ? 12 : [24, 40, 24]); } catch (e) {}
+    haptic(ok);
     const sc = $('wqScore'); if (sc) sc.textContent = g.score.toLocaleString() + '점';
     wqTime(); if (g.view !== 'play') return;
     setTimeout(() => { if (WQ !== g || g.view !== 'play') return; wqQuestion(); wqDraw(); }, ok ? 260 : 750);
@@ -4436,6 +4521,50 @@ window.VOCA_CLOUD = {
   /* =========================================================
    * 통계
    * ======================================================= */
+  /* 주간 리포트: 이번 주(월~일)와 지난주를 stats.days 로 비교해요. m 은 그날 새로 마스터한 단어 수예요. */
+  function weekReport() {
+    const t0 = startOfDay(), di = (new Date(t0).getDay() + 6) % 7, mon = addDays(t0, -di);
+    const wk = start => {
+      const o = { n: 0, ok: 0, days: 0, m: 0, best: null };
+      for (let i = 0; i < 7; i++) {
+        const t = addDays(start, i), d = stats.days[dayKey(t)] || {}, n = d.n || 0;
+        o.n += n; o.ok += d.ok || 0; o.m += d.m || 0;
+        if (n > 0) { o.days++; if (!o.best || n > o.best.n) o.best = { t, n }; }
+      }
+      o.acc = o.n ? Math.round(o.ok / o.n * 100) : null; return o;
+    };
+    return { mon, left: 6 - di, cur: wk(mon), prev: wk(addDays(mon, -7)) };
+  }
+  // 바뀐 만큼 한 줄 응원. 숫자만 넣어서 esc 가 필요 없어요.
+  function weekMsg(r) {
+    const a = r.cur.n, b = r.prev.n, d = a - b;
+    if (!a && !b) return '이번 주 첫 학습을 시작해 볼까요?';
+    if (!b) return `이번 주 벌써 <em>${a}개</em> 공부했어요. 좋은 출발이에요!`;
+    if (d > 0) return `지난주보다 <em>${d}개</em> 더 공부했어요. 대단해요!`;
+    if (d === 0) return '지난주만큼 꾸준히 공부했어요. 멋져요!';
+    if (!a) return `지난주엔 ${b}개 공부했어요. 이번 주도 시작해 볼까요?`;
+    if (r.left > 0) return `지난주 기록까지 <em>${-d}개</em> 남았어요. 조금만 더 힘내요!`;
+    return `지난주보다 ${-d}개 적었지만 괜찮아요. 다음 주에 다시 힘내요!`;
+  }
+  function weekReportHtml() {
+    const r = weekReport(), c = r.cur, p = r.prev, mx = Math.max(c.n, p.n, 1);
+    const md = t => `${new Date(t).getMonth() + 1}.${new Date(t).getDate()}`;
+    // 늘면 초록 +, 줄면 깎아내리지 않고 지난주 값만 보여 줘요
+    const delta = (x, y, u, pu = u) => x == null || y == null ? '' : x > y ? `<em class="up">지난주보다 +${x - y}${u}</em>` : x < y ? `<em>지난주 ${y}${pu}</em>` : '<em>지난주와 같아요</em>';
+    const DOW = ['일', '월', '화', '수', '목', '금', '토'];
+    const row = (lab, o, cls) => `<div class="wr-row ${cls}"><span>${lab}</span><div class="wr-track"><i style="width:${Math.round(o.n / mx * 100)}%"></i></div><b>${o.n}개</b></div>`;
+    return `<section class="card wr" aria-label="주간 리포트">
+        <div class="card-head"><b>주간 리포트</b><span class="muted wr-range">${md(r.mon)} – ${md(addDays(r.mon, 6))}</span></div>
+        <p class="wr-msg">${weekMsg(r)}</p>
+        <div class="wr-cmp">${row('이번 주', c, 'cur')}${row('지난주', p, 'prev')}</div>
+        <div class="wr-kv">
+          <div><span>정답률</span><b>${c.acc == null ? '–' : c.acc + '%'}</b>${delta(c.acc, p.acc, '%p', '%') || '<em>아직 기록이 없어요</em>'}</div>
+          <div><span>학습한 날</span><b>${c.days}일</b>${delta(c.days, p.days, '일')}</div>
+          <div><span>새로 마스터</span><b>${c.m}개</b>${delta(c.m, p.m, '개')}</div>
+          <div><span>최고의 날</span><b>${c.best ? DOW[new Date(c.best.t).getDay()] + '요일' : '–'}</b><em>${c.best ? c.best.n + '개 학습' : '아직 없어요'}</em></div>
+        </div>
+      </section>`;
+  }
   function renderStats() {
     const days = stats.days, goal = config.goal || 20, c = counts();
     let totalN = 0, totalOk = 0;
@@ -4471,6 +4600,7 @@ window.VOCA_CLOUD = {
     ].map(([on, ic, t, d]) => ({ on, ic, t, d }));
     $('tabStats').innerHTML = `
       <h2 class="page-title">학습 통계</h2>
+      ${weekReportHtml()}
       <div class="stat-tiles">
         <div class="stat-tile"><b>${streak()}일</b><span>연속 학습</span></div>
         <div class="stat-tile"><b>${bestStreak()}일</b><span>최고 기록</span></div>
@@ -5005,6 +5135,8 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     $('cfgProvider').value = config.provider;
     ttsUI();
     $('cfgGoal').value = String(config.goal);
+    $('cfgHaptic').checked = config.haptic !== false;
+    if (!('vibrate' in navigator)) $('hapticSub').textContent = '이 기기(브라우저)는 진동을 지원하지 않아서 켜 둬도 울리지 않아요.';
     $('cfgGrade').innerHTML = `<option value="">선택 안 함</option>${roleOptions(isTeacher() ? 'teacher' : config.grade)}`;
     onProviderChange(config.provider, true);
     $('cfgStatus').className = 'cfg-status';
@@ -5059,7 +5191,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
 
   /* ----- 백업 ----- */
   ACTIONS['export-json'] = () => {
-    const data = { app: 'VocaPro', version: 13, settings: { ...ttsCfgOut(), darkMode: config.darkMode, goal: config.goal, grade: config.grade }, ...dataBlob() };
+    const data = { app: 'VocaPro', version: 13, settings: { ...ttsCfgOut(), darkMode: config.darkMode, goal: config.goal, grade: config.grade, haptic: config.haptic !== false }, ...dataBlob() };
     download(`VocaPro_${dayKey()}.json`, JSON.stringify(data, null, 2), 'application/json');
     toast('백업 파일을 내려받았어요. API 키는 포함되지 않아요.');
   };
@@ -5082,6 +5214,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
           ttsCfgIn(config, res.settings);
           if (res.settings.goal) config.goal = parseInt(res.settings.goal, 10) || config.goal;
           if (typeof res.settings.darkMode === 'boolean') config.darkMode = res.settings.darkMode;
+          if (typeof res.settings.haptic === 'boolean') config.haptic = res.settings.haptic;
           if (GRADE_NAMES[res.settings.grade]) config.grade = res.settings.grade;
         }
         currentCategoryId = null; viewOrder = null; openDrawers.clear();
@@ -5290,10 +5423,10 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
       if (sel < 0) { sel = i; b.classList.add('sel'); if (tiles[i].en) playAudio(tiles[i].t); return; }
       const a = tiles[sel], c = tiles[i], ba = ov.querySelector(`[data-i="${sel}"]`);
       if (a.id === c.id && a.en !== c.en) {
-        [ba, b].forEach(x => { x.classList.remove('sel'); x.classList.add('ok'); }); sel = -1; done++;
+        [ba, b].forEach(x => { x.classList.remove('sel'); x.classList.add('ok'); }); sel = -1; done++; haptic(true);
         if (done === pick.length) { clearInterval(mgT); setTimeout(finish, 450); }
       } else {
-        wrong++; locked = true; [ba, b].forEach(x => x.classList.add('no'));
+        wrong++; locked = true; haptic(false); [ba, b].forEach(x => x.classList.add('no'));
         setTimeout(() => { [ba, b].forEach(x => x.classList.remove('no', 'sel')); sel = -1; locked = false; }, 450);
       }
     });
@@ -5586,7 +5719,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
       cloudStale = false;
       if (r && r.updated > cloudBaseTs) { applyRemote(r); if (!(S && S.active)) go(curTab); toast('서버에 더 새로운 저장본이 있어 그걸 불러왔어요.'); return; }
     }
-    const json = JSON.stringify({ ...dataBlob(), cfg: { ...ttsCfgOut(), goal: config.goal, darkMode: config.darkMode, provider: config.provider, grade: config.grade, role: config.role || '', profile: config.profile || cleanProfile(), gameName: config.gameName || '' } });
+    const json = JSON.stringify({ ...dataBlob(), cfg: { ...ttsCfgOut(), goal: config.goal, darkMode: config.darkMode, provider: config.provider, grade: config.grade, role: config.role || '', profile: config.profile || cleanProfile(), gameName: config.gameName || '', haptic: config.haptic !== false } });
     if (json.length > 900000) toast('데이터가 서버 저장 한도(약 1MB)에 가까워요. 단어장을 줄이거나 백업해 두세요.');
     const up = +LS.getItem(KEY_DATA + ':ts') || Date.now(), key = KEY_DATA;
     // 페이지를 떠날 때는 keepalive로 최대한 보내요(본문 64KB 제한이 있어 작을 때만)
@@ -5598,7 +5731,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     useBlob(d);
     if (d.cfg) {
       config.ttsRate = parseFloat(d.cfg.ttsRate) || config.ttsRate; ttsCfgIn(config, d.cfg); config.goal = parseInt(d.cfg.goal, 10) || config.goal;
-      config.darkMode = !!d.cfg.darkMode; if (PROVIDERS[d.cfg.provider]) config.provider = d.cfg.provider;
+      config.darkMode = !!d.cfg.darkMode; if (typeof d.cfg.haptic === 'boolean') config.haptic = d.cfg.haptic; if (PROVIDERS[d.cfg.provider]) config.provider = d.cfg.provider;
       if (GRADE_NAMES[d.cfg.grade]) config.grade = d.cfg.grade;
       if (d.cfg.role !== undefined) config.role = d.cfg.role === 'teacher' ? 'teacher' : '';
       if (d.cfg.profile) config.profile = cleanProfile(d.cfg.profile);
@@ -5809,14 +5942,14 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     const it = FL.items[FL.i], w = it.w, rev = FL.step === 3, ans = rev ? w.word : w.meaning, ok = v === ans;
     if (FL.step === 3) FL.res[w.id] = ok; if (!ok) FL.miss[w.id] = true;
     $('flOv').querySelectorAll('.opt').forEach(b => { if (b.dataset.v === ans) b.classList.add('correct'); else if (b.dataset.v === v) b.classList.add('wrong'); });
-    flAdvance(ok ? 450 : 1000);
+    haptic(ok); flAdvance(ok ? 450 : 1000);
   }
   function flType() {
     if (!FL) return; const it = FL.items[FL.i], w = it.w, inp = $('flIn'), fb = $('flFb'), btn = $('flGo'); if (!inp) return;
     if (FL.locked) { FL.i++; return flDraw(); }
     const v = inp.value.trim().toLowerCase(); if (!v) return toast('단어를 입력해 주세요.');
     const ok = answerOk(v, w); if (!ok) FL.miss[w.id] = true;
-    FL.locked = true; inp.disabled = true;
+    FL.locked = true; inp.disabled = true; haptic(ok);
     fb.innerHTML = ok ? `<b style="color:var(--blue)">정답이에요!${w.phonetic && isHanWord(w.word) ? ` ${esc(w.word)} ${esc(w.phonetic)}` : ''}</b>` : `<b style="color:var(--coral)">정답: ${esc(w.word)}${w.phonetic && isHanWord(w.word) ? ` (${esc(w.phonetic)})` : ''}</b>`;
     btn.textContent = '다음';
   }

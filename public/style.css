@@ -1366,7 +1366,7 @@
     .tts-play .ic { width: 20px; height: 20px; }
     .tts-match { font-size: .84rem; flex-wrap: wrap; } .tts-match small { font-weight: 500; }
     .tts-note { font-size: .82rem; margin: 0; }
-    .tts-btns { display: flex; gap: 8px; } .tts-btns .btn-primary { flex: 1; }
+    .tts-btns { display: flex; gap: 8px; } .tts-btns .btn { min-width: 0; white-space: nowrap; padding-left: 14px; padding-right: 14px; } .tts-btns .btn-soft { flex: 0 0 auto; } .tts-btns .btn-primary { flex: 1 1 0; overflow: hidden; text-overflow: ellipsis; }
     .l-speed { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 6px; margin: 4px 0 10px; font-size: .84rem; color: var(--muted); font-weight: 700; }
     .l-speed > button:not(.chip) { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-size: 1rem; font-weight: 700; }
     .l-speed b { min-width: 48px; text-align: center; color: var(--ink); font-variant-numeric: tabular-nums; }
@@ -2025,3 +2025,54 @@
       .btn:active:not(:disabled), :is(.tile, .mode, .book, .teach-card, .wq-lv, .grade-btn, .src, .cl-asg):active { transform: none !important; }
       .toast { transition: opacity .01ms; }
     }
+
+    /* ---- 주간 리포트 (통계 맨 위) ---- */
+    .wr-range { font-size: 13px; font-weight: 500; }
+    .wr-msg { margin: 6px 0 18px; font-size: 20px; font-weight: 700; letter-spacing: -.02em; line-height: 1.4; color: var(--ink); word-break: keep-all; }
+    .wr-msg em { font-style: normal; color: var(--blue); }
+    .wr-cmp { display: grid; gap: 10px; }
+    .wr-row { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; align-items: center; gap: 10px; font-size: 13px; font-weight: 600; color: var(--ink-2); }
+    .wr-row b { min-width: 48px; text-align: right; font-size: 15px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+    .wr-track { height: 12px; border-radius: 99px; background: var(--surface-2); overflow: hidden; }
+    .wr-track i { display: block; height: 100%; min-width: 0; border-radius: inherit; background: var(--blue); transition: width .5s var(--spring); }
+    .wr-row.prev .wr-track i { background: var(--off); }
+    .wr-row.prev b { color: var(--ink-2); font-weight: 600; }
+    .wr-kv { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 18px; }
+    .wr-kv > div { background: var(--surface-2); border-radius: 16px; padding: 14px 14px 12px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .wr-kv span { font-size: 13px; font-weight: 500; color: var(--muted); }
+    .wr-kv b { font-size: 20px; font-weight: 800; letter-spacing: -.03em; color: var(--ink); font-variant-numeric: tabular-nums; }
+    .wr-kv em { font-style: normal; font-size: 12px; font-weight: 600; color: var(--muted); word-break: keep-all; line-height: 1.35; }
+    .wr-kv em.up { color: var(--mint); }
+    body.dark .wr-kv > div { background: var(--bg); }
+    body.dark .wr-track { background: var(--surface-3); }
+    @media (min-width: 900px) {
+      #tabStats .wr { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); column-gap: 28px; align-items: center; }
+      #tabStats .wr .card-head { grid-column: 1 / -1; }
+      .wr-kv { grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: 0; grid-column: 2; grid-row: 2 / span 2; }
+      .wr-msg { margin-top: 2px; }
+    }
+
+    /* ---- 연속 학습 보호권 ---- */
+    .streak-fire { position: relative; }
+    .frz-badge { position: absolute; right: -7px; bottom: -5px; display: inline-flex; align-items: center; gap: 1px; height: 18px; padding: 0 5px 0 3px; border-radius: 99px; background: var(--blue); color: #fff; box-shadow: 0 0 0 2px var(--surface); font-size: 11px; line-height: 1; }
+    .frz-badge .ic { width: 12px !important; height: 12px !important; stroke-width: 2.4; }
+    .frz-badge b { font-weight: 800; font-variant-numeric: tabular-nums; }
+    .day.frz i { background: var(--blue-soft); color: var(--blue); }
+    .day.frz { color: var(--blue); letter-spacing: -.05em; white-space: nowrap; font-size: 10px; }
+    .day.frz i .ic { width: 15px; height: 15px; }
+    /* 좁은 폰(360~390px)에서 요일 점이 카드 밖으로 밀리지 않게 남은 폭을 7칸으로 나눠요 */
+    .streak-card .week { flex: 1 1 0; min-width: 0; gap: 0; }
+    .streak-card .day { flex: 1 1 0; min-width: 0; }
+    .streak-card .day i { width: 100%; max-width: 24px; height: auto; aspect-ratio: 1; }
+    @media (max-width: 380px) { .streak-card { gap: 10px; padding-left: 16px; padding-right: 16px; } }
+
+    /* ---- 설정: 토스식 스위치 ---- */
+    .tg-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; cursor: pointer; }
+    .tg-txt { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+    .tg-txt b { font-size: 16px; font-weight: 600; color: var(--ink); }
+    .tg-txt small { font-size: 13px; font-weight: 500; color: var(--muted); line-height: 1.45; word-break: keep-all; }
+    .tg { -webkit-appearance: none; appearance: none; flex: none; position: relative; width: 50px; height: 30px; margin: 0; border-radius: 99px; background: var(--surface-3); cursor: pointer; transition: background-color .2s var(--ease); }
+    .tg::after { content: ''; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; box-shadow: 0 2px 4px rgba(0, 27, 55, .18); transition: transform .25s var(--spring); }
+    .tg:checked { background: var(--blue); }
+    .tg:checked::after { transform: translateX(20px); }
+    .tg:focus-visible { outline: none; box-shadow: var(--ring); }

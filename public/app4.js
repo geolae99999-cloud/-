@@ -122,7 +122,12 @@
     if (S.mode === 'test') return;
     const b = document.body; b.classList.remove('ans-ok', 'ans-no'); void b.offsetWidth; b.classList.add(ok ? 'ans-ok' : 'ans-no');
     clearTimeout(fxTimer); fxTimer = setTimeout(() => b.classList.remove('ans-ok', 'ans-no'), 600);
-    try { if (navigator.vibrate) navigator.vibrate(ok ? 12 : [24, 40, 24]); } catch (e) {}
+    haptic(ok);
+  }
+  /* 진동 피드백: 정답은 톡(10ms), 오답은 두 번 부르르. 설정에서 끌 수 있고, 진동이 없는 기기에선 아무 일도 안 해요. */
+  function haptic(ok) {
+    if (config.haptic === false) return;
+    try { if (navigator.vibrate) navigator.vibrate(ok ? 10 : [30, 40, 30]); } catch (e) {}
   }
 
   /* ----- 플래시카드 ----- */
@@ -390,12 +395,12 @@
     const ok = r.opts[i] === r.cur, btn = $('rnOpts').children[i];
     if (!ok) return rnMiss(i);
     r.lock = true; cancelAnimationFrame(r.raf); r.n++; r.score += 10 + Math.max(0, Math.round((100 - r.y) / 10));
-    btn.classList.add('correct'); $('rnDrop').classList.add('pop'); $('rnScore').textContent = r.score + '점';
+    btn.classList.add('correct'); $('rnDrop').classList.add('pop'); haptic(true); $('rnScore').textContent = r.score + '점';
     playAudio(r.cur.word); setTimeout(() => RN === r && rnNext(), 450);
   }
   function rnMiss(i) {
     const r = RN; if (!r) return;
-    r.lock = true; cancelAnimationFrame(r.raf); r.life--;
+    r.lock = true; cancelAnimationFrame(r.raf); r.life--; haptic(false);
     const btns = $('rnOpts').children; if (i >= 0 && btns[i]) btns[i].classList.add('wrong');
     const ci = r.opts.indexOf(r.cur); if (btns[ci]) btns[ci].classList.add('correct');
     $('rnDrop').classList.add('miss'); $('rnLife').innerHTML = [0, 1, 2].map(k => `<i class="${k < r.life ? 'on' : ''}"></i>`).join('');

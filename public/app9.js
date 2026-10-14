@@ -284,7 +284,7 @@
       cloudStale = false;
       if (r && r.updated > cloudBaseTs) { applyRemote(r); if (!(S && S.active)) go(curTab); toast('서버에 더 새로운 저장본이 있어 그걸 불러왔어요.'); return; }
     }
-    const json = JSON.stringify({ ...dataBlob(), cfg: { ...ttsCfgOut(), goal: config.goal, darkMode: config.darkMode, provider: config.provider, grade: config.grade, role: config.role || '', profile: config.profile || cleanProfile(), gameName: config.gameName || '' } });
+    const json = JSON.stringify({ ...dataBlob(), cfg: { ...ttsCfgOut(), goal: config.goal, darkMode: config.darkMode, provider: config.provider, grade: config.grade, role: config.role || '', profile: config.profile || cleanProfile(), gameName: config.gameName || '', haptic: config.haptic !== false } });
     if (json.length > 900000) toast('데이터가 서버 저장 한도(약 1MB)에 가까워요. 단어장을 줄이거나 백업해 두세요.');
     const up = +LS.getItem(KEY_DATA + ':ts') || Date.now(), key = KEY_DATA;
     // 페이지를 떠날 때는 keepalive로 최대한 보내요(본문 64KB 제한이 있어 작을 때만)
@@ -296,7 +296,7 @@
     useBlob(d);
     if (d.cfg) {
       config.ttsRate = parseFloat(d.cfg.ttsRate) || config.ttsRate; ttsCfgIn(config, d.cfg); config.goal = parseInt(d.cfg.goal, 10) || config.goal;
-      config.darkMode = !!d.cfg.darkMode; if (PROVIDERS[d.cfg.provider]) config.provider = d.cfg.provider;
+      config.darkMode = !!d.cfg.darkMode; if (typeof d.cfg.haptic === 'boolean') config.haptic = d.cfg.haptic; if (PROVIDERS[d.cfg.provider]) config.provider = d.cfg.provider;
       if (GRADE_NAMES[d.cfg.grade]) config.grade = d.cfg.grade;
       if (d.cfg.role !== undefined) config.role = d.cfg.role === 'teacher' ? 'teacher' : '';
       if (d.cfg.profile) config.profile = cleanProfile(d.cfg.profile);
