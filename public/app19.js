@@ -14,8 +14,8 @@
   const clMsg = e => e && e.code === 'sp_missing' ? SP_MISSING : CL_ERR[e && e.code] || '잠시 후 다시 시도해 주세요.';
   const CL_KIND = { test: '시험', study: '단어 학습', speak: '발음 평가' };
   const clCount = a => a.kind === 'speak' ? `${a.count}문항` : `${a.count}단어`;
-  // 학생 목록 오른쪽: 발음 평가는 채점이 끝나야 점수를 보여 줘요
-  const clMine = a => !a.mine ? '<span class="cl-todo">시작</span>' : a.kind === 'speak' && a.mine.n && a.mine.ok < a.mine.n ? '<span class="cl-done sp-wait">채점 중</span>' : `<span class="cl-done">${esc(a.mine.score)}점</span>`;
+  // 학생 목록 오른쪽: 발음 평가는 선생님이 점수를 매겨야 점수를, 그전에는 '제출 완료' (AI 점수는 학생에게 오지 않아요)
+  const clMine = a => !a.mine ? '<span class="cl-todo">시작</span>' : a.kind === 'speak' && a.mine.score == null ? '<span class="cl-done sp-wait">제출 완료</span>' : `<span class="cl-done">${esc(a.mine.score)}점</span>`;
   const clKey = () => 'vocapro_cls:' + currentUser;
   const clCache = () => loadJson(clKey()) || { joined: 0, pending: 0 };
   let CL = null, CLV = { id: null, tab: 'stu', open: null, data: null };
@@ -178,7 +178,7 @@
       <div class="seg" id="caNum">${[10, 20, 30, 50].map(k => `<button class="${k === 20 ? 'on' : ''}" data-act="pt-opt" data-g="caNum" data-v="${k}">${k}문제</button>`).join('')}</div></div>
       <div id="caSpBox" class="form-stack" hidden><label class="setting-label">읽을 내용</label>
       <div class="seg" id="caSp"><button class="on" data-act="pt-opt" data-g="caSp" data-v="w">단어만</button><button data-act="pt-opt" data-g="caSp" data-v="s">예문까지</button></div>
-      <p class="muted cl-p">단어장 앞에서부터 20개까지 들어가요. '예문까지'는 예문이 있는 단어는 예문을, 없으면 단어를 읽어요. 학생이 녹음해 내면 AI가 0~100점으로 채점하고, 선생님이 듣고 점수를 고칠 수 있어요. 녹음은 선생님과 학생 본인만 들을 수 있고 60일 뒤 지워져요.</p></div>
+      <p class="muted cl-p">단어장 앞에서부터 20개까지 들어가요. '예문까지'는 예문이 있는 단어는 예문을, 없으면 단어를 읽어요. 학생이 앱에서 녹음해 제출하면 선생님 보드에 바로 모여요. 선생님이 듣고 AI 채점(0~100점)을 누르거나 직접 점수를 매겨요. 학생에게는 선생님이 매긴 점수만 보여요. 녹음은 작은 MP3로 저장하고, 선생님과 학생 본인만 들을 수 있고 60일 뒤 지워져요.</p></div>
       <label class="setting-label" for="caDue">마감일</label>
       <input type="date" id="caDue" value="${dv}">
       <p class="muted cl-p" id="caNote">학생은 단어장을 그대로 받아 풀고, 끝나면 점수와 틀린 단어가 자동으로 제출돼요. 여러 번 풀면 가장 높은 점수가 남아요.</p>

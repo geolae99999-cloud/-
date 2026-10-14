@@ -2115,8 +2115,8 @@
     .sp-sc { flex: none; font-style: normal; font-weight: 800; font-size: 14px; padding: 5px 10px; border-radius: 99px; background: var(--surface-3); color: var(--ink-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
     .sp-sc.good { background: var(--mint-soft); color: var(--mint); } .sp-sc.mid { background: var(--sun-soft); color: #b86e00; } .sp-sc.low { background: var(--coral-soft); color: var(--coral); }
     .cl-tr .sp-sc { padding: 3px 9px; }
-    .sp-wait { background: var(--sun-soft) !important; color: #b86e00 !important; }
-    body.dark :is(.sp-sc.mid, .sp-wait) { color: var(--sun) !important; }
+    .sp-wait { background: var(--mint-soft) !important; color: var(--mint) !important; }
+    body.dark .sp-sc.mid { color: var(--sun) !important; }
     .sp-nav .btn { flex: 1; }
     .sp-foot { text-align: center; }
     .sp-sum { background: var(--surface-2); border-radius: 22px; padding: 22px 20px 20px; display: flex; flex-direction: column; align-items: center; gap: 2px; }
@@ -2144,8 +2144,101 @@
     .sp-who .icon-btn { flex: none; width: 40px; height: 40px; background: var(--surface-2); }
     .sp-who-sc { display: flex; flex-direction: column; align-items: flex-end; } .sp-who-sc small { font-size: 12px; } .sp-who-sc b { font-size: 28px; line-height: 1.1; font-variant-numeric: tabular-nums; }
     .sp-who-sc b.good { color: var(--mint); } .sp-who-sc b.mid { color: var(--sun); } .sp-who-sc b.low { color: var(--coral); }
-    .sp-tt .sp-full { color: var(--mint); font-weight: 700; }
-    .sp-tt .cl-tr small { font-size: .74rem; }
+    /* 학생: 제출 완료 */
+    .sp-done { gap: 6px; padding: 26px 20px 22px; }
+    .sp-done b { font-size: 26px; letter-spacing: -.02em; }
+    .sp-done span { text-align: center; word-break: keep-all; }
+    .sp-ok { width: 60px; height: 60px; border-radius: 50%; background: var(--mint); color: #fff; display: grid; place-items: center; margin-bottom: 4px; animation: pop .3s var(--spring); }
+    .sp-ok .ic { width: 30px; height: 30px; stroke-width: 2.6; }
+    .sp-tbox { background: var(--blue-soft); border-radius: 18px; padding: 16px 18px; display: flex; flex-direction: column; gap: 2px; }
+    .sp-tbox small { font-size: 13px; font-weight: 700; color: var(--blue-ink); }
+    .sp-tbox b { font-size: 34px; font-weight: 800; line-height: 1.2; font-variant-numeric: tabular-nums; color: var(--ink); } .sp-tbox b em { font-style: normal; font-size: 18px; margin-left: 2px; }
+    .sp-tbox b.good { color: var(--mint); } .sp-tbox b.mid { color: var(--sun); } .sp-tbox b.low { color: var(--coral); }
+    .sp-tbox p { margin: 4px 0 0; font-size: 15px; font-weight: 600; color: var(--ink); line-height: 1.5; word-break: keep-all; }
+    .sp-wait-t { margin: 0; padding: 13px 16px; border-radius: 16px; background: var(--surface-2); color: var(--ink-2); font-size: 14px; font-weight: 600; text-align: center; word-break: keep-all; }
+    .sp-sc.sp-t { background: var(--blue-soft); color: var(--blue-ink); }
+    /* 선생님 보드: 위 버튼 · 진행 막대 · 탭 */
+    .sp-kv { align-items: center; }
+    .sp-live { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; font-size: 12.5px; }
+    .sp-live i { width: 7px; height: 7px; border-radius: 50%; background: var(--mint); animation: spBlink 2s ease-in-out infinite; }
+    @keyframes spBlink { 50% { opacity: .3; } }
+    .sp-acts { display: flex; gap: 8px; } .sp-acts .btn:first-child { flex: 1; min-width: 0; } .sp-acts .btn + .btn { flex: none; padding: 0 18px; }
+    .sp-acts .btn .ic { width: 18px; height: 18px; }
+    .sp-prog { height: 6px; border-radius: 99px; background: var(--surface-3); overflow: hidden; margin-top: -4px; } .sp-prog i { display: block; height: 100%; border-radius: inherit; background: var(--blue); transition: width .4s var(--ease); }
+    .sp-no { flex: none; font-size: 14px; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
+    /* 제출 카드 (하이러닝처럼 한눈에) */
+    .sp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(232px, 1fr)); gap: 10px; }
+    .sp-bc { background: var(--surface-2); border-radius: 20px; padding: 14px 14px 12px; display: flex; flex-direction: column; gap: 10px; border: 2px solid transparent; min-width: 0; }
+    .sp-bc.arrive { animation: spArrive 3s var(--ease); }
+    @keyframes spArrive { 0%, 50% { border-color: var(--blue); background: var(--blue-soft); } }
+    .sp-bc-h { display: flex; align-items: baseline; gap: 8px; border: none; background: none; padding: 0; color: var(--ink); text-align: left; cursor: pointer; min-width: 0; }
+    .sp-bc-h b { font-size: 17px; font-weight: 800; letter-spacing: -.01em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .sp-bc-h:focus-visible { outline: none; box-shadow: var(--ring); border-radius: 8px; }
+    .sp-bc-t { font-size: 12.5px; font-weight: 600; color: var(--muted); margin-top: -7px; font-variant-numeric: tabular-nums; }
+    .sp-bc-p { display: flex; align-items: flex-start; gap: 8px; }
+    .sp-bc-p .sp-play { width: 36px; height: 36px; }
+    .sp-bis { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; gap: 4px; }
+    .sp-bi { min-width: 30px; height: 30px; padding: 0 6px; border: none; border-radius: 9px; background: var(--surface); color: var(--ink-2); font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; cursor: pointer; transition: transform .12s var(--ease); }
+    .sp-bi:active:not(:disabled) { transform: scale(.92); } .sp-bi:disabled { opacity: .35; cursor: default; }
+    .sp-bi.good { background: var(--mint-soft); color: var(--mint); } .sp-bi.mid { background: var(--sun-soft); color: #b86e00; } .sp-bi.low { background: var(--coral-soft); color: var(--coral); }
+    body.dark .sp-bi.mid { color: var(--sun); }
+    .sp-bi.on { background: var(--blue) !important; color: #fff !important; }
+    .sp-bc-f { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; }
+    .sp-bc-sc { display: flex; flex-wrap: wrap; gap: 4px; min-width: 0; }
+    .sp-bc-f .btn { flex: none; min-height: 34px; height: 34px; padding: 0 14px; }
+    :is(.sp-bc, .sp-ri) .btn-soft { background: var(--surface); }
+    .sp-bc-fin { margin-left: auto; flex: none; display: flex; align-items: baseline; gap: 4px; font-style: normal; font-size: 20px; font-weight: 800; line-height: 1; color: var(--ink); font-variant-numeric: tabular-nums; }
+    .sp-bc-fin small { font-size: 11.5px; font-weight: 700; color: var(--muted); }
+    .sp-bc-fin.good { color: var(--mint); } .sp-bc-fin.mid { color: var(--sun); } .sp-bc-fin.low { color: var(--coral); }
+    /* 결과 목록: 30211 김주원 75점 */
+    .sp-lt { display: flex; flex-direction: column; background: var(--surface-2); border-radius: 18px; overflow: hidden; }
+    .sp-lr { display: grid; grid-template-columns: 58px minmax(0, 1fr) auto 64px; align-items: center; gap: 10px; width: 100%; padding: 14px 16px; border: none; border-top: 1px solid var(--line); background: none; color: var(--ink); text-align: left; font-size: 16px; cursor: pointer; }
+    .sp-lr:first-child { border-top: none; } .sp-lr:focus-visible { outline: none; box-shadow: inset var(--ring); }
+    .sp-lr .sp-no { font-size: 15px; color: var(--ink-2); }
+    .sp-lr b { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .sp-lr small { font-size: 12.5px; font-weight: 600; color: var(--muted); white-space: nowrap; }
+    .sp-lr em { font-style: normal; font-size: 17px; font-weight: 800; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .sp-lr em.good { color: var(--mint); } .sp-lr em.mid { color: var(--sun); } .sp-lr em.low { color: var(--coral); }
+    .sp-lr.dim em { font-size: 13px; font-weight: 700; color: var(--muted); } .sp-lr.dim b { color: var(--ink-2); }
+    .sp-lr.on { background: var(--blue-soft); }
+    .sp-det { display: flex; flex-direction: column; gap: 10px; padding: 12px; background: var(--surface); border-top: 1px solid var(--line); }
+    .sp-det .sp-ri { background: var(--surface-2); }
+    .sp-det-h { display: flex; align-items: center; gap: 12px; padding: 2px 2px 0; font-weight: 700; } .sp-det-h small { display: block; font-size: 12.5px; font-weight: 600; color: var(--muted); }
+    .sp-det > .row .btn { flex: 1; }
+    .sp-fsrc { margin: 0; word-break: break-all; } .sp-fsrc b { color: var(--ink-2); }
+    .sp-mark { display: flex; flex-direction: column; gap: 2px; background: var(--blue-soft); border-radius: 16px; padding: 12px 12px 12px 14px; }
+    .sp-mark > b { font-size: 14px; font-weight: 800; color: var(--blue-ink); } .sp-mark > small { font-size: 12.5px; color: var(--ink-2); font-weight: 500; line-height: 1.45; word-break: keep-all; }
+    .sp-mark .sp-tform { margin-top: 8px; }
+    /* 받은 파일 채점: 끌어 놓기 칸 · 파일 줄 */
+    .sp-drop { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 22px 16px 20px; border: 2px dashed color-mix(in srgb, var(--muted) 45%, transparent); border-radius: 20px; background: var(--surface-2); text-align: center; cursor: pointer; transition: border-color .15s, background-color .15s; }
+    .sp-drop > i { width: 50px; height: 50px; border-radius: 16px; background: var(--blue-soft); color: var(--blue); display: grid; place-items: center; margin-bottom: 2px; }
+    .sp-drop > i .ic { width: 26px; height: 26px; }
+    .sp-drop > span { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; }
+    .sp-drop b { font-size: 16px; font-weight: 700; word-break: keep-all; } .sp-drop small { max-width: 440px; font-size: 13px; color: var(--muted); line-height: 1.5; word-break: keep-all; }
+    .sp-touch { display: none; } @media (hover: none) and (pointer: coarse) { .sp-pc { display: none; } .sp-touch { display: inline; } }
+    .sp-drop.has { flex-direction: row; gap: 14px; padding: 12px 16px; text-align: left; } .sp-drop.has > span { align-items: flex-start; gap: 1px; }
+    .sp-drop.has > i { width: 40px; height: 40px; border-radius: 13px; margin: 0; flex: none; } .sp-drop.has > i .ic { width: 21px; height: 21px; }
+    .sp-drop.has b { font-size: 15px; } .sp-drop.has small { font-size: 12.5px; }
+    .sp-drop:hover, body.sp-drag .sp-drop { border-color: var(--blue); background: var(--blue-soft); }
+    .sp-drop:focus-visible { outline: none; box-shadow: var(--ring); }
+    body.sp-drag #sheetOv .sheet { box-shadow: 0 0 0 3px var(--blue), var(--shadow-up); }
+    .sp-frow { display: flex; gap: 8px; align-items: center; } .sp-frow select { flex: 1; min-width: 0; } .sp-frow .seg { flex: none; width: auto; }
+    .sp-fq { margin: 0; font-size: 14px; line-height: 1.55; color: var(--muted); word-break: break-word; } .sp-fq b { color: var(--blue-ink); margin-right: 4px; }
+    .sp-ft { display: flex; flex-direction: column; gap: 6px; }
+    .sp-fr { display: grid; grid-template-columns: minmax(0, 1fr) 84px 96px 92px 34px; align-items: center; gap: 6px; background: var(--surface-2); border-radius: 14px; padding: 6px 6px 6px 14px; }
+    .sp-fn { font-size: 13.5px; font-weight: 600; color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .sp-fr input { padding: 8px 10px; font-size: 14px; border-radius: 10px; background: var(--surface); min-width: 0; }
+    .sp-fr input:placeholder-shown { box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--coral) 45%, transparent); }
+    .sp-fs { text-align: right; font-size: 13px; font-weight: 600; color: var(--muted); } .sp-fs small { font-size: 12.5px; } .sp-ferr { color: var(--coral); } .sp-fgo { color: var(--blue); }
+    .sp-fx { width: 32px; height: 32px; background: none; } .sp-fx .ic { width: 16px; height: 16px; }
+    .sp-foot2 { flex-wrap: wrap; } .sp-foot2 .btn { flex: 1 1 auto; }
+    @media (max-width: 600px) {
+      .sp-fr { grid-template-columns: 88px minmax(0, 1fr) auto 32px; grid-template-areas: 'f f s x' 'a b b b'; padding: 8px 6px 8px 12px; }
+      .sp-fn { grid-area: f; } .sp-fr input:first-of-type { grid-area: a; } .sp-fr input:last-of-type { grid-area: b; } .sp-fs { grid-area: s; } .sp-fx { grid-area: x; }
+      .sp-lr { grid-template-columns: 54px minmax(0, 1fr) auto; padding: 13px 14px; } .sp-lr small { display: none; }
+      .sp-live { margin-left: 0; }
+    }
+    @media (min-width: 900px) { #sheetOv:has(.sp-wide) .sheet { max-width: 1040px; } }
     @keyframes spPulse { 50% { box-shadow: 0 0 0 12px color-mix(in srgb, var(--coral) 16%, transparent); } }
     .sp-mic.on { animation: spPulse 1.3s ease-in-out infinite; }
     @media (prefers-reduced-motion: reduce) { .sp-mic.on { animation: none; } }

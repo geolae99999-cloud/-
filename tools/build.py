@@ -50,7 +50,13 @@ if os.path.exists(csp_path):
         m = re.search(r'\son(click|change|input|keydown|keyup|submit|load|error|focus|blur)=', t)
         assert not m, n + ' 에 인라인 이벤트(' + m.group(0).strip() + ')가 있어요. data-act / data-change / data-input / data-enter 를 쓰세요.'
 w('index.html', html)
-core = ['./', 'style.css', 'config.js', 'cloud.js'] + names + ['manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png']
+# 따로 불러오는 라이브러리(src/vendor: lame.min.js, fflate.min.js)는 그대로 복사해요. 쓸 때만 같은 주소에서 불러오고(CSP script-src 'self'),
+# sw.js 가 처음 불러올 때 캐시에 넣어요(같은 주소 GET). 모두가 받지 않게 CORE(설치 때 미리 받기)에는 넣지 않아요.
+vdir = os.path.join(os.path.dirname(os.path.abspath(src)), 'vendor')
+for f in sorted(os.listdir(vdir)) if os.path.isdir(vdir) else []:
+    assert re.match(r'[\w.-]+\.js$', f), f
+    w(f, open(os.path.join(vdir, f), encoding='utf-8').read())
+core =['./', 'style.css', 'config.js', 'cloud.js'] + names + ['manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png']
 ver = hashlib.sha1(''.join(open(os.path.join(out, f), encoding='utf-8').read() for f in ['index.html', 'style.css', 'cloud.js'] + names).encode()).hexdigest()[:10]
 sw = open(os.path.join(os.path.dirname(__file__), 'sw.template.js'), encoding='utf-8').read()
 w('sw.js', sw.replace('__VERSION__', ver).replace('__CORE__', json.dumps(core)))

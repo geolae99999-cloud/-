@@ -43,9 +43,9 @@
     async ai(prompt, task, ms) {
       const sec = Math.round((ms || 20000) / 1000);
       let r; const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), ms || 20000);
-      // 서버가 프롬프트를 만드는 새 작업(ocr, ctx)은 prompt 를 보내지 않아요. 사진(ocr)은 큰 요청용 주소로.
-      const t = task && task.task, lean = t === 'ocr' || t === 'ctx';
-      try { r = await fetch(cfg.url.replace(/\/+$/, '') + '/functions/v1/ai' + (t === 'ocr' ? '?t=ocr' : ''), { method: 'POST', headers: hdr, body: JSON.stringify(Object.assign({ token: getTok() }, lean ? {} : { prompt }, task || {})), signal: ctl.signal }); }
+      // 서버가 프롬프트를 만드는 새 작업(ocr, ctx, pron)은 prompt 를 보내지 않아요. 사진(ocr) · 녹음 파일(pron + file)은 큰 요청용 주소로.
+      const t = task && task.task, lean = t === 'ocr' || t === 'ctx' || t === 'pron';
+      try { r = await fetch(cfg.url.replace(/\/+$/, '') + '/functions/v1/ai' + (t === 'ocr' ? '?t=ocr' : t === 'pron' && task.file ? '?t=pron' : ''), { method: 'POST', headers: hdr, body: JSON.stringify(Object.assign({ token: getTok() }, lean ? {} : { prompt }, task || {})), signal: ctl.signal }); }
       catch (e) {
         clearTimeout(tm);
         const x = new Error(e && e.name === 'AbortError' ? `AI 응답이 ${sec}초 넘게 없어요. 다시 시도해 주세요.` : '서버에 연결하지 못했어요. 인터넷 연결을 확인해 주세요.');

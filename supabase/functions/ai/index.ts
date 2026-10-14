@@ -1,7 +1,18 @@
-// supabase/functions/ai/index.ts  (v8)
+// supabase/functions/ai/index.ts  (v9)
 // 배포: supabase functions deploy ai --no-verify-jwt --project-ref psmmrwhmpezyeehjivav
 // 비밀키: supabase secrets set GEMINI_API_KEY=... AI_DAILY_LIMIT=40 AI_GLOBAL_LIMIT=3000
+//   선택: AI_PRON_LIMIT=200 (선생님 한 명의 하루 발음 채점 횟수. 일반 AI 한도와 따로 세요)
 //   선택: ALLOWED_ORIGINS=https://vocapro.kro.kr,https://hijujuwon.kro.kr,https://vocapro.pages.dev (쉼표로 구분, 기본값이 이 세 주소)
+//
+// v9 변경점 (발음 평가를 선생님 전용으로, supabase_update_v11.sql 새 판을 먼저 실행)
+// - AI 채점은 과제를 낸 반 선생님만 해요. 학생이 부르면 403. 학생 화면에는 AI 점수를 보내지 않아요(SQL v11).
+// - { task: 'pron', assign, student, all? } : 앱에서 낸 학생 한 명의 녹음(MP3, 문항마다 하나)을 Gemini 한 번에 채점해 저장해요.
+//   all 이면 이미 채점한 문항도 다시. 앱의 '전체 AI 채점'은 학생마다 한 번씩 차례로 불러요.
+// - { task: 'pron', assign, file, items: [{ text, lang, kind }] 1~20개 } : 카카오톡 등으로 받은 녹음 파일 하나를 앱이 16kHz 모노 MP3로
+//   바꿔 보내면, 파일 속에서 문장을 차례로 찾아 채점해 돌려주기만 해요(서버에 저장하지 않음). 주소 끝 ?t=pron 으로 1.4MB까지,
+//   파일은 base64 1.3MB(32kbps로 약 5분)까지. MP3 머리글(MPEG-2 Layer III · 16kHz · 모노)을 검사해요.
+// - 발음 채점은 일반 AI 하루 한도(AI_DAILY_LIMIT, 40)와 따로 선생님마다 하루 AI_PRON_LIMIT(기본 200)번. 한 번 = Gemini 요청 1번 = 1회.
+//   (voca_ai_use 에 계정 대신 'pron:계정' 과 이 한도를 넘겨요. 전체 하루 한도 AI_GLOBAL_LIMIT 에는 똑같이 더해져요.)
 //
 // v8 변경점 (글·사진에서 단어 뽑기, SQL 변경 없음)
 // - { task: 'ocr', images: [JPEG base64 1~3장], lang } : 유인물·교과서 사진의 글자를 줄바꿈 그대로 읽어 { t } 로 돌려줘요.
@@ -45,7 +56,7 @@ const corsFor = (o: string | null) => ({
 });
 const json = (cors: Record<string, string>) => (o: unknown, status = 200) =>
   new Response(JSON.stringify(o), { status, headers: { ...cors, "Content-Type": "application/json" } });
-const MAX_BODY = 12000, MAX_OCR = 4_700_000, OCR_IMG = 1_500_000;
+const MAX_BODY = 12000, MAX_OCR = 4_700_000, OCR_IMG = 1_500_000, MAX_PRON = 1_400_000, PRON_FILE = 1_300_000;
 
 const WORD_RE = /^[A-Za-z][A-Za-z' .-]{0,39}$/;
 const ZH_RE = /^[\u3400-\u9fff\uf900-\ufaff·]{1,12}$/;
@@ -83,7 +94,7 @@ const PRON_SCHEMA = {
 };
 // 발음 채점 기준: 중·고등학생 기준으로 공정하고 일관되게. 무음·다른 단어는 0점
 const PRON_RULES = `You are a fair and consistent pronunciation examiner for Korean middle and high school students.
-Each numbered recording below is a student reading the TARGET text aloud. Listen carefully and judge how accurately and clearly they pronounced exactly that target.
+The audio below is a student reading numbered TARGET texts aloud. Listen carefully and judge how accurately and clearly they pronounced exactly each target.
 Score 0-100:
 - 90-100: very clear and accurate; a light Korean accent is fine if every sound is right.
 - 75-89: clear and easy to understand, with one or two small errors (a vowel, a final consonant, stress).
@@ -97,7 +108,22 @@ Do not judge voice quality, speed or recording volume. Give the same score for t
 For every item return: idx (the same number given), score (integer), heard (what you actually heard, written in the target language; empty if silence),
 tips (Korean feedback in polite 해요체, at most 60 characters, concrete: which sound or tone to fix, or praise if good; if the score is 0 say why, e.g. "소리가 들리지 않아요"),
 problems (up to 3 words or sounds that were wrong; empty array if none).`;
-type PronItem = { idx: number; text: string; lang: string; kind: string; v: string; b64: string };
+type PronItem = { idx: number; text: string; lang: string; kind: string; v: string; b64: string; mime?: string };
+// MP3 검사: 앞의 ID3 태그는 건너뛰고 첫 프레임이 MPEG-2 Layer III · 16kHz · 모노, 다음 프레임이 바로 이어지는지 (SQL voca_speak_mp3 와 같아요)
+const MP3_KBPS = [0, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160];
+function mp3Ok(b64: string): boolean {
+  let b: Uint8Array;
+  try { const s = atob(b64.slice(0, 16384)); b = Uint8Array.from(s, (c) => c.charCodeAt(0)); } catch (_e) { return false; }
+  let p = 0;
+  if (b[0] === 0x49 && b[1] === 0x44 && b[2] === 0x33) {
+    p = 10 + (b[6] & 127) * 2097152 + (b[7] & 127) * 16384 + (b[8] & 127) * 128 + (b[9] & 127) + (b[5] & 16 ? 10 : 0);
+    if (p + 4 > b.length) return false; // 태그가 너무 크면(사진 등) 받지 않아요
+  }
+  const h1 = b[p + 1], h2 = b[p + 2], h3 = b[p + 3];
+  if (b[p] !== 255 || (h1 & 254) !== 242 || ((h2 >> 2) & 3) !== 2 || (h2 >> 4) < 1 || (h2 >> 4) > 14 || h3 >> 6 !== 3) return false;
+  const fl = 72 * MP3_KBPS[h2 >> 4] * 1000 / 16000 + ((h2 >> 1) & 1);
+  return p + fl + 2 <= b.length && b[p + fl] === 255 && (b[p + fl + 1] & 254) === 242;
+}
 
 const ENTRY = `"meaning":"핵심 한국어 뜻 (품사 포함, 예: 형 일관된)","phonetic":"/IPA/","koreanPron":"한글 발음","example":"short natural English sentence (under 12 words)","exampleKo":"그 예문의 자연스러운 한국어 해석","synonyms":"synonym1, synonym2"`;
 
@@ -214,15 +240,28 @@ function pronParse(text: string, items: PronItem[]) {
   return out;
 }
 const LANG_SPOKEN: Record<string, string> = { en: "English", zh: "Mandarin Chinese (judge tones)" };
+const pronLine = (it: PronItem) => `Item idx=${it.idx}. Language: ${LANG_SPOKEN[it.lang] ?? "English"}. TARGET ${it.kind === "s" ? "sentence" : "word"}: ${JSON.stringify(String(it.text).slice(0, 200))}`;
+const pronEnd = (items: PronItem[]) => ({ text: `Return JSON {"items":[{"idx","score","heard","tips","problems"}]} with exactly one entry for each of these idx: ${JSON.stringify(items.map((x) => x.idx))}.` });
+// 앱 녹음: 문항마다 글 + 소리 하나씩
 function pronParts(items: PronItem[]): Part[] {
   const parts: Part[] = [{ text: PRON_RULES }];
   for (const it of items) {
-    const lang = LANG_SPOKEN[it.lang] ?? "English";
-    parts.push({ text: `Item idx=${it.idx}. Language: ${lang}. TARGET ${it.kind === "s" ? "sentence" : "word"}: ${JSON.stringify(String(it.text).slice(0, 200))}` });
-    parts.push({ inlineData: { mimeType: "audio/wav", data: it.b64 } });
+    parts.push({ text: pronLine(it) });
+    parts.push({ inlineData: { mimeType: it.mime === "audio/wav" ? "audio/wav" : "audio/mp3", data: it.b64 } });
   }
-  parts.push({ text: `Return JSON {"items":[{"idx","score","heard","tips","problems"}]} with exactly one entry for each of these idx: ${JSON.stringify(items.map((x) => x.idx))}.` });
+  parts.push(pronEnd(items));
   return parts;
+}
+// 받은 파일 하나: 학생이 목표 문장을 차례로 읽은 녹음
+function pronFileParts(items: PronItem[], b64: string): Part[] {
+  return [
+    { text: PRON_RULES },
+    { text: `There is ONE recording. In it the student reads the targets below in this order; they may pause, repeat or skip some.
+For each idx judge only the part where that target is read (if repeated, the best attempt). If a target is never read, give score 0, heard "" and say so in tips.
+${items.map(pronLine).join("\n")}` },
+    { inlineData: { mimeType: "audio/mp3", data: b64 } },
+    pronEnd(items),
+  ];
 }
 // RPC 함수가 아직 없을 때(PGRST202, 42883)
 const noFn = (e: { code?: string } | null) => !!e && (e.code === "PGRST202" || e.code === "42883");
@@ -234,18 +273,31 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   if (req.method !== "POST") return out({ error: "잘못된 요청이에요." }, 405);
   try {
-    // 사진(ocr) 요청만 ?t=ocr 주소로 크게 받아요. 다른 작업은 예전처럼 작은 요청만.
-    const big = new URL(req.url).searchParams.get("t") === "ocr", lim = big ? MAX_OCR : MAX_BODY;
-    if (Number(req.headers.get("content-length") ?? "0") > lim) return out({ error: big ? "사진이 너무 커요. 3장까지, 작게 줄여서 보내 주세요." : "요청이 너무 커요." }, 413);
+    // 사진(ocr) · 녹음 파일(pron) 요청만 ?t=ocr, ?t=pron 주소로 크게 받아요. 다른 작업은 예전처럼 작은 요청만.
+    const tq = new URL(req.url).searchParams.get("t"), big = tq === "ocr" || tq === "pron", lim = tq === "ocr" ? MAX_OCR : tq === "pron" ? MAX_PRON : MAX_BODY;
+    const tooBig = tq === "ocr" ? "사진이 너무 커요. 3장까지, 작게 줄여서 보내 주세요." : tq === "pron" ? "녹음 파일이 너무 길어요. 5분 안으로 잘라 주세요." : "요청이 너무 커요.";
+    if (Number(req.headers.get("content-length") ?? "0") > lim) return out({ error: tooBig }, 413);
     const raw = await req.text();
-    if (raw.length > lim) return out({ error: big ? "사진이 너무 커요. 3장까지, 작게 줄여서 보내 주세요." : "요청이 너무 커요." }, 413);
+    if (raw.length > lim) return out({ error: tooBig }, 413);
     const body = JSON.parse(raw);
-    if (raw.length > MAX_BODY && body?.task !== "ocr") return out({ error: "요청이 너무 커요." }, 413);
+    if (raw.length > MAX_BODY && !(big && body?.task === tq)) return out({ error: "요청이 너무 커요." }, 413);
     const token = body?.token;
     if (typeof token !== "string" || !token || token.length > 200) return out({ error: "로그인이 필요해요." }, 401);
     const pron = body?.task === "pron", ocr = body?.task === "ocr";
     const assign = Number(body?.assign);
     if (pron && !(Number.isSafeInteger(assign) && assign > 0)) return out({ error: "잘못된 요청이에요. 앱을 새로고침해 주세요." }, 400);
+    // 받은 녹음 파일 채점: 목표 문장 1~20개(200자까지) + 16kHz 모노 MP3 하나
+    const pfile = pron && typeof body.file === "string" ? body.file : "";
+    let fileItems: PronItem[] = [];
+    if (pron && body.file !== undefined) {
+      if (!pfile || pfile.length > PRON_FILE || !B64_RE.test(pfile)) return out({ error: pfile.length > PRON_FILE ? "녹음 파일이 너무 길어요. 5분 안으로 잘라 주세요." : "잘못된 요청이에요. 앱을 새로고침해 주세요." }, pfile.length > PRON_FILE ? 413 : 400);
+      if (!mp3Ok(pfile)) return out({ error: "MP3(16kHz 모노) 녹음만 채점할 수 있어요. 앱을 새로고침해 주세요." }, 400);
+      const its = Array.isArray(body.items) ? body.items : [];
+      fileItems = its.slice(0, 20).map((x: Record<string, unknown>, i: number) => ({
+        idx: i, text: String(x?.text ?? "").trim().slice(0, 200), lang: x?.lang === "zh" ? "zh" : "en", kind: x?.kind === "s" ? "s" : "w", v: "", b64: "",
+      }));
+      if (!fileItems.length || its.length > 20 || fileItems.some((x) => !x.text)) return out({ error: "채점할 문장을 1~20개 넣어 주세요." }, 400);
+    }
     // 사진: 1~3장, 한 장 1.5MB(base64)까지, JPEG(/9j/로 시작)만
     const imgs: string[] = ocr && Array.isArray(body.images) ? body.images.filter((x: unknown) => typeof x === "string") : [];
     if (ocr) {
@@ -260,45 +312,49 @@ Deno.serve(async (req) => {
     const { data: me, error } = await sb.rpc("voca_me", { p_token: token });
     if (error || !me || me.err || !me.id) return out({ error: "로그인이 필요해요." }, 401);
 
-    // 발음 채점: 채점할 녹음을 먼저 꺼내요 (없으면 AI 사용량을 쓰지 않아요)
+    // 발음 채점: 과제를 낸 반 선생님인지 먼저 보고, 채점할 녹음을 꺼내요 (없으면 AI 사용량을 쓰지 않아요)
     let items: PronItem[] = [], who = String(me.id);
     if (pron) {
-      const student = typeof body.student === "string" && body.student ? body.student.slice(0, 64) : who;
-      if (student !== who) {
-        const { data: own, error: oe } = await sb.rpc("voca_speak_is_owner", { p_uid: who, p_assign: assign });
-        if (noFn(oe)) return out({ error: "발음 평가는 서버 설정(supabase_update_v11.sql)을 마치면 쓸 수 있어요.", code: "missing" }, 501);
-        if (oe) return out({ error: "잠시 후 다시 시도해 주세요." }, 503);
-        if (own !== true) return out({ error: "이 과제를 낸 선생님만 다시 채점할 수 있어요." }, 403);
+      const { data: own, error: oe } = await sb.rpc("voca_speak_is_owner", { p_uid: who, p_assign: assign });
+      if (noFn(oe)) return out({ error: "발음 평가는 서버 설정(supabase_update_v11.sql)을 마치면 쓸 수 있어요.", code: "missing" }, 501);
+      if (oe) return out({ error: "잠시 후 다시 시도해 주세요." }, 503);
+      if (own !== true) return out({ error: "AI 채점은 이 과제를 낸 선생님만 할 수 있어요.", code: "not_owner" }, 403);
+      if (pfile) items = fileItems;
+      else {
+        const student = typeof body.student === "string" ? body.student.slice(0, 64) : "";
+        if (!student) return out({ error: "채점할 학생을 골라 주세요.", code: "bad_input" }, 400);
+        const { data: g, error: ge } = await sb.rpc("voca_speak_for_grade", { p_uid: student, p_assign: assign, p_all: body.all === true });
+        if (noFn(ge)) return out({ error: "발음 평가는 서버 설정(supabase_update_v11.sql)을 마치면 쓸 수 있어요.", code: "missing" }, 501);
+        if (ge || !g) return out({ error: "잠시 후 다시 시도해 주세요." }, 503);
+        if (g.err) return out({ error: "그 학생의 녹음을 찾지 못했어요.", code: String(g.err) }, 404);
+        items = (Array.isArray(g.items) ? g.items : []).slice(0, 20);
+        if (!items.length) return out({ text: JSON.stringify({ items: [] }), items: [] });
+        who = student;
       }
-      const { data: g, error: ge } = await sb.rpc("voca_speak_for_grade", { p_uid: student, p_assign: assign, p_all: student !== who });
-      if (noFn(ge)) return out({ error: "발음 평가는 서버 설정(supabase_update_v11.sql)을 마치면 쓸 수 있어요.", code: "missing" }, 501);
-      if (ge || !g) return out({ error: "잠시 후 다시 시도해 주세요." }, 503);
-      if (g.err) return out({ error: "과제를 찾지 못했어요.", code: String(g.err) }, 403);
-      items = (Array.isArray(g.items) ? g.items : []).slice(0, 20);
-      if (!items.length) return out({ text: JSON.stringify({ items: [] }), items: [] });
-      who = student;
     }
 
     const key = Deno.env.get("GEMINI_API_KEY");
     if (!key) return out({ error: "서버 AI 설정이 아직 끝나지 않았어요." }, 503);
 
-    const limit = Number(Deno.env.get("AI_DAILY_LIMIT") ?? "40");
+    // 발음 채점은 선생님마다 따로 센 한도(AI_PRON_LIMIT, 기본 200): 30명 반을 하루에 몇 번 채점해도 일반 AI(40회)를 막지 않아요
+    const limit = pron ? Number(Deno.env.get("AI_PRON_LIMIT") ?? "200") : Number(Deno.env.get("AI_DAILY_LIMIT") ?? "40");
     const global = Number(Deno.env.get("AI_GLOBAL_LIMIT") ?? "3000");
-    let { data: ok, error: useErr } = await sb.rpc("voca_ai_use", { p_uid: String(me.id), p_limit: limit, p_global: global });
+    const useId = (pron ? "pron:" : "") + String(me.id);
+    let { data: ok, error: useErr } = await sb.rpc("voca_ai_use", { p_uid: useId, p_limit: limit, p_global: global });
     // supabase_update_v8.sql 을 아직 실행하지 않았으면 예전 함수(계정별 한도만)로 세요.
     // 함수가 없을 때(PGRST202, 42883)만 예전 함수로 바꾸고, 다른 오류면 전체 한도를 건너뛰지 않게 멈춰요.
     if (useErr) {
       if (!noFn(useErr)) return out({ error: "잠시 후 다시 시도해 주세요." }, 503);
-      ({ data: ok } = await sb.rpc("voca_ai_use", { p_uid: String(me.id), p_limit: limit }));
+      ({ data: ok } = await sb.rpc("voca_ai_use", { p_uid: useId, p_limit: limit }));
     }
-    if (!ok) return out({ error: "오늘 AI 사용 한도를 다 썼어요. 내일 다시 쓸 수 있어요." }, 429);
+    if (!ok) return out({ error: pron ? `오늘 발음 AI 채점 한도(${limit}번)를 다 썼어요. 내일 다시 쓸 수 있어요.` : "오늘 AI 사용 한도를 다 썼어요. 내일 다시 쓸 수 있어요.", code: "limit" }, 429);
 
     const models = [Deno.env.get("GEMINI_MODEL") ?? "gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-2.0-flash"]
       .filter((m, i, a) => m && a.indexOf(m) === i);
     // 소리 채점·사진 읽기는 오래 걸려요: 모델 한 번당 40초, 전체 55초. 문맥 뜻(ctx, 30개)은 20초·35초 (보통은 7초, 15초)
     const ctx = body?.task === "ctx", slow = pron || ocr;
     const deadline = Date.now() + (slow ? 55000 : ctx ? 35000 : 15000), per = slow ? 40000 : ctx ? 20000 : 7000;
-    const parts: Part[] = pron ? pronParts(items)
+    const parts: Part[] = pron ? (pfile ? pronFileParts(items, pfile) : pronParts(items))
       : ocr ? [{ text: OCR_RULES + (body.lang === "zh" ? "\nThe learner studies Chinese: copy Chinese characters exactly (simplified or traditional as printed)." : "") },
         ...imgs.map((data) => ({ inlineData: { mimeType: "image/jpeg", data } }))]
       : [{ text: job!.prompt }];
@@ -318,6 +374,8 @@ Deno.serve(async (req) => {
         if (!pron) return out({ text: r.text, model });
         const res = pronParse(r.text, items);
         if (!res.length) { last = 502; continue; } // 형식이 틀렸으면 다음 모델로
+        // 받은 파일은 저장하지 않고 결과만 돌려줘요
+        if (pfile) { const its = res.map(({ v: _v, ...x }) => x); return out({ text: JSON.stringify({ items: its }), items: its, model }); }
         const saved = [];
         for (const x of res) {
           const { data: w } = await sb.rpc("voca_speak_set_ai", { p_uid: who, p_assign: assign, p_idx: x.idx, p_score: x.score,
