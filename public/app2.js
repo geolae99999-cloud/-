@@ -10,7 +10,7 @@
   const KEY_USERS = 'vocapro_users', KEY_SESS = 'vocapro_session';
 
   const DEFAULT_CFG = {
-    provider: 'local', aiv: 2,
+    provider: 'gemini', aiv: 2,
     keys: { gemini: '', xai: '', openai: '', anthropic: '' },
     models: { gemini: '', xai: '', openai: '', anthropic: '' },
     modelLists: { gemini: [], xai: [], openai: [], anthropic: [] },
@@ -118,10 +118,8 @@
         if (saved.models && saved.models[p]) cfg.models[p] = saved.models[p];
         if (saved.modelLists && Array.isArray(saved.modelLists[p])) cfg.modelLists[p] = saved.modelLists[p];
       }
-      // 한 번만: 키를 넣지 않고 쓰던 사람은 기본 AI 를 기기 AI(Qwen)로 바꿔요. 그 뒤에 직접 고른 엔진은 그대로 둬요
-      if (saved.aiv !== 2 && !(cfg.provider !== 'local' && cfg.keys[cfg.provider])) cfg.provider = 'local';
     }
-    if (!PROVIDERS[cfg.provider]) cfg.provider = 'local';
+    if (!PROVIDERS[cfg.provider]) cfg.provider = 'gemini';
     return cfg;
   }
   function loadDb() { const d = loadJson(KEY_DATA); useBlob(d && Array.isArray(d.categories) ? d : null); }

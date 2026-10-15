@@ -260,6 +260,48 @@ async function gemini(key: string, model: string, parts: Part[], schema: unknown
   }
 }
 
+// Cloudflare Workers AI(오픈소스 모델: Llama · Gemma · Qwen 등)로 글 작업(단어 뜻 · 묶음 · 번역 · 문맥 · 병음)을 해요.
+// CF_ACCOUNT_ID · CF_API_TOKEN(권한: Workers AI 읽기)이 있으면 Gemini 보다 먼저 써요. 사진 · 녹음 채점은 계속 Gemini 예요.
+const CF_MODELS = (Deno.env.get("CF_AI_MODELS") ?? "@cf/meta/llama-3.3-70b-instruct-fp8-fast,@cf/google/gemma-3-12b-it,@cf/meta/llama-3.1-8b-instruct-fast")
+  .split(",").map((m) => m.trim()).filter((m) => /^@cf\/[\w.-]+\/[\w.-]+$/.test(m)).slice(0, 4);
+// Gemini 스키마(type: "OBJECT")를 JSON Schema(type: "object")로
+function jsonSchema(s: unknown): unknown {
+  if (Array.isArray(s)) return s.map(jsonSchema);
+  if (!s || typeof s !== "object") return s;
+  const o: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(s as Record<string, unknown>)) o[k] = k === "type" && typeof v === "string" ? v.toLowerCase() : jsonSchema(v);
+  return o;
+}
+async function cfAi(acct: string, tok: string, model: string, prompt: string, schema: unknown, ms: number, maxTok: number, json = true): Promise<{ status: number; text: string }> {
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), ms);
+  try {
+    const r = await fetch(`https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(acct)}/ai/run/${model}`, {
+      method: "POST",
+      signal: ctl.signal,
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${tok}` },
+      body: JSON.stringify({
+        messages: [{ role: "system", content: "You are a precise bilingual dictionary assistant for Korean students. Reply with one JSON object only." }, { role: "user", content: prompt }],
+        max_tokens: maxTok, temperature: 0.2,
+        ...(json ? { response_format: { type: "json_schema", json_schema: jsonSchema(schema) } } : {}),
+      }),
+    });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || j?.success === false) return { status: r.status === 200 ? 502 : r.status, text: "" };
+    const res = j?.result?.response;
+    const text = typeof res === "string" ? res : res && typeof res === "object" ? JSON.stringify(res) : "";
+    // JSON 이 아니면 실패로 쳐서 다음 모델로
+    const a = text.indexOf("{"), b = text.lastIndexOf("}");
+    if (a < 0 || b <= a) return { status: 502, text: "" };
+    try { JSON.parse(text.slice(a, b + 1)); } catch (_e) { return { status: 502, text: "" }; }
+    return { status: 200, text: text.slice(a, b + 1) };
+  } catch (_e) {
+    return { status: 504, text: "" };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 // 일치도: 목표 문장 단어(중국어는 글자) 가운데 '들은 말'에 있는 비율. 발음이 조금 틀려 철자가 다르게 적힌 단어는 맞은 걸로 쳐요
 const normW = (t: string) => t.toLowerCase().normalize("NFKC").replace(/[’‘`]/g, "'").replace(/[^a-z0-9'\s-]/g, " ").replace(/-/g, " ").split(/\s+/).map((w) => w.replace(/^'+|'+$/g, "")).filter(Boolean);
 const HAN = /[\u3400-\u9fff\uf900-\ufaff]/;
@@ -415,8 +457,10 @@ Deno.serve(async (req) => {
       }
     }
 
-    const key = Deno.env.get("GEMINI_API_KEY");
-    if (!key) return out({ error: "서버 AI 설정이 아직 끝나지 않았어요." }, 503);
+    const key = Deno.env.get("GEMINI_API_KEY") ?? "";
+    const cfAcct = Deno.env.get("CF_ACCOUNT_ID") ?? "", cfTok = Deno.env.get("CF_API_TOKEN") ?? "";
+    const useCf = !!(cfAcct && cfTok && CF_MODELS.length) && !pron && !ocr;
+    if (!key && !useCf) return out({ error: "서버 AI 설정이 아직 끝나지 않았어요." }, 503);
 
     // 발음 채점은 선생님마다 따로 센 한도(AI_PRON_LIMIT, 기본 200): 30명 반을 하루에 몇 번 채점해도 일반 AI(40회)를 막지 않아요
     const limit = pron ? Number(Deno.env.get("AI_PRON_LIMIT") ?? "200") : Number(Deno.env.get("AI_DAILY_LIMIT") ?? "40");
@@ -450,6 +494,20 @@ Deno.serve(async (req) => {
       : [{ text: job!.prompt }];
     const schema = pron ? PRON_SCHEMA : ocr ? TR_SCHEMA : job!.schema;
     let last = 502;
+    // 글 작업: 오픈소스 모델(Workers AI)을 먼저. JSON 형식 지정이 안 되는 모델이면(400) 형식 없이 한 번 더
+    if (useCf) {
+      const cfEnd = key ? Date.now() + (ctx ? 25000 : 10000) : deadline;
+      for (const model of CF_MODELS) {
+        const left = cfEnd - Date.now();
+        if (left < 1500) break;
+        let r = await cfAi(cfAcct, cfTok, model, job!.prompt, job!.schema, Math.min(ctx ? 20000 : 9000, left), ctx ? 4000 : 1500);
+        if (r.status === 400 && cfEnd - Date.now() > 1500) r = await cfAi(cfAcct, cfTok, model, job!.prompt, job!.schema, Math.min(ctx ? 20000 : 9000, cfEnd - Date.now()), ctx ? 4000 : 1500, false);
+        if (r.status === 200) return out({ text: r.text, model });
+        last = r.status;
+        if (r.status === 401 || r.status === 403) break; // 토큰 문제는 다른 모델도 똑같아요
+      }
+      if (!key) return out({ error: last === 504 ? "AI 응답이 늦어요. 잠시 후 다시 시도해 주세요." : "AI 서버가 바빠요. 잠시 후 다시 시도해 주세요." }, last === 504 ? 504 : 503);
+    }
     for (const model of models) {
       const left = deadline - Date.now();
       if (left < (slow ? 5000 : 1500)) break;

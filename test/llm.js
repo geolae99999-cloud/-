@@ -34,16 +34,14 @@ const FIX = process.env.LLM_FIXTURE === 'none' ? '' : (process.env.LLM_FIXTURE |
   await p.waitForSelector('#ltOv'); await p.click('[data-lt="close"]');
   await p.waitForSelector('#recOv.show'); await p.click('#recOv [data-act="rec-close"]'); await p.waitForTimeout(300);
 
-  // 새 계정 기본 AI 는 기기 AI. 처음 AI 를 부르면 받을지 물어보고, 거절하면(로그인 안 한 로컬 계정) 설정에서 받을 수 있다고 알려 줘요
-  ok(await p.evaluate(() => config.provider === 'local'), '기본 AI 엔진 = 기기 AI');
+  // 기본 AI 는 서버(로그인) · 키. 기기 AI 를 고른 뒤 처음 부르면 받을지 물어보고, 거절하면(로그인 안 한 로컬 계정) 설정에서 받을 수 있다고 알려 줘요
+  ok(await p.evaluate(() => config.provider === 'gemini'), '기본 AI 엔진 = 서버/키(Gemini 자리)');
+  await p.evaluate(() => { config.provider = 'local'; });
   const preP = p.evaluate(async () => { try { await callAi(buildPrompt('apple', false), normalizeResult, { task: 'word' }); return 'no error'; } catch (e) { return e.message; } });
   await p.waitForSelector('.dlg [data-d="0"]'); const askT = await p.textContent('.dlg p');
   ok(/오픈소스 AI\(Qwen\)/.test(askT), '처음 쓸 때 받을지 물어봄');
   await p.click('.dlg [data-d="0"]'); const pre = await preP;
   ok(/설정 > AI 기능에서 받을 수/.test(pre), '거절하면 안내 ' + pre);
-  // 예전에 키 없이 Gemini(서버 AI)로 두었던 설정은 한 번 기기 AI 로, 키가 있으면 그대로
-  ok(await p.evaluate(() => { const k = KEY_CFG, old = LS.getItem(k); LS.setItem(k, JSON.stringify({ provider: 'gemini' })); const a = loadConfig().provider; LS.setItem(k, JSON.stringify({ provider: 'gemini', keys: { gemini: 'AIzaX' } })); const b2 = loadConfig().provider; LS.setItem(k, JSON.stringify({ provider: 'gemini', aiv: 2 })); const c = loadConfig().provider; LS.setItem(k, old); return a === 'local' && b2 === 'gemini' && c === 'gemini'; }), '예전 설정 옮기기');
-
   // 설정 화면: 키 · 모델 칸 숨김, 안내 · 버튼 글자
   await p.evaluate(() => go('tabSettings')); await p.evaluate(() => { document.querySelector('details.adv').open = true; });
   await p.selectOption('#cfgProvider', 'local');

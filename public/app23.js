@@ -51,12 +51,12 @@
 - 동의를 거부할 수 있으며, 거부하면 반에 참여할 수 없을 뿐 다른 기능은 그대로 이용할 수 있습니다.`],
         ['제5조 개인정보 처리의 위탁', `운영자는 서비스 제공을 위해 다음과 같이 개인정보 처리 업무를 위탁합니다. 위탁 기간은 회원 탈퇴 또는 위탁 계약 종료 시까지입니다.
 - Supabase, Inc.: 계정과 학습 데이터 저장, 서버 기능 실행 (서버 위치: ${region})
-- Cloudflare, Inc.: 웹앱 배포와 호스팅 (미국)
+- Cloudflare, Inc.: 웹앱 배포와 호스팅, AI 단어 완성 · 번역 처리(Workers AI, 오픈소스 모델) (미국)
 - Google LLC: AI 단어 완성, 번역, 발음 평가 채점, 사진 속 글자 읽기 처리(Gemini API) (미국)
 운영자는 「개인정보 보호법」 제26조에 따라 수탁자가 개인정보를 안전하게 처리하는지 관리합니다.`],
         ['제6조 개인정보의 국외 이전', `서비스 이용 과정에서 다음과 같이 개인정보가 국외로 이전됩니다. 모든 전송은 암호화된 통신(HTTPS)으로 이루어집니다.
 - Google LLC (미국, https://policies.google.com/privacy): AI 완성·번역을 누를 때 입력한 영어·중국어 단어나 문장을, 선생님이 발음 평가 AI 채점을 누를 때 학생 녹음(음성)과 읽을 단어·문장을(선생님이 직접 넣은 녹음 파일은 채점에만 쓰고 운영자 서버에 저장하지 않습니다), '글·사진에서 단어 뽑기'에서 사진 속 글자 읽기를 누를 때 고른 사진(줄인 JPEG)을, 문맥 뜻 채우기를 켜고 단어를 넣을 때 고른 단어와 글 속 문장을 보냅니다. 사진은 운영자 서버에 저장하지 않습니다. 아이디 등 계정 정보는 보내지 않습니다. 목적은 AI 결과 생성이며, 보유 기간은 Google의 Gemini API 약관을 따릅니다.
-- Cloudflare, Inc. (미국, privacyquestions@cloudflare.com): 서비스에 접속할 때 IP 주소, 브라우저 정보가 전송됩니다. 목적은 웹앱 전송이며, 보유 기간은 Cloudflare의 기록 보관 기간을 따릅니다.
+- Cloudflare, Inc. (미국, privacyquestions@cloudflare.com): 서비스에 접속할 때 IP 주소, 브라우저 정보가 전송됩니다. 목적은 웹앱 전송이며, 보유 기간은 Cloudflare의 기록 보관 기간을 따릅니다. AI 완성 · 번역을 누를 때 입력한 단어나 문장을 오픈소스 AI 모델(Workers AI)로 처리합니다. 목적은 뜻 · 예문 · 번역 생성입니다.
 - Translated srl, MyMemory (이탈리아, https://mymemory.translated.net): AI 번역을 쓸 수 없을 때 번역할 문장을 보냅니다. 목적은 번역 결과 생성입니다.
 - Supabase, Inc. (서버 위치: ${region}): 서버 위치가 국외인 경우 제2조의 계정·학습 정보가 그 국가에 저장됩니다.
 말하기 연습과, 선생님이 발음 평가에서 '기기 AI (무료)'로 채점할 때는 음성을 외부로 보내지 않고 이용자 기기(브라우저) 안에서 처리합니다. 이때 기기 AI가 매긴 점수와 들은 말만 운영자 서버에 저장합니다.
@@ -98,7 +98,8 @@
 - 2026년 10월 11일: 제정
 - 2026년 10월 11일: 법정 기재 항목 보완, 학년 정보·AI 기능·국외 이전 내용 반영
 - ${I.effective}: 수집 항목에 이름, 학교, 학번(선택)과 선생님 가입 추가
-- ${I.effective}: 우리 반 기능 추가(반에 참여할 때 동의를 받아 그 반 선생님에게 제공하는 정보, 보유 기간), 실시간 접속 상태 표시`],
+- ${I.effective}: 우리 반 기능 추가(반에 참여할 때 동의를 받아 그 반 선생님에게 제공하는 정보, 보유 기간), 실시간 접속 상태 표시
+- 2026년 10월 15일: AI 단어 완성 · 번역에 Cloudflare Workers AI(오픈소스 모델) 추가`],
         ['시행일', `이 방침은 ${I.effective}부터 시행합니다.`]]],
       terms: ['이용약관', '', [
         ['제1조 (목적)', `이 약관은 ${I.operator}(이하 "운영자")이 제공하는 영어·중국어 단어 학습 서비스 VocaPro(이하 "서비스")의 이용 조건과 절차, 운영자와 회원의 권리·의무를 정합니다.`],
@@ -239,25 +240,3 @@
     }
   });
 
-  /* =========================================================
-   * 시작
-   * ======================================================= */
-  if ('speechSynthesis' in window) { try { window.speechSynthesis.getVoices(); } catch (e) {} }
-  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
-  if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
-  let deferredInstall = null;
-  window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredInstall = e; });
-  ACTIONS.install = async () => {
-    if (!deferredInstall) return say('브라우저 메뉴에서 "홈 화면에 추가"를 눌러 설치할 수 있어요.\n아이폰은 공유 버튼, 홈 화면에 추가예요.');
-    deferredInstall.prompt(); try { await deferredInstall.userChoice; } catch (e) {} deferredInstall = null;
-  };
-  let lastErrAt = 0;
-  const softErr = () => { if (Date.now() - lastErrAt > 4000) { lastErrAt = Date.now(); try { toast('일시적인 문제가 생겼어요. 계속 반복되면 새로고침해 주세요.'); } catch (e) {} } };
-  window.addEventListener('error', e => { if (e && e.message && !/ResizeObserver/.test(e.message)) softErr(); });
-  window.addEventListener('unhandledrejection', e => { e.preventDefault && e.preventDefault(); softErr(); });
-  applyTheme();
-  let sess = null;
-  try { sess = LS.getItem(KEY_SESS) || sessionStorage.getItem(KEY_SESS); } catch (e) {}
-  let kidBoot = false; try { kidBoot = cloudAvail && LS.getItem(KEY_KID) === '1'; } catch (e) {}
-  if (kidBoot && sess && getUsers()[sess]) { setKidMode(true); enterApp(sess); }
-  else if (cloudMode) bootCloud(); else if (sess && getUsers()[sess]) enterApp(sess); else showAuth();
