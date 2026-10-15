@@ -180,7 +180,10 @@
       : /Windows/.test(ua) ? `Chrome이나 Edge 브라우저로 열거나, Windows 설정 > 시간 및 언어 > 음성 > 음성 추가에서 '${nm}${fam === 'zh' ? '(간체, 중국)' : ''}'를 설치해 주세요.`
       : `기기 설정에서 ${nm} 음성을 설치하거나 Chrome · Edge 브라우저를 써 주세요.`;
   }
-  function ttsNoVoice(fam) {
+  // 소리 버튼을 직접 눌렀을 때만 설치 방법 창을 띄워요. 저절로 읽어 주다 실패하면(카드 넘김 · 단어 추가 등) 하던 일을 막지 않게 짧은 알림만 한 번
+  function ttsNoVoice(fam, ask) {
+    const nm = fam === 'zh' ? '중국어' : fam === 'ko' ? '한국어' : '영어';
+    if (!ask) { if (!ttsWarned[fam] && !ttsWarned[fam + ':t']) { ttsWarned[fam + ':t'] = true; toast(`이 기기에서 ${nm} 소리가 안 나요. 스피커 버튼을 누르면 해결 방법을 알려 드려요.`); } return; }
     if (ttsWarned[fam]) return; ttsWarned[fam] = true;
     say(`이 기기에서 ${fam === 'zh' ? '중국어' : fam === 'ko' ? '한국어' : '영어'} 소리를 낼 목소리를 찾지 못했어요. ${ttsHelp(fam)}`);
   }
@@ -192,7 +195,7 @@
       if (!('speechSynthesis' in window) || !text) return res();
       if (!o.keep) { try { window.speechSynthesis.cancel(); } catch (e) {} }
       const L2 = lang || 'en-US', fam = vFam(L2), rate = o.rate || ttsRateFor(L2), list = voicesOf(fam);
-      if (fam === 'zh' && loadVoices().length && !list.length) ttsNoVoice('zh');
+      if (fam === 'zh' && loadVoices().length && !list.length) ttsNoVoice('zh', o.ask);
       const first = o.voice || voiceFor(L2, o.ref), cand = [first].concat(list.filter(v => v !== first).sort((x, y) => (+!!y.localService) - (+!!x.localService)), [null]).filter((v, i, a) => a.indexOf(v) === i).slice(0, 3);
       const attempt = k => {
         const u = new SpeechSynthesisUtterance(text), v = cand[k];
@@ -202,7 +205,7 @@
         let over = false, started = false; const t0 = Date.now();
         u.onstart = () => { started = true; };
         const tm = setTimeout(() => end(true), (6000 + text.length * 160) / Math.min(1, rate));
-        const end = ok => { if (over) return; over = true; clearTimeout(tm); if (ok || k + 1 >= cand.length) { if (!ok && fam !== 'ko') ttsNoVoice(fam); return res(); } attempt(k + 1); };
+        const end = ok => { if (over) return; over = true; clearTimeout(tm); if (ok || k + 1 >= cand.length) { if (!ok && fam !== 'ko') ttsNoVoice(fam, o.ask); return res(); } attempt(k + 1); };
         u.onend = () => end(started || Date.now() - t0 > 300);
         u.onerror = e => end(!!(e && /interrupted|canceled/.test(e.error || '')));
         try { window.speechSynthesis.speak(u); } catch (e) { end(false); }
@@ -210,7 +213,7 @@
       attempt(0);
     });
   }
-  function playAudio(text) { speak(text, ttsLang(text)); }
+  function playAudio(text, ask) { speak(text, ttsLang(text), { ask }); }
   /* ----- 읽어주기 설정 화면 ----- */
   const TTS_K = {
     ttsRate: { label: '단어·예문 속도', min: .5, max: 2, step: .05, d: .9, fmt: x => x.toFixed(2) + 'x', chips: [.6, .75, .9, 1, 1.25, 1.5] },
@@ -257,8 +260,8 @@
   const TTS_SAMPLE = { en: ['apple', '사과'], zh: ['苹果', '사과'] };
   async function ttsTry(fam) {
     const f = LANG === 'zh' ? 'zh' : 'en', [w, m] = TTS_SAMPLE[f], wl = f === 'zh' ? 'zh-CN' : 'en-US', ref = voiceFor(wl);
-    if (fam === 'ko') return speak('안녕하세요. 이 목소리로 뜻을 읽어 드려요.', 'ko-KR', { ref });
-    await speak(w, wl, { ref });
+    if (fam === 'ko') return speak('안녕하세요. 이 목소리로 뜻을 읽어 드려요.', 'ko-KR', { ref, ask: true });
+    await speak(w, wl, { ref, ask: true });
     if (fam === 'all') { await sleep(Math.max(200, ttsVal('gap') * 500)); await speak(m, 'ko-KR', { ref, keep: true }); }
   }
   ACTIONS['tts-step'] = el => { const k = el.dataset.k, t = TTS_K[k]; if (t) ttsSet(k, ttsVal(k) + (+el.dataset.d) * t.step); };

@@ -3456,7 +3456,7 @@ window.VOCA_CLOUD = {
     const had = document.activeElement === el; renderWordList();
     if (had) { const n = [...document.querySelectorAll('.wcard')].find(c => c.dataset.wid === w.id); if (n && n.querySelector('.w-main')) n.querySelector('.w-main').focus(); } // 키보드 포커스 유지
   };
-  ACTIONS.speak = (el, e) => { e.stopPropagation(); playAudio(el.dataset.text); };
+  ACTIONS.speak = (el, e) => { e.stopPropagation(); playAudio(el.dataset.text, true); };
   ACTIONS.mem = el => {
     const w = wordFromEl(el); if (!w) return;
     if (w.box >= 5) { w.box = 0; w.due = 0; w.miss = 0; }
@@ -5169,7 +5169,10 @@ window.VOCA_CLOUD = {
       : /Windows/.test(ua) ? `Chrome이나 Edge 브라우저로 열거나, Windows 설정 > 시간 및 언어 > 음성 > 음성 추가에서 '${nm}${fam === 'zh' ? '(간체, 중국)' : ''}'를 설치해 주세요.`
       : `기기 설정에서 ${nm} 음성을 설치하거나 Chrome · Edge 브라우저를 써 주세요.`;
   }
-  function ttsNoVoice(fam) {
+  // 소리 버튼을 직접 눌렀을 때만 설치 방법 창을 띄워요. 저절로 읽어 주다 실패하면(카드 넘김 · 단어 추가 등) 하던 일을 막지 않게 짧은 알림만 한 번
+  function ttsNoVoice(fam, ask) {
+    const nm = fam === 'zh' ? '중국어' : fam === 'ko' ? '한국어' : '영어';
+    if (!ask) { if (!ttsWarned[fam] && !ttsWarned[fam + ':t']) { ttsWarned[fam + ':t'] = true; toast(`이 기기에서 ${nm} 소리가 안 나요. 스피커 버튼을 누르면 해결 방법을 알려 드려요.`); } return; }
     if (ttsWarned[fam]) return; ttsWarned[fam] = true;
     say(`이 기기에서 ${fam === 'zh' ? '중국어' : fam === 'ko' ? '한국어' : '영어'} 소리를 낼 목소리를 찾지 못했어요. ${ttsHelp(fam)}`);
   }
@@ -5181,7 +5184,7 @@ window.VOCA_CLOUD = {
       if (!('speechSynthesis' in window) || !text) return res();
       if (!o.keep) { try { window.speechSynthesis.cancel(); } catch (e) {} }
       const L2 = lang || 'en-US', fam = vFam(L2), rate = o.rate || ttsRateFor(L2), list = voicesOf(fam);
-      if (fam === 'zh' && loadVoices().length && !list.length) ttsNoVoice('zh');
+      if (fam === 'zh' && loadVoices().length && !list.length) ttsNoVoice('zh', o.ask);
       const first = o.voice || voiceFor(L2, o.ref), cand = [first].concat(list.filter(v => v !== first).sort((x, y) => (+!!y.localService) - (+!!x.localService)), [null]).filter((v, i, a) => a.indexOf(v) === i).slice(0, 3);
       const attempt = k => {
         const u = new SpeechSynthesisUtterance(text), v = cand[k];
@@ -5191,7 +5194,7 @@ window.VOCA_CLOUD = {
         let over = false, started = false; const t0 = Date.now();
         u.onstart = () => { started = true; };
         const tm = setTimeout(() => end(true), (6000 + text.length * 160) / Math.min(1, rate));
-        const end = ok => { if (over) return; over = true; clearTimeout(tm); if (ok || k + 1 >= cand.length) { if (!ok && fam !== 'ko') ttsNoVoice(fam); return res(); } attempt(k + 1); };
+        const end = ok => { if (over) return; over = true; clearTimeout(tm); if (ok || k + 1 >= cand.length) { if (!ok && fam !== 'ko') ttsNoVoice(fam, o.ask); return res(); } attempt(k + 1); };
         u.onend = () => end(started || Date.now() - t0 > 300);
         u.onerror = e => end(!!(e && /interrupted|canceled/.test(e.error || '')));
         try { window.speechSynthesis.speak(u); } catch (e) { end(false); }
@@ -5199,7 +5202,7 @@ window.VOCA_CLOUD = {
       attempt(0);
     });
   }
-  function playAudio(text) { speak(text, ttsLang(text)); }
+  function playAudio(text, ask) { speak(text, ttsLang(text), { ask }); }
   /* ----- 읽어주기 설정 화면 ----- */
   const TTS_K = {
     ttsRate: { label: '단어·예문 속도', min: .5, max: 2, step: .05, d: .9, fmt: x => x.toFixed(2) + 'x', chips: [.6, .75, .9, 1, 1.25, 1.5] },
@@ -5246,8 +5249,8 @@ window.VOCA_CLOUD = {
   const TTS_SAMPLE = { en: ['apple', '사과'], zh: ['苹果', '사과'] };
   async function ttsTry(fam) {
     const f = LANG === 'zh' ? 'zh' : 'en', [w, m] = TTS_SAMPLE[f], wl = f === 'zh' ? 'zh-CN' : 'en-US', ref = voiceFor(wl);
-    if (fam === 'ko') return speak('안녕하세요. 이 목소리로 뜻을 읽어 드려요.', 'ko-KR', { ref });
-    await speak(w, wl, { ref });
+    if (fam === 'ko') return speak('안녕하세요. 이 목소리로 뜻을 읽어 드려요.', 'ko-KR', { ref, ask: true });
+    await speak(w, wl, { ref, ask: true });
     if (fam === 'all') { await sleep(Math.max(200, ttsVal('gap') * 500)); await speak(m, 'ko-KR', { ref, keep: true }); }
   }
   ACTIONS['tts-step'] = el => { const k = el.dataset.k, t = TTS_K[k]; if (t) ttsSet(k, ttsVal(k) + (+el.dataset.d) * t.step); };
@@ -5855,7 +5858,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     } catch (e) { if ($('trOut')) $('trOut').innerHTML = '<div class="tr-err">번역하지 못했어요. 인터넷을 확인하거나 잠시 뒤 다시 시도해 주세요.</div>'; }
     finally { trBusy = false; const b = $('trGo'); if (b) { b.disabled = false; b.textContent = '번역하기'; } }
   };
-  ACTIONS['tr-speak'] = () => { if (trLast) playAudio(trLast.en); };
+  ACTIONS['tr-speak'] = () => { if (trLast) playAudio(trLast.en, true); };
   // 한국어 → 외국어 번역에서 다른 후보 단어를 누르면 그 단어로 바꿔 담을 수 있게 해요.
   ACTIONS['tr-pick'] = el => { if (!trLast) return; const i = $('trIn'); if (i) { i.value = el.dataset.w; i.dispatchEvent(new Event('input')); } ACTIONS['tr-go'](); };
   ACTIONS['tr-copy'] = async () => { try { await navigator.clipboard.writeText(trLast.t); toast('복사했어요.'); } catch (e) { toast('복사하지 못했어요. 직접 선택해서 복사해 주세요.'); } };
@@ -7365,7 +7368,7 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
     else if (k === 'next') { if (PV.i < PV.list.length - 1) { PV.i++; PV.show = false; } else return toast('마지막 단어예요.'); }
     else if (k === 'prev') { if (PV.i > 0) { PV.i--; PV.show = false; } }
     else if (k === 'mix') { PV.list = shuffled(PV.list); PV.i = 0; PV.show = false; toast('순서를 섞었어요.'); }
-    else if (k === 'say') { playAudio(PV.list[PV.i].word); return; }
+    else if (k === 'say') { playAudio(PV.list[PV.i].word, true); return; }
     pvDraw();
   }
   document.addEventListener('click', e => { const b = e.target.closest('[data-pv]'); if (b && $('pvOv')) { e.preventDefault(); pvDo(b.dataset.pv); } });
@@ -7569,7 +7572,7 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
       if (k === 'show') { t.show = true; clearInterval(t.timer); return qsDraw(); }
       if (k === 'next') { t.i++; t.show = false; t.scored = false; qsDraw(); return qsTick(); }
       if (k === 'team') { if (t.scored) return; t.teams[+b.dataset.k]++; t.scored = true; return qsDraw(); }
-      if (k === 'say') return playAudio(t.qs[t.i].w.word);
+      if (k === 'say') return playAudio(t.qs[t.i].w.word, true);
       if (k === 'again') { t.qs = shuffled(t.qs); t.i = 0; t.show = false; t.scored = false; t.teams = t.teams.map(() => 0); qsDraw(); return qsTick(); }
     }
     if (t.kind === 'timer') return tmDo(k, b);
@@ -7582,7 +7585,7 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
     if ((e.key === ' ' || e.key === 'Enter') && e.target.closest && e.target.closest('#ttOv') && /^(BUTTON|INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName)) return; // 포커스된 버튼은 제 동작대로
     if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); e.stopImmediatePropagation(); return click(t.kind === 'qs' ? '[data-tt="show"], [data-tt="next"], [data-tt="again"]' : t.kind === 'timer' ? '[data-tt="tm-go"]' : t.mode === 'one' ? '[data-tt="pk-spin"]' : '[data-tt="pk-grp"]'); }
     if (t.kind === 'qs' && /^[1-4]$/.test(e.key)) { e.preventDefault(); e.stopImmediatePropagation(); click(`[data-tt="team"][data-k="${+e.key - 1}"]`); }
-    else if (t.kind === 'qs' && (e.key === 's' || e.key === 'S')) { e.preventDefault(); e.stopImmediatePropagation(); playAudio(t.qs[t.i] && t.qs[t.i].w.word); }
+    else if (t.kind === 'qs' && (e.key === 's' || e.key === 'S')) { e.preventDefault(); e.stopImmediatePropagation(); playAudio(t.qs[t.i] && t.qs[t.i].w.word, true); }
   }, true);
 
   /* ----- 빙고판 인쇄 ----- */
@@ -8250,7 +8253,7 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
       <div class="row"><button class="btn btn-soft" data-act="sp-redo">다시 녹음하기</button><button class="btn btn-primary" data-act="cl-home">반 목록</button></div></div>`;
   }
   ACTIONS['sp-go'] = el => { if (!SP || SP.rec) return; const i = +el.dataset.i; if (i < 0 || i >= SP.items.length) return; SP.i = i; SP.note = ''; spStopAudio(); spDraw(); };
-  ACTIONS['sp-listen'] = () => { if (!SP) return; const it = SP.items[SP.i]; spStopAudio(); speak(it[0], spLang(it) === 'zh' ? 'zh-CN' : 'en-US'); };
+  ACTIONS['sp-listen'] = () => { if (!SP) return; const it = SP.items[SP.i]; spStopAudio(); speak(it[0], spLang(it) === 'zh' ? 'zh-CN' : 'en-US', { ask: true }); };
   ACTIONS['sp-rec'] = async () => {
     const sp = SP; if (!sp || sp.busy != null) return;
     if (sp.rec) return spRecStop();

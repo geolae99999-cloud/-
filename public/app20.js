@@ -280,7 +280,7 @@
       <div class="row"><button class="btn btn-soft" data-act="sp-redo">다시 녹음하기</button><button class="btn btn-primary" data-act="cl-home">반 목록</button></div></div>`;
   }
   ACTIONS['sp-go'] = el => { if (!SP || SP.rec) return; const i = +el.dataset.i; if (i < 0 || i >= SP.items.length) return; SP.i = i; SP.note = ''; spStopAudio(); spDraw(); };
-  ACTIONS['sp-listen'] = () => { if (!SP) return; const it = SP.items[SP.i]; spStopAudio(); speak(it[0], spLang(it) === 'zh' ? 'zh-CN' : 'en-US'); };
+  ACTIONS['sp-listen'] = () => { if (!SP) return; const it = SP.items[SP.i]; spStopAudio(); speak(it[0], spLang(it) === 'zh' ? 'zh-CN' : 'en-US', { ask: true }); };
   ACTIONS['sp-rec'] = async () => {
     const sp = SP; if (!sp || sp.busy != null) return;
     if (sp.rec) return spRecStop();

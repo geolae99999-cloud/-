@@ -237,7 +237,7 @@
     else if (k === 'next') { if (PV.i < PV.list.length - 1) { PV.i++; PV.show = false; } else return toast('마지막 단어예요.'); }
     else if (k === 'prev') { if (PV.i > 0) { PV.i--; PV.show = false; } }
     else if (k === 'mix') { PV.list = shuffled(PV.list); PV.i = 0; PV.show = false; toast('순서를 섞었어요.'); }
-    else if (k === 'say') { playAudio(PV.list[PV.i].word); return; }
+    else if (k === 'say') { playAudio(PV.list[PV.i].word, true); return; }
     pvDraw();
   }
   document.addEventListener('click', e => { const b = e.target.closest('[data-pv]'); if (b && $('pvOv')) { e.preventDefault(); pvDo(b.dataset.pv); } });

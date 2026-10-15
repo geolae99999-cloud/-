@@ -191,7 +191,7 @@
       if (k === 'show') { t.show = true; clearInterval(t.timer); return qsDraw(); }
       if (k === 'next') { t.i++; t.show = false; t.scored = false; qsDraw(); return qsTick(); }
       if (k === 'team') { if (t.scored) return; t.teams[+b.dataset.k]++; t.scored = true; return qsDraw(); }
-      if (k === 'say') return playAudio(t.qs[t.i].w.word);
+      if (k === 'say') return playAudio(t.qs[t.i].w.word, true);
       if (k === 'again') { t.qs = shuffled(t.qs); t.i = 0; t.show = false; t.scored = false; t.teams = t.teams.map(() => 0); qsDraw(); return qsTick(); }
     }
     if (t.kind === 'timer') return tmDo(k, b);
@@ -204,7 +204,7 @@
     if ((e.key === ' ' || e.key === 'Enter') && e.target.closest && e.target.closest('#ttOv') && /^(BUTTON|INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName)) return; // 포커스된 버튼은 제 동작대로
     if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); e.stopImmediatePropagation(); return click(t.kind === 'qs' ? '[data-tt="show"], [data-tt="next"], [data-tt="again"]' : t.kind === 'timer' ? '[data-tt="tm-go"]' : t.mode === 'one' ? '[data-tt="pk-spin"]' : '[data-tt="pk-grp"]'); }
     if (t.kind === 'qs' && /^[1-4]$/.test(e.key)) { e.preventDefault(); e.stopImmediatePropagation(); click(`[data-tt="team"][data-k="${+e.key - 1}"]`); }
-    else if (t.kind === 'qs' && (e.key === 's' || e.key === 'S')) { e.preventDefault(); e.stopImmediatePropagation(); playAudio(t.qs[t.i] && t.qs[t.i].w.word); }
+    else if (t.kind === 'qs' && (e.key === 's' || e.key === 'S')) { e.preventDefault(); e.stopImmediatePropagation(); playAudio(t.qs[t.i] && t.qs[t.i].w.word, true); }
   }, true);
 
   /* ----- 빙고판 인쇄 ----- */

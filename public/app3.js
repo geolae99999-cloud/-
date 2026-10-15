@@ -193,7 +193,7 @@
     const had = document.activeElement === el; renderWordList();
     if (had) { const n = [...document.querySelectorAll('.wcard')].find(c => c.dataset.wid === w.id); if (n && n.querySelector('.w-main')) n.querySelector('.w-main').focus(); } // 키보드 포커스 유지
   };
-  ACTIONS.speak = (el, e) => { e.stopPropagation(); playAudio(el.dataset.text); };
+  ACTIONS.speak = (el, e) => { e.stopPropagation(); playAudio(el.dataset.text, true); };
   ACTIONS.mem = el => {
     const w = wordFromEl(el); if (!w) return;
     if (w.box >= 5) { w.box = 0; w.due = 0; w.miss = 0; }
