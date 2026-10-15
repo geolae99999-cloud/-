@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""중국어 말하기 문장 (초 · 중 · 고): src/data/zh-speak.txt -> public/dict/zh/speak.json
+"""중국어 말하기 문장 (난이도 1 하 · 2 중 · 3 상 · 4 최상): src/data/zh-speak.txt -> public/dict/zh/speak.json
 사용: python3 tools/build_zh_speak.py src/data/zh-speak.txt public
 
-speak.json = {"e": [[단어, 단어 병음, 뜻, 문장, 문장 병음, 해석], ...], "m": [...], "h": [...]}
+speak.json = {"1": [[단어, 단어 병음, 뜻, 문장, 문장 병음, 해석], ...], "2": [...], "3": [...], "4": [...]}
 문장마다 핵심 단어가 들어 있는지, 문장 병음의 음절 수가 한자 수와 같은지 (얼화 포함) 확인하고, 틀리면 멈춰요."""
 import sys, os, json, re, unicodedata
 from functools import lru_cache
@@ -31,11 +31,11 @@ def counts(py):
 
 src, out = sys.argv[1], os.path.join(sys.argv[2], 'dict', 'zh', 'speak.json')
 HAN = re.compile(r'[㐀-鿿]')
-data, sec, bad = {'e': [], 'm': [], 'h': []}, None, []
+data, sec, bad = {'1': [], '2': [], '3': [], '4': []}, None, []
 for n, line in enumerate(open(src, encoding='utf-8'), 1):
     line = line.strip()
     if not line or line.startswith('#'): continue
-    m = re.fullmatch(r'\[(e|m|h)\]', line)
+    m = re.fullmatch(r'\[([1-4])\]', line)
     if m: sec = m.group(1); continue
     f = [x.strip() for x in line.split('|')]
     if sec is None or len(f) != 6 or not all(f): bad.append((n, '칸 수')); continue

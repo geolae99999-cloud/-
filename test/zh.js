@@ -136,22 +136,34 @@ const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); if (!c) fails++
   ok(/찾지 못했어요/.test(await p.textContent('#aiState')), '없는 병음은 안내');
   await p.evaluate(() => closeSheet && closeSheet());
   // 12) 중국어 말하기 문장 (초 · 중 · 고): 책장 · 홈 줄 · 담으면 문장 · 병음 · 해석이 예문으로 들어가요
-  await p.evaluate(() => go('tabHome')); await p.waitForFunction(() => document.querySelectorAll('.shelf-b[data-g^="zs-"]').length === 3, null, { timeout: 8000 });
-  ok(await p.evaluate(() => /sentences/.test(document.querySelector('.shelf-b[data-g="zs-m"]').textContent)), '책장에 말하기 초 · 중 · 고');
-  ok(await p.evaluate(() => /중국어 말하기 문장 \(초 · 중 · 고\)[\s\S]*문장 109개/.test(document.querySelector('.tool-list').textContent)), '홈 줄: 말하기 문장 109개');
-  await p.click('.shelf-b[data-g="zs-m"]'); await p.waitForSelector('#recList .rec-row.zs');
+  await p.evaluate(() => go('tabHome')); await p.waitForFunction(() => document.querySelectorAll('.shelf-b[data-g^="zs-"]').length === 4, null, { timeout: 8000 });
+  ok(await p.evaluate(() => /sentences/.test(document.querySelector('.shelf-b[data-g="zs-2"]').textContent)), '책장에 말하기 하 · 중 · 상 · 최상');
+  ok(await p.evaluate(() => /중국어 말하기 문장 \(하 · 중 · 상 · 최상\)[\s\S]*문장 139개/.test(document.querySelector('.tool-list').textContent)), '홈 줄: 말하기 문장 139개');
+  await p.click('.shelf-b[data-g="zs-2"]'); await p.waitForSelector('#recList .rec-row.zs');
   const zs = await p.evaluate(() => ({ t: $('sheetTitle').textContent, n: document.querySelectorAll('#recList .rec-row').length, ex: document.querySelector('#recList .rec-ex').textContent, tabs: [...document.querySelectorAll('.rec-tab-row .chip')].map(x => x.textContent).join(',') }));
-  ok(zs.t === '중국어 말하기 · 중학교 문장 39' && zs.n === 39 && /。/.test(zs.ex) && zs.tabs === '초등학교,중학교,고등학교', '중학교 문장 39개 + 병음 · 해석 ' + JSON.stringify(zs));
+  ok(zs.t === '중국어 말하기 · 중 문장 39' && zs.n === 39 && /。/.test(zs.ex) && zs.tabs === '하,중,상,최상', '난이도 중 문장 39개 + 병음 · 해석 ' + JSON.stringify(zs));
   await p.screenshot({ path: path.join(shots, 'zh-speak-sheet.png') });
   await p.click('[data-act="rec-left-add"]'); await p.waitForTimeout(600);
-  const zb = await p.evaluate(() => { const c = categories.find(x => x.name === '중국어 말하기 · 중학교'); const w = c && c.words[0]; return c && { n: c.words.length, lang: c.lang || LANG, w: w.word, p: w.phonetic, ex: w.example, py: w.exPy, ko: w.exampleKo }; });
+  const zb = await p.evaluate(() => { const c = categories.find(x => x.name === '중국어 말하기 · 중'); const w = c && c.words[0]; return c && { n: c.words.length, lang: c.lang || LANG, w: w.word, p: w.phonetic, ex: w.example, py: w.exPy, ko: w.exampleKo }; });
   ok(zb && zb.n === 39 && zb.ex && zb.ex.includes(zb.w) && zb.py && zb.ko && zb.p, '담으면 단어장에 문장 · 병음 · 해석 ' + JSON.stringify(zb));
   // 이미 다른 단어장에 있는 단어도 말하기 단어장에는 문장과 함께 담겨요
-  ok(await p.evaluate(() => { const c = categories.find(x => x.name === '중국어 말하기 · 중학교'); return c.words.some(w => w.word === '学习') || !gradeWords('zs-m').some(e => e.w === '学习'); }), '다른 단어장에 있는 단어도 따로 담음');
+  ok(await p.evaluate(() => { const c = categories.find(x => x.name === '중국어 말하기 · 중'); return c.words.some(w => w.word === '学习') || !gradeWords('zs-2').some(e => e.w === '学习'); }), '다른 단어장에 있는 단어도 따로 담음');
   ok(await p.evaluate(() => /0개 모두 담기/.test(document.querySelector('[data-act="rec-left-add"]').textContent)), '다 담으면 남은 0개');
   // 발음 평가 문항: 문장 + 병음(5번째 칸), 학생 화면에 병음 표시
-  const items = await p.evaluate(() => { const cat = categories.find(x => x.name === '중국어 말하기 · 중학교'); return cat.words.slice(0, 2).map(w => { const s = true && w.example, py = LANG === 'zh' ? ((s ? w.exPy : w.phonetic) || '').slice(0, 200) : ''; const it = s ? [w.example.slice(0, 200), (w.exampleKo || w.meaning || '').slice(0, 160), LANG, 's'] : [w.word, w.meaning, LANG, 'w']; if (py) it.push(py); return it; }); });
+  const items = await p.evaluate(() => { const cat = categories.find(x => x.name === '중국어 말하기 · 중'); return cat.words.slice(0, 2).map(w => { const s = true && w.example, py = LANG === 'zh' ? ((s ? w.exPy : w.phonetic) || '').slice(0, 200) : ''; const it = s ? [w.example.slice(0, 200), (w.exampleKo || w.meaning || '').slice(0, 160), LANG, 's'] : [w.word, w.meaning, LANG, 'w']; if (py) it.push(py); return it; }); });
   ok(items[0].length === 5 && items[0][2] === 'zh' && items[0][3] === 's' && /[āáǎàēéěèīíǐìōóǒòūúǔù]/.test(items[0][4]), '문항 모양 ' + JSON.stringify(items[0]));
+  // 단어 추가 · 문장 탭: 한 줄에 한 문장, 해석 · 병음 채워 저장
+  await p.evaluate(() => { closeSheet(); openBook(categories.find(x => x.name === '중국어 말하기 · 중').id); }); await p.waitForTimeout(300);
+  await p.click('.fab'); await p.waitForSelector('#fieldWord'); await p.click('[data-act="add-tab"][data-t="sent"]');
+  await p.fill('#sentText', '我不去学校。\n一个人也可以学习汉语。'); await p.click('#btnSentFill'); await p.waitForSelector('.sent-row >> nth=1', { timeout: 15000 });
+  const sr = await p.$$eval('.sent-row', a => a.map(r => [r.querySelector('b').textContent, r.querySelector('.sent-py').value, r.querySelector('.sent-ko').value]));
+  ok(sr.length === 2 && sr[0][1] === 'Wǒ bú qù xuéxiào.' && ['Yí gèrén yě kěyǐ xuéxí Hànyǔ.', 'Yí ge rén yě kěyǐ xuéxí Hànyǔ.'].includes(sr[1][1]) && sr.every(x => x[2]), '문장 병음 자동(不·一 성조 변화) + 해석 ' + JSON.stringify(sr));
+  await p.screenshot({ path: path.join(shots, 'zh-add-sentence.png') });
+  await p.click('#btnSentSave'); await p.waitForTimeout(300);
+  const sw = await p.evaluate(() => curCat().words.slice(0, 2).map(w => [w.word, w.meaning, w.phonetic, sentLike(w.word)]));
+  ok(sw.length === 2 && sw[0][0] === '我不去学校。' && sw[1][0] === '一个人也可以学习汉语。' && sw.every(x => x[1] && x[2] && x[3]), '문장을 단어처럼 저장 · 문장으로 인식 ' + JSON.stringify(sw));
+  ok(await p.evaluate(() => !sentLike('学习') && !sentLike('apple') && sentLike('I like it.') && sentLike('你好吗？')), '단어는 단어, 문장은 문장');
+  await p.evaluate(() => closeSheet());
   // 학생 녹음 화면: 문장 아래 병음
   await p.evaluate(its => { closeSheet(); openSheet('말하기', ''); SP = { a: { id: 1, title: '말하기', words: its }, items: its, i: 0, mine: {}, local: {}, raw: {}, submitted: false, view: 'rec', rec: null, busy: null, note: '' }; spDraw(); }, items);
   await p.waitForSelector('.sp-py');

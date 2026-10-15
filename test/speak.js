@@ -452,8 +452,9 @@ const AI_KEYS = /"(ai_score|ai_detail|ai_avg|ai_n|heard|tips|problems)"/;
   const [dl] = await Promise.all([T.waitForEvent('download'), T.click('[data-act="sp-csv"]')]);
   const csv = fs.readFileSync(await dl.path(), 'utf8').replace(/^\ufeff/, '').split('\r\n');
   const h = csv[0].split(','), rowOf = s => (csv.find(l => l.includes(s)) || '').split(',');
-  ok(dl.suggestedFilename().startsWith('발음 평가 1_발음평가_') && h.slice(0, 10).join('|') === '학번|이름|출처|제출 시각|녹음|AI 평균|AI 일치도(%)|선생님 점수|최종 점수|선생님 한마디' && h[10] === '1. apple' && csv.length === 11, 'CSV: 머리글 + 학생 10줄');
-  ok(rowOf('이지우')[0] === '20315' && rowOf('이지우')[2] === '앱' && rowOf('이지우')[8] === '88' && rowOf('이지우')[10] === '95' && /^파일 30211_김주원/.test(rowOf('김주원')[2]) && rowOf('김주원')[8] === '75' && /^\d+$/.test(rowOf('김주원')[6]), 'CSV: 앱 제출(최종 88, 1번 95) + 파일 결과(최종 75)');
+  ok(dl.suggestedFilename().startsWith('발음 평가 1_발음평가_') && h.slice(0, 12).join('|') === '학번|이름|출처|제출 시각|녹음|AI 평균|AI 정확성|AI 유창성|AI 일치도(%)|선생님 점수|최종 점수|선생님 한마디' && h[12] === '1. apple' && csv.length === 11, 'CSV: 머리글 + 학생 10줄');
+  ok(rowOf('이지우')[0] === '20315' && rowOf('이지우')[2] === '앱' && rowOf('이지우')[10] === '88' && rowOf('이지우')[12] === '95' && /^파일 30211_김주원/.test(rowOf('김주원')[2]) && rowOf('김주원')[10] === '75' && /^\d+$/.test(rowOf('김주원')[8]) && /^\d+$/.test(rowOf('김주원')[6]) && /^\d+$/.test(rowOf('김주원')[7]) && /^\d+$/.test(rowOf('이지우')[6]), 'CSV: 앱 제출(최종 88, 1번 95) + 파일 결과(최종 75) + 정확성 · 유창성 ' + [rowOf('이지우').slice(5, 9), rowOf('김주원').slice(5, 9)].join(' / '));
+  ok(/정확성 \d+ · 유창성 \d+/.test(await T.evaluate(() => [...document.querySelectorAll('.sp-af')].map(x => x.textContent).join(' | '))), '결과 화면: 학생마다 정확성 · 유창성 평균 ' + await T.evaluate(() => [...document.querySelectorAll('.sp-af')].slice(0, 3).map(x => x.textContent).join(' | ')));
   // 반 CSV에도 발음 평가 점수
   await T.click('[data-act="cl-back"]'); await T.waitForSelector('[data-act="cl-csv"]');
   const [dl2] = await Promise.all([T.waitForEvent('download'), T.click('[data-act="cl-csv"]')]);

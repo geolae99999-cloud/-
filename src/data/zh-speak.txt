@@ -1,6 +1,6 @@
-# 중국어 말하기 문장 (초 · 중 · 고). 한 줄: 핵심 단어|단어 병음|뜻|문장|문장 병음|해석
+# 중국어 말하기 문장 (난이도 하 · 중 · 상 · 최상). 한 줄: 핵심 단어|단어 병음|뜻|문장|문장 병음|해석
 # 병음은 교과서처럼 一 · 不 의 성조 변화를 표시하고 경성은 부호 없이 써요.
-[e]
+[1]
 你好|nǐ hǎo|안녕하세요|老师，你好！|Lǎoshī, nǐ hǎo!|선생님, 안녕하세요!
 谢谢|xièxie|고맙습니다|谢谢你！|Xièxie nǐ!|고마워!
 再见|zàijiàn|잘 가, 안녕히 계세요|老师，再见！|Lǎoshī, zàijiàn!|선생님, 안녕히 계세요!
@@ -31,7 +31,7 @@
 生日|shēngrì|생일|祝你生日快乐！|Zhù nǐ shēngrì kuàilè!|생일 축하해!
 一起|yìqǐ|함께|我们一起去玩儿吧！|Wǒmen yìqǐ qù wánr ba!|우리 같이 놀러 가자!
 汉语|Hànyǔ|중국어|我会说一点儿汉语。|Wǒ huì shuō yìdiǎnr Hànyǔ.|나는 중국어를 조금 할 줄 알아.
-[m]
+[2]
 认识|rènshi|알다|认识你很高兴。|Rènshi nǐ hěn gāoxìng.|만나서 반가워요.
 哪国人|nǎ guó rén|어느 나라 사람|你是哪国人？|Nǐ shì nǎ guó rén?|당신은 어느 나라 사람이에요?
 年级|niánjí|학년|我上初中二年级。|Wǒ shàng chūzhōng èr niánjí.|저는 중학교 2학년이에요.
@@ -71,7 +71,7 @@
 中秋节|Zhōngqiū Jié|중추절(추석)|中秋节我们吃月饼。|Zhōngqiū Jié wǒmen chī yuèbing.|중추절에 우리는 월병을 먹어요.
 春节|Chūn Jié|춘절(설날)|春节快乐！|Chūn Jié kuàilè!|즐거운 설 보내세요!
 加油|jiāyóu|힘내다|加油！你一定能行！|Jiāyóu! Nǐ yídìng néng xíng!|힘내! 너는 꼭 할 수 있어!
-[h]
+[3]
 介绍|jièshào|소개하다|我来介绍一下我自己。|Wǒ lái jièshào yíxià wǒ zìjǐ.|제 소개를 하겠습니다.
 性格|xìnggé|성격|我的性格很开朗。|Wǒ de xìnggé hěn kāilǎng.|제 성격은 아주 밝아요.
 理想|lǐxiǎng|꿈, 이상|我的理想是当一名医生。|Wǒ de lǐxiǎng shì dāng yì míng yīshēng.|제 꿈은 의사가 되는 것이에요.
@@ -112,3 +112,34 @@
 不但|búdàn|~뿐만 아니라|她不但漂亮，而且很聪明。|Tā búdàn piàoliang, érqiě hěn cōngming.|그녀는 예쁠 뿐만 아니라 아주 똑똑해요.
 互相|hùxiāng|서로|朋友之间应该互相帮助。|Péngyou zhījiān yīnggāi hùxiāng bāngzhù.|친구 사이에는 서로 도와야 해요.
 机会|jīhuì|기회|有机会的话，欢迎你来韩国玩儿。|Yǒu jīhuì dehuà, huānyíng nǐ lái Hánguó wánr.|기회가 되면 한국에 놀러 오세요.
+[4]
+坚持|jiānchí|꾸준히 하다|学外语最重要的是坚持下去。|Xué wàiyǔ zuì zhòngyào de shì jiānchí xiàqu.|외국어를 배울 때 가장 중요한 것은 꾸준히 해 나가는 것이에요.
+尽管|jǐnguǎn|비록 ~라도|尽管遇到了很多困难，他从来没有放弃过。|Jǐnguǎn yùdào le hěn duō kùnnan, tā cónglái méiyǒu fàngqì guo.|많은 어려움을 겪었지만 그는 한 번도 포기한 적이 없어요.
+无论|wúlùn|~을 막론하고|无论遇到什么问题，我们都要冷静地面对。|Wúlùn yùdào shénme wèntí, wǒmen dōu yào lěngjìng de miànduì.|어떤 문제를 만나더라도 우리는 침착하게 맞서야 해요.
+随着|suízhe|~에 따라|随着科技的发展，我们的生活越来越方便了。|Suízhe kējì de fāzhǎn, wǒmen de shēnghuó yuè lái yuè fāngbiàn le.|과학 기술이 발전하면서 우리 생활은 점점 더 편리해졌어요.
+影响|yǐngxiǎng|영향|父母的态度对孩子的成长有很大的影响。|Fùmǔ de tàidu duì háizi de chéngzhǎng yǒu hěn dà de yǐngxiǎng.|부모의 태도는 아이의 성장에 큰 영향을 줘요.
+责任|zérèn|책임|保护地球是我们每个人的责任。|Bǎohù dìqiú shì wǒmen měi ge rén de zérèn.|지구를 지키는 것은 우리 모두의 책임이에요.
+意义|yìyì|의미|做志愿者让我明白了生活的意义。|Zuò zhìyuànzhě ràng wǒ míngbai le shēnghuó de yìyì.|봉사 활동을 하면서 삶의 의미를 알게 되었어요.
+竞争|jìngzhēng|경쟁|现在社会竞争非常激烈。|Xiànzài shèhuì jìngzhēng fēicháng jīliè.|요즘 사회는 경쟁이 매우 치열해요.
+压力|yālì|스트레스, 압박|面对学习压力，我常常通过运动来放松。|Miànduì xuéxí yālì, wǒ chángcháng tōngguò yùndòng lái fàngsōng.|공부 스트레스를 받을 때 저는 자주 운동으로 긴장을 풀어요.
+优点|yōudiǎn|장점|每个人都有自己的优点和缺点。|Měi ge rén dōu yǒu zìjǐ de yōudiǎn hé quēdiǎn.|사람마다 자기만의 장점과 단점이 있어요.
+交流|jiāoliú|교류하다|通过交流，我们可以更好地了解对方的文化。|Tōngguò jiāoliú, wǒmen kěyǐ gèng hǎo de liǎojiě duìfāng de wénhuà.|교류를 통해 우리는 상대방의 문화를 더 잘 이해할 수 있어요.
+观点|guāndiǎn|관점, 견해|我同意你的观点，但是我还有一点补充。|Wǒ tóngyì nǐ de guāndiǎn, dànshì wǒ hái yǒu yìdiǎn bǔchōng.|당신의 견해에 동의하지만 조금 덧붙일 것이 있어요.
+总之|zǒngzhī|요컨대|总之，健康的生活习惯非常重要。|Zǒngzhī, jiànkāng de shēnghuó xíguàn fēicháng zhòngyào.|요컨대, 건강한 생활 습관은 매우 중요해요.
+既然|jìrán|기왕 ~한 이상|既然你已经决定了，就努力去做吧。|Jìrán nǐ yǐjīng juédìng le, jiù nǔlì qù zuò ba.|이미 결정했으니 열심히 해 보세요.
+难免|nánmiǎn|~하기 마련이다|刚开始学习的时候，犯错误是难免的。|Gāng kāishǐ xuéxí de shíhou, fàn cuòwù shì nánmiǎn de.|처음 배울 때는 실수하기 마련이에요.
+毕业|bìyè|졸업하다|大学毕业以后，我打算去中国留学。|Dàxué bìyè yǐhòu, wǒ dǎsuàn qù Zhōngguó liúxué.|대학을 졸업하면 중국으로 유학 갈 계획이에요.
+发挥|fāhuī|발휘하다|希望你在比赛中发挥出最好的水平。|Xīwàng nǐ zài bǐsài zhōng fāhuī chū zuì hǎo de shuǐpíng.|시합에서 최고의 실력을 발휘하길 바라요.
+适应|shìyìng|적응하다|刚来中国的时候，我很难适应这里的饮食。|Gāng lái Zhōngguó de shíhou, wǒ hěn nán shìyìng zhèlǐ de yǐnshí.|중국에 막 왔을 때 여기 음식에 적응하기가 어려웠어요.
+值得|zhíde|~할 만하다|这本书很值得一读。|Zhè běn shū hěn zhíde yì dú.|이 책은 한번 읽어 볼 만해요.
+养成|yǎngchéng|(습관을) 기르다|我们应该从小养成良好的阅读习惯。|Wǒmen yīnggāi cóng xiǎo yǎngchéng liánghǎo de yuèdú xíguàn.|우리는 어릴 때부터 좋은 독서 습관을 길러야 해요.
+不仅|bùjǐn|~뿐만 아니라|运动不仅能锻炼身体，而且能减轻压力。|Yùndòng bùjǐn néng duànliàn shēntǐ, érqiě néng jiǎnqīng yālì.|운동은 몸을 단련할 뿐 아니라 스트레스도 줄여 줘요.
+解决|jiějué|해결하다|遇到问题时，我们要想办法解决，而不是逃避。|Yùdào wèntí shí, wǒmen yào xiǎng bànfǎ jiějué, ér bú shì táobì.|문제가 생기면 피하지 말고 해결할 방법을 찾아야 해요.
+重视|zhòngshì|중시하다|越来越多的人开始重视心理健康。|Yuè lái yuè duō de rén kāishǐ zhòngshì xīnlǐ jiànkāng.|점점 더 많은 사람이 마음 건강을 중요하게 여기기 시작했어요.
+传统|chuántǒng|전통|春节是中国最重要的传统节日。|Chūnjié shì Zhōngguó zuì zhòngyào de chuántǒng jiérì.|춘절은 중국에서 가장 중요한 전통 명절이에요.
+代表|dàibiǎo|대표하다|熊猫可以说是中国的代表动物。|Xióngmāo kěyǐ shuō shì Zhōngguó de dàibiǎo dòngwù.|판다는 중국을 대표하는 동물이라고 할 수 있어요.
+提高|tígāo|높이다, 향상시키다|多听多说是提高口语水平的好方法。|Duō tīng duō shuō shì tígāo kǒuyǔ shuǐpíng de hǎo fāngfǎ.|많이 듣고 많이 말하는 것이 말하기 실력을 높이는 좋은 방법이에요.
+珍惜|zhēnxī|소중히 여기다|我们要珍惜和家人在一起的时间。|Wǒmen yào zhēnxī hé jiārén zài yìqǐ de shíjiān.|가족과 함께하는 시간을 소중히 여겨야 해요.
+实现|shíxiàn|실현하다, 이루다|为了实现自己的梦想，他每天都非常努力。|Wèile shíxiàn zìjǐ de mèngxiǎng, tā měitiān dōu fēicháng nǔlì.|자신의 꿈을 이루기 위해 그는 매일 아주 열심히 해요.
+与其|yǔqí|~하느니|与其在家里玩手机，不如出去走走。|Yǔqí zài jiā li wán shǒujī, bùrú chūqu zǒuzou.|집에서 휴대폰을 하느니 차라리 나가서 좀 걸어요.
+感受|gǎnshòu|느끼다|这次旅行让我深深感受到了中国人的热情。|Zhè cì lǚxíng ràng wǒ shēnshēn gǎnshòu dào le Zhōngguó rén de rèqíng.|이번 여행에서 중국 사람들의 따뜻한 정을 깊이 느꼈어요.

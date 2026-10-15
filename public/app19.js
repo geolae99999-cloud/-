@@ -186,7 +186,7 @@
       <div class="seg" id="caNum">${[10, 20, 30, 50].map(k => `<button class="${k === 20 ? 'on' : ''}" data-act="pt-opt" data-g="caNum" data-v="${k}">${k}문제</button>`).join('')}</div></div>
       <div id="caSpBox" class="form-stack" hidden><label class="setting-label">읽을 내용</label>
       <div class="seg" id="caSp"><button class="on" data-act="pt-opt" data-g="caSp" data-v="w">단어만</button><button data-act="pt-opt" data-g="caSp" data-v="s">예문까지</button></div>
-      <p class="muted cl-p">단어장 앞에서부터 20개까지 들어가요. '예문까지'는 예문이 있는 단어는 예문을, 없으면 단어를 읽어요. 학생이 앱에서 녹음해 제출하면 선생님 보드에 바로 모여요. 선생님이 듣고 AI 채점(0~100점)을 누르거나 직접 점수를 매겨요. 학생에게는 선생님이 매긴 점수만 보여요. 녹음은 작은 MP3로 저장하고, 선생님과 학생 본인만 들을 수 있고 60일 뒤 지워져요.</p>${isZh() ? `<button class="mg-entry" data-act="rec-tab" data-g="zs-m"><span class="mg-ico i-sun">${IC.mic}</span><span class="mg-txt"><b>중국어 말하기 문장 (초 · 중 · 고)</b><small>여기서 단어장을 만든 뒤 '예문까지'로 내면 학생 화면에 병음도 함께 보여요</small></span><span class="mg-chev"></span></button>` : ''}</div>
+      <p class="muted cl-p">단어장 앞에서부터 20개까지 들어가요. '예문까지'는 예문이 있는 단어는 예문을, 없으면 단어를 읽어요. 학생이 앱에서 녹음해 제출하면 선생님 보드에 바로 모여요. 선생님이 듣고 AI 채점(0~100점)을 누르거나 직접 점수를 매겨요. 학생에게는 선생님이 매긴 점수만 보여요. 녹음은 작은 MP3로 저장하고, 선생님과 학생 본인만 들을 수 있고 60일 뒤 지워져요.</p>${isZh() ? `<button class="mg-entry" data-act="rec-tab" data-g="zs-2"><span class="mg-ico i-sun">${IC.mic}</span><span class="mg-txt"><b>중국어 말하기 문장 (하 · 중 · 상 · 최상)</b><small>여기서 단어장을 만든 뒤 '예문까지'로 내면 학생 화면에 병음도 함께 보여요</small></span><span class="mg-chev"></span></button>` : ''}</div>
       <label class="setting-label" for="caDue">마감일</label>
       <input type="date" id="caDue" value="${dv}">
       <p class="muted cl-p" id="caNote">학생은 단어장을 그대로 받아 풀고, 끝나면 점수와 틀린 단어가 자동으로 제출돼요. 여러 번 풀면 가장 높은 점수가 남아요.</p>
@@ -204,7 +204,7 @@
     const sent = kind === 'speak' && (document.querySelector('#caSp .on') || { dataset: {} }).dataset.v === 's';
     // 발음 평가 문항: [읽을 글, 뜻, 언어, 'w' 단어 | 's' 문장, (중국어) 병음] 20개까지
     const words = kind === 'speak'
-      ? cat.words.slice(0, SP_MAX).map(w => { const s = sent && w.example, py = LANG === 'zh' ? ((s ? w.exPy : w.phonetic) || '').slice(0, 200) : ''; const it = s ? [w.example.slice(0, 200), (w.exampleKo || w.meaning || '').slice(0, 160), LANG, 's'] : [w.word.slice(0, 80), (w.meaning || '').slice(0, 120), LANG, 'w']; if (py) it.push(py); return it; })
+      ? cat.words.slice(0, SP_MAX).map(w => { const s = sent && w.example, py = LANG === 'zh' ? ((s ? w.exPy : w.phonetic) || '').slice(0, 200) : ''; const it = s ? [w.example.slice(0, 200), (w.exampleKo || w.meaning || '').slice(0, 160), LANG, 's'] : sentLike(w.word) ? [w.word.slice(0, 200), (w.meaning || '').slice(0, 160), LANG, 's'] : [w.word.slice(0, 80), (w.meaning || '').slice(0, 120), LANG, 'w']; if (py) it.push(py); return it; })
       : cat.words.slice(0, 500).map(w => [w.word.slice(0, 80), (w.meaning || '').slice(0, 120)]);
     el.disabled = true;
     try {

@@ -8,7 +8,7 @@
   const ZH_PACKS = [1, 2, 3, 4, 5, 6].map(n => ['hsk' + n, `HSK ${n}급`]);
   const ZH_PACKS_NEW = [1, 2, 3, 4, 5, 6, 7].map(n => ['nhsk' + n, `신HSK ${n === 7 ? '7~9' : n}급`]);
   const ZH_PACK_NAMES = Object.fromEntries(ZH_PACKS.concat(ZH_PACKS_NEW));
-  const ZS_PACKS = [['zs-e', '초등학교'], ['zs-m', '중학교'], ['zs-h', '고등학교']]; // 중국어 말하기 문장
+  const ZS_PACKS = [['zs-1', '하'], ['zs-2', '중'], ['zs-3', '상'], ['zs-4', '최상']]; // 중국어 말하기 문장 난이도
   const ZS_NAMES = Object.fromEntries(ZS_PACKS);
   const listName = k => GRADE_NAMES[k] ? `${GRADE_NAMES[k]} 추천` : ZS_NAMES[k] ? `중국어 말하기 · ${ZS_NAMES[k]}` : (PACK_NAMES[k] || ZH_PACK_NAMES[k] || '');
   const gradeFull = k => { const n = GRADE_NAMES[k] || ''; return n ? ({ 초: '초등학교 ', 중: '중학교 ', 고: '고등학교 ' })[n[0]] + n.slice(1) + '학년' : ''; };
@@ -161,7 +161,7 @@
     const cards = keys.map(k => {
       const list = gradeWords(k), n = list.length, mine = ZS_NAMES[k] ? ownedFor(k) : own, has = n ? list.filter(e => mine.has(zh ? e.w : e.w.toLowerCase())).length : 0;
       let tag, name, c1, c2;
-      if (ZS_NAMES[k]) { tag = '말하기 ' + ZS_NAMES[k][0]; name = listName(k); [c1, c2] = { 'zs-e': ['#0ea5e9', '#14b8a6'], 'zs-m': ['#6366f1', '#0ea5e9'], 'zs-h': ['#7c3aed', '#be185d'] }[k]; }
+      if (ZS_NAMES[k]) { tag = '말하기 ' + ZS_NAMES[k]; name = listName(k); [c1, c2] = { 'zs-1': ['#0ea5e9', '#14b8a6'], 'zs-2': ['#6366f1', '#0ea5e9'], 'zs-3': ['#7c3aed', '#be185d'], 'zs-4': ['#be123c', '#1f2937'] }[k]; }
       else if (zh) { const nw = k[0] === 'n', lv = +k.replace(/\D/g, ''); [c1, c2] = ZH_COLORS[(lv - 1) % 7]; tag = nw ? (lv === 7 ? '新7-9' : '新 ' + lv) : 'HSK ' + lv; name = ZH_PACK_NAMES[k]; if (nw) { c1 = '#ca8a04'; c2 = ZH_COLORS[(lv - 1) % 7][1]; } }
       else [tag, name, c1, c2] = SHELF[k] || [k, PACK_NAMES[k], '#64748b', '#334155'];
       return `<button class="shelf-b" data-act="rec-tab" data-g="${k}" style="--c1:${c1};--c2:${c2}" aria-label="${esc(name)} 단어장 열기">
@@ -174,7 +174,7 @@
     return `<div class="h-shelf"><div class="section-title"><span>추천 단어장</span><button data-act="pack-open">전체 보기</button></div><div class="shelf" role="list">${cards}</div></div>`;
   }
   function packEntryHtml() {
-    if (isZh()) return `<button class="mg-entry" data-act="rec-tab" data-g="${/^h/.test(config.grade) ? 'zs-h' : /^m/.test(config.grade) ? 'zs-m' : /^e/.test(config.grade) ? 'zs-e' : 'zs-m'}"><span class="mg-ico i-sun">${IC.mic}</span><span class="mg-txt"><b>중국어 말하기 문장 (초 · 중 · 고)</b><small>학교급별 문장 ${zsData ? ZS_PACKS.reduce((n, [k]) => n + gradeWords(k).length, 0) + '개' : ''}를 병음 · 해석과 함께 담아요</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="pack-open"><span class="mg-ico i-mint">${IC.book}</span><span class="mg-txt"><b>HSK 1~6급 · 신HSK 1~9급 단어</b><small>${zhIdx ? zhIdx.length.toLocaleString() + '개' : '1만 개가 넘는'} 단어를 급수별로 골라 담아요</small></span><span class="mg-chev"></span></button>`;
+    if (isZh()) return `<button class="mg-entry" data-act="rec-tab" data-g="${/^h/.test(config.grade) ? 'zs-3' : /^e/.test(config.grade) ? 'zs-1' : 'zs-2'}"><span class="mg-ico i-sun">${IC.mic}</span><span class="mg-txt"><b>중국어 말하기 문장 (하 · 중 · 상 · 최상)</b><small>난이도별 문장 ${zsData ? ZS_PACKS.reduce((n, [k]) => n + gradeWords(k).length, 0) + '개' : ''}를 병음 · 해석과 함께 담아요</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="pack-open"><span class="mg-ico i-mint">${IC.book}</span><span class="mg-txt"><b>HSK 1~6급 · 신HSK 1~9급 단어</b><small>${zhIdx ? zhIdx.length.toLocaleString() + '개' : '1만 개가 넘는'} 단어를 급수별로 골라 담아요</small></span><span class="mg-chev"></span></button>`;
     const total = PACKS.reduce((n, [k]) => n + gradeWords(k).length, 0);
     return `<button class="mg-entry" data-act="pack-open"><span class="mg-ico i-mint">${IC.book}</span><span class="mg-txt"><b>학교 · 수능 · 숙어 · 토익 · 토플 단어</b><small>${total.toLocaleString()}개 단어를 골라 담아요</small></span><span class="mg-chev"></span></button>`;
   }

@@ -11,6 +11,10 @@
   const spLang = it => it[2] === 'zh' ? 'zh' : 'en';
   const spItems = a => (Array.isArray(a.words) ? a.words : []).slice(0, SP_MAX).map(x => Array.isArray(x) ? x : [String(x || '')]);
   const spAvg = v => v.length ? Math.round(v.reduce((s, x) => s + x, 0) / v.length) : null;
+  // 학생 한 명의 AI 정확성 · 유창성 평균 (앱 녹음은 ai_detail, 파일 채점은 결과에 바로)
+  const spAF = list => { const v = (list || []).filter(d => d && typeof d.acc === 'number'); return v.length ? { a: spAvg(v.map(d => d.acc)), f: spAvg(v.map(d => +d.flu || 0)) } : null; };
+  const spAFOf = m => m && m.submitted ? spAF((m.items || []).map(r => r.ai_detail)) : null;
+  const spAFHtml = af => af ? `<i class="sp-af">정확성 ${esc(af.a)} · 유창성 ${esc(af.f)}</i>` : '';
   // 여러 명 채점: 동시에 SP_PAR개씩. AI가 바쁘거나 늦으면(502·503·504·408·연결 끊김) 잠깐 쉬고 두 번 더 해 봐요
   const SP_PAR = 4;
   async function spPool(list, n, fn) {
@@ -423,14 +427,14 @@
       <button class="sp-bc-h" data-act="sp-open" data-k="u:${esc(x.uid)}"><span class="sp-no">${esc(x.sno || '')}</span><b>${esc(x.name || '이름 없음')}</b>${ts != null ? `<em class="sp-bc-fin${spTone(ts)}"><small>선생님</small>${esc(ts)}</em>` : ''}</button>
       <small class="sp-bc-t">${esc(spTime(x.at))} 제출 · ${esc(x.n)}/${items.length}문항</small>
       <div class="sp-bc-p"><button class="sp-play" data-act="sp-pall" data-uid="${esc(x.uid)}" aria-label="${esc(x.name)} 전체 듣기">${IC.play}</button><div class="sp-bis">${items.map((_, i) => { const r = by.get(i); const v = r ? (r.t_score != null ? r.t_score : r.ai_score) : null; return `<button class="sp-bi${spTone(v)}" data-act="sp-tplay" data-uid="${esc(x.uid)}" data-i="${i}"${r && r.audio ? '' : ' disabled'} aria-label="${i + 1}번 듣기">${i + 1}</button>`; }).join('')}</div></div>
-      <div class="sp-bc-f"><span class="sp-bc-sc">${x.ai_n ? `<em class="sp-sc${spTone(x.ai_avg)}">AI ${esc(x.ai_avg)}${all ? '' : ` · ${esc(x.ai_n)}/${esc(x.n)}`}</em>` : '<em class="sp-sc">AI 전</em>'}</span>
+      <div class="sp-bc-f"><span class="sp-bc-sc">${x.ai_n ? `<em class="sp-sc${spTone(x.ai_avg)}">AI ${esc(x.ai_avg)}${all ? '' : ` · ${esc(x.ai_n)}/${esc(x.n)}`}</em>${spAFHtml(spAFOf(x))}` : '<em class="sp-sc">AI 전</em>'}</span>
         <button class="btn btn-sm ${all ? 'btn-soft' : 'btn-primary'}" data-act="sp-grade1" data-uid="${esc(x.uid)}"${busy || t.q ? ' disabled' : ''}>${busy ? '채점 중...' : all ? '다시 채점' : 'AI 채점'}</button></div></div>`;
   }
   function spListHtml(t, items) {
     const list = spRows(t);
     if (!list.length) return '<p class="muted cl-p">아직 반에 학생이 없어요.</p>';
-    return `<div class="sp-lt">${list.map(x => { const f = spFin(x), open = t.open === x.k; return `<button class="sp-lr${open ? ' on' : ''}${f.v == null ? ' dim' : ''}" data-act="sp-open" data-k="${esc(x.k)}" aria-expanded="${open}"><span class="sp-no">${esc(x.sno || '-')}</span><b>${esc(x.name || '이름 없음')}</b><small>${esc(f.by)}</small><em class="${spTone(f.v).trim()}">${f.v != null ? esc(f.v) + '점' : esc(f.e || '')}</em></button>${open ? spDetHtml(t, x, items) : ''}`; }).join('')}</div>
-      <p class="muted cl-p">최종 점수 = 선생님 점수, 없으면 AI 점수 평균. 줄을 누르면 문항마다 점수 · AI가 들은 말 · 조언을 보고 점수를 고칠 수 있어요.</p>`;
+    return `<div class="sp-lt">${list.map(x => { const f = spFin(x), open = t.open === x.k; return `<button class="sp-lr${open ? ' on' : ''}${f.v == null ? ' dim' : ''}" data-act="sp-open" data-k="${esc(x.k)}" aria-expanded="${open}"><span class="sp-no">${esc(x.sno || '-')}</span><span class="sp-lr-n"><b>${esc(x.name || '이름 없음')}</b>${spAFHtml(x.m && x.m.submitted ? spAFOf(x.m) : x.f ? spAF(x.f.res) : null)}</span><small>${esc(f.by)}</small><em class="${spTone(f.v).trim()}">${f.v != null ? esc(f.v) + '점' : esc(f.e || '')}</em></button>${open ? spDetHtml(t, x, items) : ''}`; }).join('')}</div>
+      <p class="muted cl-p">최종 점수 = 선생님 점수, 없으면 AI 점수 평균(정확성 70% + 유창성 30%). 줄을 누르면 문항마다 점수 · AI가 들은 말 · 조언을 보고 점수를 고칠 수 있어요.</p>`;
   }
   // 일치도: 목표 문장에서 빠뜨린 단어(중국어는 글자)를 표시해요. 기기 AI는 채점할 때 정한 자리(miss),
   // Gemini는 서버와 같은 방법(들은 말과 순서대로 비교, 영어는 글자 1/3까지 달라도 같은 단어)으로 다시 찾아요
@@ -603,12 +607,12 @@
     const a = t.r.assign, items = spItems(a);
     const q = x => { const s = String(x == null ? '' : x); return /[",\n]/.test(s) || /^[=+\-@\t\r]/.test(s) ? `"${s.replace(/^([=+\-@\t\r])/, "'$1").replace(/"/g, '""')}"` : s; };
     const cAvg = list => spAvg(list.filter(d => d && typeof d.comp === 'number').map(d => d.comp));
-    const head = ['학번', '이름', '출처', '제출 시각', '녹음', 'AI 평균', 'AI 일치도(%)', '선생님 점수', '최종 점수', '선생님 한마디'].concat(items.map((it, i) => `${i + 1}. ${String(it[0]).slice(0, 40)}`));
+    const head = ['학번', '이름', '출처', '제출 시각', '녹음', 'AI 평균', 'AI 정확성', 'AI 유창성', 'AI 일치도(%)', '선생님 점수', '최종 점수', '선생님 한마디'].concat(items.map((it, i) => `${i + 1}. ${String(it[0]).slice(0, 40)}`));
     const rows = spRows(t).map(x => {
       const m = x.m, f = x.f, fin = spFin(x);
-      if (m && m.submitted) { const by = new Map((m.items || []).map(r => [r.idx, r])); return [x.sno, x.name, '앱', spTime(m.at), `${m.n}/${items.length}`, m.ai_n ? m.ai_avg : '', cAvg((m.items || []).map(r => r.ai_detail)) ?? '', m.mark && m.mark.score != null ? m.mark.score : m.t_avg != null ? m.t_avg : '', fin.v != null ? fin.v : '', (m.mark && m.mark.note) || ''].concat(items.map((_, i) => { const r = by.get(i); return r ? (r.t_score != null ? r.t_score : r.ai_score != null ? r.ai_score : '') : ''; })); }
-      if (f) { const res = new Map((f.res || []).map(r => [r.idx, r])); return [x.sno, x.name, '파일 ' + f.file, spTime(f.at), '', spAvg((f.res || []).map(r => r.score)), cAvg(f.res || []) ?? '', f.ts != null ? f.ts : '', fin.v != null ? fin.v : '', f.tn || ''].concat(items.map((_, i) => res.has(i) ? res.get(i).score : '')); }
-      return [x.sno, x.name, '미제출', '', m && m.n ? `${m.n}/${items.length}` : '', '', '', '', '', ''].concat(items.map(() => ''));
+      if (m && m.submitted) { const by = new Map((m.items || []).map(r => [r.idx, r])); return [x.sno, x.name, '앱', spTime(m.at), `${m.n}/${items.length}`, m.ai_n ? m.ai_avg : '', ...(af => af ? [af.a, af.f] : ['', ''])(spAFOf(m)), cAvg((m.items || []).map(r => r.ai_detail)) ?? '', m.mark && m.mark.score != null ? m.mark.score : m.t_avg != null ? m.t_avg : '', fin.v != null ? fin.v : '', (m.mark && m.mark.note) || ''].concat(items.map((_, i) => { const r = by.get(i); return r ? (r.t_score != null ? r.t_score : r.ai_score != null ? r.ai_score : '') : ''; })); }
+      if (f) { const res = new Map((f.res || []).map(r => [r.idx, r])); return [x.sno, x.name, '파일 ' + f.file, spTime(f.at), '', spAvg((f.res || []).map(r => r.score)), ...(af => af ? [af.a, af.f] : ['', ''])(spAF(f.res)), cAvg(f.res || []) ?? '', f.ts != null ? f.ts : '', fin.v != null ? fin.v : '', f.tn || ''].concat(items.map((_, i) => res.has(i) ? res.get(i).score : '')); }
+      return [x.sno, x.name, '미제출', '', m && m.n ? `${m.n}/${items.length}` : '', '', '', '', '', '', '', ''].concat(items.map(() => ''));
     });
     download(`${spSafe(a.title)}_발음평가_${dayKey()}.csv`, '﻿' + [head].concat(rows).map(r => r.map(q).join(',')).join('\r\n'), 'text/csv;charset=utf-8');
     toast('엑셀에서 열 수 있는 파일로 받았어요.');

@@ -230,10 +230,19 @@
     openSheet('단어 추가', `
       <div class="seg" style="margin-bottom:14px;">
         <button class="on" data-act="add-tab" data-t="one">한 개씩</button>
-        <button data-act="add-tab" data-t="bulk">여러 개 한 번에</button>
-        <button data-act="gx-open" data-from="book">글·사진에서</button>
+        <button data-act="add-tab" data-t="bulk">여러 개</button>
+        <button data-act="add-tab" data-t="sent">문장</button>
+        <button data-act="gx-open" data-from="book">글·사진</button>
       </div>
       <div id="addOne" class="form-stack">${wordFormHtml(null)}</div>
+      <div id="addSent" class="form-stack" style="display:none;">
+        <label class="f-lab" for="sentText">${LN()} 문장 <small class="muted">한 줄에 한 문장, 20개까지</small></label>
+        <textarea id="sentText" rows="4" maxlength="4000" placeholder="${isZh() ? '我每天学习汉语。&#10;你是哪国人？' : 'I go to school by bus.&#10;What do you want to be in the future?'}" data-input="sent-text"></textarea>
+        <button class="btn btn-soft" id="btnSentFill" data-act="sent-fill">해석${isZh() ? ' · 병음' : ''} 채우기</button>
+        <div id="sentRows" class="sent-rows"></div>
+        <button class="btn btn-primary btn-block" id="btnSentSave" data-act="sent-save">문장 저장</button>
+        <p class="muted cl-p">문장은 단어처럼 단어장에 들어가요. 말하기 연습과 발음 평가(단어만)에서는 문장으로 읽어요(녹음 최대 10초).${isZh() ? ' 병음은 HSK 단어 목록으로 자동으로 붙여요. 틀린 곳은 고쳐 주세요.' : ''}</p>
+      </div>
       <div id="addBulk" class="form-stack" style="display:none;">
         <textarea id="bulkText" placeholder="한 줄에 단어 하나씩 붙여넣으세요.&#10;&#10;${isZh() ? '学习&#10;朋友&#10;苹果, 사과' : 'consistent&#10;reluctant&#10;apple, 사과'}&#10;&#10;뜻을 같이 적으면(쉼표, 탭, ' - ' 구분) 그 뜻을 쓰고 나머지는 AI가 채워요."></textarea>
         <div class="bulk-status" id="bulkStatus">한 번에 최대 60개까지 넣을 수 있어요.</div>
@@ -298,10 +307,71 @@
     catch (e) { el.disabled = false; el.textContent = '예문 해석 채우기'; toast('번역하지 못했어요. 잠시 후 다시 해 주세요.'); }
   };
   ACTIONS['add-tab'] = el => {
-    const bulk = el.dataset.t === 'bulk';
-    $('addOne').style.display = bulk ? 'none' : 'flex';
-    $('addBulk').style.display = bulk ? 'flex' : 'none';
+    const t = el.dataset.t;
+    $('addOne').style.display = t === 'one' ? 'flex' : 'none';
+    $('addBulk').style.display = t === 'bulk' ? 'flex' : 'none';
+    $('addSent').style.display = t === 'sent' ? 'flex' : 'none';
+    if (t === 'sent') { if (isZh()) zhLoad(); setTimeout(() => { const f = $('sentText'); if (f) f.focus(); }, 50); }
     el.parentElement.querySelectorAll('button').forEach(b => b.classList.toggle('on', b === el));
+  };
+
+  /* ----- 문장 넣기: 한 줄에 한 문장 -> 해석(번역) · 병음(중국어)을 채워 단어처럼 저장 ----- */
+  const SENT_MAX = 20;
+  const sentLines = () => [...new Set((($('sentText') || {}).value || '').split('\n').map(x => x.replace(/\s+/g, ' ').trim().slice(0, 200)).filter(Boolean))].slice(0, SENT_MAX);
+  // 문장처럼 보이는지: 영어 3단어 이상 · 문장 부호로 끝남, 중국어 5글자 이상 · 문장 부호 (발음 평가 · 말하기 연습에서 '문장'으로 읽어요)
+  const sentLike = t => { t = String(t || '').trim(); if (!t) return false; if (HAN.test(t)) return /[，。！？、；,.!?]/.test(t) || [...t].filter(c => HAN.test(c)).length >= 5; return /[.!?]$/.test(t) || t.split(/\s+/).length >= 3; };
+  // 중국어 문장 병음: HSK 목록에서 긴 단어부터 맞춰 붙여요(一 · 不 성조 변화 포함). 목록에 없는 글자는 그대로 둬요
+  function zhSentPy(t) {
+    if (!zhMap) return '';
+    const P = { '，': ',', '。': '.', '！': '!', '？': '?', '、': ',', '；': ';', '：': ':', '“': '"', '”': '"', '（': '(', '）': ')' };
+    const segs = []; let i = 0; const cs = [...String(t)];
+    while (i < cs.length) {
+      const c = cs[i];
+      if (!HAN.test(c)) { segs.push({ x: P[c] || c, p: true }); i++; continue; }
+      let hit = null;
+      for (let n = Math.min(6, cs.length - i); n >= 1 && !hit; n--) { const w = cs.slice(i, i + n).join(''), e = zhMap.get(w); if (e && e[1]) hit = { w, py: String(e[1]).split(/[,;/]/)[0].trim(), n }; }
+      if (!hit) { segs.push({ w: c, py: c, n: 1 }); i++; continue; }
+      segs.push(hit); i += hit.n;
+    }
+    const tone = py => { const m = String(py).normalize('NFD').match(/[\u0304\u0301\u030c\u0300]/); return m ? { '\u0304': 1, '\u0301': 2, '\u030c': 3, '\u0300': 4 }[m[0]] : 0; };
+    segs.forEach((g, k) => { const nx = segs[k + 1]; if (!nx || nx.p || g.p) return; const t2 = tone(nx.py); if (g.w === '不' && t2 === 4) g.py = 'bú'; if (g.w === '一' && t2) g.py = t2 === 4 ? 'yí' : 'yì'; });
+    let out = '';
+    segs.forEach(g => { if (g.p) { out = out.replace(/\s+$/, '') + g.x + (/[,.!?;:)]/.test(g.x) ? ' ' : ''); return; } out += (out && !/\s$/.test(out) && !/[("]$/.test(out) ? ' ' : '') + g.py; });
+    out = out.replace(/\s+/g, ' ').trim();
+    return out.charAt(0).toUpperCase() + out.slice(1);
+  }
+  const sentRowHtml = (t, ko, py) => `<div class="sent-row"><b lang="${HAN.test(t) ? 'zh-CN' : 'en'}">${esc(t)}</b>${isZh() ? `<input type="text" class="sent-py" value="${esc(py || '')}" placeholder="병음" aria-label="병음">` : ''}<input type="text" class="sent-ko" value="${esc(ko || '')}" placeholder="해석" aria-label="해석"></div>`;
+  ON.input['sent-text'] = () => { const box = $('sentRows'); if (box && box.dataset.for !== $('sentText').value) { box.innerHTML = ''; box.dataset.for = ''; } };
+  async function sentFill() {
+    const lines = sentLines(), box = $('sentRows'), btn = $('btnSentFill'); if (!box) return null;
+    if (!lines.length) { toast(`먼저 ${LN()} 문장을 입력해 주세요.`); return null; }
+    if (isZh()) await zhLoad();
+    const tok = sheetTok; btn.disabled = true; btn.textContent = '채우는 중...';
+    const out = [];
+    for (const t of lines) {
+      let ko = ''; try { ko = (await translateText(t, true)).t || ''; } catch (e) {}
+      if (tok !== sheetTok) return null;
+      out.push({ t, ko: str(ko).slice(0, 300), py: isZh() ? zhSentPy(t).slice(0, 200) : '' });
+      btn.textContent = `채우는 중 ${out.length}/${lines.length}`;
+    }
+    box.innerHTML = out.map(x => sentRowHtml(x.t, x.ko, x.py)).join(''); box.dataset.for = $('sentText').value;
+    btn.disabled = false; btn.textContent = `해석${isZh() ? ' · 병음' : ''} 다시 채우기`;
+    if (out.some(x => !x.ko)) toast('해석을 못 채운 문장이 있어요. 직접 적어 주세요.');
+    return out;
+  }
+  ACTIONS['sent-fill'] = () => sentFill();
+  ACTIONS['sent-save'] = async () => {
+    const cat = curCat(); if (!cat) return;
+    const box = $('sentRows');
+    let rows = box && box.dataset.for === $('sentText').value ? [...box.querySelectorAll('.sent-row')].map(r => ({ t: r.querySelector('b').textContent, ko: r.querySelector('.sent-ko').value.trim(), py: r.querySelector('.sent-py') ? r.querySelector('.sent-py').value.trim() : '' })) : null;
+    if (!rows || !rows.length) { rows = await sentFill(); if (!rows) return; }
+    if (rows.some(x => !x.ko)) return toast('해석이 빈 문장이 있어요. 채운 뒤 저장해 주세요.');
+    const have = new Set(cat.words.map(w => w.word.toLowerCase())), add = rows.filter(x => !have.has(x.t.toLowerCase()));
+    add.slice().reverse().forEach(x => cat.words.unshift(sanitizeWord({ id: uid(), word: x.t, meaning: x.ko, phonetic: x.py })));
+    syncStorage(); renderBookDynamic();
+    $('sentText').value = ''; box.innerHTML = ''; box.dataset.for = '';
+    const dup = rows.length - add.length;
+    toast(add.length ? `문장 ${add.length}개를 저장했어요.${dup ? ` (이미 있는 ${dup}개는 건너뛰었어요)` : ''}` : '모두 이미 있는 문장이에요.');
   };
 
   function saveNewWord() {

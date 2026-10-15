@@ -290,6 +290,10 @@
     @keyframes micPulse { 50% { box-shadow: 0 0 0 16px rgba(240, 68, 82, .15); } }
     .spk-out { text-align: center; min-height: 48px; color: var(--ink-2); font-size: .95rem; line-height: 1.5; }
     .spk-out .ok { color: var(--mint); } .spk-out .bad { color: var(--coral); }
+    .sent-rows { display: flex; flex-direction: column; gap: 8px; } .sent-rows:empty { display: none; }
+    .sent-row { display: flex; flex-direction: column; gap: 6px; padding: 12px; border-radius: 14px; background: var(--surface-2); }
+    .sent-row b { font-weight: 700; line-height: 1.45; word-break: break-word; } .sent-row input { background: var(--surface); min-height: 44px; padding: 10px 12px; } .sent-row .sent-py { color: var(--blue); font-weight: 600; }
+    .spk-out .spk-af { justify-content: center; margin-top: 6px; }
     .q-sub .ex-ko { color: var(--muted); }
     .q-hint { font-size: 1.4rem; letter-spacing: .14em; color: var(--muted); margin-top: 6px; font-weight: 700; }
     .q-speak { margin-top: 8px; width: 46px; height: 46px; border-radius: 14px; border: none; background: var(--blue-soft); color: var(--blue); display: inline-flex; align-items: center; justify-content: center; }
@@ -2216,6 +2220,9 @@
     .sp-lr .sp-no { font-size: 15px; color: var(--ink-2); }
     .sp-lr b { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .sp-lr small { font-size: 12.5px; font-weight: 600; color: var(--muted); white-space: nowrap; }
+    .sp-lr-n { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+    .sp-af { font-style: normal; font-size: 12px; font-weight: 600; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .sp-bc-sc .sp-af { align-self: center; }
     .sp-lr em { font-style: normal; font-size: 17px; font-weight: 800; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
     .sp-lr em.good { color: var(--mint); } .sp-lr em.mid { color: var(--sun); } .sp-lr em.low { color: var(--coral); }
     .sp-lr.dim em { font-size: 13px; font-weight: 700; color: var(--muted); } .sp-lr.dim b { color: var(--ink-2); }

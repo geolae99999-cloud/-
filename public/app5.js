@@ -447,6 +447,8 @@
       </div>`;
     if (self) playAudio(w.word);
   }
+  // 말하기 연습 점수 아래: 정확성 · 유창성 (문장은 일치도도)
+  const spkAFHtml = x => x && typeof x.acc === 'number' ? `<div class="sp-sub spk-af"><span>정확성 <b>${esc(x.acc)}</b></span><span>유창성 <b>${esc(x.flu)}</b></span>${x.comp != null && x.comp < 100 ? `<span class="sp-comp part">일치도 <b>${esc(x.comp)}%</b></span>` : ''}</div>` : '';
   function spkStop() { const r = SPK; SPK = null; clearTimeout(S.spkT); vpMicStop(true); if (S.vpaProg) { VPA.off(S.vpaProg); S.vpaProg = null; } if (r) { try { r.onresult = r.onerror = r.onend = null; r.abort(); } catch (e) {} } }
   function spkLocalFail(msg) {
     S.vpaOff = true;
@@ -469,12 +471,12 @@
     }
     try { window.speechSynthesis.cancel(); } catch (e) {}
     try {
-      await vpMicStart(/\s/.test(item.w.word.trim()) ? 8 : 4, lv => { const b = $('micBtn'); if (b) b.style.setProperty('--lv', lv.toFixed(2)); }, async pcm => {
+      await vpMicStart(sentLike(item.w.word) ? 10 : /\s/.test(item.w.word.trim()) ? 8 : 4, lv => { const b = $('micBtn'); if (b) b.style.setProperty('--lv', lv.toFixed(2)); }, async pcm => {
         const b = $('micBtn'), o = $('spkOut'); if (b) b.classList.remove('on');
         if (!mine() || !o) return;
         if (!pcm) { o.textContent = '소리가 들리지 않았어요. 마이크 가까이에서 다시 눌러 말해 주세요.'; return; }
         o.textContent = '듣고 확인하는 중...'; if (b) b.disabled = true;
-        let r; try { r = await VPA.score(pcm.y, [{ text: item.w.word, kind: /\s/.test(item.w.word.trim()) || (lang === 'zh' && [...item.w.word].length > 4) ? 's' : 'w' }], lang); }
+        let r; try { r = await VPA.score(pcm.y, [{ text: item.w.word, kind: sentLike(item.w.word) || /\s/.test(item.w.word.trim()) || (lang === 'zh' && [...item.w.word].length > 4) ? 's' : 'w' }], lang); }
         catch (e) { if (mine() && $('micBtn')) { $('micBtn').disabled = false; $('spkOut').textContent = '확인하지 못했어요. 다시 눌러 주세요.'; } return; }
         if (!mine()) return;
         if (b) b.disabled = false;
@@ -482,9 +484,9 @@
         const ok = sc >= 55 || (sc >= 35 && spkMatch(heard, item.w.word));
         S.tries = (S.tries || 0) + 1;
         if (ok) {
-          S.locked = true; $('spkOut').innerHTML = `<b class="ok">정확해요!</b> 발음 ${esc(sc)}점${heard ? ` · "${esc(heard)}"` : ''}`; recordResult(item, true);
-          const my = S.idx; setTimeout(() => { if (S.active && S.idx === my) nextQuestion(); }, 1100);
-        } else $('spkOut').innerHTML = `<b class="bad">${heard ? `"${esc(heard)}"(으)로 들렸어요.` : '잘 들리지 않았어요.'}</b> 발음 ${esc(sc)}점 · ${S.tries >= 3 ? '넘어가도 괜찮아요.' : '원어민 발음을 듣고 다시 말해 볼까요?'}`;
+          S.locked = true; $('spkOut').innerHTML = `<b class="ok">정확해요!</b> 발음 ${esc(sc)}점${heard ? ` · "${esc(heard)}"` : ''}${spkAFHtml(x)}`; recordResult(item, true);
+          const my = S.idx; setTimeout(() => { if (S.active && S.idx === my) nextQuestion(); }, 1800);
+        } else $('spkOut').innerHTML = `<b class="bad">${heard ? `"${esc(heard)}"(으)로 들렸어요.` : '잘 들리지 않았어요.'}</b> 발음 ${esc(sc)}점 · ${S.tries >= 3 ? '넘어가도 괜찮아요.' : '원어민 발음을 듣고 다시 말해 볼까요?'}${spkAFHtml(x)}`;
       });
       btn.classList.add('on'); out.textContent = '듣고 있어요... 말이 끝나면 자동으로 멈춰요';
     } catch (e) {
