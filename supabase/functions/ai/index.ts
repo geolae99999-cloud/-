@@ -1,9 +1,14 @@
-// supabase/functions/ai/index.ts  (v13)
+// supabase/functions/ai/index.ts  (v14)
 // 배포: supabase functions deploy ai --no-verify-jwt --project-ref psmmrwhmpezyeehjivav
 // 비밀키: supabase secrets set GEMINI_API_KEY=... AI_DAILY_LIMIT=40 AI_GLOBAL_LIMIT=3000
 //   선택: AI_PRON_LIMIT=200 (선생님 한 명의 하루 발음 채점 횟수. 일반 AI 한도와 따로 세요)
 //   선택: GEMINI_PRON_MODEL=gemini-2.5-flash (발음 채점 모델. gemini-2.5-pro 로 바꾸면 더 꼼꼼하지만 느리고 비싸요)
 //   선택: ALLOWED_ORIGINS=https://vocapro.kro.kr,https://vocapro.pages.dev (쉼표로 구분, 기본값이 이 세 주소)
+//   선택(오픈소스 AI): CF_ACCOUNT_ID=... CF_API_TOKEN=... (Cloudflare 계정 ID, Workers AI 권한 토큰). CF_AI_MODELS=@cf/...,@cf/... 로 모델 순서를 바꿀 수 있어요
+//
+// v14 변경점 (SQL 변경 없음)
+// - 글 작업(단어 뜻 · 묶음 · 번역 · 문맥 뜻 · 병음)은 Cloudflare Workers AI 오픈소스 모델(Llama 3.3 70B → Gemma 3 12B → Llama 3.1 8B)을 먼저 써요.
+//   안 되면 Gemini 로 넘어가요. 사진 읽기 · 발음 채점은 Gemini 그대로예요. Gemini 키가 없어도 CF 설정만 있으면 글 작업은 돼요.
 //
 // v13 변경점 (SQL 변경 없음, 보안)
 // - 발음 채점의 전체 하루 한도를 일반 AI와 따로 세요(AI_PRON_GLOBAL, 기본 2000). 파일 채점을 많이 보내도 단어 채우기 같은 일반 AI는 막히지 않아요.
