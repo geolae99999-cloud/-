@@ -560,6 +560,12 @@
     .rec-m { flex: 1; min-width: 0; color: var(--muted); font-size: .86rem; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .rec-row em { font-style: normal; font-size: .7rem; font-weight: 800; color: var(--mint); background: var(--mint-soft); padding: 2px 6px; border-radius: 6px; flex: none; }
     .rec-row.has { opacity: .6; }
+    .rec-row.zs { flex-wrap: wrap; row-gap: 4px; }
+    .rec-ex { flex-basis: 100%; display: flex; flex-direction: column; gap: 1px; padding-left: 64px; font-size: .86rem; min-width: 0; }
+    .rec-ex b { font-size: .98rem; font-weight: 700; color: var(--ink); }
+    .rec-ex i { font-style: normal; color: var(--blue); font-weight: 600; }
+    .rec-ex small { color: var(--muted); }
+    .rec-zs { margin: 0 0 10px; font-size: .86rem; line-height: 1.5; }
     /* 문장 배열 */
     .sen-ko { font-size: 1.12rem; font-weight: 700; color: var(--ink); line-height: 1.5; margin-top: 10px; word-break: keep-all; }
     .sen-key { display: inline-flex; align-items: center; gap: 8px; margin-top: 14px; padding: 6px 14px; border-radius: 999px; background: var(--blue-soft); color: var(--blue-ink); font-size: .86rem; }
@@ -2092,6 +2098,7 @@
     .sp-kind { font-size: 12px; font-weight: 700; color: var(--blue-ink); background: var(--blue-soft); padding: 4px 10px; border-radius: 99px; }
     .sp-text { font-size: 34px; font-weight: 800; letter-spacing: -.02em; line-height: 1.25; word-break: break-word; color: var(--ink); }
     .sp-text.long { font-size: 21px; font-weight: 700; line-height: 1.45; letter-spacing: -.01em; }
+    .sp-py { display: block; margin-top: 6px; color: var(--blue); font-size: 1rem; font-weight: 600; line-height: 1.45; word-break: break-word; }
     .sp-text.zh, .sp-ri-t b:lang(zh-CN) { font-family: 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Microsoft YaHei', var(--font); }
     .sp-mean { font-size: 15px; color: var(--ink-2); font-weight: 500; line-height: 1.45; word-break: keep-all; }
     .sp-card .sp-listen { margin-top: 6px; background: var(--surface); color: var(--ink); }
@@ -2135,6 +2142,10 @@
     .sp-ri-t b { font-size: 16px; font-weight: 700; line-height: 1.4; word-break: break-word; } .sp-ri-t small { font-size: 13px; color: var(--muted); }
     .sp-ri > p, .sp-ri > div:not(.sp-ri-top) { margin-left: 52px; }
     .sp-sub { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 4px; } .sp-sub span { font-size: 12px; color: var(--muted); background: var(--surface-2); border-radius: 8px; padding: 2px 8px; } .sp-sub b { color: var(--ink-2); font-weight: 600; margin-left: 2px; }
+    .py-picks { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; width: 100%; }
+    .py-pick { display: inline-flex; align-items: baseline; gap: 6px; padding: 7px 12px; border: 0; border-radius: 12px; background: var(--surface); box-shadow: inset 0 0 0 1.5px var(--line); cursor: pointer; font: inherit; color: var(--ink); }
+    .py-pick b { font-size: 17px; font-family: 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Microsoft YaHei', var(--font); } .py-pick i { font-style: normal; color: var(--blue-ink); font-size: 13px; } .py-pick small { color: var(--muted); font-size: 12.5px; }
+    .py-pick:hover { box-shadow: inset 0 0 0 1.5px var(--blue); } .py-pick:focus-visible { outline: none; box-shadow: var(--ring); }
     .sp-sub .sp-comp.part { background: var(--coral-soft); color: var(--coral); } .sp-sub .sp-comp.part b { color: var(--coral); }
     mark.sp-miss { background: none; color: var(--coral); text-decoration: line-through; text-decoration-thickness: 2px; text-decoration-color: color-mix(in srgb, var(--coral) 70%, transparent); }
     .sp-mlg { background: none !important; padding-left: 2px !important; }

@@ -219,11 +219,22 @@
   function zhLoad() {
     if (!zhIdxP) zhIdxP = fetch('dict/zh/index.json').then(r => r.ok ? r.json() : null).catch(() => null).then(d => {
       if (!Array.isArray(d)) { zhIdxP = null; return []; }
-      zhIdx = d; zhMap = new Map(d.map(e => [e[0], e])); dictMap = null; gwCache = {}; zhTok = null;
+      zhIdx = d; zhMap = new Map(d.map(e => [e[0], e])); dictMap = null; gwCache = {}; zhTok = null; zsLoad();
       if (isZh() && currentUser && curTab === 'tabHome' && !S.active) { try { renderHome(); } catch (e) {} }
       return d;
     });
     return zhIdxP;
+  }
+  // 중국어 말하기 문장 (초 · 중 · 고): {e|m|h: [[단어, 단어 병음, 뜻, 문장, 문장 병음, 해석], ...]}
+  let zsData = null, zsP = null;
+  function zsLoad() {
+    if (!zsP) zsP = fetch('dict/zh/speak.json').then(r => r.ok ? r.json() : null).catch(() => null).then(d => {
+      if (!d || !Array.isArray(d.e)) { zsP = null; return null; }
+      zsData = d; gwCache = {};
+      if (isZh() && currentUser && curTab === 'tabHome' && !S.active) { try { renderHome(); } catch (e) {} }
+      return d;
+    });
+    return zsP;
   }
   // 변화형: 사전에 "went": "go:VBD" 처럼 원형을 가리키는 항목이 있고, 규칙 변화(-s, -ed, -ing 등)는 원형을 찾아봐요.
   const FORM_NAMES = { VBD: '과거형', VBN: '과거분사', VBG: '-ing형', VBZ: '3인칭 단수형', NNS: '복수형', JJR: '비교급', JJS: '최상급', RBR: '비교급', RBS: '최상급' };
@@ -290,9 +301,38 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
 
   let formEditId = null, aiRun = 0;
   function aiState(html, kind) { const e = $('aiState'); if (!e) return; e.className = 'ai-state' + (html ? ' show ' + (kind || '') : ''); e.innerHTML = html || ''; }
+  // 중국어: 단어 칸에 병음(xuexi, xué xí, xue2 xi2)을 쓰면 한자를 찾아 채워요. HSK 단어에서 먼저 찾고, 없으면 AI로.
+  // 같은 병음 단어가 여럿이면(shi: 是 · 事 · 时 …) 골라요
+  const PY_IN = /^[a-zA-Z\u00C0-\u024F\u0300-\u036F0-5'\s]+$/;
+  const isPyInput = q => isZh() && !HAN.test(q) && PY_IN.test(q) && /[a-z]/i.test(q);
+  const pyMarked = s => String(s || '').normalize('NFC').toLowerCase().replace(/[\s'0-5]/g, '');
+  async function pyCands(q) {
+    const idx = await zhLoad(), pq = pyPlain(q); if (!pq) return [];
+    let hit = idx.filter(e => pyPlain(e[1]) === pq);
+    // 성조 부호를 썼으면 성조까지 같은 단어를 먼저(있을 때만 좁혀요)
+    if (/[\u00C0-\u024F\u0300-\u036F]/.test(q.normalize('NFD').replace(/[a-z]/gi, ''))) { const t = hit.filter(e => pyMarked(e[1]) === pyMarked(q)); if (t.length) hit = t; }
+    return hit.sort((a, b) => zhLv(a) - zhLv(b) || a[0].length - b[0].length).slice(0, 8).map(e => [e[0], e[1], e[2]]);
+  }
+  const normPy = o => { const a = o && Array.isArray(o.items) ? o.items.filter(x => x && HAN.test(String(x.word || '')) && !/[^㐀-鿿豈-﫿]/.test(String(x.word).trim())).map(x => [String(x.word).trim().slice(0, 12), String(x.phonetic || '').slice(0, 60), String(x.meaning || '').slice(0, 80)]).slice(0, 6) : null; return a; };
+  async function pyResolve(q) {
+    const run = ++aiRun;
+    aiState('<span class="dot"></span>병음으로 한자를 찾는 중', 'busy');
+    let c = [];
+    try { c = await pyCands(q); } catch (e) { c = []; }
+    if (!c.length && aiReady()) {
+      try { c = await callAi(`A Korean student typed Mandarin pinyin (tones may be missing): ${JSON.stringify(q)}. List up to 5 common Chinese words in simplified characters whose pinyin is exactly this syllable sequence, most common first. Return ONLY one JSON object: {"items":[{"word":"简体字","phonetic":"pinyin with tone marks","meaning":"핵심 한국어 뜻"}]}. If none, {"items":[]}.`, normPy, { task: 'pinyin', py: q, lang: 'zh' }, { once: true }) || []; }
+      catch (e) { if (run === aiRun) aiState(`병음으로 단어를 찾지 못했어요. 한자로 써 주세요. <small>${esc(String(e.message || '').split('\n')[0])}</small>`, 'err'); return; }
+    }
+    if (run !== aiRun || !$('fieldWord') || $('fieldWord').value.trim() !== q) return;
+    if (!c.length) return aiState(`'${esc(q)}'(으)로 읽는 단어를 찾지 못했어요. 병음을 확인하거나 한자로 써 주세요.`, 'err');
+    if (c.length === 1) { $('fieldWord').value = c[0][0]; return executeFastAi(); }
+    aiState(`<span>같은 병음 단어가 ${c.length}개예요. 골라 주세요</span><span class="py-picks">${c.map(e => `<button class="py-pick" data-act="py-pick" data-word="${esc(e[0])}"><b lang="zh-CN">${esc(e[0])}</b><i>${esc(e[1])}</i><small>${esc(e[2])}</small></button>`).join('')}</span>`, 'ok');
+  }
+  ACTIONS['py-pick'] = el => { const f = $('fieldWord'); if (!f) return; f.value = el.dataset.word; executeFastAi(); };
   async function executeFastAi() {
     const query = $('fieldWord').value.trim();
     if (!query) return toast('단어를 입력하세요.');
+    if (isPyInput(query)) return pyResolve(query);
     const btn = $('btnRunAi'), run = ++aiRun, edit = !!formEditId;
     const set = (id, v, force) => { const f = $(id); if (f && v && (force || !f.value.trim())) f.value = v; };
     const local = builtinMeaning(query);

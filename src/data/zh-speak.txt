@@ -1,0 +1,114 @@
+# 중국어 말하기 문장 (초 · 중 · 고). 한 줄: 핵심 단어|단어 병음|뜻|문장|문장 병음|해석
+# 병음은 교과서처럼 一 · 不 의 성조 변화를 표시하고 경성은 부호 없이 써요.
+[e]
+你好|nǐ hǎo|안녕하세요|老师，你好！|Lǎoshī, nǐ hǎo!|선생님, 안녕하세요!
+谢谢|xièxie|고맙습니다|谢谢你！|Xièxie nǐ!|고마워!
+再见|zàijiàn|잘 가, 안녕히 계세요|老师，再见！|Lǎoshī, zàijiàn!|선생님, 안녕히 계세요!
+名字|míngzi|이름|你叫什么名字？|Nǐ jiào shénme míngzi?|너는 이름이 뭐니?
+叫|jiào|~라고 부르다|我叫金明。|Wǒ jiào Jīn Míng.|나는 김명이라고 해.
+韩国人|Hánguórén|한국 사람|我是韩国人。|Wǒ shì Hánguórén.|나는 한국 사람이야.
+几岁|jǐ suì|몇 살|你今年几岁？|Nǐ jīnnián jǐ suì?|너는 올해 몇 살이니?
+岁|suì|살, 세|我今年十岁。|Wǒ jīnnián shí suì.|나는 올해 열 살이야.
+家|jiā|집, 가족|我家有四口人。|Wǒ jiā yǒu sì kǒu rén.|우리 가족은 네 명이야.
+爸爸|bàba|아빠|这是我爸爸。|Zhè shì wǒ bàba.|이분은 우리 아빠야.
+妈妈|māma|엄마|我爱我妈妈。|Wǒ ài wǒ māma.|나는 우리 엄마를 사랑해.
+喜欢|xǐhuan|좋아하다|我喜欢熊猫。|Wǒ xǐhuan xióngmāo.|나는 판다를 좋아해.
+吃|chī|먹다|我想吃饺子。|Wǒ xiǎng chī jiǎozi.|나는 만두를 먹고 싶어.
+喝|hē|마시다|我喝牛奶。|Wǒ hē niúnǎi.|나는 우유를 마셔.
+苹果|píngguǒ|사과|这个苹果很大。|Zhège píngguǒ hěn dà.|이 사과는 아주 커.
+好吃|hǎochī|맛있다|妈妈做的菜很好吃。|Māma zuò de cài hěn hǎochī.|엄마가 만든 요리는 아주 맛있어.
+学生|xuésheng|학생|我是小学生。|Wǒ shì xiǎoxuéshēng.|나는 초등학생이야.
+老师|lǎoshī|선생님|我们的老师很好。|Wǒmen de lǎoshī hěn hǎo.|우리 선생님은 정말 좋으셔.
+朋友|péngyou|친구|他是我的好朋友。|Tā shì wǒ de hǎo péngyou.|그는 내 좋은 친구야.
+狗|gǒu|개|我家有一只小狗。|Wǒ jiā yǒu yì zhī xiǎogǒu.|우리 집에는 강아지가 한 마리 있어.
+红色|hóngsè|빨간색|我喜欢红色。|Wǒ xǐhuan hóngsè.|나는 빨간색을 좋아해.
+今天|jīntiān|오늘|今天星期一。|Jīntiān xīngqīyī.|오늘은 월요일이야.
+天气|tiānqì|날씨|今天天气很好。|Jīntiān tiānqì hěn hǎo.|오늘 날씨가 아주 좋아.
+几点|jǐ diǎn|몇 시|现在几点？|Xiànzài jǐ diǎn?|지금 몇 시야?
+多少钱|duōshao qián|얼마예요|这个多少钱？|Zhège duōshao qián?|이거 얼마예요?
+对不起|duìbuqǐ|미안합니다|对不起，我来晚了。|Duìbuqǐ, wǒ lái wǎn le.|미안해, 내가 늦었어.
+没关系|méi guānxi|괜찮아요|没关系，你别哭。|Méi guānxi, nǐ bié kū.|괜찮아, 울지 마.
+生日|shēngrì|생일|祝你生日快乐！|Zhù nǐ shēngrì kuàilè!|생일 축하해!
+一起|yìqǐ|함께|我们一起去玩儿吧！|Wǒmen yìqǐ qù wánr ba!|우리 같이 놀러 가자!
+汉语|Hànyǔ|중국어|我会说一点儿汉语。|Wǒ huì shuō yìdiǎnr Hànyǔ.|나는 중국어를 조금 할 줄 알아.
+[m]
+认识|rènshi|알다|认识你很高兴。|Rènshi nǐ hěn gāoxìng.|만나서 반가워요.
+哪国人|nǎ guó rén|어느 나라 사람|你是哪国人？|Nǐ shì nǎ guó rén?|당신은 어느 나라 사람이에요?
+年级|niánjí|학년|我上初中二年级。|Wǒ shàng chūzhōng èr niánjí.|저는 중학교 2학년이에요.
+兄弟姐妹|xiōngdì jiěmèi|형제자매|你有兄弟姐妹吗？|Nǐ yǒu xiōngdì jiěmèi ma?|형제자매가 있어요?
+哥哥|gēge|형, 오빠|我有一个哥哥。|Wǒ yǒu yí ge gēge.|저는 형(오빠)이 한 명 있어요.
+几月几号|jǐ yuè jǐ hào|몇 월 며칠|你的生日是几月几号？|Nǐ de shēngrì shì jǐ yuè jǐ hào?|네 생일은 몇 월 며칠이니?
+星期|xīngqī|요일, 주|今天星期几？|Jīntiān xīngqī jǐ?|오늘은 무슨 요일이에요?
+起床|qǐchuáng|일어나다|我每天早上七点起床。|Wǒ měitiān zǎoshang qī diǎn qǐchuáng.|저는 매일 아침 7시에 일어나요.
+上课|shàngkè|수업하다|我们八点半上课。|Wǒmen bā diǎn bàn shàngkè.|우리는 8시 반에 수업을 시작해요.
+爱好|àihào|취미|你的爱好是什么？|Nǐ de àihào shì shénme?|당신의 취미는 뭐예요?
+踢足球|tī zúqiú|축구를 하다|我喜欢踢足球。|Wǒ xǐhuan tī zúqiú.|저는 축구하는 걸 좋아해요.
+听音乐|tīng yīnyuè|음악을 듣다|我常常听音乐。|Wǒ chángcháng tīng yīnyuè.|저는 자주 음악을 들어요.
+会|huì|~할 줄 알다|你会游泳吗？|Nǐ huì yóuyǒng ma?|수영할 줄 알아요?
+想|xiǎng|~하고 싶다|我想去中国旅行。|Wǒ xiǎng qù Zhōngguó lǚxíng.|저는 중국에 여행 가고 싶어요.
+怎么|zěnme|어떻게|你怎么去学校？|Nǐ zěnme qù xuéxiào?|너는 학교에 어떻게 가니?
+坐|zuò|(탈것을) 타다|我坐公交车去学校。|Wǒ zuò gōngjiāochē qù xuéxiào.|저는 버스를 타고 학교에 가요.
+在哪儿|zài nǎr|어디에 있어요|洗手间在哪儿？|Xǐshǒujiān zài nǎr?|화장실이 어디에 있어요?
+离|lí|~에서 (거리)|我家离学校很近。|Wǒ jiā lí xuéxiào hěn jìn.|우리 집은 학교에서 아주 가까워요.
+怎么样|zěnmeyàng|어때요|明天天气怎么样？|Míngtiān tiānqì zěnmeyàng?|내일 날씨는 어때요?
+下雨|xià yǔ|비가 오다|外面下雨了。|Wàimian xià yǔ le.|밖에 비가 와요.
+冷|lěng|춥다|今天有点儿冷。|Jīntiān yǒudiǎnr lěng.|오늘은 조금 추워요.
+点菜|diǎn cài|음식을 주문하다|服务员，我们要点菜。|Fúwùyuán, wǒmen yào diǎn cài.|저기요, 주문할게요.
+碗|wǎn|그릇|来一碗牛肉面。|Lái yì wǎn niúròumiàn.|소고기면 한 그릇 주세요.
+便宜|piányi|싸다|太贵了，便宜一点儿吧。|Tài guì le, piányi yìdiǎnr ba.|너무 비싸요, 좀 깎아 주세요.
+试|shì|해 보다, 입어 보다|我可以试试吗？|Wǒ kěyǐ shìshi ma?|입어 봐도 돼요?
+打电话|dǎ diànhuà|전화하다|我给妈妈打电话。|Wǒ gěi māma dǎ diànhuà.|저는 엄마에게 전화해요.
+舒服|shūfu|편안하다|我今天不舒服。|Wǒ jīntiān bù shūfu.|저는 오늘 몸이 안 좋아요.
+头疼|tóuténg|머리가 아프다|我头疼，也发烧。|Wǒ tóuténg, yě fāshāo.|머리가 아프고 열도 나요.
+周末|zhōumò|주말|周末你打算做什么？|Zhōumò nǐ dǎsuàn zuò shénme?|주말에 뭐 할 계획이에요?
+看电影|kàn diànyǐng|영화를 보다|我们一起去看电影吧。|Wǒmen yìqǐ qù kàn diànyǐng ba.|우리 같이 영화 보러 가요.
+比|bǐ|~보다|我比弟弟高。|Wǒ bǐ dìdi gāo.|저는 남동생보다 키가 커요.
+正在|zhèngzài|~하는 중이다|我正在做作业。|Wǒ zhèngzài zuò zuòyè.|저는 숙제를 하고 있어요.
+去过|qùguo|가 본 적 있다|你去过北京吗？|Nǐ qùguo Běijīng ma?|베이징에 가 본 적 있어요?
+吃完|chīwán|다 먹다|我吃完饭了。|Wǒ chīwán fàn le.|저는 밥을 다 먹었어요.
+帮|bāng|돕다|你能帮我一下吗？|Nǐ néng bāng wǒ yíxià ma?|저 좀 도와줄 수 있어요?
+欢迎|huānyíng|환영하다|欢迎你来韩国！|Huānyíng nǐ lái Hánguó!|한국에 온 걸 환영해요!
+中秋节|Zhōngqiū Jié|중추절(추석)|中秋节我们吃月饼。|Zhōngqiū Jié wǒmen chī yuèbing.|중추절에 우리는 월병을 먹어요.
+春节|Chūn Jié|춘절(설날)|春节快乐！|Chūn Jié kuàilè!|즐거운 설 보내세요!
+加油|jiāyóu|힘내다|加油！你一定能行！|Jiāyóu! Nǐ yídìng néng xíng!|힘내! 너는 꼭 할 수 있어!
+[h]
+介绍|jièshào|소개하다|我来介绍一下我自己。|Wǒ lái jièshào yíxià wǒ zìjǐ.|제 소개를 하겠습니다.
+性格|xìnggé|성격|我的性格很开朗。|Wǒ de xìnggé hěn kāilǎng.|제 성격은 아주 밝아요.
+理想|lǐxiǎng|꿈, 이상|我的理想是当一名医生。|Wǒ de lǐxiǎng shì dāng yì míng yīshēng.|제 꿈은 의사가 되는 것이에요.
+将来|jiānglái|장래|将来我想当老师。|Jiānglái wǒ xiǎng dāng lǎoshī.|장래에 저는 선생님이 되고 싶어요.
+考试|kǎoshì|시험|下个星期我们有期中考试。|Xià ge xīngqī wǒmen yǒu qīzhōng kǎoshì.|다음 주에 우리는 중간고사가 있어요.
+准备|zhǔnbèi|준비하다|我正在准备考试。|Wǒ zhèngzài zhǔnbèi kǎoshì.|저는 시험을 준비하고 있어요.
+虽然|suīrán|비록 ~지만|虽然汉语很难，但是很有意思。|Suīrán Hànyǔ hěn nán, dànshì hěn yǒu yìsi.|중국어는 어렵지만 아주 재미있어요.
+因为|yīnwèi|~때문에|因为下雨，所以比赛取消了。|Yīnwèi xià yǔ, suǒyǐ bǐsài qǔxiāo le.|비가 와서 경기가 취소되었어요.
+越来越|yuè lái yuè|점점 더|天气越来越热了。|Tiānqì yuè lái yuè rè le.|날씨가 점점 더워지고 있어요.
+一边|yìbiān|~하면서|我喜欢一边听音乐一边学习。|Wǒ xǐhuan yìbiān tīng yīnyuè yìbiān xuéxí.|저는 음악을 들으면서 공부하는 걸 좋아해요.
+除了|chúle|~외에|除了汉语，我还学日语。|Chúle Hànyǔ, wǒ hái xué Rìyǔ.|중국어 외에 저는 일본어도 배워요.
+把|bǎ|~을(를)|请把窗户打开。|Qǐng bǎ chuānghu dǎkāi.|창문을 열어 주세요.
+被|bèi|~에게 ~당하다|我的自行车被弟弟骑走了。|Wǒ de zìxíngchē bèi dìdi qízǒu le.|제 자전거를 남동생이 타고 가 버렸어요.
+流利|liúlì|유창하다|他汉语说得很流利。|Tā Hànyǔ shuō de hěn liúlì.|그는 중국어를 아주 유창하게 말해요.
+打算|dǎsuàn|~할 계획이다|放假以后我打算去上海旅游。|Fàngjià yǐhòu wǒ dǎsuàn qù Shànghǎi lǚyóu.|방학하면 저는 상하이로 여행 갈 계획이에요.
+预订|yùdìng|예약하다|我想预订一个房间。|Wǒ xiǎng yùdìng yí ge fángjiān.|방 하나를 예약하고 싶어요.
+怎么走|zěnme zǒu|어떻게 가요|请问，去天安门怎么走？|Qǐngwèn, qù Tiān'ānmén zěnme zǒu?|실례지만, 천안문에 어떻게 가요?
+一直|yìzhí|곧장, 줄곧|一直往前走，然后往左拐。|Yìzhí wǎng qián zǒu, ránhòu wǎng zuǒ guǎi.|쭉 앞으로 가다가 왼쪽으로 도세요.
+换|huàn|바꾸다|我想把韩币换成人民币。|Wǒ xiǎng bǎ Hánbì huànchéng rénmínbì.|원화를 인민폐로 바꾸고 싶어요.
+付款|fùkuǎn|결제하다|可以用手机付款吗？|Kěyǐ yòng shǒujī fùkuǎn ma?|휴대폰으로 결제할 수 있어요?
+感冒|gǎnmào|감기|我感冒了，嗓子很疼。|Wǒ gǎnmào le, sǎngzi hěn téng.|감기에 걸려서 목이 아파요.
+锻炼|duànliàn|운동하다, 단련하다|我每天锻炼身体。|Wǒ měitiān duànliàn shēntǐ.|저는 매일 운동을 해요.
+健康|jiànkāng|건강|健康比什么都重要。|Jiànkāng bǐ shénme dōu zhòngyào.|건강은 무엇보다 중요해요.
+环境|huánjìng|환경|我们应该保护环境。|Wǒmen yīnggāi bǎohù huánjìng.|우리는 환경을 보호해야 해요.
+垃圾|lājī|쓰레기|请把垃圾扔进垃圾桶。|Qǐng bǎ lājī rēngjìn lājītǒng.|쓰레기는 쓰레기통에 버려 주세요.
+上网|shàngwǎng|인터넷을 하다|我常常上网查资料。|Wǒ chángcháng shàngwǎng chá zīliào.|저는 자주 인터넷으로 자료를 찾아요.
+手机|shǒujī|휴대폰|现在的学生离不开手机。|Xiànzài de xuésheng lí bu kāi shǒujī.|요즘 학생들은 휴대폰 없이 못 지내요.
+文化|wénhuà|문화|我对中国文化很感兴趣。|Wǒ duì Zhōngguó wénhuà hěn gǎn xìngqù.|저는 중국 문화에 관심이 많아요.
+历史|lìshǐ|역사|北京有很多历史古迹。|Běijīng yǒu hěn duō lìshǐ gǔjì.|베이징에는 역사 유적이 많아요.
+习惯|xíguàn|익숙해지다, 습관|你习惯这儿的生活了吗？|Nǐ xíguàn zhèr de shēnghuó le ma?|여기 생활에 익숙해졌어요?
+经历|jīnglì|경험|这是一次难忘的经历。|Zhè shì yí cì nánwàng de jīnglì.|이것은 잊을 수 없는 경험이에요.
+希望|xīwàng|바라다|希望我们以后常联系。|Xīwàng wǒmen yǐhòu cháng liánxì.|앞으로 자주 연락하길 바라요.
+祝|zhù|기원하다, 빌다|祝你身体健康，万事如意！|Zhù nǐ shēntǐ jiànkāng, wànshì rúyì!|건강하시고 모든 일이 뜻대로 되길 바라요!
+参加|cānjiā|참가하다|我参加了学校的汉语演讲比赛。|Wǒ cānjiā le xuéxiào de Hànyǔ yǎnjiǎng bǐsài.|저는 학교 중국어 말하기 대회에 참가했어요.
+只要|zhǐyào|~하기만 하면|只要努力，就一定能成功。|Zhǐyào nǔlì, jiù yídìng néng chénggōng.|노력하기만 하면 반드시 성공할 수 있어요.
+如果|rúguǒ|만약|如果明天不下雨，我们就去爬山。|Rúguǒ míngtiān bú xià yǔ, wǒmen jiù qù pá shān.|내일 비가 오지 않으면 우리는 등산하러 가요.
+已经|yǐjīng|이미|我已经学了两年汉语了。|Wǒ yǐjīng xué le liǎng nián Hànyǔ le.|저는 중국어를 벌써 2년 동안 배웠어요.
+不但|búdàn|~뿐만 아니라|她不但漂亮，而且很聪明。|Tā búdàn piàoliang, érqiě hěn cōngming.|그녀는 예쁠 뿐만 아니라 아주 똑똑해요.
+互相|hùxiāng|서로|朋友之间应该互相帮助。|Péngyou zhījiān yīnggāi hùxiāng bāngzhù.|친구 사이에는 서로 도와야 해요.
+机会|jīhuì|기회|有机会的话，欢迎你来韩国玩儿。|Yǒu jīhuì dehuà, huānyíng nǐ lái Hánguó wánr.|기회가 되면 한국에 놀러 오세요.

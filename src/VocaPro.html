@@ -585,6 +585,12 @@
     .rec-m { flex: 1; min-width: 0; color: var(--muted); font-size: .86rem; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .rec-row em { font-style: normal; font-size: .7rem; font-weight: 800; color: var(--mint); background: var(--mint-soft); padding: 2px 6px; border-radius: 6px; flex: none; }
     .rec-row.has { opacity: .6; }
+    .rec-row.zs { flex-wrap: wrap; row-gap: 4px; }
+    .rec-ex { flex-basis: 100%; display: flex; flex-direction: column; gap: 1px; padding-left: 64px; font-size: .86rem; min-width: 0; }
+    .rec-ex b { font-size: .98rem; font-weight: 700; color: var(--ink); }
+    .rec-ex i { font-style: normal; color: var(--blue); font-weight: 600; }
+    .rec-ex small { color: var(--muted); }
+    .rec-zs { margin: 0 0 10px; font-size: .86rem; line-height: 1.5; }
     /* 문장 배열 */
     .sen-ko { font-size: 1.12rem; font-weight: 700; color: var(--ink); line-height: 1.5; margin-top: 10px; word-break: keep-all; }
     .sen-key { display: inline-flex; align-items: center; gap: 8px; margin-top: 14px; padding: 6px 14px; border-radius: 999px; background: var(--blue-soft); color: var(--blue-ink); font-size: .86rem; }
@@ -2117,6 +2123,7 @@
     .sp-kind { font-size: 12px; font-weight: 700; color: var(--blue-ink); background: var(--blue-soft); padding: 4px 10px; border-radius: 99px; }
     .sp-text { font-size: 34px; font-weight: 800; letter-spacing: -.02em; line-height: 1.25; word-break: break-word; color: var(--ink); }
     .sp-text.long { font-size: 21px; font-weight: 700; line-height: 1.45; letter-spacing: -.01em; }
+    .sp-py { display: block; margin-top: 6px; color: var(--blue); font-size: 1rem; font-weight: 600; line-height: 1.45; word-break: break-word; }
     .sp-text.zh, .sp-ri-t b:lang(zh-CN) { font-family: 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Microsoft YaHei', var(--font); }
     .sp-mean { font-size: 15px; color: var(--ink-2); font-weight: 500; line-height: 1.45; word-break: keep-all; }
     .sp-card .sp-listen { margin-top: 6px; background: var(--surface); color: var(--ink); }
@@ -2160,6 +2167,10 @@
     .sp-ri-t b { font-size: 16px; font-weight: 700; line-height: 1.4; word-break: break-word; } .sp-ri-t small { font-size: 13px; color: var(--muted); }
     .sp-ri > p, .sp-ri > div:not(.sp-ri-top) { margin-left: 52px; }
     .sp-sub { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 4px; } .sp-sub span { font-size: 12px; color: var(--muted); background: var(--surface-2); border-radius: 8px; padding: 2px 8px; } .sp-sub b { color: var(--ink-2); font-weight: 600; margin-left: 2px; }
+    .py-picks { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; width: 100%; }
+    .py-pick { display: inline-flex; align-items: baseline; gap: 6px; padding: 7px 12px; border: 0; border-radius: 12px; background: var(--surface); box-shadow: inset 0 0 0 1.5px var(--line); cursor: pointer; font: inherit; color: var(--ink); }
+    .py-pick b { font-size: 17px; font-family: 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Microsoft YaHei', var(--font); } .py-pick i { font-style: normal; color: var(--blue-ink); font-size: 13px; } .py-pick small { color: var(--muted); font-size: 12.5px; }
+    .py-pick:hover { box-shadow: inset 0 0 0 1.5px var(--blue); } .py-pick:focus-visible { outline: none; box-shadow: var(--ring); }
     .sp-sub .sp-comp.part { background: var(--coral-soft); color: var(--coral); } .sp-sub .sp-comp.part b { color: var(--coral); }
     mark.sp-miss { background: none; color: var(--coral); text-decoration: line-through; text-decoration-thickness: 2px; text-decoration-color: color-mix(in srgb, var(--coral) 70%, transparent); }
     .sp-mlg { background: none !important; padding-left: 2px !important; }
@@ -3498,9 +3509,9 @@ window.VOCA_CLOUD = {
   function wordFormHtml(w) {
     const v = k => esc(w ? w[k] : ''); formEditId = w ? w.id : null; aiRun++;
     return `
-        <label class="f-lab" for="fieldWord">${isZh() ? '중국어 단어 (한자)' : '영단어'}</label>
+        <label class="f-lab" for="fieldWord">${isZh() ? '중국어 단어 (한자 또는 병음)' : '영단어'}</label>
         <div class="row f-ai">
-          <input type="text" id="fieldWord" value="${v('word')}" placeholder="${isZh() ? '예: 学习' : '예: consistent'}" autocomplete="off" autocapitalize="none" spellcheck="false" data-enter="ai-fill">
+          <input type="text" id="fieldWord" value="${v('word')}" placeholder="${isZh() ? '예: 学习 또는 xuexi' : '예: consistent'}" autocomplete="off" autocapitalize="none" spellcheck="false" data-enter="ai-fill">
           <button class="btn btn-primary" id="btnRunAi" data-act="ai-fill">AI 완성</button>
         </div>
         <div class="ai-state" id="aiState"></div>
@@ -5465,11 +5476,22 @@ window.VOCA_CLOUD = {
   function zhLoad() {
     if (!zhIdxP) zhIdxP = fetch('dict/zh/index.json').then(r => r.ok ? r.json() : null).catch(() => null).then(d => {
       if (!Array.isArray(d)) { zhIdxP = null; return []; }
-      zhIdx = d; zhMap = new Map(d.map(e => [e[0], e])); dictMap = null; gwCache = {}; zhTok = null;
+      zhIdx = d; zhMap = new Map(d.map(e => [e[0], e])); dictMap = null; gwCache = {}; zhTok = null; zsLoad();
       if (isZh() && currentUser && curTab === 'tabHome' && !S.active) { try { renderHome(); } catch (e) {} }
       return d;
     });
     return zhIdxP;
+  }
+  // 중국어 말하기 문장 (초 · 중 · 고): {e|m|h: [[단어, 단어 병음, 뜻, 문장, 문장 병음, 해석], ...]}
+  let zsData = null, zsP = null;
+  function zsLoad() {
+    if (!zsP) zsP = fetch('dict/zh/speak.json').then(r => r.ok ? r.json() : null).catch(() => null).then(d => {
+      if (!d || !Array.isArray(d.e)) { zsP = null; return null; }
+      zsData = d; gwCache = {};
+      if (isZh() && currentUser && curTab === 'tabHome' && !S.active) { try { renderHome(); } catch (e) {} }
+      return d;
+    });
+    return zsP;
   }
   // 변화형: 사전에 "went": "go:VBD" 처럼 원형을 가리키는 항목이 있고, 규칙 변화(-s, -ed, -ing 등)는 원형을 찾아봐요.
   const FORM_NAMES = { VBD: '과거형', VBN: '과거분사', VBG: '-ing형', VBZ: '3인칭 단수형', NNS: '복수형', JJR: '비교급', JJS: '최상급', RBR: '비교급', RBS: '최상급' };
@@ -5536,9 +5558,38 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
 
   let formEditId = null, aiRun = 0;
   function aiState(html, kind) { const e = $('aiState'); if (!e) return; e.className = 'ai-state' + (html ? ' show ' + (kind || '') : ''); e.innerHTML = html || ''; }
+  // 중국어: 단어 칸에 병음(xuexi, xué xí, xue2 xi2)을 쓰면 한자를 찾아 채워요. HSK 단어에서 먼저 찾고, 없으면 AI로.
+  // 같은 병음 단어가 여럿이면(shi: 是 · 事 · 时 …) 골라요
+  const PY_IN = /^[a-zA-Z\u00C0-\u024F\u0300-\u036F0-5'\s]+$/;
+  const isPyInput = q => isZh() && !HAN.test(q) && PY_IN.test(q) && /[a-z]/i.test(q);
+  const pyMarked = s => String(s || '').normalize('NFC').toLowerCase().replace(/[\s'0-5]/g, '');
+  async function pyCands(q) {
+    const idx = await zhLoad(), pq = pyPlain(q); if (!pq) return [];
+    let hit = idx.filter(e => pyPlain(e[1]) === pq);
+    // 성조 부호를 썼으면 성조까지 같은 단어를 먼저(있을 때만 좁혀요)
+    if (/[\u00C0-\u024F\u0300-\u036F]/.test(q.normalize('NFD').replace(/[a-z]/gi, ''))) { const t = hit.filter(e => pyMarked(e[1]) === pyMarked(q)); if (t.length) hit = t; }
+    return hit.sort((a, b) => zhLv(a) - zhLv(b) || a[0].length - b[0].length).slice(0, 8).map(e => [e[0], e[1], e[2]]);
+  }
+  const normPy = o => { const a = o && Array.isArray(o.items) ? o.items.filter(x => x && HAN.test(String(x.word || '')) && !/[^㐀-鿿豈-﫿]/.test(String(x.word).trim())).map(x => [String(x.word).trim().slice(0, 12), String(x.phonetic || '').slice(0, 60), String(x.meaning || '').slice(0, 80)]).slice(0, 6) : null; return a; };
+  async function pyResolve(q) {
+    const run = ++aiRun;
+    aiState('<span class="dot"></span>병음으로 한자를 찾는 중', 'busy');
+    let c = [];
+    try { c = await pyCands(q); } catch (e) { c = []; }
+    if (!c.length && aiReady()) {
+      try { c = await callAi(`A Korean student typed Mandarin pinyin (tones may be missing): ${JSON.stringify(q)}. List up to 5 common Chinese words in simplified characters whose pinyin is exactly this syllable sequence, most common first. Return ONLY one JSON object: {"items":[{"word":"简体字","phonetic":"pinyin with tone marks","meaning":"핵심 한국어 뜻"}]}. If none, {"items":[]}.`, normPy, { task: 'pinyin', py: q, lang: 'zh' }, { once: true }) || []; }
+      catch (e) { if (run === aiRun) aiState(`병음으로 단어를 찾지 못했어요. 한자로 써 주세요. <small>${esc(String(e.message || '').split('\n')[0])}</small>`, 'err'); return; }
+    }
+    if (run !== aiRun || !$('fieldWord') || $('fieldWord').value.trim() !== q) return;
+    if (!c.length) return aiState(`'${esc(q)}'(으)로 읽는 단어를 찾지 못했어요. 병음을 확인하거나 한자로 써 주세요.`, 'err');
+    if (c.length === 1) { $('fieldWord').value = c[0][0]; return executeFastAi(); }
+    aiState(`<span>같은 병음 단어가 ${c.length}개예요. 골라 주세요</span><span class="py-picks">${c.map(e => `<button class="py-pick" data-act="py-pick" data-word="${esc(e[0])}"><b lang="zh-CN">${esc(e[0])}</b><i>${esc(e[1])}</i><small>${esc(e[2])}</small></button>`).join('')}</span>`, 'ok');
+  }
+  ACTIONS['py-pick'] = el => { const f = $('fieldWord'); if (!f) return; f.value = el.dataset.word; executeFastAi(); };
   async function executeFastAi() {
     const query = $('fieldWord').value.trim();
     if (!query) return toast('단어를 입력하세요.');
+    if (isPyInput(query)) return pyResolve(query);
     const btn = $('btnRunAi'), run = ++aiRun, edit = !!formEditId;
     const set = (id, v, force) => { const f = $(id); if (f && v && (force || !f.value.trim())) f.value = v; };
     const local = builtinMeaning(query);
@@ -6894,7 +6945,9 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
   const ZH_PACKS = [1, 2, 3, 4, 5, 6].map(n => ['hsk' + n, `HSK ${n}급`]);
   const ZH_PACKS_NEW = [1, 2, 3, 4, 5, 6, 7].map(n => ['nhsk' + n, `신HSK ${n === 7 ? '7~9' : n}급`]);
   const ZH_PACK_NAMES = Object.fromEntries(ZH_PACKS.concat(ZH_PACKS_NEW));
-  const listName = k => GRADE_NAMES[k] ? `${GRADE_NAMES[k]} 추천` : (PACK_NAMES[k] || ZH_PACK_NAMES[k] || '');
+  const ZS_PACKS = [['zs-e', '초등학교'], ['zs-m', '중학교'], ['zs-h', '고등학교']]; // 중국어 말하기 문장
+  const ZS_NAMES = Object.fromEntries(ZS_PACKS);
+  const listName = k => GRADE_NAMES[k] ? `${GRADE_NAMES[k]} 추천` : ZS_NAMES[k] ? `중국어 말하기 · ${ZS_NAMES[k]}` : (PACK_NAMES[k] || ZH_PACK_NAMES[k] || '');
   const gradeFull = k => { const n = GRADE_NAMES[k] || ''; return n ? ({ 초: '초등학교 ', 중: '중학교 ', 고: '고등학교 ' })[n[0]] + n.slice(1) + '학년' : ''; };
   const gradeOptions = sel => GRADES.map(([k]) => `<option value="${k}"${k === sel ? ' selected' : ''}>${gradeFull(k)}</option>`).join('');
   const roleOptions = sel => [['초등학생', 'e'], ['중학생', 'm'], ['고등학생', 'h']].map(([lb, p]) => `<optgroup label="${lb}">${GRADES.filter(([k]) => k[0] === p).map(([k]) => `<option value="${k}"${k === sel ? ' selected' : ''}>${gradeFull(k)}</option>`).join('')}</optgroup>`).join('') + `<optgroup label="선생님"><option value="teacher"${sel === 'teacher' ? ' selected' : ''}>선생님 (교사)</option></optgroup>`;
@@ -6903,6 +6956,7 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
   const schoolLine = () => { const p = config.profile || {}; return [p.school, !isTeacher() && p.sno ? '학번 ' + p.sno : ''].filter(Boolean).join(' · '); };
   let gwCache = {};
   function gradeWords(k) {
+    if (ZS_NAMES[k]) { if (!zsData) return []; return gwCache[k] || (gwCache[k] = (zsData[k.slice(3)] || []).map(e => ({ w: e[0], p: e[1], m: e[2], ex: e[3], exPy: e[4], exKo: e[5] }))); }
     if (ZH_PACK_NAMES[k]) { if (!zhIdx) return []; const nw = k[0] === 'n', lv = +k.replace(/\D/g, ''); return gwCache[k] || (gwCache[k] = zhIdx.filter(e => (nw ? e[4] : e[3]) === lv).map(e => ({ w: e[0], m: e[2], p: e[1] }))); }
     if (!gwCache[k]) {
       const raw = GW_E[k] || GW_MH[k] || GW_PACK[k] || '';
@@ -6924,9 +6978,11 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
   }
 
   const recHideKey = () => 'vocapro_rec_hide:' + currentUser;
-  const recBookName = k => `${listName(k)} 단어`;
+  const recBookName = k => ZS_NAMES[k] ? listName(k) : `${listName(k)} 단어`;
   let recShown = false, recView = '';
   function ownedWords() { const o = new Set(); allWords().forEach(({ w }) => o.add(w.word.toLowerCase())); return o; }
+  // 말하기 문장은 다른 단어장에 같은 단어가 있어도 문장과 함께 따로 담아요
+  function ownedFor(k) { if (!ZS_NAMES[k]) return ownedWords(); const c = categories.find(x => x.name === recBookName(k)); return new Set(c ? c.words.map(w => w.word) : []); }
   const recLeft = k => { const o = ownedWords(); return gradeWords(k).filter(e => !o.has(e.w.toLowerCase())); };
   function recMaybeShow() {
     if (recShown || !currentUser || isTeacher() || isZh() || $('pfOv')) return;
@@ -6972,7 +7028,7 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
     let cat = categories.find(c => c.name === nm);
     if (!cat) { cat = { id: 'c' + uid(), name: nm, words: [] }; categories.push(cat); }
     const have = new Set(cat.words.map(w => w.word.toLowerCase()));
-    list.forEach(e => { if (!have.has(e.w.toLowerCase())) { cat.words.push(sanitizeWord({ ...(full[e.w.toLowerCase()] || {}), id: uid(), word: e.w, meaning: e.m })); have.add(e.w.toLowerCase()); } });
+    list.forEach(e => { if (!have.has(e.w.toLowerCase())) { cat.words.push(sanitizeWord({ ...(full[e.w.toLowerCase()] || {}), id: uid(), word: e.w, meaning: e.m, ...(e.ex ? { phonetic: e.p, example: e.ex, exampleKo: e.exKo, exPy: e.exPy } : {}) })); have.add(e.w.toLowerCase()); } });
     syncStorage(); recView = cat.id;
     try { if (curTab !== 'paneBook') go(curTab); else renderBookDynamic(); } catch (e) {}
     return cat;
@@ -6991,9 +7047,9 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
   let recSheetK = '';
   function recSheet(k) {
     recSheetK = k;
-    const own = ownedWords(), list = gradeWords(k), left = list.filter(e => !own.has(e.w.toLowerCase())).length;
-    openSheet(`${listName(k)} 단어 ${list.length}`, `
-      <div class="rec-tabs">${(ZH_PACK_NAMES[k] ? [ZH_PACKS, ZH_PACKS_NEW] : [PACKS, GRADES]).map(g => `<div class="rec-tab-row">${g.map(([gk, n]) => `<button class="chip ${gk === k ? 'on' : ''}${PACK_NAMES[gk] ? ' pack' : ''}" data-act="rec-tab" data-g="${gk}">${n}</button>`).join('')}</div>`).join('')}</div>
+    const own = ownedFor(k), list = gradeWords(k), left = list.filter(e => !own.has(e.w.toLowerCase())).length, zs = ZS_NAMES[k];
+    openSheet(zs ? `${listName(k)} 문장 ${list.length}` : `${listName(k)} 단어 ${list.length}`, `${zs ? '<p class="muted rec-zs">단어와 그 단어가 들어간 문장을 함께 담아요. 선생님은 이 단어장으로 발음 평가를 내고 \'예문까지\'를 고르면 학생이 문장을 읽어요.</p>' : ''}
+      <div class="rec-tabs">${(zs ? [ZS_PACKS] : ZH_PACK_NAMES[k] ? [ZH_PACKS, ZH_PACKS_NEW] : [PACKS, GRADES]).map(g => `<div class="rec-tab-row">${g.map(([gk, n]) => `<button class="chip ${gk === k ? 'on' : ''}${PACK_NAMES[gk] ? ' pack' : ''}" data-act="rec-tab" data-g="${gk}">${n}</button>`).join('')}</div>`).join('')}</div>
       <div class="rec-list" id="recList"></div><button class="rec-more" id="recMore" data-act="rec-more" hidden>더 보기</button>
       <div class="rec-bar"><button class="btn btn-soft" data-act="rec-pick-add">선택한 단어 담기</button><button class="btn btn-primary" data-act="rec-left-add" ${left ? '' : 'disabled'}>남은 ${left}개 모두 담기</button></div>`);
     recRowsAt = 0; recOwn = own; recMore();
@@ -7004,11 +7060,12 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
   ACTIONS['rec-tab'] = async el => {
     const g = el.dataset.g;
     if (ZH_PACK_NAMES[g] && !zhIdx) { const d = await zhLoad(); if (!d.length) return toast('단어 목록을 불러오지 못했어요. 인터넷을 확인해 주세요.'); } // 중국어 책장은 목록부터
+    if (ZS_NAMES[g] && !zsData && !(await zsLoad())) return toast('문장 목록을 불러오지 못했어요. 인터넷을 확인해 주세요.');
     recSheet(g);
   };
   const REC_STEP = 150;
   let recRowsAt = 0, recOwn = new Set(), recIO = null;
-  const recRowHtml = (e, i, has) => `<label class="rec-row ${has ? 'has' : ''}"><input type="checkbox" value="${i}" ${has ? 'checked disabled' : ''}><span class="w-no">${String(i + 1).padStart(3, '0')}</span><b>${esc(e.w)}</b><span class="rec-m">${e.p ? `<i class="rec-py">${esc(e.p)}</i> ` : ''}${esc(e.m)}</span>${has ? '<em>담음</em>' : ''}</label>`;
+  const recRowHtml = (e, i, has) => `<label class="rec-row ${has ? 'has' : ''}${e.ex ? ' zs' : ''}"><input type="checkbox" value="${i}" ${has ? 'checked disabled' : ''}><span class="w-no">${String(i + 1).padStart(3, '0')}</span><b>${esc(e.w)}</b><span class="rec-m">${e.p ? `<i class="rec-py">${esc(e.p)}</i> ` : ''}${esc(e.m)}</span>${has ? '<em>담음</em>' : ''}${e.ex ? `<span class="rec-ex"><b lang="zh-CN">${esc(e.ex)}</b><i>${esc(e.exPy)}</i><small>${esc(e.exKo)}</small></span>` : ''}</label>`;
   function recMore() {
     const box = $('recList'), btn = $('recMore'); if (!box || !btn) return;
     const list = gradeWords(recSheetK), end = Math.min(list.length, recRowsAt + REC_STEP);
@@ -7023,7 +7080,7 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
     if ($('recOv') && recSheetK === config.grade) recOpen();
   };
   ACTIONS['rec-left-add'] = async () => {
-    const own = ownedWords(), pick = gradeWords(recSheetK).filter(e => !own.has(e.w.toLowerCase()));
+    const own = ownedFor(recSheetK), pick = gradeWords(recSheetK).filter(e => !own.has(e.w.toLowerCase()));
     if (!pick.length) return;
     const cat = await recAddWords(recSheetK, pick); recSheet(recSheetK); toast(`'${cat.name}'에 ${pick.length}개를 담았어요.`);
     if ($('recOv') && recSheetK === config.grade) recOpen();
@@ -7037,14 +7094,15 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
   function shelfHtml() {
     if (isTeacher()) return '';
     const own = ownedWords(), zh = isZh();
-    const keys = zh ? ZH_PACKS.concat(ZH_PACKS_NEW).map(p => p[0]) : PACKS.map(p => p[0]);
+    const keys = zh ? ZS_PACKS.concat(ZH_PACKS, ZH_PACKS_NEW).map(p => p[0]) : PACKS.map(p => p[0]);
     const cards = keys.map(k => {
-      const list = gradeWords(k), n = list.length, has = n ? list.filter(e => own.has(zh ? e.w : e.w.toLowerCase())).length : 0;
+      const list = gradeWords(k), n = list.length, mine = ZS_NAMES[k] ? ownedFor(k) : own, has = n ? list.filter(e => mine.has(zh ? e.w : e.w.toLowerCase())).length : 0;
       let tag, name, c1, c2;
-      if (zh) { const nw = k[0] === 'n', lv = +k.replace(/\D/g, ''); [c1, c2] = ZH_COLORS[(lv - 1) % 7]; tag = nw ? (lv === 7 ? '新7-9' : '新 ' + lv) : 'HSK ' + lv; name = ZH_PACK_NAMES[k]; if (nw) { c1 = '#ca8a04'; c2 = ZH_COLORS[(lv - 1) % 7][1]; } }
+      if (ZS_NAMES[k]) { tag = '말하기 ' + ZS_NAMES[k][0]; name = listName(k); [c1, c2] = { 'zs-e': ['#0ea5e9', '#14b8a6'], 'zs-m': ['#6366f1', '#0ea5e9'], 'zs-h': ['#7c3aed', '#be185d'] }[k]; }
+      else if (zh) { const nw = k[0] === 'n', lv = +k.replace(/\D/g, ''); [c1, c2] = ZH_COLORS[(lv - 1) % 7]; tag = nw ? (lv === 7 ? '新7-9' : '新 ' + lv) : 'HSK ' + lv; name = ZH_PACK_NAMES[k]; if (nw) { c1 = '#ca8a04'; c2 = ZH_COLORS[(lv - 1) % 7][1]; } }
       else [tag, name, c1, c2] = SHELF[k] || [k, PACK_NAMES[k], '#64748b', '#334155'];
       return `<button class="shelf-b" data-act="rec-tab" data-g="${k}" style="--c1:${c1};--c2:${c2}" aria-label="${esc(name)} 단어장 열기">
-        <span class="shelf-cover"><i class="shelf-spine"></i><b>${esc(tag)}</b><em>${n ? n.toLocaleString() + ' words' : '…'}</em></span>
+        <span class="shelf-cover"><i class="shelf-spine"></i><b>${esc(tag)}</b><em>${n ? n.toLocaleString() + (ZS_NAMES[k] ? ' sentences' : ' words') : '…'}</em></span>
         <span class="shelf-name">${esc(name)}</span>
         <span class="shelf-bar"><i style="width:${n ? Math.round(has / n * 100) : 0}%"></i></span>
         <small>${n ? (has ? `${has.toLocaleString()} / ${n.toLocaleString()}개 담음` : `${n.toLocaleString()}개`) : '불러오는 중'}</small>
@@ -7053,7 +7111,7 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
     return `<div class="h-shelf"><div class="section-title"><span>추천 단어장</span><button data-act="pack-open">전체 보기</button></div><div class="shelf" role="list">${cards}</div></div>`;
   }
   function packEntryHtml() {
-    if (isZh()) return `<button class="mg-entry" data-act="pack-open"><span class="mg-ico i-mint">${IC.book}</span><span class="mg-txt"><b>HSK 1~6급 · 신HSK 1~9급 단어</b><small>${zhIdx ? zhIdx.length.toLocaleString() + '개' : '1만 개가 넘는'} 단어를 급수별로 골라 담아요</small></span><span class="mg-chev"></span></button>`;
+    if (isZh()) return `<button class="mg-entry" data-act="rec-tab" data-g="${/^h/.test(config.grade) ? 'zs-h' : /^m/.test(config.grade) ? 'zs-m' : /^e/.test(config.grade) ? 'zs-e' : 'zs-m'}"><span class="mg-ico i-sun">${IC.mic}</span><span class="mg-txt"><b>중국어 말하기 문장 (초 · 중 · 고)</b><small>학교급별 문장 ${zsData ? ZS_PACKS.reduce((n, [k]) => n + gradeWords(k).length, 0) + '개' : ''}를 병음 · 해석과 함께 담아요</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="pack-open"><span class="mg-ico i-mint">${IC.book}</span><span class="mg-txt"><b>HSK 1~6급 · 신HSK 1~9급 단어</b><small>${zhIdx ? zhIdx.length.toLocaleString() + '개' : '1만 개가 넘는'} 단어를 급수별로 골라 담아요</small></span><span class="mg-chev"></span></button>`;
     const total = PACKS.reduce((n, [k]) => n + gradeWords(k).length, 0);
     return `<button class="mg-entry" data-act="pack-open"><span class="mg-ico i-mint">${IC.book}</span><span class="mg-txt"><b>학교 · 수능 · 숙어 · 토익 · 토플 단어</b><small>${total.toLocaleString()}개 단어를 골라 담아요</small></span><span class="mg-chev"></span></button>`;
   }
@@ -7859,7 +7917,7 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
       <div class="seg" id="caNum">${[10, 20, 30, 50].map(k => `<button class="${k === 20 ? 'on' : ''}" data-act="pt-opt" data-g="caNum" data-v="${k}">${k}문제</button>`).join('')}</div></div>
       <div id="caSpBox" class="form-stack" hidden><label class="setting-label">읽을 내용</label>
       <div class="seg" id="caSp"><button class="on" data-act="pt-opt" data-g="caSp" data-v="w">단어만</button><button data-act="pt-opt" data-g="caSp" data-v="s">예문까지</button></div>
-      <p class="muted cl-p">단어장 앞에서부터 20개까지 들어가요. '예문까지'는 예문이 있는 단어는 예문을, 없으면 단어를 읽어요. 학생이 앱에서 녹음해 제출하면 선생님 보드에 바로 모여요. 선생님이 듣고 AI 채점(0~100점)을 누르거나 직접 점수를 매겨요. 학생에게는 선생님이 매긴 점수만 보여요. 녹음은 작은 MP3로 저장하고, 선생님과 학생 본인만 들을 수 있고 60일 뒤 지워져요.</p></div>
+      <p class="muted cl-p">단어장 앞에서부터 20개까지 들어가요. '예문까지'는 예문이 있는 단어는 예문을, 없으면 단어를 읽어요. 학생이 앱에서 녹음해 제출하면 선생님 보드에 바로 모여요. 선생님이 듣고 AI 채점(0~100점)을 누르거나 직접 점수를 매겨요. 학생에게는 선생님이 매긴 점수만 보여요. 녹음은 작은 MP3로 저장하고, 선생님과 학생 본인만 들을 수 있고 60일 뒤 지워져요.</p>${isZh() ? `<button class="mg-entry" data-act="rec-tab" data-g="zs-m"><span class="mg-ico i-sun">${IC.mic}</span><span class="mg-txt"><b>중국어 말하기 문장 (초 · 중 · 고)</b><small>여기서 단어장을 만든 뒤 '예문까지'로 내면 학생 화면에 병음도 함께 보여요</small></span><span class="mg-chev"></span></button>` : ''}</div>
       <label class="setting-label" for="caDue">마감일</label>
       <input type="date" id="caDue" value="${dv}">
       <p class="muted cl-p" id="caNote">학생은 단어장을 그대로 받아 풀고, 끝나면 점수와 틀린 단어가 자동으로 제출돼요. 여러 번 풀면 가장 높은 점수가 남아요.</p>
@@ -7875,9 +7933,9 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
     const cat = categories.find(c => c.id === ($('caBook') || {}).value); if (!cat) return;
     const kind = (document.querySelector('#caKind .on') || { dataset: { v: 'test' } }).dataset.v, n = +(document.querySelector('#caNum .on') || { dataset: { v: 20 } }).dataset.v;
     const sent = kind === 'speak' && (document.querySelector('#caSp .on') || { dataset: {} }).dataset.v === 's';
-    // 발음 평가 문항: [읽을 글, 뜻, 언어, 'w' 단어 | 's' 문장] 20개까지
+    // 발음 평가 문항: [읽을 글, 뜻, 언어, 'w' 단어 | 's' 문장, (중국어) 병음] 20개까지
     const words = kind === 'speak'
-      ? cat.words.slice(0, SP_MAX).map(w => sent && w.example ? [w.example.slice(0, 200), (w.exampleKo || w.meaning || '').slice(0, 160), LANG, 's'] : [w.word.slice(0, 80), (w.meaning || '').slice(0, 120), LANG, 'w'])
+      ? cat.words.slice(0, SP_MAX).map(w => { const s = sent && w.example, py = LANG === 'zh' ? ((s ? w.exPy : w.phonetic) || '').slice(0, 200) : ''; const it = s ? [w.example.slice(0, 200), (w.exampleKo || w.meaning || '').slice(0, 160), LANG, 's'] : [w.word.slice(0, 80), (w.meaning || '').slice(0, 120), LANG, 'w']; if (py) it.push(py); return it; })
       : cat.words.slice(0, 500).map(w => [w.word.slice(0, 80), (w.meaning || '').slice(0, 120)]);
     el.disabled = true;
     try {
@@ -8160,7 +8218,7 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
       <div class="sp-dots">${sp.items.map((_, i) => `<button class="${i === sp.i ? 'cur ' : ''}${sp.mine[i] ? 'ok' : ''}" data-act="sp-go" data-i="${i}" aria-label="${i + 1}번 문항"></button>`).join('')}</div>
       <div class="sp-card">
         <small class="sp-kind">${it[3] === 's' ? '문장' : '단어'} · ${zh ? '중국어' : '영어'}</small>
-        <b class="sp-text${zh ? ' zh' : ''}${it[3] === 's' ? ' long' : ''}" lang="${zh ? 'zh-CN' : 'en'}">${esc(it[0])}</b>
+        <b class="sp-text${zh ? ' zh' : ''}${it[3] === 's' ? ' long' : ''}" lang="${zh ? 'zh-CN' : 'en'}">${esc(it[0])}</b>${zh && it[4] ? `<small class="sp-py">${esc(String(it[4]))}</small>` : ''}
         ${it[1] ? `<span class="sp-mean">${esc(it[1])}</span>` : ''}
         <button class="btn btn-sm btn-soft sp-listen" data-act="sp-listen">${IC.speaker} 원어민 발음 듣기</button>
       </div>

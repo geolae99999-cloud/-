@@ -8,7 +8,9 @@
   const ZH_PACKS = [1, 2, 3, 4, 5, 6].map(n => ['hsk' + n, `HSK ${n}급`]);
   const ZH_PACKS_NEW = [1, 2, 3, 4, 5, 6, 7].map(n => ['nhsk' + n, `신HSK ${n === 7 ? '7~9' : n}급`]);
   const ZH_PACK_NAMES = Object.fromEntries(ZH_PACKS.concat(ZH_PACKS_NEW));
-  const listName = k => GRADE_NAMES[k] ? `${GRADE_NAMES[k]} 추천` : (PACK_NAMES[k] || ZH_PACK_NAMES[k] || '');
+  const ZS_PACKS = [['zs-e', '초등학교'], ['zs-m', '중학교'], ['zs-h', '고등학교']]; // 중국어 말하기 문장
+  const ZS_NAMES = Object.fromEntries(ZS_PACKS);
+  const listName = k => GRADE_NAMES[k] ? `${GRADE_NAMES[k]} 추천` : ZS_NAMES[k] ? `중국어 말하기 · ${ZS_NAMES[k]}` : (PACK_NAMES[k] || ZH_PACK_NAMES[k] || '');
   const gradeFull = k => { const n = GRADE_NAMES[k] || ''; return n ? ({ 초: '초등학교 ', 중: '중학교 ', 고: '고등학교 ' })[n[0]] + n.slice(1) + '학년' : ''; };
   const gradeOptions = sel => GRADES.map(([k]) => `<option value="${k}"${k === sel ? ' selected' : ''}>${gradeFull(k)}</option>`).join('');
   const roleOptions = sel => [['초등학생', 'e'], ['중학생', 'm'], ['고등학생', 'h']].map(([lb, p]) => `<optgroup label="${lb}">${GRADES.filter(([k]) => k[0] === p).map(([k]) => `<option value="${k}"${k === sel ? ' selected' : ''}>${gradeFull(k)}</option>`).join('')}</optgroup>`).join('') + `<optgroup label="선생님"><option value="teacher"${sel === 'teacher' ? ' selected' : ''}>선생님 (교사)</option></optgroup>`;
@@ -17,6 +19,7 @@
   const schoolLine = () => { const p = config.profile || {}; return [p.school, !isTeacher() && p.sno ? '학번 ' + p.sno : ''].filter(Boolean).join(' · '); };
   let gwCache = {};
   function gradeWords(k) {
+    if (ZS_NAMES[k]) { if (!zsData) return []; return gwCache[k] || (gwCache[k] = (zsData[k.slice(3)] || []).map(e => ({ w: e[0], p: e[1], m: e[2], ex: e[3], exPy: e[4], exKo: e[5] }))); }
     if (ZH_PACK_NAMES[k]) { if (!zhIdx) return []; const nw = k[0] === 'n', lv = +k.replace(/\D/g, ''); return gwCache[k] || (gwCache[k] = zhIdx.filter(e => (nw ? e[4] : e[3]) === lv).map(e => ({ w: e[0], m: e[2], p: e[1] }))); }
     if (!gwCache[k]) {
       const raw = GW_E[k] || GW_MH[k] || GW_PACK[k] || '';
@@ -38,9 +41,11 @@
   }
 
   const recHideKey = () => 'vocapro_rec_hide:' + currentUser;
-  const recBookName = k => `${listName(k)} 단어`;
+  const recBookName = k => ZS_NAMES[k] ? listName(k) : `${listName(k)} 단어`;
   let recShown = false, recView = '';
   function ownedWords() { const o = new Set(); allWords().forEach(({ w }) => o.add(w.word.toLowerCase())); return o; }
+  // 말하기 문장은 다른 단어장에 같은 단어가 있어도 문장과 함께 따로 담아요
+  function ownedFor(k) { if (!ZS_NAMES[k]) return ownedWords(); const c = categories.find(x => x.name === recBookName(k)); return new Set(c ? c.words.map(w => w.word) : []); }
   const recLeft = k => { const o = ownedWords(); return gradeWords(k).filter(e => !o.has(e.w.toLowerCase())); };
   function recMaybeShow() {
     if (recShown || !currentUser || isTeacher() || isZh() || $('pfOv')) return;
@@ -86,7 +91,7 @@
     let cat = categories.find(c => c.name === nm);
     if (!cat) { cat = { id: 'c' + uid(), name: nm, words: [] }; categories.push(cat); }
     const have = new Set(cat.words.map(w => w.word.toLowerCase()));
-    list.forEach(e => { if (!have.has(e.w.toLowerCase())) { cat.words.push(sanitizeWord({ ...(full[e.w.toLowerCase()] || {}), id: uid(), word: e.w, meaning: e.m })); have.add(e.w.toLowerCase()); } });
+    list.forEach(e => { if (!have.has(e.w.toLowerCase())) { cat.words.push(sanitizeWord({ ...(full[e.w.toLowerCase()] || {}), id: uid(), word: e.w, meaning: e.m, ...(e.ex ? { phonetic: e.p, example: e.ex, exampleKo: e.exKo, exPy: e.exPy } : {}) })); have.add(e.w.toLowerCase()); } });
     syncStorage(); recView = cat.id;
     try { if (curTab !== 'paneBook') go(curTab); else renderBookDynamic(); } catch (e) {}
     return cat;
@@ -105,9 +110,9 @@
   let recSheetK = '';
   function recSheet(k) {
     recSheetK = k;
-    const own = ownedWords(), list = gradeWords(k), left = list.filter(e => !own.has(e.w.toLowerCase())).length;
-    openSheet(`${listName(k)} 단어 ${list.length}`, `
-      <div class="rec-tabs">${(ZH_PACK_NAMES[k] ? [ZH_PACKS, ZH_PACKS_NEW] : [PACKS, GRADES]).map(g => `<div class="rec-tab-row">${g.map(([gk, n]) => `<button class="chip ${gk === k ? 'on' : ''}${PACK_NAMES[gk] ? ' pack' : ''}" data-act="rec-tab" data-g="${gk}">${n}</button>`).join('')}</div>`).join('')}</div>
+    const own = ownedFor(k), list = gradeWords(k), left = list.filter(e => !own.has(e.w.toLowerCase())).length, zs = ZS_NAMES[k];
+    openSheet(zs ? `${listName(k)} 문장 ${list.length}` : `${listName(k)} 단어 ${list.length}`, `${zs ? '<p class="muted rec-zs">단어와 그 단어가 들어간 문장을 함께 담아요. 선생님은 이 단어장으로 발음 평가를 내고 \'예문까지\'를 고르면 학생이 문장을 읽어요.</p>' : ''}
+      <div class="rec-tabs">${(zs ? [ZS_PACKS] : ZH_PACK_NAMES[k] ? [ZH_PACKS, ZH_PACKS_NEW] : [PACKS, GRADES]).map(g => `<div class="rec-tab-row">${g.map(([gk, n]) => `<button class="chip ${gk === k ? 'on' : ''}${PACK_NAMES[gk] ? ' pack' : ''}" data-act="rec-tab" data-g="${gk}">${n}</button>`).join('')}</div>`).join('')}</div>
       <div class="rec-list" id="recList"></div><button class="rec-more" id="recMore" data-act="rec-more" hidden>더 보기</button>
       <div class="rec-bar"><button class="btn btn-soft" data-act="rec-pick-add">선택한 단어 담기</button><button class="btn btn-primary" data-act="rec-left-add" ${left ? '' : 'disabled'}>남은 ${left}개 모두 담기</button></div>`);
     recRowsAt = 0; recOwn = own; recMore();
@@ -118,11 +123,12 @@
   ACTIONS['rec-tab'] = async el => {
     const g = el.dataset.g;
     if (ZH_PACK_NAMES[g] && !zhIdx) { const d = await zhLoad(); if (!d.length) return toast('단어 목록을 불러오지 못했어요. 인터넷을 확인해 주세요.'); } // 중국어 책장은 목록부터
+    if (ZS_NAMES[g] && !zsData && !(await zsLoad())) return toast('문장 목록을 불러오지 못했어요. 인터넷을 확인해 주세요.');
     recSheet(g);
   };
   const REC_STEP = 150;
   let recRowsAt = 0, recOwn = new Set(), recIO = null;
-  const recRowHtml = (e, i, has) => `<label class="rec-row ${has ? 'has' : ''}"><input type="checkbox" value="${i}" ${has ? 'checked disabled' : ''}><span class="w-no">${String(i + 1).padStart(3, '0')}</span><b>${esc(e.w)}</b><span class="rec-m">${e.p ? `<i class="rec-py">${esc(e.p)}</i> ` : ''}${esc(e.m)}</span>${has ? '<em>담음</em>' : ''}</label>`;
+  const recRowHtml = (e, i, has) => `<label class="rec-row ${has ? 'has' : ''}${e.ex ? ' zs' : ''}"><input type="checkbox" value="${i}" ${has ? 'checked disabled' : ''}><span class="w-no">${String(i + 1).padStart(3, '0')}</span><b>${esc(e.w)}</b><span class="rec-m">${e.p ? `<i class="rec-py">${esc(e.p)}</i> ` : ''}${esc(e.m)}</span>${has ? '<em>담음</em>' : ''}${e.ex ? `<span class="rec-ex"><b lang="zh-CN">${esc(e.ex)}</b><i>${esc(e.exPy)}</i><small>${esc(e.exKo)}</small></span>` : ''}</label>`;
   function recMore() {
     const box = $('recList'), btn = $('recMore'); if (!box || !btn) return;
     const list = gradeWords(recSheetK), end = Math.min(list.length, recRowsAt + REC_STEP);
@@ -137,7 +143,7 @@
     if ($('recOv') && recSheetK === config.grade) recOpen();
   };
   ACTIONS['rec-left-add'] = async () => {
-    const own = ownedWords(), pick = gradeWords(recSheetK).filter(e => !own.has(e.w.toLowerCase()));
+    const own = ownedFor(recSheetK), pick = gradeWords(recSheetK).filter(e => !own.has(e.w.toLowerCase()));
     if (!pick.length) return;
     const cat = await recAddWords(recSheetK, pick); recSheet(recSheetK); toast(`'${cat.name}'에 ${pick.length}개를 담았어요.`);
     if ($('recOv') && recSheetK === config.grade) recOpen();
@@ -151,14 +157,15 @@
   function shelfHtml() {
     if (isTeacher()) return '';
     const own = ownedWords(), zh = isZh();
-    const keys = zh ? ZH_PACKS.concat(ZH_PACKS_NEW).map(p => p[0]) : PACKS.map(p => p[0]);
+    const keys = zh ? ZS_PACKS.concat(ZH_PACKS, ZH_PACKS_NEW).map(p => p[0]) : PACKS.map(p => p[0]);
     const cards = keys.map(k => {
-      const list = gradeWords(k), n = list.length, has = n ? list.filter(e => own.has(zh ? e.w : e.w.toLowerCase())).length : 0;
+      const list = gradeWords(k), n = list.length, mine = ZS_NAMES[k] ? ownedFor(k) : own, has = n ? list.filter(e => mine.has(zh ? e.w : e.w.toLowerCase())).length : 0;
       let tag, name, c1, c2;
-      if (zh) { const nw = k[0] === 'n', lv = +k.replace(/\D/g, ''); [c1, c2] = ZH_COLORS[(lv - 1) % 7]; tag = nw ? (lv === 7 ? '新7-9' : '新 ' + lv) : 'HSK ' + lv; name = ZH_PACK_NAMES[k]; if (nw) { c1 = '#ca8a04'; c2 = ZH_COLORS[(lv - 1) % 7][1]; } }
+      if (ZS_NAMES[k]) { tag = '말하기 ' + ZS_NAMES[k][0]; name = listName(k); [c1, c2] = { 'zs-e': ['#0ea5e9', '#14b8a6'], 'zs-m': ['#6366f1', '#0ea5e9'], 'zs-h': ['#7c3aed', '#be185d'] }[k]; }
+      else if (zh) { const nw = k[0] === 'n', lv = +k.replace(/\D/g, ''); [c1, c2] = ZH_COLORS[(lv - 1) % 7]; tag = nw ? (lv === 7 ? '新7-9' : '新 ' + lv) : 'HSK ' + lv; name = ZH_PACK_NAMES[k]; if (nw) { c1 = '#ca8a04'; c2 = ZH_COLORS[(lv - 1) % 7][1]; } }
       else [tag, name, c1, c2] = SHELF[k] || [k, PACK_NAMES[k], '#64748b', '#334155'];
       return `<button class="shelf-b" data-act="rec-tab" data-g="${k}" style="--c1:${c1};--c2:${c2}" aria-label="${esc(name)} 단어장 열기">
-        <span class="shelf-cover"><i class="shelf-spine"></i><b>${esc(tag)}</b><em>${n ? n.toLocaleString() + ' words' : '…'}</em></span>
+        <span class="shelf-cover"><i class="shelf-spine"></i><b>${esc(tag)}</b><em>${n ? n.toLocaleString() + (ZS_NAMES[k] ? ' sentences' : ' words') : '…'}</em></span>
         <span class="shelf-name">${esc(name)}</span>
         <span class="shelf-bar"><i style="width:${n ? Math.round(has / n * 100) : 0}%"></i></span>
         <small>${n ? (has ? `${has.toLocaleString()} / ${n.toLocaleString()}개 담음` : `${n.toLocaleString()}개`) : '불러오는 중'}</small>
@@ -167,7 +174,7 @@
     return `<div class="h-shelf"><div class="section-title"><span>추천 단어장</span><button data-act="pack-open">전체 보기</button></div><div class="shelf" role="list">${cards}</div></div>`;
   }
   function packEntryHtml() {
-    if (isZh()) return `<button class="mg-entry" data-act="pack-open"><span class="mg-ico i-mint">${IC.book}</span><span class="mg-txt"><b>HSK 1~6급 · 신HSK 1~9급 단어</b><small>${zhIdx ? zhIdx.length.toLocaleString() + '개' : '1만 개가 넘는'} 단어를 급수별로 골라 담아요</small></span><span class="mg-chev"></span></button>`;
+    if (isZh()) return `<button class="mg-entry" data-act="rec-tab" data-g="${/^h/.test(config.grade) ? 'zs-h' : /^m/.test(config.grade) ? 'zs-m' : /^e/.test(config.grade) ? 'zs-e' : 'zs-m'}"><span class="mg-ico i-sun">${IC.mic}</span><span class="mg-txt"><b>중국어 말하기 문장 (초 · 중 · 고)</b><small>학교급별 문장 ${zsData ? ZS_PACKS.reduce((n, [k]) => n + gradeWords(k).length, 0) + '개' : ''}를 병음 · 해석과 함께 담아요</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="pack-open"><span class="mg-ico i-mint">${IC.book}</span><span class="mg-txt"><b>HSK 1~6급 · 신HSK 1~9급 단어</b><small>${zhIdx ? zhIdx.length.toLocaleString() + '개' : '1만 개가 넘는'} 단어를 급수별로 골라 담아요</small></span><span class="mg-chev"></span></button>`;
     const total = PACKS.reduce((n, [k]) => n + gradeWords(k).length, 0);
     return `<button class="mg-entry" data-act="pack-open"><span class="mg-ico i-mint">${IC.book}</span><span class="mg-txt"><b>학교 · 수능 · 숙어 · 토익 · 토플 단어</b><small>${total.toLocaleString()}개 단어를 골라 담아요</small></span><span class="mg-chev"></span></button>`;
   }

@@ -1,9 +1,12 @@
-// supabase/functions/ai/index.ts  (v11)
+// supabase/functions/ai/index.ts  (v12)
 // 배포: supabase functions deploy ai --no-verify-jwt --project-ref psmmrwhmpezyeehjivav
 // 비밀키: supabase secrets set GEMINI_API_KEY=... AI_DAILY_LIMIT=40 AI_GLOBAL_LIMIT=3000
 //   선택: AI_PRON_LIMIT=200 (선생님 한 명의 하루 발음 채점 횟수. 일반 AI 한도와 따로 세요)
 //   선택: GEMINI_PRON_MODEL=gemini-2.5-flash (발음 채점 모델. gemini-2.5-pro 로 바꾸면 더 꼼꼼하지만 느리고 비싸요)
 //   선택: ALLOWED_ORIGINS=https://vocapro.kro.kr,https://vocapro.pages.dev (쉼표로 구분, 기본값이 이 세 주소)
+//
+// v12 변경점 (SQL 변경 없음)
+// - { task: 'pinyin', py, lang: 'zh' } : 병음(xuexi, xué xí)으로 흔한 중국어 단어(간체)를 5개까지 찾아 줘요. 단어 추가에서 병음을 쓰면 써요.
 //
 // v11 변경점 (SQL 변경 없음)
 // - 점수 = 정확성 70% + 유창성 30%. 단어 문항도 같은 비율이에요.
@@ -83,6 +86,12 @@ const BATCH_SCHEMA = {
   properties: { items: { type: "ARRAY", items: { type: "OBJECT", properties: { word: S("STRING"), ...WORD_PROPS }, required: ["word", "meaning"] } } },
   required: ["items"],
 };
+const PY_RE = /^[A-Za-z\u00C0-\u024F\u0300-\u036F0-5' ]{1,40}$/;
+const PY_SCHEMA = {
+  type: "OBJECT",
+  properties: { items: { type: "ARRAY", items: { type: "OBJECT", properties: { word: S("STRING"), phonetic: S("STRING"), meaning: S("STRING") }, required: ["word", "meaning"] } } },
+  required: ["items"],
+};
 const TR_SCHEMA = { type: "OBJECT", properties: { t: S("STRING") }, required: ["t"] };
 const CTX_SCHEMA = {
   type: "OBJECT",
@@ -160,6 +169,17 @@ function build(body: Record<string, unknown>): { prompt: string; schema: unknown
       schema: WORD_SCHEMA,
       prompt: `You are ${who}. Define the ${zh ? "Chinese word (simplified Chinese)" : "English word or phrase"} ${JSON.stringify(w)}.
 Return ONLY one JSON object: {${entry}}${full ? "" : '\nLeave "example", "exampleKo" and "synonyms" as empty strings.'}`,
+    };
+  }
+  // 병음으로 한자 찾기: 학생이 쓴 병음(성조 없어도 됨)과 똑같이 읽는 흔한 단어를 5개까지
+  if (task === "pinyin") {
+    const py = String(body.py ?? "").normalize("NFC").trim();
+    if (!PY_RE.test(py) || !/[a-z]/i.test(py)) return null;
+    return {
+      schema: PY_SCHEMA,
+      prompt: `You are a Chinese-Korean dictionary for Korean students. A student typed Mandarin pinyin (tone marks or tone numbers may be missing): ${JSON.stringify(py)}.
+List up to 5 common Chinese words in simplified characters whose pinyin is exactly this syllable sequence (ignore tones if none were given), most common first. Only real words; no sentences.
+Return ONLY one JSON object: {"items":[{"word":"简体字","phonetic":"pinyin with tone marks","meaning":"핵심 한국어 뜻"}]}. If there is no such word, return {"items":[]}.`,
     };
   }
   if (task === "batch") {

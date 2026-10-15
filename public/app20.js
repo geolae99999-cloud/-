@@ -248,7 +248,7 @@
       <div class="sp-dots">${sp.items.map((_, i) => `<button class="${i === sp.i ? 'cur ' : ''}${sp.mine[i] ? 'ok' : ''}" data-act="sp-go" data-i="${i}" aria-label="${i + 1}번 문항"></button>`).join('')}</div>
       <div class="sp-card">
         <small class="sp-kind">${it[3] === 's' ? '문장' : '단어'} · ${zh ? '중국어' : '영어'}</small>
-        <b class="sp-text${zh ? ' zh' : ''}${it[3] === 's' ? ' long' : ''}" lang="${zh ? 'zh-CN' : 'en'}">${esc(it[0])}</b>
+        <b class="sp-text${zh ? ' zh' : ''}${it[3] === 's' ? ' long' : ''}" lang="${zh ? 'zh-CN' : 'en'}">${esc(it[0])}</b>${zh && it[4] ? `<small class="sp-py">${esc(String(it[4]))}</small>` : ''}
         ${it[1] ? `<span class="sp-mean">${esc(it[1])}</span>` : ''}
         <button class="btn btn-sm btn-soft sp-listen" data-act="sp-listen">${IC.speaker} 원어민 발음 듣기</button>
       </div>

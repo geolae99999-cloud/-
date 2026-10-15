@@ -117,6 +117,48 @@ const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); if (!c) fails++
   await p.reload(); await p.waitForTimeout(1500);
   ok(await p.evaluate(() => LANG === 'zh' && allWords().some(x => x.w.word === '学习')), '다시 열어도 중국어 유지');
 
+  // 11) 단어 추가: 병음으로 쓰면 한자를 찾아 채워요(같은 병음이 여럿이면 골라요)
+  await p.evaluate(() => { config.darkMode = false; applyTheme(); openBook(categories.find(c => c.lang === 'zh' || true).id); });
+  await p.click('.fab'); await p.waitForSelector('#fieldWord');
+  await p.fill('#fieldWord', 'pengyou'); await p.click('#btnRunAi');
+  await p.waitForFunction(() => $('fieldWord').value === '朋友' && $('fieldMeaning').value, null, { timeout: 8000 });
+  ok(await p.evaluate(() => $('fieldWord').value === '朋友' && !!$('fieldMeaning').value && /péngyou|péng/.test($('fieldPhonetic').value)), '병음 pengyou -> 朋友 + 뜻 · 병음 채움 ' + await p.evaluate(() => $('fieldMeaning').value + ' ' + $('fieldPhonetic').value));
+  await p.fill('#fieldWord', 'shi'); await p.click('#btnRunAi'); await p.waitForSelector('.py-pick');
+  const picks = await p.$$eval('.py-pick b', a => a.map(x => x.textContent));
+  ok(picks.length > 1 && picks.includes('是'), '같은 병음(shi)은 골라요: ' + picks.join(' '));
+  await p.screenshot({ path: path.join(shots, 'zh-pinyin-pick.png') });
+  await p.click('.py-pick:has-text("是")'); await p.waitForFunction(() => $('fieldWord').value === '是' && $('fieldMeaning').value, null, { timeout: 8000 });
+  ok(true, '고르면 그 한자로 채워요');
+  await p.fill('#fieldWord', 'xué xí'); await p.fill('#fieldMeaning', ''); await p.click('#btnRunAi');
+  await p.waitForFunction(() => $('fieldWord').value === '学习', null, { timeout: 8000 });
+  ok(true, '성조 부호 · 띄어쓰기 병음(xué xí) -> 学习');
+  await p.fill('#fieldWord', 'qqqzz'); await p.click('#btnRunAi'); await p.waitForTimeout(800);
+  ok(/찾지 못했어요/.test(await p.textContent('#aiState')), '없는 병음은 안내');
+  await p.evaluate(() => closeSheet && closeSheet());
+  // 12) 중국어 말하기 문장 (초 · 중 · 고): 책장 · 홈 줄 · 담으면 문장 · 병음 · 해석이 예문으로 들어가요
+  await p.evaluate(() => go('tabHome')); await p.waitForFunction(() => document.querySelectorAll('.shelf-b[data-g^="zs-"]').length === 3, null, { timeout: 8000 });
+  ok(await p.evaluate(() => /sentences/.test(document.querySelector('.shelf-b[data-g="zs-m"]').textContent)), '책장에 말하기 초 · 중 · 고');
+  ok(await p.evaluate(() => /중국어 말하기 문장 \(초 · 중 · 고\)[\s\S]*문장 109개/.test(document.querySelector('.tool-list').textContent)), '홈 줄: 말하기 문장 109개');
+  await p.click('.shelf-b[data-g="zs-m"]'); await p.waitForSelector('#recList .rec-row.zs');
+  const zs = await p.evaluate(() => ({ t: $('sheetTitle').textContent, n: document.querySelectorAll('#recList .rec-row').length, ex: document.querySelector('#recList .rec-ex').textContent, tabs: [...document.querySelectorAll('.rec-tab-row .chip')].map(x => x.textContent).join(',') }));
+  ok(zs.t === '중국어 말하기 · 중학교 문장 39' && zs.n === 39 && /。/.test(zs.ex) && zs.tabs === '초등학교,중학교,고등학교', '중학교 문장 39개 + 병음 · 해석 ' + JSON.stringify(zs));
+  await p.screenshot({ path: path.join(shots, 'zh-speak-sheet.png') });
+  await p.click('[data-act="rec-left-add"]'); await p.waitForTimeout(600);
+  const zb = await p.evaluate(() => { const c = categories.find(x => x.name === '중국어 말하기 · 중학교'); const w = c && c.words[0]; return c && { n: c.words.length, lang: c.lang || LANG, w: w.word, p: w.phonetic, ex: w.example, py: w.exPy, ko: w.exampleKo }; });
+  ok(zb && zb.n === 39 && zb.ex && zb.ex.includes(zb.w) && zb.py && zb.ko && zb.p, '담으면 단어장에 문장 · 병음 · 해석 ' + JSON.stringify(zb));
+  // 이미 다른 단어장에 있는 단어도 말하기 단어장에는 문장과 함께 담겨요
+  ok(await p.evaluate(() => { const c = categories.find(x => x.name === '중국어 말하기 · 중학교'); return c.words.some(w => w.word === '学习') || !gradeWords('zs-m').some(e => e.w === '学习'); }), '다른 단어장에 있는 단어도 따로 담음');
+  ok(await p.evaluate(() => /0개 모두 담기/.test(document.querySelector('[data-act="rec-left-add"]').textContent)), '다 담으면 남은 0개');
+  // 발음 평가 문항: 문장 + 병음(5번째 칸), 학생 화면에 병음 표시
+  const items = await p.evaluate(() => { const cat = categories.find(x => x.name === '중국어 말하기 · 중학교'); return cat.words.slice(0, 2).map(w => { const s = true && w.example, py = LANG === 'zh' ? ((s ? w.exPy : w.phonetic) || '').slice(0, 200) : ''; const it = s ? [w.example.slice(0, 200), (w.exampleKo || w.meaning || '').slice(0, 160), LANG, 's'] : [w.word, w.meaning, LANG, 'w']; if (py) it.push(py); return it; }); });
+  ok(items[0].length === 5 && items[0][2] === 'zh' && items[0][3] === 's' && /[āáǎàēéěèīíǐìōóǒòūúǔù]/.test(items[0][4]), '문항 모양 ' + JSON.stringify(items[0]));
+  // 학생 녹음 화면: 문장 아래 병음
+  await p.evaluate(its => { closeSheet(); openSheet('말하기', ''); SP = { a: { id: 1, title: '말하기', words: its }, items: its, i: 0, mine: {}, local: {}, raw: {}, submitted: false, view: 'rec', rec: null, busy: null, note: '' }; spDraw(); }, items);
+  await p.waitForSelector('.sp-py');
+  ok(await p.evaluate(() => $('sheetBody').querySelector('.sp-text').textContent === '认识你很高兴。' && $('sheetBody').querySelector('.sp-py').textContent === 'Rènshi nǐ hěn gāoxìng.'), '학생 화면: 문장 아래 병음');
+  await p.waitForTimeout(300); await p.screenshot({ path: path.join(shots, 'zh-speak-student.png') });
+  await p.evaluate(() => { SP = null; closeSheet(); });
+  await p.evaluate(() => closeSheet && closeSheet());
   // 10) 어두운 화면
   await p.evaluate(() => { config.darkMode = true; applyTheme(); go('tabHome'); }); await p.waitForTimeout(400);
   await p.screenshot({ path: path.join(shots, 'zh-dark-home.png') });

@@ -246,9 +246,9 @@
   function wordFormHtml(w) {
     const v = k => esc(w ? w[k] : ''); formEditId = w ? w.id : null; aiRun++;
     return `
-        <label class="f-lab" for="fieldWord">${isZh() ? '중국어 단어 (한자)' : '영단어'}</label>
+        <label class="f-lab" for="fieldWord">${isZh() ? '중국어 단어 (한자 또는 병음)' : '영단어'}</label>
         <div class="row f-ai">
-          <input type="text" id="fieldWord" value="${v('word')}" placeholder="${isZh() ? '예: 学习' : '예: consistent'}" autocomplete="off" autocapitalize="none" spellcheck="false" data-enter="ai-fill">
+          <input type="text" id="fieldWord" value="${v('word')}" placeholder="${isZh() ? '예: 学习 또는 xuexi' : '예: consistent'}" autocomplete="off" autocapitalize="none" spellcheck="false" data-enter="ai-fill">
           <button class="btn btn-primary" id="btnRunAi" data-act="ai-fill">AI 완성</button>
         </div>
         <div class="ai-state" id="aiState"></div>
