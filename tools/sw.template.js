@@ -12,7 +12,8 @@ self.addEventListener('fetch', e => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (url.origin !== location.origin) return;
-  if (url.pathname.includes('/asr/')) return; // 기기 음성 AI 파일은 앱이 따로(vp-asr-1 캐시) 저장해요
+  if (url.pathname.includes('/asr/')) return;
+  if (url.pathname.includes('/llm/')) return; // 기기 AI(Qwen) 파일도 크니 서비스 워커 캐시에 넣지 않아요 // 기기 음성 AI 파일은 앱이 따로(vp-asr-1 캐시) 저장해요
   e.respondWith(fetch(req).then(res => {
     if (res && res.ok && res.type === 'basic') { const copy = res.clone(); caches.open(CACHE).then(c => c.put(req, copy)).catch(() => {}); }
     return res;

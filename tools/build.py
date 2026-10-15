@@ -62,6 +62,11 @@ adir = os.path.join(os.path.dirname(os.path.abspath(src)), 'asr')
 if os.path.isdir(adir):
     shutil.rmtree(os.path.join(out, 'asr'), ignore_errors=True)
     shutil.copytree(adir, os.path.join(out, 'asr'))
+# 기기 AI(src/llm, Qwen): 워커(transformers.js 묶음) · ONNX Runtime(wasm). 모델은 쓸 때 huggingface.co 에서 받아요. CORE 에 넣지 않아요
+ldir = os.path.join(os.path.dirname(os.path.abspath(src)), 'llm')
+if os.path.isdir(ldir):
+    shutil.rmtree(os.path.join(out, 'llm'), ignore_errors=True)
+    shutil.copytree(ldir, os.path.join(out, 'llm'))
 # 글꼴(src/font, Pretendard · SIL OFL 1.1): 외부 CDN 대신 같은 주소에서 받아요
 fdir = os.path.join(os.path.dirname(os.path.abspath(src)), 'font')
 if os.path.isdir(fdir):

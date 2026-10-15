@@ -5,7 +5,8 @@
     gemini:    { label: 'Google Gemini',    hint: 'AIza... 로 시작하는 키 (Google AI Studio에서 발급)' },
     xai:       { label: 'xAI Grok',         hint: 'xai-... 로 시작하는 키 (console.x.ai, 크레딧 충전 필요)' },
     openai:    { label: 'OpenAI ChatGPT',   hint: 'sk-... 로 시작하는 키' },
-    anthropic: { label: 'Anthropic Claude', hint: 'sk-ant-... 로 시작하는 키' }
+    anthropic: { label: 'Anthropic Claude', hint: 'sk-ant-... 로 시작하는 키' },
+    local:     { label: '기기 AI (Qwen)',    hint: '' }
   };
   const FALLBACK_MODELS = { gemini: ['gemini-2.5-flash', 'gemini-2.0-flash'], xai: ['grok-3-mini', 'grok-3'], openai: ['gpt-4o-mini'], anthropic: ['claude-haiku-4-5'] };
 
@@ -138,13 +139,75 @@
   }
 
   const ownKey = () => { try { return cleanKey(config.keys && config.keys[config.provider]); } catch (e) { return ''; } };
-  const aiReady = () => !!ownKey() || !!(cloudMode && window.Cloud && Cloud.ai);
+  const aiReady = () => (config.provider === 'local' && VLM.ok()) || !!ownKey() || !!(cloudMode && window.Cloud && Cloud.ai);
+  /* ----- 기기 AI (Qwen2.5 0.5B, llm/vp-llm.js 워커) -----
+     처음 한 번 모델(0.5~0.8GB)을 huggingface.co 에서 받아 브라우저 캐시에 두고, 그다음부터는 인터넷 없이도 돌아요.
+     받은 적이 있는지는 LLM_OK 로 기억해요(받기 전에는 설정에서 직접 받게 해요). */
+  const LLM_OK = 'vocapro_llm_ok';
+  const VLM = (() => {
+    let w = null, seq = 0, initP = null, ready = false, device = '';
+    const wait = new Map(), subs = new Set();
+    const ok = () => typeof Worker === 'function' && typeof WebAssembly === 'object' && 'caches' in window && typeof TextDecoder === 'function';
+    function worker() {
+      if (w) return w;
+      w = new Worker('llm/vp-llm.js', { type: 'module' });
+      w.onmessage = e => {
+        const m = e.data || {};
+        if (m.type === 'progress') subs.forEach(f => { try { f(m.p, m.mb); } catch (x) {} });
+        else if (m.type === 'ready') { ready = true; device = m.device || ''; const x = wait.get('init'); if (x) { wait.delete('init'); x.ok(); } }
+        else if (m.type === 'result' || m.type === 'error') {
+          const k = m.id != null ? m.id : 'init', x = wait.get(k); if (!x) return; wait.delete(k);
+          if (m.type === 'result') x.ok(m.text || ''); else x.no(new ApiError(vlmMsg(m.msg, m.load), 0));
+        }
+      };
+      w.onerror = () => { const e = new ApiError('기기 AI를 시작하지 못했어요. 최신 Chrome · Edge · Safari에서 열어 주세요.', 0); wait.forEach(x => x.no(e)); wait.clear(); try { w.terminate(); } catch (x) {} w = null; initP = null; ready = false; };
+      return w;
+    }
+    function init(onProg) {
+      if (onProg) subs.add(onProg);
+      if (ready) return Promise.resolve();
+      if (!ok()) return Promise.reject(new ApiError('이 브라우저에서는 기기 AI를 쓸 수 없어요. 최신 Chrome · Edge · Safari에서 열어 주세요.', 0));
+      if (!initP) initP = new Promise((res, rej) => { wait.set('init', { ok: res, no: rej }); worker().postMessage({ cmd: 'init' }); }).catch(e => { initP = null; throw e; });
+      return initP;
+    }
+    async function gen(prompt, max, ms) {
+      await init();
+      return new Promise((res, rej) => {
+        const id = ++seq; wait.set(id, { ok: res, no: rej });
+        setTimeout(() => { const x = wait.get(id); if (x) { wait.delete(id); x.no(new ApiError('기기 AI 응답이 너무 늦어요. 한 번에 넣는 단어 수를 줄여 보세요.', 0)); } }, ms || 120000);
+        worker().postMessage({ cmd: 'gen', id, prompt, max });
+      });
+    }
+    return { ok, init, gen, off: f => subs.delete(f), isReady: () => ready, get device() { return device; } };
+  })();
+  function vlmMsg(raw, load) {
+    raw = String(raw || '');
+    if (/memory|OOM|allocation|Aborted/i.test(raw)) return '기기 메모리가 부족해 기기 AI를 돌리지 못했어요. 다른 앱 · 탭을 닫고 다시 시도해 주세요.';
+    if (load) { try { console.warn('기기 AI 받기 실패:', raw); } catch (e) {} return '기기 AI 모델을 받지 못했어요. 인터넷 연결을 확인하고 다시 시도해 주세요.'; }
+    return '기기 AI 오류: ' + raw.slice(0, 160);
+  }
+  // 작업마다 만들 글 길이(토큰). 묶음 · 문맥 작업은 길어요
+  const VLM_MAX = { word: 384, batch: 1024, ctx: 1024, translate: 320, pinyin: 200 };
+  async function localAi(prompt, normalize, task, opt) {
+    let flag = ''; try { flag = LS.getItem(LLM_OK) || ''; } catch (e) {}
+    if (!VLM.isReady() && !flag) throw new ApiError('기기 AI를 처음 쓰려면 설정 > AI 기능에서 \'기기 AI 받기\'를 먼저 눌러 주세요(한 번만 받아요).', 401);
+    const max = VLM_MAX[task && task.task] || 512;
+    let last = null;
+    for (let a = 0; a < 2; a++) {
+      const text = await VLM.gen(prompt, max, 300000);
+      const r = normalize(parseJson(text)); if (r) return r;
+      last = new ApiError('기기 AI 답을 해석하지 못했어요. 다시 시도하거나 직접 입력해 주세요.', 0);
+      if (opt && opt.once) break;
+    }
+    throw last;
+  }
   /* task: 서버 AI가 프롬프트를 직접 만들 수 있게 보내는 정보 ({task:'word'|'batch'|'translate'|'ctx', ...})
      opt: { ms: 기다릴 시간, once: 실패해도 다시 보내지 않기(AI 사용 1회만) } */
   async function callAi(prompt, normalize, task, opt) {
     opt = opt || {};
     normalize = normalize || normalizeResult;
     const p = config.provider;
+    if (p === 'local') return localAi(prompt, normalize, task, opt);
     const key = cleanKey(config.keys && config.keys[p]);
     const finish = text => normalize(parseJson(text));
     if (!key) {

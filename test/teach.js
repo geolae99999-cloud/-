@@ -27,7 +27,7 @@ const srv = http.createServer((q, r) => { let f = path.join(root, decodeURICompo
     res[tag + ' role'] = await p.evaluate(() => config.role + ' / ' + document.querySelector('.hello-name').textContent + ' / ' + document.querySelector('.grade-chip').textContent);
     await shot('01-home-teacher');
     // 단어 담기
-    await p.evaluate(() => recSheet('mid')); await p.waitForTimeout(300); await p.click('[data-act="rec-left-add"]').catch(() => {}); await p.waitForTimeout(600); await p.keyboard.press('Escape'); await p.waitForTimeout(300);
+    await p.evaluate(() => recSheet('mid')); await p.waitForTimeout(300); await p.click('[data-act="rec-left-add"]').catch(() => {}); await p.waitForFunction(() => categories.some(c => c.words.length > 100), null, { timeout: 15000 }).catch(() => {}); await p.waitForTimeout(300); await p.keyboard.press('Escape'); await p.waitForTimeout(300);
     await p.click('.teach-card[data-next="present"]'); await p.waitForSelector('[data-act="teach-go"]'); await shot('02-pick');
     await p.click('[data-act="teach-go"] >> nth=0'); await p.waitForSelector('#pvOv'); await p.waitForTimeout(200); await shot('03-present');
     await p.keyboard.press(' '); await p.waitForTimeout(300); await shot('04-present-mean');

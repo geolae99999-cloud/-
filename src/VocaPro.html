@@ -2499,13 +2499,15 @@
           <option value="xai">xAI Grok</option>
           <option value="openai">OpenAI ChatGPT</option>
           <option value="anthropic">Anthropic Claude</option>
+          <option value="local">기기 AI · Qwen (키 없음, 무료)</option>
         </select>
       </div>
-      <div class="setting-item">
+      <p class="muted" id="cfgLocalNote" style="display:none;margin:4px 0 8px;line-height:1.55;">공개 AI 모델(Qwen2.5 0.5B)을 이 기기에서 돌려요. 키도 서버도 쓰지 않고, 보낸 글이 기기 밖으로 나가지 않아요. 처음 한 번 0.5~0.8GB를 받아요(Wi-Fi 권장). 작은 모델이라 뜻이 틀릴 수 있으니 저장 전에 확인해 주세요. 오래된 폰은 메모리가 모자라 안 될 수 있어요. 사진 속 글자 읽기는 지원하지 않아요.</p>
+      <div class="setting-item" id="cfgKeyRow">
         <span class="setting-label" id="cfgKeyLabel">API Key</span>
         <input type="password" id="cfgKey" placeholder="API 키를 붙여넣어 주세요" autocomplete="off" autocapitalize="none" spellcheck="false">
       </div>
-      <div class="setting-item">
+      <div class="setting-item" id="cfgModelRow">
         <span class="setting-label">모델 (연결 테스트를 누르면 사용 가능한 모델이 채워져요)</span>
         <select id="cfgModel"></select>
       </div>
@@ -5412,7 +5414,8 @@ window.VOCA_CLOUD = {
     gemini:    { label: 'Google Gemini',    hint: 'AIza... 로 시작하는 키 (Google AI Studio에서 발급)' },
     xai:       { label: 'xAI Grok',         hint: 'xai-... 로 시작하는 키 (console.x.ai, 크레딧 충전 필요)' },
     openai:    { label: 'OpenAI ChatGPT',   hint: 'sk-... 로 시작하는 키' },
-    anthropic: { label: 'Anthropic Claude', hint: 'sk-ant-... 로 시작하는 키' }
+    anthropic: { label: 'Anthropic Claude', hint: 'sk-ant-... 로 시작하는 키' },
+    local:     { label: '기기 AI (Qwen)',    hint: '' }
   };
   const FALLBACK_MODELS = { gemini: ['gemini-2.5-flash', 'gemini-2.0-flash'], xai: ['grok-3-mini', 'grok-3'], openai: ['gpt-4o-mini'], anthropic: ['claude-haiku-4-5'] };
 
@@ -5545,13 +5548,75 @@ window.VOCA_CLOUD = {
   }
 
   const ownKey = () => { try { return cleanKey(config.keys && config.keys[config.provider]); } catch (e) { return ''; } };
-  const aiReady = () => !!ownKey() || !!(cloudMode && window.Cloud && Cloud.ai);
+  const aiReady = () => (config.provider === 'local' && VLM.ok()) || !!ownKey() || !!(cloudMode && window.Cloud && Cloud.ai);
+  /* ----- 기기 AI (Qwen2.5 0.5B, llm/vp-llm.js 워커) -----
+     처음 한 번 모델(0.5~0.8GB)을 huggingface.co 에서 받아 브라우저 캐시에 두고, 그다음부터는 인터넷 없이도 돌아요.
+     받은 적이 있는지는 LLM_OK 로 기억해요(받기 전에는 설정에서 직접 받게 해요). */
+  const LLM_OK = 'vocapro_llm_ok';
+  const VLM = (() => {
+    let w = null, seq = 0, initP = null, ready = false, device = '';
+    const wait = new Map(), subs = new Set();
+    const ok = () => typeof Worker === 'function' && typeof WebAssembly === 'object' && 'caches' in window && typeof TextDecoder === 'function';
+    function worker() {
+      if (w) return w;
+      w = new Worker('llm/vp-llm.js', { type: 'module' });
+      w.onmessage = e => {
+        const m = e.data || {};
+        if (m.type === 'progress') subs.forEach(f => { try { f(m.p, m.mb); } catch (x) {} });
+        else if (m.type === 'ready') { ready = true; device = m.device || ''; const x = wait.get('init'); if (x) { wait.delete('init'); x.ok(); } }
+        else if (m.type === 'result' || m.type === 'error') {
+          const k = m.id != null ? m.id : 'init', x = wait.get(k); if (!x) return; wait.delete(k);
+          if (m.type === 'result') x.ok(m.text || ''); else x.no(new ApiError(vlmMsg(m.msg, m.load), 0));
+        }
+      };
+      w.onerror = () => { const e = new ApiError('기기 AI를 시작하지 못했어요. 최신 Chrome · Edge · Safari에서 열어 주세요.', 0); wait.forEach(x => x.no(e)); wait.clear(); try { w.terminate(); } catch (x) {} w = null; initP = null; ready = false; };
+      return w;
+    }
+    function init(onProg) {
+      if (onProg) subs.add(onProg);
+      if (ready) return Promise.resolve();
+      if (!ok()) return Promise.reject(new ApiError('이 브라우저에서는 기기 AI를 쓸 수 없어요. 최신 Chrome · Edge · Safari에서 열어 주세요.', 0));
+      if (!initP) initP = new Promise((res, rej) => { wait.set('init', { ok: res, no: rej }); worker().postMessage({ cmd: 'init' }); }).catch(e => { initP = null; throw e; });
+      return initP;
+    }
+    async function gen(prompt, max, ms) {
+      await init();
+      return new Promise((res, rej) => {
+        const id = ++seq; wait.set(id, { ok: res, no: rej });
+        setTimeout(() => { const x = wait.get(id); if (x) { wait.delete(id); x.no(new ApiError('기기 AI 응답이 너무 늦어요. 한 번에 넣는 단어 수를 줄여 보세요.', 0)); } }, ms || 120000);
+        worker().postMessage({ cmd: 'gen', id, prompt, max });
+      });
+    }
+    return { ok, init, gen, off: f => subs.delete(f), isReady: () => ready, get device() { return device; } };
+  })();
+  function vlmMsg(raw, load) {
+    raw = String(raw || '');
+    if (/memory|OOM|allocation|Aborted/i.test(raw)) return '기기 메모리가 부족해 기기 AI를 돌리지 못했어요. 다른 앱 · 탭을 닫고 다시 시도해 주세요.';
+    if (load) { try { console.warn('기기 AI 받기 실패:', raw); } catch (e) {} return '기기 AI 모델을 받지 못했어요. 인터넷 연결을 확인하고 다시 시도해 주세요.'; }
+    return '기기 AI 오류: ' + raw.slice(0, 160);
+  }
+  // 작업마다 만들 글 길이(토큰). 묶음 · 문맥 작업은 길어요
+  const VLM_MAX = { word: 384, batch: 1024, ctx: 1024, translate: 320, pinyin: 200 };
+  async function localAi(prompt, normalize, task, opt) {
+    let flag = ''; try { flag = LS.getItem(LLM_OK) || ''; } catch (e) {}
+    if (!VLM.isReady() && !flag) throw new ApiError('기기 AI를 처음 쓰려면 설정 > AI 기능에서 \'기기 AI 받기\'를 먼저 눌러 주세요(한 번만 받아요).', 401);
+    const max = VLM_MAX[task && task.task] || 512;
+    let last = null;
+    for (let a = 0; a < 2; a++) {
+      const text = await VLM.gen(prompt, max, 300000);
+      const r = normalize(parseJson(text)); if (r) return r;
+      last = new ApiError('기기 AI 답을 해석하지 못했어요. 다시 시도하거나 직접 입력해 주세요.', 0);
+      if (opt && opt.once) break;
+    }
+    throw last;
+  }
   /* task: 서버 AI가 프롬프트를 직접 만들 수 있게 보내는 정보 ({task:'word'|'batch'|'translate'|'ctx', ...})
      opt: { ms: 기다릴 시간, once: 실패해도 다시 보내지 않기(AI 사용 1회만) } */
   async function callAi(prompt, normalize, task, opt) {
     opt = opt || {};
     normalize = normalize || normalizeResult;
     const p = config.provider;
+    if (p === 'local') return localAi(prompt, normalize, task, opt);
     const key = cleanKey(config.keys && config.keys[p]);
     const finish = text => normalize(parseJson(text));
     if (!key) {
@@ -5840,6 +5905,9 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
   }
   function onProviderChange(p, silent) {
     if (!silent) config.provider = p;
+    const loc = p === 'local';
+    $('cfgKeyRow').style.display = loc ? 'none' : ''; $('cfgModelRow').style.display = loc ? 'none' : ''; $('cfgLocalNote').style.display = loc ? '' : 'none';
+    $('btnTestConn').textContent = loc ? (VLM.isReady() ? '기기 AI 테스트' : '기기 AI 받기 · 테스트') : '키 저장하고 연결 테스트';
     $('cfgKeyLabel').textContent = `${PROVIDERS[p].label} API Key`;
     $('cfgKey').placeholder = PROVIDERS[p].hint;
     $('cfgKey').value = config.keys[p] || '';
@@ -5851,6 +5919,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
   async function testConnection() {
     const p = $('cfgProvider').value, btn = $('btnTestConn');
     config.provider = p;
+    if (p === 'local') return localTest(btn);
     try {
       const key = cleanKey($('cfgKey').value);
       if (!key) return setStatus('err', 'API 키를 입력해 주세요.');
@@ -5884,6 +5953,24 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     } catch (e) {
       setStatus('err', friendlyError(p, e instanceof ApiError ? e : new ApiError(e.message, 0)));
     } finally { btn.disabled = false; }
+  }
+
+  async function localTest(btn) {
+    syncStorage();
+    if (!VLM.ok()) return setStatus('err', '이 브라우저에서는 기기 AI를 쓸 수 없어요. 최신 Chrome · Edge · Safari에서 열어 주세요.');
+    let flag = ''; try { flag = LS.getItem(LLM_OK) || ''; } catch (e) {}
+    if (!VLM.isReady() && !flag && !await ask('기기 AI 모델(0.5~0.8GB)을 이 기기에 받아요. 처음 한 번만 받고, 그다음부터는 바로 써요.\n모바일 데이터라면 Wi-Fi에서 받는 걸 권해요. 받을까요?', { ok: '받기' })) return;
+    btn.disabled = true;
+    const prog = (pc, mb) => setStatus('info', `기기 AI 받는 중... ${pc}%${mb ? ` (${mb}MB)` : ''}\n받는 동안 이 화면을 열어 두세요.`);
+    try {
+      setStatus('info', VLM.isReady() ? '기기 AI 테스트 중...' : '기기 AI 준비 중...');
+      await VLM.init(prog);
+      try { LS.setItem(LLM_OK, '1'); } catch (e) {}
+      setStatus('info', '기기 AI가 단어 뜻을 만드는 중...');
+      const t0 = Date.now(), r = await localAi(buildPrompt('apple', false), normalizeResult, { task: 'word' }, {});
+      setStatus('ok', `기기 AI를 쓸 수 있어요. (${VLM.device === 'webgpu' ? '그래픽 가속' : 'CPU'}, ${((Date.now() - t0) / 1000).toFixed(1)}초)\n시험: apple → ${r.meaning}\n이제 AI 버튼을 누르면 이 기기에서 바로 만들어요.`);
+    } catch (e) { setStatus('err', e.message || '기기 AI를 시작하지 못했어요.'); }
+    finally { VLM.off(prog); btn.disabled = false; onProviderChange('local', true); }
   }
 
   /* ----- 백업 ----- */

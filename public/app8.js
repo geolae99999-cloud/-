@@ -30,6 +30,9 @@
   }
   function onProviderChange(p, silent) {
     if (!silent) config.provider = p;
+    const loc = p === 'local';
+    $('cfgKeyRow').style.display = loc ? 'none' : ''; $('cfgModelRow').style.display = loc ? 'none' : ''; $('cfgLocalNote').style.display = loc ? '' : 'none';
+    $('btnTestConn').textContent = loc ? (VLM.isReady() ? '기기 AI 테스트' : '기기 AI 받기 · 테스트') : '키 저장하고 연결 테스트';
     $('cfgKeyLabel').textContent = `${PROVIDERS[p].label} API Key`;
     $('cfgKey').placeholder = PROVIDERS[p].hint;
     $('cfgKey').value = config.keys[p] || '';
@@ -41,6 +44,7 @@
   async function testConnection() {
     const p = $('cfgProvider').value, btn = $('btnTestConn');
     config.provider = p;
+    if (p === 'local') return localTest(btn);
     try {
       const key = cleanKey($('cfgKey').value);
       if (!key) return setStatus('err', 'API 키를 입력해 주세요.');
@@ -74,6 +78,24 @@
     } catch (e) {
       setStatus('err', friendlyError(p, e instanceof ApiError ? e : new ApiError(e.message, 0)));
     } finally { btn.disabled = false; }
+  }
+
+  async function localTest(btn) {
+    syncStorage();
+    if (!VLM.ok()) return setStatus('err', '이 브라우저에서는 기기 AI를 쓸 수 없어요. 최신 Chrome · Edge · Safari에서 열어 주세요.');
+    let flag = ''; try { flag = LS.getItem(LLM_OK) || ''; } catch (e) {}
+    if (!VLM.isReady() && !flag && !await ask('기기 AI 모델(0.5~0.8GB)을 이 기기에 받아요. 처음 한 번만 받고, 그다음부터는 바로 써요.\n모바일 데이터라면 Wi-Fi에서 받는 걸 권해요. 받을까요?', { ok: '받기' })) return;
+    btn.disabled = true;
+    const prog = (pc, mb) => setStatus('info', `기기 AI 받는 중... ${pc}%${mb ? ` (${mb}MB)` : ''}\n받는 동안 이 화면을 열어 두세요.`);
+    try {
+      setStatus('info', VLM.isReady() ? '기기 AI 테스트 중...' : '기기 AI 준비 중...');
+      await VLM.init(prog);
+      try { LS.setItem(LLM_OK, '1'); } catch (e) {}
+      setStatus('info', '기기 AI가 단어 뜻을 만드는 중...');
+      const t0 = Date.now(), r = await localAi(buildPrompt('apple', false), normalizeResult, { task: 'word' }, {});
+      setStatus('ok', `기기 AI를 쓸 수 있어요. (${VLM.device === 'webgpu' ? '그래픽 가속' : 'CPU'}, ${((Date.now() - t0) / 1000).toFixed(1)}초)\n시험: apple → ${r.meaning}\n이제 AI 버튼을 누르면 이 기기에서 바로 만들어요.`);
+    } catch (e) { setStatus('err', e.message || '기기 AI를 시작하지 못했어요.'); }
+    finally { VLM.off(prog); btn.disabled = false; onProviderChange('local', true); }
   }
 
   /* ----- 백업 ----- */

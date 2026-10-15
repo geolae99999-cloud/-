@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' https://psmmrwhmpezyeehjivav.supabase.co https://generativelanguage.googleapis.com https://api.openai.com https://api.x.ai https://api.anthropic.com https://api.mymemory.translated.net https://translate.googleapis.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' https://psmmrwhmpezyeehjivav.supabase.co https://generativelanguage.googleapis.com https://api.openai.com https://api.x.ai https://api.anthropic.com https://api.mymemory.translated.net https://translate.googleapis.com https://huggingface.co https://*.huggingface.co https://*.hf.co; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#f2f4f6">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -98,13 +98,15 @@
           <option value="xai">xAI Grok</option>
           <option value="openai">OpenAI ChatGPT</option>
           <option value="anthropic">Anthropic Claude</option>
+          <option value="local">기기 AI · Qwen (키 없음, 무료)</option>
         </select>
       </div>
-      <div class="setting-item">
+      <p class="muted" id="cfgLocalNote" style="display:none;margin:4px 0 8px;line-height:1.55;">공개 AI 모델(Qwen2.5 0.5B)을 이 기기에서 돌려요. 키도 서버도 쓰지 않고, 보낸 글이 기기 밖으로 나가지 않아요. 처음 한 번 0.5~0.8GB를 받아요(Wi-Fi 권장). 작은 모델이라 뜻이 틀릴 수 있으니 저장 전에 확인해 주세요. 오래된 폰은 메모리가 모자라 안 될 수 있어요. 사진 속 글자 읽기는 지원하지 않아요.</p>
+      <div class="setting-item" id="cfgKeyRow">
         <span class="setting-label" id="cfgKeyLabel">API Key</span>
         <input type="password" id="cfgKey" placeholder="API 키를 붙여넣어 주세요" autocomplete="off" autocapitalize="none" spellcheck="false">
       </div>
-      <div class="setting-item">
+      <div class="setting-item" id="cfgModelRow">
         <span class="setting-label">모델 (연결 테스트를 누르면 사용 가능한 모델이 채워져요)</span>
         <select id="cfgModel"></select>
       </div>
