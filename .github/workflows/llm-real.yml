@@ -1,0 +1,29 @@
+# 기기 AI 후보 모델 확인: huggingface.co 에서 받아 CPU(그래픽 가속 없음)로 돌려 뜻 · 시간을 봐요. ci/llm-real 브랜치에서만(배포와 무관).
+name: llm-real
+on:
+  workflow_dispatch:
+  push:
+    branches: ['ci/llm-real']
+permissions:
+  contents: read
+jobs:
+  model:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { model: 'onnx-community/Qwen2.5-0.5B-Instruct', dtype: 'q4' }
+          - { model: 'onnx-community/Qwen2.5-1.5B-Instruct', dtype: 'q4' }
+          - { model: 'onnx-community/gemma-3-1b-it-ONNX', dtype: 'q4' }
+          - { model: 'onnx-community/Llama-3.2-1B-Instruct', dtype: 'q4' }
+          - { model: 'onnx-community/Qwen3-0.6B-ONNX', dtype: 'q4' }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm i --no-save playwright@1.56.1 && npx playwright install --with-deps chromium
+      - run: nproc && free -g
+      - run: node test/llm-real.js public "${{ matrix.model }}" "${{ matrix.dtype }}"

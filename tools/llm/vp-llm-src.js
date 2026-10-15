@@ -3,7 +3,7 @@
    모델 파일은 처음 한 번 huggingface.co 에서 받아 브라우저 캐시에 저장해요. */
 import { env, AutoTokenizer, AutoModelForCausalLM } from '@huggingface/transformers';
 
-const MODEL = 'onnx-community/Qwen2.5-0.5B-Instruct';
+let MODEL = 'onnx-community/Qwen2.5-0.5B-Instruct', DTYPE = '';  // 시험에서는 init 메시지로 다른 모델을 고를 수 있어요
 const base = new URL('./', self.location.href).href;
 const safari = /^((?!chrome|android|crios|fxios).)*safari/i.test(self.navigator.userAgent || '');
 env.allowLocalModels = false;
@@ -32,11 +32,11 @@ async function load() {
   tok = await AutoTokenizer.from_pretrained(MODEL, { progress_callback: progress });
   const gpu = await gpuInfo();
   try {
-    model = await AutoModelForCausalLM.from_pretrained(MODEL, { device: gpu ? 'webgpu' : 'wasm', dtype: gpu && gpu.f16 ? 'q4f16' : 'q4', progress_callback: progress });
+    model = await AutoModelForCausalLM.from_pretrained(MODEL, { device: gpu ? 'webgpu' : 'wasm', dtype: DTYPE || (gpu && gpu.f16 ? 'q4f16' : 'q4'), progress_callback: progress });
     device = gpu ? 'webgpu' : 'wasm';
   } catch (e) {
     if (!gpu) throw e;
-    model = await AutoModelForCausalLM.from_pretrained(MODEL, { device: 'wasm', dtype: 'q4', progress_callback: progress });
+    model = await AutoModelForCausalLM.from_pretrained(MODEL, { device: 'wasm', dtype: DTYPE || 'q4', progress_callback: progress });
     device = 'wasm';
   }
 }
@@ -54,6 +54,7 @@ let chain = Promise.resolve();
 self.onmessage = e => {
   const m = e.data || {};
   if (m.cmd === 'init') {
+    if (m.model && !loading && !model) { MODEL = String(m.model); DTYPE = String(m.dtype || ''); }
     if (!loading) loading = load().then(() => post({ type: 'ready', device }), err => { loading = null; post({ type: 'error', load: true, msg: String(err && err.message || err) }); });
   } else if (m.cmd === 'gen') {
     chain = chain.then(async () => {

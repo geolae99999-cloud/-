@@ -163,11 +163,11 @@
       w.onerror = () => { const e = new ApiError('기기 AI를 시작하지 못했어요. 최신 Chrome · Edge · Safari에서 열어 주세요.', 0); wait.forEach(x => x.no(e)); wait.clear(); try { w.terminate(); } catch (x) {} w = null; initP = null; ready = false; };
       return w;
     }
-    function init(onProg) {
+    function init(onProg, pick) {
       if (onProg) subs.add(onProg);
       if (ready) return Promise.resolve();
       if (!ok()) return Promise.reject(new ApiError('이 브라우저에서는 기기 AI를 쓸 수 없어요. 최신 Chrome · Edge · Safari에서 열어 주세요.', 0));
-      if (!initP) initP = new Promise((res, rej) => { wait.set('init', { ok: res, no: rej }); worker().postMessage({ cmd: 'init' }); }).catch(e => { initP = null; throw e; });
+      if (!initP) initP = new Promise((res, rej) => { wait.set('init', { ok: res, no: rej }); worker().postMessage({ cmd: 'init', ...(pick || {}) }); }).catch(e => { initP = null; throw e; });
       return initP;
     }
     async function gen(prompt, max, ms) {
