@@ -1,5 +1,5 @@
 -- VocaPro 업데이트 v12: 기기 AI 채점 저장 + 보안 보강
--- 순서: v10 -> v11 -> v12. 여러 번 실행해도 안전해요.
+-- 순서: v10 -> v11 -> v12 -> v13. 여러 번 실행해도 안전해요. (가입 제한은 v13 에서 고쳤어요. v12 다음에 v13 을 꼭 실행하세요)
 --
 -- 1) 선생님 기기(브라우저)에서 채점한 발음 점수 저장: voca_speak_set_local
 -- 2) 녹음 올리기: MP3 프레임을 끝까지 검사(가짜 파일로 DB 채우기 막기), 학생 한 명 녹음 합계 30MB까지
@@ -194,17 +194,17 @@ revoke all on function public.voca_req_ip() from public, anon, authenticated;
 
 create or replace function public.voca_signup_guard()
 returns trigger language plpgsql security definer set search_path = public as $$
-declare c int; ip text := public.voca_req_ip();
+declare c int; v_ip text := public.voca_req_ip();
 begin
   delete from public.voca_signup_rate where hr < now() - interval '2 days';
   delete from public.voca_signup_ip where hr < now() - interval '2 days';
-  if ip <> '' then
-    insert into public.voca_signup_ip(ip, hr, n) values (ip, date_trunc('hour', now()), 1)
-    on conflict (ip, hr) do update set n = public.voca_signup_ip.n + 1 returning n into c;
+  if v_ip <> '' then
+    insert into public.voca_signup_ip(ip, hr, n) values (v_ip, date_trunc('hour', now()), 1)
+    on conflict (ip, hr) do update set n = public.voca_signup_ip.n + 1 returning public.voca_signup_ip.n into c;
     if c > 60 then raise exception 'too_many_signups' using errcode = 'P0001'; end if;
   end if;
   insert into public.voca_signup_rate(hr, n) values (date_trunc('hour', now()), 1)
-  on conflict (hr) do update set n = public.voca_signup_rate.n + 1 returning n into c;
+  on conflict (hr) do update set n = public.voca_signup_rate.n + 1 returning public.voca_signup_rate.n into c;
   if c > 1500 then raise exception 'too_many_signups' using errcode = 'P0001'; end if;
   return new;
 end $$;
