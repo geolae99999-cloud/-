@@ -2887,7 +2887,7 @@ window.VOCA_CLOUD = {
   const KEY_USERS = 'vocapro_users', KEY_SESS = 'vocapro_session';
 
   const DEFAULT_CFG = {
-    provider: 'gemini',
+    provider: 'local', aiv: 2,
     keys: { gemini: '', xai: '', openai: '', anthropic: '' },
     models: { gemini: '', xai: '', openai: '', anthropic: '' },
     modelLists: { gemini: [], xai: [], openai: [], anthropic: [] },
@@ -2995,7 +2995,10 @@ window.VOCA_CLOUD = {
         if (saved.models && saved.models[p]) cfg.models[p] = saved.models[p];
         if (saved.modelLists && Array.isArray(saved.modelLists[p])) cfg.modelLists[p] = saved.modelLists[p];
       }
+      // 한 번만: 키를 넣지 않고 쓰던 사람은 기본 AI 를 기기 AI(Qwen)로 바꿔요. 그 뒤에 직접 고른 엔진은 그대로 둬요
+      if (saved.aiv !== 2 && !(cfg.provider !== 'local' && cfg.keys[cfg.provider])) cfg.provider = 'local';
     }
+    if (!PROVIDERS[cfg.provider]) cfg.provider = 'local';
     return cfg;
   }
   function loadDb() { const d = loadJson(KEY_DATA); useBlob(d && Array.isArray(d.categories) ? d : null); }
@@ -5597,9 +5600,28 @@ window.VOCA_CLOUD = {
   }
   // 작업마다 만들 글 길이(토큰). 묶음 · 문맥 작업은 길어요
   const VLM_MAX = { word: 384, batch: 1024, ctx: 1024, translate: 320, pinyin: 200 };
-  async function localAi(prompt, normalize, task, opt) {
+  // 처음 쓸 때 한 번 물어보고 받아요(동시에 여러 번 불려도 한 번만 물어요). 거절하거나 못 받으면 이번에는 서버 AI 로 해요
+  let vlmGate = null, vlmNo = false;
+  function vlmEnsure() {
+    if (VLM.isReady()) return Promise.resolve(true);
+    if (vlmNo || !VLM.ok()) return Promise.resolve(false);
     let flag = ''; try { flag = LS.getItem(LLM_OK) || ''; } catch (e) {}
-    if (!VLM.isReady() && !flag) throw new ApiError('기기 AI를 처음 쓰려면 설정 > AI 기능에서 \'기기 AI 받기\'를 먼저 눌러 주세요(한 번만 받아요).', 401);
+    if (!vlmGate) vlmGate = (async () => {
+      if (!flag && !await ask('사전에 없는 단어는 무료 오픈소스 AI(Qwen)가 이 기기에서 채워요.\n처음 한 번 모델(0.5~0.8GB)을 받아야 해요. 모바일 데이터라면 Wi-Fi를 권해요. 받을까요?', { ok: '받기' })) { vlmNo = true; return false; }
+      let last = -10; const prog = pc => { if (pc >= last + 10) { last = pc; toast(`기기 AI 받는 중... ${pc}% (처음 한 번만)`); } };
+      try { await VLM.init(prog); try { LS.setItem(LLM_OK, '1'); } catch (e) {} toast('기기 AI 준비 완료'); return true; }
+      catch (e) { vlmNo = true; toast(e.message || '기기 AI를 받지 못했어요.'); return false; }
+      finally { VLM.off(prog); vlmGate = null; }
+    })();
+    return vlmGate;
+  }
+  const cloudAiOk = () => !!(cloudMode && window.Cloud && Cloud.ai);
+  async function localAi(prompt, normalize, task, opt) {
+    if (!await vlmEnsure()) {
+      // 기기 AI 를 못 쓰면 로그인한 사람은 서버 AI(Gemini)로 해요
+      if (cloudAiOk()) return callAi(prompt, normalize, task, { ...(opt || {}), server: true });
+      throw new ApiError(VLM.ok() ? '기기 AI를 받지 않아서 AI로 채울 수 없어요. 설정 > AI 기능에서 받을 수 있어요.' : '이 브라우저에서는 기기 AI를 쓸 수 없어요. 최신 Chrome · Edge · Safari에서 열거나, 로그인해서 서버 AI를 써 주세요.', 401);
+    }
     const max = VLM_MAX[task && task.task] || 512;
     let last = null;
     for (let a = 0; a < 2; a++) {
@@ -5616,8 +5638,8 @@ window.VOCA_CLOUD = {
     opt = opt || {};
     normalize = normalize || normalizeResult;
     const p = config.provider;
-    if (p === 'local') return localAi(prompt, normalize, task, opt);
-    const key = cleanKey(config.keys && config.keys[p]);
+    if (p === 'local' && !opt.server) return localAi(prompt, normalize, task, opt);
+    const key = p === 'local' ? '' : cleanKey(config.keys && config.keys[p]);
     const finish = text => normalize(parseJson(text));
     if (!key) {
       if (cloudMode && window.Cloud && Cloud.ai) {
@@ -6522,7 +6544,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
       cloudStale = false;
       if (r && r.updated > cloudBaseTs) { applyRemote(r); if (!(S && S.active)) go(curTab); toast('서버에 더 새로운 저장본이 있어 그걸 불러왔어요.'); return; }
     }
-    const json = JSON.stringify({ ...dataBlob(), cfg: { ...ttsCfgOut(), goal: config.goal, darkMode: config.darkMode, provider: config.provider, grade: config.grade, role: config.role || '', profile: config.profile || cleanProfile(), gameName: config.gameName || '', haptic: config.haptic !== false } });
+    const json = JSON.stringify({ ...dataBlob(), cfg: { ...ttsCfgOut(), goal: config.goal, darkMode: config.darkMode, provider: config.provider, aiv: 2, grade: config.grade, role: config.role || '', profile: config.profile || cleanProfile(), gameName: config.gameName || '', haptic: config.haptic !== false } });
     if (json.length > 900000) toast('데이터가 서버 저장 한도(약 1MB)에 가까워요. 단어장을 줄이거나 백업해 두세요.');
     const up = +LS.getItem(KEY_DATA + ':ts') || Date.now(), key = KEY_DATA;
     // 페이지를 떠날 때는 keepalive로 최대한 보내요(본문 64KB 제한이 있어 작을 때만)
@@ -6534,7 +6556,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     useBlob(d);
     if (d.cfg) {
       config.ttsRate = parseFloat(d.cfg.ttsRate) || config.ttsRate; ttsCfgIn(config, d.cfg); config.goal = parseInt(d.cfg.goal, 10) || config.goal;
-      config.darkMode = !!d.cfg.darkMode; if (typeof d.cfg.haptic === 'boolean') config.haptic = d.cfg.haptic; if (PROVIDERS[d.cfg.provider]) config.provider = d.cfg.provider;
+      config.darkMode = !!d.cfg.darkMode; if (typeof d.cfg.haptic === 'boolean') config.haptic = d.cfg.haptic; if (PROVIDERS[d.cfg.provider] && d.cfg.aiv === 2) config.provider = d.cfg.provider;
       if (GRADE_NAMES[d.cfg.grade]) config.grade = d.cfg.grade;
       if (d.cfg.role !== undefined) config.role = d.cfg.role === 'teacher' ? 'teacher' : '';
       if (d.cfg.profile) config.profile = cleanProfile(d.cfg.profile);

@@ -85,7 +85,7 @@ const ZH = '我们今天去图书馆学习汉语。这个城市的环境非常�
   const save = async (p, name, out) => { await p.waitForTimeout(250); await p.screenshot({ path: path.join(shots, name + '.png') }); if (out) { try { fs.copyFileSync(path.join(shots, name + '.png'), path.join(OUT, out)); } catch (e) {} } };
   const dark = async (p, on) => { await p.emulateMedia({ colorScheme: on ? 'dark' : 'light' }); await p.evaluate(v => { config.darkMode = v; applyTheme(); }, on); await p.waitForTimeout(150); };
   const signupLocal = async (p, id) => {
-    await p.goto('http://localhost:8811/'); await p.waitForSelector('#authScreen .auth-box');
+    await p.goto('http://localhost:8811/'); await p.waitForSelector('#authScreen .auth-box'); await p.evaluate(() => { DEFAULT_CFG.provider = 'gemini'; }); // 이 시험은 서버 · 키 AI 경로를 봐요(기본은 기기 AI)
     await p.click('[data-act="auth-mode"][data-m="signup"]');
     await p.fill('#auId', id); await p.fill('#auPw', 'pass1234'); await p.fill('#auPw2', 'pass1234');
     await p.selectOption('#auGrade', 'm2'); await p.fill('#auName', '김주원'); await p.fill('#auSchool', '한빛중학교'); await p.fill('#auSno', '20315'); await p.check('#auTerms');
@@ -239,7 +239,7 @@ const ZH = '我们今天去图书馆学习汉语。这个城市的环境非常�
     if (u.endsWith('/voca_me')) return j({ id: 7, username: 'kim' });
     return j({ ok: true });
   });
-  await q.goto('http://localhost:8812/'); await q.waitForSelector('.auth-box #auId');
+  await q.goto('http://localhost:8812/'); await q.waitForSelector('.auth-box #auId'); await q.evaluate(() => { DEFAULT_CFG.provider = 'gemini'; }); // 이 시험은 서버 · 키 AI 경로를 봐요(기본은 기기 AI)
   await q.click('[data-m="signup"]'); await q.click('[data-act="auth-age"][data-k="0"]'); await q.fill('#auId', 'kim'); await q.fill('#auPw', 'pass1234'); await q.fill('#auPw2', 'pass1234');
   await q.selectOption('#auGrade', 'h1'); await q.fill('#auName', '김지우'); await q.fill('#auSchool', '한빛고등학교'); await q.fill('#auSno', '10315'); await q.check('#auTerms'); await q.fill('#capIn', await q.evaluate('capText')); await q.click('#auGo');
   await q.waitForSelector('#obOv'); await q.click('[data-ob="skip"]'); await q.click('[data-lt="close"]').catch(() => {}); await q.waitForTimeout(1500);

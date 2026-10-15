@@ -24,7 +24,7 @@ const srv = http.createServer((q, r) => { let f = path.join(root, decodeURICompo
     r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify(obj) }] } }] }) });
   });
   const shot = n => p.screenshot({ path: path.join(shots, n + '.png') });
-  await p.goto('http://localhost:8765/');
+  await p.goto('http://localhost:8765/'); await p.evaluate(() => { DEFAULT_CFG.provider = 'gemini'; }); // 이 시험은 서버 · 키 AI 경로를 봐요(기본은 기기 AI)
   await p.waitForSelector('#authScreen .auth-box');
   await p.click('[data-act="auth-mode"][data-m="signup"]');
   await shot('01-signup');

@@ -18,7 +18,7 @@ const srv = http.createServer((q, r) => { let f = path.join(root, q.url.split('?
     if (u.includes('/functions/v1/ai')) { aiBody = body; await new Promise(x => setTimeout(x, 300)); return j({ text: JSON.stringify({ meaning: '형 꾸준한', phonetic: '/x/', koreanPron: '엑스', example: 'Keep going.', exampleKo: '계속 가.', synonyms: 'steady' }) }); }
     return j({});
   });
-  await p.goto('http://localhost:8767/'); await p.waitForSelector('.auth-box #auId');
+  await p.goto('http://localhost:8767/'); await p.waitForSelector('.auth-box #auId'); await p.evaluate(() => { DEFAULT_CFG.provider = 'gemini'; }); // 이 시험은 서버 · 키 AI 경로를 봐요(기본은 기기 AI)
   await p.click('[data-m="signup"]'); await p.click('[data-act="auth-age"][data-k="0"]'); await p.fill('#auId', 'kim'); await p.fill('#auPw', 'pass1234'); await p.fill('#auPw2', 'pass1234');
   await p.selectOption('#auGrade', 'h1'); await p.fill('#auName', '김지우'); await p.fill('#auSchool', '한빛중학교'); await p.fill('#auSno', '20315'); await p.check('#auTerms'); await p.fill('#capIn', await p.evaluate('capText')); await p.click('#auGo');
   await p.waitForSelector('#obOv'); await p.click('[data-ob="skip"]'); await p.click('[data-lt="close"]');
@@ -36,5 +36,11 @@ const srv = http.createServer((q, r) => { let f = path.join(root, q.url.split('?
   const d1 = await p.evaluate(() => cloudDirty()); failSave = false;
   await p.evaluate(() => window.dispatchEvent(new Event('online'))); await p.waitForTimeout(600);
   console.log('dirty retry:', d1, '->', await p.evaluate(() => cloudDirty()), 'saved:', !!saved);
+  // 기본(기기 AI)인데 받기를 거절하면, 로그인한 계정은 서버 AI 로 채워요
+  aiBody = null;
+  const fb = p.evaluate(async () => { config.provider = 'local'; try { const r = await callAi(buildPrompt('zyzzyvb', false), normalizeResult, { task: 'word', word: 'zyzzyvb', lang: 'en' }); return r && r.meaning; } catch (e) { return 'ERR ' + e.message; } });
+  await p.waitForSelector('.dlg [data-d="0"]'); await p.click('.dlg [data-d="0"]');
+  const fbm = await fb;
+  console.log('local declined -> server ai:', !!aiBody && !!fbm && !/^ERR/.test(fbm) ? 'FALLBACK_OK' : 'FAIL ' + fbm);
   console.log('errors:', errs.length ? errs : 'none'); await b.close(); srv.close();
 })();

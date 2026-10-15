@@ -188,9 +188,28 @@
   }
   // 작업마다 만들 글 길이(토큰). 묶음 · 문맥 작업은 길어요
   const VLM_MAX = { word: 384, batch: 1024, ctx: 1024, translate: 320, pinyin: 200 };
-  async function localAi(prompt, normalize, task, opt) {
+  // 처음 쓸 때 한 번 물어보고 받아요(동시에 여러 번 불려도 한 번만 물어요). 거절하거나 못 받으면 이번에는 서버 AI 로 해요
+  let vlmGate = null, vlmNo = false;
+  function vlmEnsure() {
+    if (VLM.isReady()) return Promise.resolve(true);
+    if (vlmNo || !VLM.ok()) return Promise.resolve(false);
     let flag = ''; try { flag = LS.getItem(LLM_OK) || ''; } catch (e) {}
-    if (!VLM.isReady() && !flag) throw new ApiError('기기 AI를 처음 쓰려면 설정 > AI 기능에서 \'기기 AI 받기\'를 먼저 눌러 주세요(한 번만 받아요).', 401);
+    if (!vlmGate) vlmGate = (async () => {
+      if (!flag && !await ask('사전에 없는 단어는 무료 오픈소스 AI(Qwen)가 이 기기에서 채워요.\n처음 한 번 모델(0.5~0.8GB)을 받아야 해요. 모바일 데이터라면 Wi-Fi를 권해요. 받을까요?', { ok: '받기' })) { vlmNo = true; return false; }
+      let last = -10; const prog = pc => { if (pc >= last + 10) { last = pc; toast(`기기 AI 받는 중... ${pc}% (처음 한 번만)`); } };
+      try { await VLM.init(prog); try { LS.setItem(LLM_OK, '1'); } catch (e) {} toast('기기 AI 준비 완료'); return true; }
+      catch (e) { vlmNo = true; toast(e.message || '기기 AI를 받지 못했어요.'); return false; }
+      finally { VLM.off(prog); vlmGate = null; }
+    })();
+    return vlmGate;
+  }
+  const cloudAiOk = () => !!(cloudMode && window.Cloud && Cloud.ai);
+  async function localAi(prompt, normalize, task, opt) {
+    if (!await vlmEnsure()) {
+      // 기기 AI 를 못 쓰면 로그인한 사람은 서버 AI(Gemini)로 해요
+      if (cloudAiOk()) return callAi(prompt, normalize, task, { ...(opt || {}), server: true });
+      throw new ApiError(VLM.ok() ? '기기 AI를 받지 않아서 AI로 채울 수 없어요. 설정 > AI 기능에서 받을 수 있어요.' : '이 브라우저에서는 기기 AI를 쓸 수 없어요. 최신 Chrome · Edge · Safari에서 열거나, 로그인해서 서버 AI를 써 주세요.', 401);
+    }
     const max = VLM_MAX[task && task.task] || 512;
     let last = null;
     for (let a = 0; a < 2; a++) {
@@ -207,8 +226,8 @@
     opt = opt || {};
     normalize = normalize || normalizeResult;
     const p = config.provider;
-    if (p === 'local') return localAi(prompt, normalize, task, opt);
-    const key = cleanKey(config.keys && config.keys[p]);
+    if (p === 'local' && !opt.server) return localAi(prompt, normalize, task, opt);
+    const key = p === 'local' ? '' : cleanKey(config.keys && config.keys[p]);
     const finish = text => normalize(parseJson(text));
     if (!key) {
       if (cloudMode && window.Cloud && Cloud.ai) {
