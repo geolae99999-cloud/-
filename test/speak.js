@@ -1,4 +1,5 @@
 // 발음 수행평가: 선생님 과제(발음 평가) -> 학생 녹음(가짜 마이크, 16kHz MP3) · 제출(AI 채점 없음, '제출 완료') -> 선생님 보드(10초마다 새 제출)
+const PG = require('./pgrst');
 //   -> 선생님만 AI 채점(카드 하나 · 전체, 실제 AI 함수 코드 + 가짜 Gemini) -> 결과 목록 · 문항/최종 점수 -> 받은 파일(m4a·wav·zip) 채점 -> CSV -> 녹음 지우기
 // 반 · 발음 RPC는 로컬 PostgreSQL(supabase_update_v6~v11.sql 적용)로 실제 실행해요. AI 함수(supabase/functions/ai/index.ts)는 TypeScript를 바로 변환해 Node에서 돌려요.
 // 보안 검사: 학생 AI 채점 막기, 학생 화면에 AI 점수 없음, 반이 아닌 사람 올리기, 다른 학생 녹음, 다른 반 선생님, 너무 큰 · MP3 아닌 파일, 표 직접 읽기, 서비스 함수 anon 호출, 학생 점수 직접 제출, 발음 채점 한도
@@ -113,6 +114,7 @@ async function mock(p) {
       if (MISSING && /^voca_speak_/.test(fn)) return j({ code: 'PGRST202', message: 'Could not find the function public.' + fn }, 404);
       if (fn === 'voca_speak_put') puts.push(body);
       const a = Object.keys(body).map(k => `${k} => ${lit(body[k])}`).join(', ');
+      if (PG.on) { const x = await PG.call(fn, body); if (fn === 'voca_speak_results' && x.status === 200) { const o = JSON.parse(x.body); resCalls.push({ since: body.p_since || null, same: !!(o && o.same) }); } return r.fulfill({ status: x.status, contentType: 'application/json', body: x.body }); }
       try {
         const out = JSON.parse(psql(`set role anon; select public.${fn}(${a})`).split('\n').pop());
         if (fn === 'voca_speak_results') resCalls.push({ since: body.p_since || null, same: !!(out && out.same) });

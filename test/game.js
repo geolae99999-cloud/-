@@ -1,4 +1,5 @@
 // 단어 맞추기 대결: 영어·중국어 60초 게임 -> 결과 -> 랭킹(이번 주·역대, 전체·우리 반), 랭킹 이름, 로컬 계정 내 기록
+const PG = require('./pgrst');
 // 게임 RPC(voca_game_*)와 반 RPC는 로컬 PostgreSQL(supabase_update_v6~v9.sql 적용)로 실제 실행해요.
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 const http = require('http'), fs = require('fs'), path = require('path'), { execFileSync } = require('child_process');
@@ -19,6 +20,7 @@ async function mock(p) {
     if (fn === 'voca_load') return j(store[id] ? { data: store[id], updated: 1 } : null);
     if (fn === 'voca_save') { store[id] = body.p_data; return j({ ok: true }); }
     if (/^voca_(class|assign|game)_/.test(fn)) {
+      if (PG.on) { const x = await PG.call(fn, body); return r.fulfill({ status: x.status, contentType: 'application/json', body: x.body }); }
       const args = Object.keys(body).map(k => `${k} => ${lit(body[k])}`).join(', ');
       try { return j(JSON.parse(psql(`set role anon; select public.${fn}(${args})`).split('\n').pop())); }
       catch (e) { const m = String(e.stderr || e.message); return j({ message: m.slice(0, 200) }, /function .* does not exist/.test(m) ? 404 : 400); }

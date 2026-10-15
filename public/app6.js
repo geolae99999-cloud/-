@@ -170,22 +170,44 @@
   }
   const clampN = (x, lo, hi, d) => { x = parseFloat(x); return isFinite(x) ? Math.min(hi, Math.max(lo, x)) : d; };
   const ttsRateFor = lang => vFam(lang) === 'ko' ? clampN(config.koRate, .5, 2, 1) : clampN(config.ttsRate, .5, 2, .9);
+  // 이 기기에 그 언어 목소리가 없을 때 한 번만 알려 줘요(중국어 목소리가 없는 컴퓨터 · 폰이 많아요)
+  const ttsWarned = {};
+  function ttsHelp(fam) {
+    const ua = navigator.userAgent, nm = fam === 'zh' ? '중국어' : fam === 'ko' ? '한국어' : '영어';
+    return /iPhone|iPad|Macintosh/.test(ua) ? `설정 > 손쉬운 사용 > 읽기 및 말하기 > 음성에서 ${nm} 음성을 받아 주세요.`
+      : /SamsungBrowser|SM-[A-Z0-9]/.test(ua) ? `삼성 폰: 설정 > 일반 > 텍스트 음성 변환(TTS)에서 기본 엔진을 'Google 음성 인식 및 합성'으로 바꾸고, 옆 톱니바퀴 > 음성 데이터 설치에서 ${nm}를 받아 주세요(삼성 TTS 엔진을 쓰면 그 엔진 설정에서 ${nm} 음성을 받아요). 삼성 인터넷보다 Chrome으로 열면 잘 돼요.`
+      : /Android/.test(ua) ? `휴대폰 설정에서 '텍스트 음성 변환(TTS)'을 찾아 기본 엔진을 Google로 바꾸고, ${nm} 음성 데이터를 설치해 주세요. Chrome으로 열면 잘 돼요.`
+      : /Windows/.test(ua) ? `Chrome이나 Edge 브라우저로 열거나, Windows 설정 > 시간 및 언어 > 음성 > 음성 추가에서 '${nm}${fam === 'zh' ? '(간체, 중국)' : ''}'를 설치해 주세요.`
+      : `기기 설정에서 ${nm} 음성을 설치하거나 Chrome · Edge 브라우저를 써 주세요.`;
+  }
+  function ttsNoVoice(fam) {
+    if (ttsWarned[fam]) return; ttsWarned[fam] = true;
+    say(`이 기기에서 ${fam === 'zh' ? '중국어' : fam === 'ko' ? '한국어' : '영어'} 소리를 낼 목소리를 찾지 못했어요. ${ttsHelp(fam)}`);
+  }
   // o: { rate, voice, ref, keep(앞 문장 안 끊기) }
+  // 고른 목소리가 소리를 못 내면(인터넷 목소리가 막힌 학교 등) 다른 목소리 → 브라우저 기본 목소리 순서로 한 번씩 더 해 봐요
   function speak(text, lang, o) {
     o = o || {};
     return new Promise(res => {
       if (!('speechSynthesis' in window) || !text) return res();
       if (!o.keep) { try { window.speechSynthesis.cancel(); } catch (e) {} }
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = lang || 'en-US';
-      const rate = o.rate || ttsRateFor(u.lang);
-      u.rate = rate; u.pitch = clampN(config.ttsPitch, .5, 1.5, 1);
-      const v = o.voice || voiceFor(u.lang, o.ref); if (v) { try { u.voice = v; } catch (e) {} }
-      let done = false;
-      const fin = () => { if (!done) { done = true; res(); } };
-      u.onend = fin; u.onerror = fin;
-      setTimeout(fin, (6000 + text.length * 160) / Math.min(1, rate));
-      window.speechSynthesis.speak(u);
+      const L2 = lang || 'en-US', fam = vFam(L2), rate = o.rate || ttsRateFor(L2), list = voicesOf(fam);
+      if (fam === 'zh' && loadVoices().length && !list.length) ttsNoVoice('zh');
+      const first = o.voice || voiceFor(L2, o.ref), cand = [first].concat(list.filter(v => v !== first).sort((x, y) => (+!!y.localService) - (+!!x.localService)), [null]).filter((v, i, a) => a.indexOf(v) === i).slice(0, 3);
+      const attempt = k => {
+        const u = new SpeechSynthesisUtterance(text), v = cand[k];
+        u.lang = L2; u.rate = rate; u.pitch = clampN(config.ttsPitch, .5, 1.5, 1);
+        if (v) { try { u.voice = v; } catch (e) {} }
+        // 일부 폰(삼성 TTS 엔진에 그 언어가 없을 때 등)은 오류 없이 바로 '끝'만 보내요: 시작 신호 없이 0.3초 안에 끝나면 실패로 봐요
+        let over = false, started = false; const t0 = Date.now();
+        u.onstart = () => { started = true; };
+        const tm = setTimeout(() => end(true), (6000 + text.length * 160) / Math.min(1, rate));
+        const end = ok => { if (over) return; over = true; clearTimeout(tm); if (ok || k + 1 >= cand.length) { if (!ok && fam !== 'ko') ttsNoVoice(fam); return res(); } attempt(k + 1); };
+        u.onend = () => end(started || Date.now() - t0 > 300);
+        u.onerror = e => end(!!(e && /interrupted|canceled/.test(e.error || '')));
+        try { window.speechSynthesis.speak(u); } catch (e) { end(false); }
+      };
+      attempt(0);
     });
   }
   function playAudio(text) { speak(text, ttsLang(text)); }

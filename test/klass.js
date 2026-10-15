@@ -1,4 +1,5 @@
 // 우리 반: 선생님 반 만들기 -> 학생 코드 참여 -> 과제 -> 학생 풀이·제출 -> 선생님 현황·결과
+const PG = require('./pgrst');
 // 반 관련 RPC는 로컬 PostgreSQL(supabase_update_v6.sql 적용)로 실제 실행해요. PGHOST/PGPORT 필요.
 // SQL 미적용(404) 상태도 확인: NOSQL=1 node test/klass.js
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
@@ -21,6 +22,7 @@ async function mock(p) {
     if (fn === 'voca_save') { store[id] = body.p_data; return j({ ok: true }); }
     if (fn === 'voca_logout') return j({ ok: true });
     if (/^voca_(class|assign)_/.test(fn)) {
+      if (PG.on) { const x = await PG.call(fn, body); return r.fulfill({ status: x.status, contentType: 'application/json', body: x.body }); }
       if (NOSQL) return j({ code: 'PGRST202', message: 'Could not find the function public.' + fn }, 404);
       const args = Object.keys(body).map(k => `${k} => ${lit(body[k])}`).join(', ');
       try { return j(JSON.parse(psql(`set role anon; select public.${fn}(${args})`).split('\n').pop())); }

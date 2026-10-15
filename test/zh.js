@@ -14,7 +14,7 @@ const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); if (!c) fails++
   const errs = []; p.on('pageerror', e => errs.push(e.message));
   await require('./undef')(p, errs);
   await p.route('**/fonts.googleapis.com/**', r => r.abort()); await p.route('https://cdn.jsdelivr.net/**', r => r.abort());
-  await p.addInitScript(() => { window.__spoken = []; const s = window.speechSynthesis; if (s) { s.speak = u => { window.__spoken.push([u.text, u.lang]); setTimeout(() => u.onend && u.onend(), 5); }; } });
+  await p.addInitScript(() => { window.__spoken = []; const s = window.speechSynthesis; if (s) { s.speak = u => { window.__spoken.push([u.text, u.lang]); setTimeout(() => { u.onstart && u.onstart(); u.onend && u.onend(); }, 5); }; } });
   await p.goto('http://localhost:8771/'); await p.waitForSelector('#authScreen .auth-box');
   await p.click('[data-act="auth-mode"][data-m="signup"]');
   await p.fill('#auId', 'zhtest'); await p.fill('#auPw', 'pass1234'); await p.fill('#auPw2', 'pass1234');

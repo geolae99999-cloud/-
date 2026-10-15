@@ -30,7 +30,7 @@ const SKIP = new Set(['acct-del', 'reset-all', 'book-del', 'del-word', 'cl-delet
     const s = window.speechSynthesis;
     const V = [['Google US English', 'en-US'], ['Microsoft Guy Online (Natural) - English (United States)', 'en-US'], ['Microsoft Aria Online (Natural) - English (United States)', 'en-US'], ['Google 한국의', 'ko-KR'], ['Microsoft InJoon Online (Natural) - Korean (Korea)', 'ko-KR'], ['Microsoft SunHi Online (Natural) - Korean (Korea)', 'ko-KR'], ['Google 普通话（中国大陆）', 'zh-CN']].map(([name, lang]) => ({ name, lang, voiceURI: name, localService: false, default: false }));
     window.SpeechSynthesisUtterance = class { constructor(t) { this.text = t; this.lang = ''; this.rate = 1; this.pitch = 1; this.voice = null; } };
-    if (s) { s.getVoices = () => V; s.speak = u => { window.__spoken.push([u.text, u.lang, u.voice && u.voice.name, u.rate, u.pitch]); setTimeout(() => u.onend && u.onend(), 5); }; }
+    if (s) { s.getVoices = () => V; s.speak = u => { window.__spoken.push([u.text, u.lang, u.voice && u.voice.name, u.rate, u.pitch]); setTimeout(() => { u.onstart && u.onstart(); u.onend && u.onend(); }, 5); }; }
     window.print = () => {};
   });
   await p.goto('http://localhost:8772/'); await p.waitForSelector('#authScreen .auth-box');
