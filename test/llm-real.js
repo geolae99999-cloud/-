@@ -9,7 +9,7 @@ const limit = (pr, ms) => Promise.race([pr, new Promise(r => setTimeout(() => r(
 const TYPES = { '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.wasm': 'application/wasm' };
 const srv = http.createServer((q, r) => { const u = decodeURIComponent(q.url.split('?')[0]); if (u === '/config.js') { r.writeHead(200, { 'Content-Type': 'text/javascript' }); return r.end("window.VOCA_CLOUD = { url: '', apiKey: '' };"); } let f = path.join(root, u); if (f.endsWith('/')) f += 'index.html'; fs.readFile(f, (e, d) => { if (e) { r.writeHead(404); return r.end(); } r.writeHead(200, { 'Content-Type': TYPES[path.extname(f)] || 'text/html; charset=utf-8' }); r.end(d); }); }).listen(8790);
 (async () => {
-  const b = await chromium.launch({ args: ['--enable-unsafe-webgpu'] });
+  const b = await chromium.launch(process.env.WEBGPU ? { args: ['--enable-unsafe-webgpu'] } : {});
   const p = await (await b.newContext({ viewport: { width: 1200, height: 900 } })).newPage();
   p.on('console', m => { if (/기기 AI|error/i.test(m.text())) console.log('console:', m.text().slice(0, 300)); });
   p.on('pageerror', e => console.log('pageerror:', e.message));

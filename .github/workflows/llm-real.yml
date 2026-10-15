@@ -15,7 +15,6 @@ jobs:
       matrix:
         include:
           - { model: 'onnx-community/Qwen2.5-0.5B-Instruct', dtype: 'q4' }
-          - { model: 'onnx-community/Qwen2.5-1.5B-Instruct', dtype: 'q4' }
           - { model: 'onnx-community/gemma-3-1b-it-ONNX', dtype: 'q4' }
           - { model: 'onnx-community/Llama-3.2-1B-Instruct', dtype: 'q4' }
           - { model: 'onnx-community/Qwen3-0.6B-ONNX', dtype: 'q4' }

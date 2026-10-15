@@ -17,7 +17,13 @@ const post = m => self.postMessage(m);
 
 // WebGPU 가 있으면 그래픽 가속. f16 셰이더가 없으면 q4(CPU 와 같은 파일)를 써서, 가속이 실패해도 다시 받지 않게 해요
 async function gpuInfo() {
-  try { if (!self.navigator.gpu) return null; const a = await self.navigator.gpu.requestAdapter(); return a ? { f16: a.features.has('shader-f16') } : null; } catch (e) { return null; }
+  try {
+    if (!self.navigator.gpu) return null;
+    const a = await self.navigator.gpu.requestAdapter();
+    // 소프트웨어로 흉내 내는 WebGPU(그래픽 칩 없음)는 CPU 보다 훨씬 느려서 쓰지 않아요
+    if (!a || a.isFallbackAdapter || (a.info && a.info.isFallbackAdapter) || /swiftshader|llvmpipe|software/i.test(((a.info && (a.info.vendor + ' ' + a.info.architecture + ' ' + a.info.description)) || ''))) return null;
+    return { f16: a.features.has('shader-f16') };
+  } catch (e) { return null; }
 }
 async function load() {
   if (model) return;
