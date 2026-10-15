@@ -138,14 +138,14 @@ const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); if (!c) fails++
   // 12) 중국어 말하기 문장 (초 · 중 · 고): 책장 · 홈 줄 · 담으면 문장 · 병음 · 해석이 예문으로 들어가요
   await p.evaluate(() => go('tabHome')); await p.waitForFunction(() => document.querySelectorAll('.shelf-b[data-g^="zs-"]').length === 4, null, { timeout: 8000 });
   ok(await p.evaluate(() => /sentences/.test(document.querySelector('.shelf-b[data-g="zs-2"]').textContent)), '책장에 말하기 하 · 중 · 상 · 최상');
-  ok(await p.evaluate(() => /중국어 말하기 문장 \(하 · 중 · 상 · 최상\)[\s\S]*문장 139개/.test(document.querySelector('.tool-list').textContent)), '홈 줄: 말하기 문장 139개');
+  ok(await p.evaluate(() => /중국어 말하기 문장 \(하 · 중 · 상 · 최상\)[\s\S]*문장 259개/.test(document.querySelector('.tool-list').textContent)), '홈 줄: 말하기 문장 259개');
   await p.click('.shelf-b[data-g="zs-2"]'); await p.waitForSelector('#recList .rec-row.zs');
   const zs = await p.evaluate(() => ({ t: $('sheetTitle').textContent, n: document.querySelectorAll('#recList .rec-row').length, ex: document.querySelector('#recList .rec-ex').textContent, tabs: [...document.querySelectorAll('.rec-tab-row .chip')].map(x => x.textContent).join(',') }));
-  ok(zs.t === '중국어 말하기 · 중 문장 39' && zs.n === 39 && /。/.test(zs.ex) && zs.tabs === '하,중,상,최상', '난이도 중 문장 39개 + 병음 · 해석 ' + JSON.stringify(zs));
+  ok(zs.t === '중국어 말하기 · 중 문장 69' && zs.n === 69 && /。/.test(zs.ex) && zs.tabs === '하,중,상,최상', '난이도 중 문장 69개 + 병음 · 해석 ' + JSON.stringify(zs));
   await p.screenshot({ path: path.join(shots, 'zh-speak-sheet.png') });
   await p.click('[data-act="rec-left-add"]'); await p.waitForTimeout(600);
   const zb = await p.evaluate(() => { const c = categories.find(x => x.name === '중국어 말하기 · 중'); const w = c && c.words[0]; return c && { n: c.words.length, lang: c.lang || LANG, w: w.word, p: w.phonetic, ex: w.example, py: w.exPy, ko: w.exampleKo }; });
-  ok(zb && zb.n === 39 && zb.ex && zb.ex.includes(zb.w) && zb.py && zb.ko && zb.p, '담으면 단어장에 문장 · 병음 · 해석 ' + JSON.stringify(zb));
+  ok(zb && zb.n === 69 && zb.ex && zb.ex.includes(zb.w) && zb.py && zb.ko && zb.p, '담으면 단어장에 문장 · 병음 · 해석 ' + JSON.stringify(zb));
   // 이미 다른 단어장에 있는 단어도 말하기 단어장에는 문장과 함께 담겨요
   ok(await p.evaluate(() => { const c = categories.find(x => x.name === '중국어 말하기 · 중'); return c.words.some(w => w.word === '学习') || !gradeWords('zs-2').some(e => e.w === '学习'); }), '다른 단어장에 있는 단어도 따로 담음');
   ok(await p.evaluate(() => /0개 모두 담기/.test(document.querySelector('[data-act="rec-left-add"]').textContent)), '다 담으면 남은 0개');

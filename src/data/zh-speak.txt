@@ -31,6 +31,36 @@
 生日|shēngrì|생일|祝你生日快乐！|Zhù nǐ shēngrì kuàilè!|생일 축하해!
 一起|yìqǐ|함께|我们一起去玩儿吧！|Wǒmen yìqǐ qù wánr ba!|우리 같이 놀러 가자!
 汉语|Hànyǔ|중국어|我会说一点儿汉语。|Wǒ huì shuō yìdiǎnr Hànyǔ.|나는 중국어를 조금 할 줄 알아.
+早上好|zǎoshang hǎo|좋은 아침이에요|同学们，早上好！|Tóngxuémen, zǎoshang hǎo!|여러분, 좋은 아침이에요!
+姐姐|jiějie|언니, 누나|我姐姐今年十五岁。|Wǒ jiějie jīnnián shíwǔ suì.|우리 언니(누나)는 올해 열다섯 살이에요.
+弟弟|dìdi|남동생|我弟弟很可爱。|Wǒ dìdi hěn kě'ài.|제 남동생은 아주 귀여워요.
+猫|māo|고양이|桌子上有一只猫。|Zhuōzi shang yǒu yì zhī māo.|책상 위에 고양이가 한 마리 있어요.
+米饭|mǐfàn|쌀밥|我中午吃米饭。|Wǒ zhōngwǔ chī mǐfàn.|저는 점심에 밥을 먹어요.
+水|shuǐ|물|我想喝水。|Wǒ xiǎng hē shuǐ.|저는 물을 마시고 싶어요.
+茶|chá|차|请喝茶。|Qǐng hē chá.|차 드세요.
+书|shū|책|这是我的书。|Zhè shì wǒ de shū.|이건 제 책이에요.
+学校|xuéxiào|학교|我们的学校很大。|Wǒmen de xuéxiào hěn dà.|우리 학교는 아주 커요.
+明天|míngtiān|내일|明天见！|Míngtiān jiàn!|내일 만나요!
+昨天|zuótiān|어제|昨天我去商店了。|Zuótiān wǒ qù shāngdiàn le.|어제 저는 가게에 갔어요.
+医生|yīshēng|의사|我妈妈是医生。|Wǒ māma shì yīshēng.|우리 엄마는 의사예요.
+电脑|diànnǎo|컴퓨터|我家有两台电脑。|Wǒ jiā yǒu liǎng tái diànnǎo.|우리 집에는 컴퓨터가 두 대 있어요.
+热|rè|덥다|今天太热了！|Jīntiān tài rè le!|오늘 너무 더워요!
+漂亮|piàoliang|예쁘다|你的衣服很漂亮。|Nǐ de yīfu hěn piàoliang.|옷이 아주 예뻐요.
+中国菜|Zhōngguó cài|중국 요리|我喜欢吃中国菜。|Wǒ xǐhuan chī Zhōngguó cài.|저는 중국 요리를 좋아해요.
+请坐|qǐng zuò|앉으세요|请进，请坐！|Qǐng jìn, qǐng zuò!|들어오세요, 앉으세요!
+不客气|bú kèqi|천만에요|不客气，我们是朋友。|Bú kèqi, wǒmen shì péngyou.|천만에요, 우리는 친구잖아요.
+现在|xiànzài|지금|我现在很忙。|Wǒ xiànzài hěn máng.|저는 지금 아주 바빠요.
+下午|xiàwǔ|오후|下午我们有体育课。|Xiàwǔ wǒmen yǒu tǐyùkè.|오후에 우리는 체육 수업이 있어요.
+同学|tóngxué|반 친구|他是我的同学。|Tā shì wǒ de tóngxué.|그는 제 반 친구예요.
+高|gāo|키가 크다|他个子很高。|Tā gèzi hěn gāo.|그는 키가 아주 커요.
+去|qù|가다|你去哪儿？|Nǐ qù nǎr?|어디 가요?
+看电视|kàn diànshì|텔레비전을 보다|晚上我和爸爸看电视。|Wǎnshang wǒ hé bàba kàn diànshì.|저녁에 저는 아빠와 텔레비전을 봐요.
+买|mǎi|사다|我想买一本书。|Wǒ xiǎng mǎi yì běn shū.|저는 책을 한 권 사고 싶어요.
+饿|è|배고프다|我饿了，我们吃饭吧。|Wǒ è le, wǒmen chī fàn ba.|배고파요, 우리 밥 먹어요.
+睡觉|shuìjiào|잠을 자다|我晚上十点睡觉。|Wǒ wǎnshang shí diǎn shuìjiào.|저는 밤 10시에 자요.
+杯子|bēizi|컵|这个杯子是我的。|Zhège bēizi shì wǒ de.|이 컵은 제 거예요.
+出租车|chūzūchē|택시|我们坐出租车吧。|Wǒmen zuò chūzūchē ba.|우리 택시 타요.
+高兴|gāoxìng|기쁘다|今天我很高兴。|Jīntiān wǒ hěn gāoxìng.|오늘 저는 아주 기뻐요.
 [2]
 认识|rènshi|알다|认识你很高兴。|Rènshi nǐ hěn gāoxìng.|만나서 반가워요.
 哪国人|nǎ guó rén|어느 나라 사람|你是哪国人？|Nǐ shì nǎ guó rén?|당신은 어느 나라 사람이에요?
@@ -71,6 +101,36 @@
 中秋节|Zhōngqiū Jié|중추절(추석)|中秋节我们吃月饼。|Zhōngqiū Jié wǒmen chī yuèbing.|중추절에 우리는 월병을 먹어요.
 春节|Chūn Jié|춘절(설날)|春节快乐！|Chūn Jié kuàilè!|즐거운 설 보내세요!
 加油|jiāyóu|힘내다|加油！你一定能行！|Jiāyóu! Nǐ yídìng néng xíng!|힘내! 너는 꼭 할 수 있어!
+教室|jiàoshì|교실|我们的教室在三楼。|Wǒmen de jiàoshì zài sān lóu.|우리 교실은 3층에 있어요.
+作业|zuòyè|숙제|今天的作业很多。|Jīntiān de zuòyè hěn duō.|오늘 숙제가 아주 많아요.
+图书馆|túshūguǎn|도서관|我常常去图书馆借书。|Wǒ chángcháng qù túshūguǎn jiè shū.|저는 자주 도서관에 가서 책을 빌려요.
+早饭|zǎofàn|아침밥|你吃早饭了吗？|Nǐ chī zǎofàn le ma?|아침 먹었어요?
+运动|yùndòng|운동|你最喜欢什么运动？|Nǐ zuì xǐhuan shénme yùndòng?|가장 좋아하는 운동이 뭐예요?
+跑步|pǎobù|달리기하다|我每天早上去公园跑步。|Wǒ měitiān zǎoshang qù gōngyuán pǎobù.|저는 매일 아침 공원에 가서 달리기를 해요.
+门口|ménkǒu|입구, 문 앞|我在学校门口等你。|Wǒ zài xuéxiào ménkǒu děng nǐ.|학교 정문 앞에서 기다릴게요.
+告诉|gàosu|알려 주다|请告诉我你的电话号码。|Qǐng gàosu wǒ nǐ de diànhuà hàomǎ.|전화번호를 알려 주세요.
+知道|zhīdào|알다|我不知道他住在哪儿。|Wǒ bù zhīdào tā zhù zài nǎr.|저는 그가 어디에 사는지 몰라요.
+可以|kěyǐ|~해도 된다|我可以进来吗？|Wǒ kěyǐ jìnlai ma?|들어가도 돼요?
+问题|wèntí|문제, 질문|老师，我有一个问题。|Lǎoshī, wǒ yǒu yí ge wèntí.|선생님, 질문이 하나 있어요.
+回答|huídá|대답하다|请你回答这个问题。|Qǐng nǐ huídá zhège wèntí.|이 질문에 대답해 주세요.
+懂|dǒng|이해하다|你听懂了吗？|Nǐ tīngdǒng le ma?|알아들었어요?
+带|dài|가지고 가다, 챙기다|别忘了带雨伞。|Bié wàng le dài yǔsǎn.|우산 챙기는 거 잊지 마세요.
+时间|shíjiān|시간|你明天有时间吗？|Nǐ míngtiān yǒu shíjiān ma?|내일 시간 있어요?
+迟到|chídào|지각하다|快点儿，我们要迟到了！|Kuài diǎnr, wǒmen yào chídào le!|빨리요, 우리 지각하겠어요!
+生病|shēngbìng|병이 나다|他生病了，今天没来上课。|Tā shēngbìng le, jīntiān méi lái shàngkè.|그는 아파서 오늘 수업에 오지 않았어요.
+医院|yīyuàn|병원|我陪奶奶去医院。|Wǒ péi nǎinai qù yīyuàn.|저는 할머니를 모시고 병원에 가요.
+药|yào|약|吃了药以后，我好多了。|Chī le yào yǐhòu, wǒ hǎo duō le.|약을 먹고 나서 훨씬 좋아졌어요.
+下雪|xià xuě|눈이 오다|冬天这里常常下雪。|Dōngtiān zhèlǐ chángcháng xià xuě.|겨울에 여기는 자주 눈이 와요.
+颜色|yánsè|색깔|你喜欢什么颜色？|Nǐ xǐhuan shénme yánsè?|무슨 색을 좋아해요?
+贵|guì|비싸다|这件衣服有点儿贵。|Zhè jiàn yīfu yǒudiǎnr guì.|이 옷은 조금 비싸요.
+拍照|pāizhào|사진을 찍다|我们在这儿拍照吧！|Wǒmen zài zhèr pāizhào ba!|우리 여기서 사진 찍어요!
+礼物|lǐwù|선물|这是送给你的礼物。|Zhè shì sòng gěi nǐ de lǐwù.|이건 당신에게 주는 선물이에요.
+开始|kāishǐ|시작하다|电影几点开始？|Diànyǐng jǐ diǎn kāishǐ?|영화는 몇 시에 시작해요?
+地铁|dìtiě|지하철|坐地铁去比较快。|Zuò dìtiě qù bǐjiào kuài.|지하철을 타고 가는 게 더 빨라요.
+第一次|dì-yī cì|처음, 첫 번째|这是我第一次来中国。|Zhè shì wǒ dì-yī cì lái Zhōngguó.|저는 이번에 처음으로 중국에 왔어요.
+班|bān|반|我们班有三十个学生。|Wǒmen bān yǒu sānshí ge xuésheng.|우리 반에는 학생이 서른 명 있어요.
+打篮球|dǎ lánqiú|농구를 하다|放学以后我们去打篮球。|Fàngxué yǐhòu wǒmen qù dǎ lánqiú.|방과 후에 우리는 농구하러 가요.
+刷牙|shuāyá|이를 닦다|睡觉以前要刷牙。|Shuìjiào yǐqián yào shuāyá.|자기 전에 이를 닦아야 해요.
 [3]
 介绍|jièshào|소개하다|我来介绍一下我自己。|Wǒ lái jièshào yíxià wǒ zìjǐ.|제 소개를 하겠습니다.
 性格|xìnggé|성격|我的性格很开朗。|Wǒ de xìnggé hěn kāilǎng.|제 성격은 아주 밝아요.
@@ -112,6 +172,36 @@
 不但|búdàn|~뿐만 아니라|她不但漂亮，而且很聪明。|Tā búdàn piàoliang, érqiě hěn cōngming.|그녀는 예쁠 뿐만 아니라 아주 똑똑해요.
 互相|hùxiāng|서로|朋友之间应该互相帮助。|Péngyou zhījiān yīnggāi hùxiāng bāngzhù.|친구 사이에는 서로 도와야 해요.
 机会|jīhuì|기회|有机会的话，欢迎你来韩国玩儿。|Yǒu jīhuì dehuà, huānyíng nǐ lái Hánguó wánr.|기회가 되면 한국에 놀러 오세요.
+觉得|juéde|~라고 생각하다|我觉得这个办法不错。|Wǒ juéde zhège bànfǎ búcuò.|저는 이 방법이 괜찮다고 생각해요.
+认为|rènwéi|여기다, 생각하다|我认为学生应该多参加课外活动。|Wǒ rènwéi xuésheng yīnggāi duō cānjiā kèwài huódòng.|저는 학생들이 과외 활동에 많이 참여해야 한다고 생각해요.
+同意|tóngyì|동의하다|我不同意你的看法。|Wǒ bù tóngyì nǐ de kànfǎ.|저는 당신의 생각에 동의하지 않아요.
+护照|hùzhào|여권|出国旅行一定要带好护照。|Chūguó lǚxíng yídìng yào dàihǎo hùzhào.|해외여행을 할 때는 꼭 여권을 잘 챙겨야 해요.
+行李|xíngli|짐|我的行李太重了，你能帮我拿一下吗？|Wǒ de xíngli tài zhòng le, nǐ néng bāng wǒ ná yíxià ma?|제 짐이 너무 무거워요, 좀 들어 줄 수 있어요?
+航班|hángbān|항공편|我们的航班推迟了一个小时。|Wǒmen de hángbān tuīchí le yí ge xiǎoshí.|우리 비행기가 한 시간 늦어졌어요.
+景色|jǐngsè|경치|这里的景色真美啊！|Zhèlǐ de jǐngsè zhēn měi a!|여기 경치가 정말 아름다워요!
+导游|dǎoyóu|가이드|导游给我们介绍了这座城市的历史。|Dǎoyóu gěi wǒmen jièshào le zhè zuò chéngshì de lìshǐ.|가이드가 우리에게 이 도시의 역사를 소개해 줬어요.
+地图|dìtú|지도|我们迷路了，看看地图吧。|Wǒmen mílù le, kànkan dìtú ba.|우리 길을 잃었어요, 지도를 좀 봐요.
+咳嗽|késou|기침하다|我这几天一直咳嗽。|Wǒ zhè jǐ tiān yìzhí késou.|저는 요 며칠 계속 기침을 해요.
+休息|xiūxi|쉬다|你应该多休息几天。|Nǐ yīnggāi duō xiūxi jǐ tiān.|며칠 더 쉬어야 해요.
+营养|yíngyǎng|영양|这些菜又好吃又有营养。|Zhèxiē cài yòu hǎochī yòu yǒu yíngyǎng.|이 요리들은 맛있으면서 영양도 풍부해요.
+熬夜|áoyè|밤을 새우다|经常熬夜对身体不好。|Jīngcháng áoyè duì shēntǐ bù hǎo.|자주 밤을 새우는 것은 몸에 안 좋아요.
+按时|ànshí|제때에|我们要按时吃饭，按时睡觉。|Wǒmen yào ànshí chī fàn, ànshí shuìjiào.|우리는 제때 밥을 먹고 제때 자야 해요.
+或者|huòzhě|또는|周末我常常看书或者打羽毛球。|Zhōumò wǒ chángcháng kàn shū huòzhě dǎ yǔmáoqiú.|주말에 저는 자주 책을 읽거나 배드민턴을 쳐요.
+还是|háishi|아니면|你想坐火车还是坐飞机？|Nǐ xiǎng zuò huǒchē háishi zuò fēijī?|기차를 타고 싶어요, 아니면 비행기를 타고 싶어요?
+然后|ránhòu|그다음에|我们先去博物馆，然后去吃午饭。|Wǒmen xiān qù bówùguǎn, ránhòu qù chī wǔfàn.|우리 먼저 박물관에 가고, 그다음에 점심 먹으러 가요.
+担心|dānxīn|걱정하다|别担心，我会帮你的。|Bié dānxīn, wǒ huì bāng nǐ de.|걱정하지 마세요, 제가 도와줄게요.
+失望|shīwàng|실망하다|没有考好，我有点儿失望。|Méiyǒu kǎohǎo, wǒ yǒudiǎnr shīwàng.|시험을 잘 못 봐서 조금 실망했어요.
+满意|mǎnyì|만족하다|我对这次的成绩很满意。|Wǒ duì zhè cì de chéngjì hěn mǎnyì.|저는 이번 성적에 아주 만족해요.
+建议|jiànyì|제안하다, 권하다|我建议大家多用公共交通。|Wǒ jiànyì dàjiā duō yòng gōnggòng jiāotōng.|여러분께 대중교통을 많이 이용하라고 권하고 싶어요.
+方便|fāngbiàn|편리하다|这里的交通非常方便。|Zhèlǐ de jiāotōng fēicháng fāngbiàn.|여기는 교통이 아주 편리해요.
+安全|ānquán|안전|过马路的时候要注意安全。|Guò mǎlù de shíhou yào zhùyì ānquán.|길을 건널 때는 안전에 주의해야 해요.
+区别|qūbié|차이|这两个词有什么区别？|Zhè liǎng ge cí yǒu shénme qūbié?|이 두 단어는 무슨 차이가 있어요?
+例如|lìrú|예를 들어|我喜欢很多运动，例如游泳和爬山。|Wǒ xǐhuan hěn duō yùndòng, lìrú yóuyǒng hé pá shān.|저는 여러 운동을 좋아하는데, 예를 들면 수영과 등산이에요.
+原来|yuánlái|알고 보니|原来你也是这个学校的学生！|Yuánlái nǐ yě shì zhège xuéxiào de xuésheng!|알고 보니 당신도 이 학교 학생이었군요!
+终于|zhōngyú|마침내, 드디어|我们终于到山顶了！|Wǒmen zhōngyú dào shāndǐng le!|우리 드디어 산꼭대기에 도착했어요!
+讨论|tǎolùn|토론하다|我们分成小组讨论了这个问题。|Wǒmen fēnchéng xiǎozǔ tǎolùn le zhège wèntí.|우리는 조를 나눠서 이 문제를 토론했어요.
+一般|yìbān|보통|周末我一般在家休息。|Zhōumò wǒ yìbān zài jiā xiūxi.|주말에 저는 보통 집에서 쉬어요.
+推荐|tuījiàn|추천하다|你能给我推荐一家好吃的饭馆吗？|Nǐ néng gěi wǒ tuījiàn yì jiā hǎochī de fànguǎn ma?|맛있는 식당 하나 추천해 줄 수 있어요?
 [4]
 坚持|jiānchí|꾸준히 하다|学外语最重要的是坚持下去。|Xué wàiyǔ zuì zhòngyào de shì jiānchí xiàqu.|외국어를 배울 때 가장 중요한 것은 꾸준히 해 나가는 것이에요.
 尽管|jǐnguǎn|비록 ~라도|尽管遇到了很多困难，他从来没有放弃过。|Jǐnguǎn yùdào le hěn duō kùnnan, tā cónglái méiyǒu fàngqì guo.|많은 어려움을 겪었지만 그는 한 번도 포기한 적이 없어요.
@@ -143,3 +233,33 @@
 实现|shíxiàn|실현하다, 이루다|为了实现自己的梦想，他每天都非常努力。|Wèile shíxiàn zìjǐ de mèngxiǎng, tā měitiān dōu fēicháng nǔlì.|자신의 꿈을 이루기 위해 그는 매일 아주 열심히 해요.
 与其|yǔqí|~하느니|与其在家里玩手机，不如出去走走。|Yǔqí zài jiā li wán shǒujī, bùrú chūqu zǒuzou.|집에서 휴대폰을 하느니 차라리 나가서 좀 걸어요.
 感受|gǎnshòu|느끼다|这次旅行让我深深感受到了中国人的热情。|Zhè cì lǚxíng ràng wǒ shēnshēn gǎnshòu dào le Zhōngguó rén de rèqíng.|이번 여행에서 중국 사람들의 따뜻한 정을 깊이 느꼈어요.
+即使|jíshǐ|설령 ~하더라도|即使失败了，我们也不应该失去信心。|Jíshǐ shībài le, wǒmen yě bù yīnggāi shīqù xìnxīn.|설령 실패하더라도 우리는 자신감을 잃으면 안 돼요.
+否则|fǒuzé|그렇지 않으면|我们得抓紧时间，否则就赶不上火车了。|Wǒmen děi zhuājǐn shíjiān, fǒuzé jiù gǎn bu shàng huǒchē le.|서둘러야 해요, 그렇지 않으면 기차를 놓칠 거예요.
+何况|hékuàng|하물며|这道题连老师都觉得难，何况我们呢？|Zhè dào tí lián lǎoshī dōu juéde nán, hékuàng wǒmen ne?|이 문제는 선생님도 어렵다고 하시는데, 하물며 우리는 어떻겠어요?
+宁可|nìngkě|차라리 ~할지언정|我宁可多花点儿时间，也要把作业做好。|Wǒ nìngkě duō huā diǎnr shíjiān, yě yào bǎ zuòyè zuòhǎo.|시간을 좀 더 들이더라도 저는 숙제를 제대로 해내고 싶어요.
+以免|yǐmiǎn|~하지 않도록|出门前请检查门窗，以免发生危险。|Chūmén qián qǐng jiǎnchá ménchuāng, yǐmiǎn fāshēng wēixiǎn.|위험한 일이 생기지 않도록 외출 전에 문과 창문을 확인해 주세요.
+甚至|shènzhì|심지어|他太专心了，甚至忘了吃午饭。|Tā tài zhuānxīn le, shènzhì wàng le chī wǔfàn.|그는 너무 집중해서 심지어 점심 먹는 것도 잊었어요.
+至于|zhìyú|~에 관해서는|我先说我的想法，至于具体的计划，我们明天再讨论。|Wǒ xiān shuō wǒ de xiǎngfǎ, zhìyú jùtǐ de jìhuà, wǒmen míngtiān zài tǎolùn.|제 생각을 먼저 말할게요, 구체적인 계획은 내일 다시 의논해요.
+不得不|bùdébù|어쩔 수 없이 ~하다|因为下大雨，运动会不得不推迟。|Yīnwèi xià dà yǔ, yùndònghuì bùdébù tuīchí.|큰비가 와서 운동회를 어쩔 수 없이 미뤄야 했어요.
+一旦|yídàn|일단 ~하면|一旦养成了坏习惯，就很难改掉。|Yídàn yǎngchéng le huài xíguàn, jiù hěn nán gǎidiào.|일단 나쁜 습관이 생기면 고치기가 아주 어려워요.
+从而|cóng'ér|그리하여|他每天坚持练习，从而大大提高了口语水平。|Tā měitiān jiānchí liànxí, cóng'ér dàdà tígāo le kǒuyǔ shuǐpíng.|그는 매일 꾸준히 연습해서 말하기 실력을 크게 높였어요.
+相反|xiāngfǎn|반대로, 오히려|我以为他会生气，相反，他笑着鼓励了我。|Wǒ yǐwéi tā huì shēngqì, xiāngfǎn, tā xiàozhe gǔlì le wǒ.|저는 그가 화낼 줄 알았는데, 오히려 웃으면서 저를 격려해 줬어요.
+对于|duìyú|~에 대해|对于这个问题，每个人的看法都不一样。|Duìyú zhège wèntí, měi ge rén de kànfǎ dōu bù yíyàng.|이 문제에 대해서 사람마다 생각이 다 달라요.
+逐渐|zhújiàn|점차|通过和中国朋友聊天，我逐渐适应了这里的生活。|Tōngguò hé Zhōngguó péngyou liáotiān, wǒ zhújiàn shìyìng le zhèlǐ de shēnghuó.|중국 친구들과 이야기하면서 저는 점차 이곳 생활에 적응했어요.
+偶尔|ǒu'ěr|가끔|我平时很少看电视，只是偶尔看看新闻。|Wǒ píngshí hěn shǎo kàn diànshì, zhǐshì ǒu'ěr kànkan xīnwén.|저는 평소에 텔레비전을 거의 안 보고, 가끔 뉴스만 봐요.
+承认|chéngrèn|인정하다|勇敢地承认错误比找借口更重要。|Yǒnggǎn de chéngrèn cuòwù bǐ zhǎo jièkǒu gèng zhòngyào.|용감하게 잘못을 인정하는 것이 핑계를 찾는 것보다 더 중요해요.
+自信|zìxìn|자신감 있다|只要充分准备，你就会变得更加自信。|Zhǐyào chōngfèn zhǔnbèi, nǐ jiù huì biàn de gèngjiā zìxìn.|충분히 준비하기만 하면 더 자신감이 생길 거예요.
+保持|bǎochí|유지하다|无论多忙，都要保持乐观的心态。|Wúlùn duō máng, dōu yào bǎochí lèguān de xīntài.|아무리 바빠도 긍정적인 마음가짐을 유지해야 해요.
+避免|bìmiǎn|피하다|为了避免误会，我们最好当面说清楚。|Wèile bìmiǎn wùhuì, wǒmen zuìhǎo dāngmiàn shuō qīngchu.|오해를 피하려면 직접 만나서 분명하게 말하는 게 좋아요.
+合作|hézuò|협력하다|这个项目需要大家互相合作才能完成。|Zhège xiàngmù xūyào dàjiā hùxiāng hézuò cái néng wánchéng.|이 프로젝트는 모두가 서로 협력해야 완성할 수 있어요.
+浪费|làngfèi|낭비하다|我们应该节约用水，不要浪费。|Wǒmen yīnggāi jiéyuē yòng shuǐ, bú yào làngfèi.|우리는 물을 아껴 쓰고 낭비하지 말아야 해요.
+积累|jīlěi|쌓다, 축적하다|知识是一点一点积累起来的。|Zhīshi shì yìdiǎn yìdiǎn jīlěi qǐlai de.|지식은 조금씩 쌓여 가는 거예요.
+吸引|xīyǐn|끌어당기다|这座城市的美食吸引了很多游客。|Zhè zuò chéngshì de měishí xīyǐn le hěn duō yóukè.|이 도시의 맛있는 음식은 많은 관광객을 끌어들였어요.
+尊重|zūnzhòng|존중하다|我们应该尊重不同国家的文化和习俗。|Wǒmen yīnggāi zūnzhòng bùtóng guójiā de wénhuà hé xísú.|우리는 다른 나라의 문화와 풍습을 존중해야 해요.
+意见|yìjiàn|의견|在做决定之前，我想先听听大家的意见。|Zài zuò juédìng zhīqián, wǒ xiǎng xiān tīngting dàjiā de yìjiàn.|결정을 내리기 전에 먼저 모두의 의견을 들어 보고 싶어요.
+获得|huòdé|얻다, 받다|她在全国作文比赛中获得了一等奖。|Tā zài quánguó zuòwén bǐsài zhōng huòdé le yīděngjiǎng.|그녀는 전국 글짓기 대회에서 1등상을 받았어요.
+后悔|hòuhuǐ|후회하다|如果现在不努力，将来一定会后悔的。|Rúguǒ xiànzài bù nǔlì, jiānglái yídìng huì hòuhuǐ de.|지금 노력하지 않으면 나중에 분명히 후회할 거예요.
+善于|shànyú|~을 잘하다|他善于倾听别人的想法，所以大家都很信任他。|Tā shànyú qīngtīng biérén de xiǎngfǎ, suǒyǐ dàjiā dōu hěn xìnrèn tā.|그는 다른 사람의 생각을 잘 들어 주어서 모두가 그를 믿어요.
+由于|yóuyú|~때문에|由于准备得很充分，我们的表演非常顺利。|Yóuyú zhǔnbèi de hěn chōngfèn, wǒmen de biǎoyǎn fēicháng shùnlì.|준비를 충분히 해서 우리 공연은 아주 순조로웠어요.
+相信|xiāngxìn|믿다|我相信，只要大家齐心协力，就没有克服不了的困难。|Wǒ xiāngxìn, zhǐyào dàjiā qíxīn-xiélì, jiù méiyǒu kèfú bu liǎo de kùnnan.|모두가 힘을 합치기만 하면 극복하지 못할 어려움은 없다고 저는 믿어요.
+曾经|céngjīng|일찍이, 예전에|我曾经以为学外语很难，现在却觉得很有意思。|Wǒ céngjīng yǐwéi xué wàiyǔ hěn nán, xiànzài què juéde hěn yǒu yìsi.|예전에는 외국어 배우기가 어렵다고 생각했는데, 지금은 오히려 아주 재미있어요.

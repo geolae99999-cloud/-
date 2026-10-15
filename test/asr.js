@@ -97,6 +97,31 @@ async function signup(p) {
     ok(want ? /정확해요/.test(txt) : !/정확해요/.test(txt), `말하기 연습: 목표 ${target}, 마이크로 "${said}" -> ${JSON.stringify(txt)}`);
     await b.close();
   }
+  // 3) 녹음 파일 채점(누구나): 문장 + 파일 -> 이 기기에서 채점, 서버로 아무것도 보내지 않아요 (말하기 연습 점수에 정확성 · 유창성)
+  {
+    const b = await chromium.launch(); const ctx = await b.newContext({ acceptDownloads: true }), p = await ctx.newPage();
+    p.on('pageerror', e => errs.push(e.message));
+    await signup(p);
+    const sent = []; p.on('request', q => { if (/supabase|functions\/v1|\/rpc\//.test(q.url()) && q.method() === 'POST') sent.push(q.url()); });
+    await p.click('[data-act="fsc-open"]'); await p.waitForSelector('#fscText');
+    await p.fill('#fscText', ['I eat an apple every day.', 'My brother likes to play soccer after school.', 'The library is very quiet in the morning.'].join('\n'));
+    await p.setInputFiles('#fscIn', [path.join(fx, 'three-sent-skip.wav'), path.join(fx, 'yes-human.wav')]);
+    await p.waitForSelector('#fscGo:not([disabled])'); const n0 = sent.length;
+    await p.click('#fscGo');
+    await p.waitForFunction(() => document.querySelectorAll('[data-act="fsc-res"]').length === 2, null, { timeout: 180000 });
+    const rs = await p.$$eval('[data-act="fsc-res"]', a => a.map(x => x.textContent.replace(/\s+/g, ' ').trim()));
+    const sc = rs.map(t => +((t.match(/(\d+)점$/) || [])[1]));
+    ok(rs.length === 2 && rs.every(t => /정확성 \d+ · 유창성 \d+ · 일치도 \d+%/.test(t)), '파일 채점 결과: 점수 + 정확성 · 유창성 · 일치도 ' + JSON.stringify(rs));
+    ok(sc[0] > 40 && sc[1] < 20, `문장 읽은 파일은 점수, 다른 말(yes) 파일은 낮게: ${sc}`);
+    ok(sent.length === n0, '채점하는 동안 서버로 보낸 요청 없음 ' + (sent.length - n0));
+    await p.click('[data-act="fsc-res"] >> nth=0'); await p.waitForSelector('.sp-det .sp-ri');
+    ok((await p.$$('.sp-det .sp-ri')).length === 3 && /빠뜨린 말/.test(await p.textContent('.sp-det')), '자세히: 문장마다 점수, 빠뜨린 문장 표시');
+    await p.screenshot({ path: path.join(__dirname, 'shots', 'qs-file.png'), fullPage: false });
+    const [dl] = await Promise.all([p.waitForEvent('download'), p.click('[data-act="fsc-csv"]')]);
+    const csv = fs.readFileSync(await dl.path(), 'utf8').replace(/^\ufeff/, '').split('\r\n');
+    ok(csv[0].startsWith('파일,점수,정확성,유창성,일치도(%),1. I eat an apple') && csv.length === 3, 'CSV ' + csv[0].slice(0, 80));
+    await b.close();
+  }
   ok(!errs.length, 'ERRORS: ' + (errs.join(' | ') || 'none'));
   srv.close();
   console.log(fails.length ? `FAILED ${fails.length}` : 'ALL OK');

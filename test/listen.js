@@ -1,0 +1,33 @@
+// 듣기 모드: 다른 앱 · 화면 꺼짐에도 이어 읽기(소리 없는 오디오 + Media Session + Wake Lock)
+const { chromium } = require('/opt/node22/lib/node_modules/playwright');
+const http = require('http'), fs = require('fs'), path = require('path');
+const root = path.join(__dirname, 'site');
+let fails = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); if (!c) fails++; };
+const srv = http.createServer((q, r) => { let f = path.join(root, decodeURIComponent(q.url.split('?')[0])); if (f.endsWith('/')) f += 'index.html'; fs.readFile(f, (e, d) => { if (e) { r.writeHead(404); return r.end(); } r.writeHead(200, { 'Content-Type': /\.js$/.test(f) ? 'text/javascript' : f.endsWith('.css') ? 'text/css' : f.endsWith('.json') ? 'application/json' : 'text/html; charset=utf-8' }); r.end(d); }); }).listen(8791);
+(async () => {
+  const b = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required'] }), p = await (await b.newContext()).newPage(), errs = [];
+  p.on('pageerror', e => errs.push(e.message));
+  await p.addInitScript(() => { window.__said = []; speechSynthesis.speak = u => { __said.push(u.text); setTimeout(() => { u.onstart && u.onstart(); setTimeout(() => u.onend && u.onend(), 30); }, 5); }; });
+  await p.goto('http://localhost:8791/'); await p.waitForSelector('#authScreen .auth-box');
+  await p.click('[data-act="auth-mode"][data-m="signup"]'); await p.waitForTimeout(200);
+  await p.fill('#auId', 'lsuser'); await p.fill('#auPw', 'pass1234'); await p.fill('#auPw2', 'pass1234');
+  await p.selectOption('#auGrade', 'm2'); await p.fill('#auName', '김지우'); await p.fill('#auSchool', '한빛중학교'); await p.fill('#auSno', '20315'); await p.check('#auTerms');
+  await p.fill('#capIn', await p.evaluate('capText')); await p.click('#auGo');
+  await p.waitForSelector('#obOv'); await p.click('[data-ob="skip"]'); await p.waitForSelector('#ltOv'); await p.click('[data-lt="close"]');
+  await p.waitForSelector('#recOv.show'); await p.click('#recOv [data-act="rec-close"]'); await p.waitForTimeout(300);
+  await p.evaluate(() => { config.gap = 0; categories.push({ id: 'cL', name: 'L', words: ['apple', 'river', 'cat'].map(w => sanitizeWord({ id: uid(), word: w, meaning: '뜻' })) }); syncStorage(); startSession('listen', { type: 'cat', id: 'cL' }, 3); });
+  await p.waitForFunction(() => __said.length >= 2); 
+  const r0 = await p.evaluate(() => ({ meta: navigator.mediaSession.metadata && navigator.mediaSession.metadata.title, state: navigator.mediaSession.playbackState, keep: !!lsKeep && !lsKeep.paused }));
+  ok(r0.meta && r0.state === 'playing' && r0.keep, '읽는 동안: 소리 없는 오디오 켜짐 · 잠금 화면 정보 ' + JSON.stringify(r0));
+  await p.waitForTimeout(1500);
+  const r = await p.evaluate(() => ({ said: __said.slice(0, 6), meta: navigator.mediaSession.metadata && navigator.mediaSession.metadata.title, state: navigator.mediaSession.playbackState, keep: !!lsKeep && !lsKeep.paused, hint: document.querySelector('.l-bg') && document.querySelector('.l-bg').textContent }));
+  ok(r.said.length === 6 && r.state === 'paused' && !r.keep && /화면을 꺼도/.test(r.hint), '한 바퀴 끝나면 멈춤 · 안내 문구 ' + JSON.stringify(r));
+  await p.click('[data-act="l-toggle"]'); await p.waitForTimeout(100);
+  ok(await p.evaluate(() => navigator.mediaSession.playbackState === 'playing' && !lsKeep.paused), '다시 재생');
+  await p.evaluate(() => navigator.mediaSession.metadata && 0); await p.click('[data-act="l-toggle"]');
+  ok(await p.evaluate(() => navigator.mediaSession.playbackState === 'paused' && lsKeep.paused), '일시정지하면 오디오도 멈춤');
+  await p.evaluate(() => exitSession(true));
+  ok(await p.evaluate(() => navigator.mediaSession.playbackState === 'none'), '나가면 잠금 화면 정보 정리');
+  ok(!errs.length, 'ERRORS: ' + (errs.join(' | ') || 'none'));
+  await b.close(); srv.close(); process.exit(fails ? 1 : 0);
+})();

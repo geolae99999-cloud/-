@@ -703,7 +703,7 @@
     }
     L.token++;
     try { window.speechSynthesis.cancel(); } catch (e) {}
-    S.active = false; spkStop();
+    S.active = false; spkStop(); listenKeep(false);
     $('studyScreen').classList.remove('open');
     if (!$('sheetOv').classList.contains('open')) document.body.classList.remove('no-scroll');
     go(curTab); clPing(true);
@@ -744,13 +744,47 @@
           <label class="switch-row"><input type="checkbox" ${L.example ? 'checked' : ''} data-change="listen-ex"> 예문도 읽어주기</label>
           <label class="switch-row"><input type="checkbox" ${L.exKo ? 'checked' : ''} data-change="listen-exko"> 예문 해석도</label>
         </div>
+        <p class="l-bg muted">${/iPhone|iPad|iPod/.test(navigator.userAgent) ? '아이폰은 화면이 켜져 있는 동안 읽어요. 듣는 동안은 화면이 저절로 꺼지지 않아요.' : '다른 앱으로 가거나 화면을 꺼도 이어서 읽어요. 잠금 화면에서 멈춤 · 다음을 누를 수 있어요.'}</p>
       </div>`;
   }
+  // 화면을 끄거나 다른 앱으로 가도 이어서 읽어요: 소리 없는 오디오를 함께 틀어 두면 브라우저가 이 페이지를 재우지 않아요.
+  // 잠금 화면 · 알림의 재생/멈춤/이전/다음 버튼(Media Session), 켜져 있는 동안은 화면이 저절로 꺼지지 않게(Wake Lock)
+  let lsKeep = null, lsLock = null, lsUrl = '';
+  function lsSilent() {
+    if (lsUrl) return lsUrl;
+    const n = 8000, b = new ArrayBuffer(44 + n), v = new DataView(b), str = (o, t) => [...t].forEach((c, i) => v.setUint8(o + i, c.charCodeAt(0)));
+    str(0, 'RIFF'); v.setUint32(4, 36 + n, true); str(8, 'WAVEfmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+    v.setUint32(24, 8000, true); v.setUint32(28, 8000, true); v.setUint16(32, 1, true); v.setUint16(34, 8, true); str(36, 'data'); v.setUint32(40, n, true);
+    new Uint8Array(b, 44).fill(128);
+    return (lsUrl = URL.createObjectURL(new Blob([b], { type: 'audio/wav' })));
+  }
+  function listenKeep(on) {
+    const ms = 'mediaSession' in navigator ? navigator.mediaSession : null;
+    if (on) {
+      try { if (!lsKeep) { lsKeep = new Audio(lsSilent()); lsKeep.loop = true; lsKeep.setAttribute('playsinline', ''); } const p = lsKeep.play(); if (p && p.catch) p.catch(() => {}); } catch (e) {}
+      if (ms) {
+        try { ms.playbackState = 'playing'; } catch (e) {}
+        const h = { play: () => { if (!L.playing) ACTIONS['l-toggle'](); }, pause: () => { if (L.playing) ACTIONS['l-toggle'](); }, nexttrack: () => ACTIONS['l-next'](), previoustrack: () => ACTIONS['l-prev'](), stop: () => { if (L.playing) ACTIONS['l-toggle'](); } };
+        Object.keys(h).forEach(k => { try { ms.setActionHandler(k, h[k]); } catch (e) {} });
+      }
+      if ('wakeLock' in navigator && !lsLock && !document.hidden) navigator.wakeLock.request('screen').then(l => { lsLock = l; l.addEventListener('release', () => { if (lsLock === l) lsLock = null; }); }).catch(() => {});
+    } else {
+      try { if (lsKeep) lsKeep.pause(); } catch (e) {}
+      if (ms) try { ms.playbackState = S.active && S.mode === 'listen' ? 'paused' : 'none'; } catch (e) {}
+      if (lsLock) { try { lsLock.release(); } catch (e) {} lsLock = null; }
+    }
+  }
+  function listenMeta(w) {
+    if (!('mediaSession' in navigator) || typeof MediaMetadata !== 'function') return;
+    try { navigator.mediaSession.metadata = new MediaMetadata({ title: w.word, artist: w.meaning, album: `VocaPro 듣기 ${L.i + 1}/${L.items.length}`, artwork: [{ src: 'icon-192.png', sizes: '192x192', type: 'image/png' }, { src: 'icon-512.png', sizes: '512x512', type: 'image/png' }] }); } catch (e) {}
+  }
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && S.active && S.mode === 'listen' && L.playing) listenKeep(true); });
   async function listenLoop(token) {
     const alive = () => L.token === token && L.playing;
+    if (alive()) listenKeep(true);
     while (alive() && L.i < L.items.length) {
       const w = L.items[L.i].w, wl = ttsLang(w.word), ref = voiceFor(wl), gap = clampN(config.gap, 0, 5, .9) * 1000, rep = Math.round(clampN(config.wordRep, 1, 3, 1));
-      renderListen();
+      renderListen(); listenMeta(w);
       for (let k = 0; k < rep && alive(); k++) { if (k) await sleep(Math.max(250, gap / 2)); await speak(w.word, wl, { ref }); }
       if (!alive()) return;
       await sleep(Math.max(200, gap / 2));
@@ -767,7 +801,7 @@
       L.i++;
     }
     if (L.token === token && L.i >= L.items.length) {
-      L.playing = false; L.i = L.items.length - 1;
+      L.playing = false; L.i = L.items.length - 1; listenKeep(false);
       $('stProg').style.width = '100%';
       toast('한 바퀴 끝! 다시 들으려면 재생을 누르세요.');
       renderListen();
@@ -777,7 +811,7 @@
   function listenRestart() { L.token++; try { window.speechSynthesis.cancel(); } catch (e) {} renderListen(); if (L.playing) listenLoop(L.token); }
   ACTIONS['l-toggle'] = () => {
     L.playing = !L.playing;
-    if (!L.playing) { L.token++; try { window.speechSynthesis.cancel(); } catch (e) {} renderListen(); }
+    if (!L.playing) { L.token++; try { window.speechSynthesis.cancel(); } catch (e) {} listenKeep(false); renderListen(); }
     else { L.token++; listenLoop(L.token); }
   };
   // 단어·예문 속도는 0.05씩, 한국어 뜻 속도도 같은 비율로 따라 움직여요.

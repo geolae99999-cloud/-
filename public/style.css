@@ -292,6 +292,7 @@
     .spk-out .ok { color: var(--mint); } .spk-out .bad { color: var(--coral); }
     .sent-rows { display: flex; flex-direction: column; gap: 8px; } .sent-rows:empty { display: none; }
     .sent-row { display: flex; flex-direction: column; gap: 6px; padding: 12px; border-radius: 14px; background: var(--surface-2); }
+    .sent-to { display: flex; align-items: center; gap: 8px; font-size: .84rem; color: var(--muted); } .sent-to select { flex: 1; min-width: 0; background: var(--surface); min-height: 40px; }
     .sent-row b { font-weight: 700; line-height: 1.45; word-break: break-word; } .sent-row input { background: var(--surface); min-height: 44px; padding: 10px 12px; } .sent-row .sent-py { color: var(--blue); font-weight: 600; }
     .spk-out .spk-af { justify-content: center; margin-top: 6px; }
     .q-sub .ex-ko { color: var(--muted); }
@@ -1391,6 +1392,7 @@
     .l-speed .l-br { flex-basis: 100%; height: 0; }
     .l-speed .chip { background: var(--surface); border: 1px solid var(--line); color: var(--ink-2); border-radius: 999px; font-weight: 700; }
     .l-speed .chip.on { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+    .l-bg { text-align: center; font-size: .8rem; margin: 10px 0 0; line-height: 1.5; }
     .l-opts { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px 18px; }
 
     /* ----- 추천 단어장 책장 ----- */

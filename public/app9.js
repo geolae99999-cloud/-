@@ -215,6 +215,8 @@
       } else {
         const u = users[key];
         if (!u || (await hashPw(pw, u.s, u.m)) !== u.h) return fail('아이디 또는 비밀번호가 맞지 않아요.');
+        // 예전 약한 해시로 만든 계정은 맞게 로그인했을 때 PBKDF2로 바꿔 저장해요.
+        if (u.m !== 'p' && hasCrypto()) { try { u.m = 'p'; u.s = Math.random().toString(36).slice(2) + Date.now().toString(36); u.h = await hashPw(pw, u.s, 'p'); saveUsers(users); } catch (e) {} }
       }
     } catch (e) { return fail(e.message || '오류가 발생했어요.'); }
     try { LS.removeItem(KEY_SESS); sessionStorage.removeItem(KEY_SESS); (keep ? LS : sessionStorage).setItem(KEY_SESS, key); } catch (e) {}
@@ -255,6 +257,21 @@
     ['studyScreen', 'sheetOv'].forEach(i => $(i).classList.remove('open'));
     if (kidMode) { setKidMode(false); try { LS.removeItem(KEY_KID); } catch (e) {} }
     showAuth();
+  };
+  // 공용 컴퓨터: 서버에 다 올라간 걸 확인한 뒤 이 기기에 남은 이 계정의 단어 · 설정 · 기록을 지워요.
+  ACTIONS['logout-wipe'] = async () => {
+    if (!cloudMode || !currentUser) return ACTIONS.logout();
+    if (!await ask('이 기기에 저장된 내 단어, 설정, 기록을 지우고 로그아웃해요. 서버에 저장된 건 그대로라 다시 로그인하면 돌아와요.', { ok: '지우고 로그아웃' })) return;
+    await cloudPush();
+    if (LS.getItem(KEY_DATA + ':dirty')) return say('서버 저장이 끝나지 않아 지우지 않았어요. 인터넷을 확인하고 다시 눌러 주세요.');
+    const u = currentUser;
+    try {
+      const del = [];
+      for (let i = 0; i < LS.length; i++) { const k = LS.key(i); if (k && (k.endsWith(':' + u) || k.includes(':' + u + ':') || k === AIC_KEY || k === 'vocapro_last_label')) del.push(k); }
+      del.forEach(k => LS.removeItem(k)); aiCache = null;
+    } catch (e) {}
+    await ACTIONS.logout();
+    toast('이 기기에서 지웠어요.');
   };
   ACTIONS['acct-del'] = async () => {
     if (!await ask(`'${currentUser}' 계정과 모든 단어, 학습 기록이 삭제돼요.\n되돌릴 수 없어요. 계속할까요?`, { ok: '삭제', danger: true })) return;

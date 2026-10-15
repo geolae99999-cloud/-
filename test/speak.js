@@ -75,6 +75,15 @@ globalThis.Deno = { env: { get: k => env[k] }, serve: h => { edge = h; } };
 const stubSb = { createClient: () => ({ rpc: async (fn, args) => {
   try { return { data: call('service_role', fn, args), error: null }; }
   catch (e) { const m = String(e.stderr || e.message); return { data: null, error: { code: /does not exist/.test(m) ? '42883' : 'XX000', message: m.slice(0, 200) } }; }
+}, from: tbl => { // service_role 표 읽기(select · eq · maybeSingle · head count)만
+  const q = { cols: '*', where: [], head: false }, w = () => q.where.join(' and ') || 'true';
+  const b = {
+    select(c, o) { q.cols = c; q.head = !!(o && o.head); return b; },
+    eq(c, v) { q.where.push(`${c} = '${String(v).replace(/'/g, "''")}'`); return b; },
+    maybeSingle() { return Promise.resolve({ data: JSON.parse(psql(`select coalesce(json_agg(t), '[]') from (select ${q.cols} from public.${tbl} where ${w()} limit 1) t`))[0] || null, error: null }); },
+    then(ok, no) { return Promise.resolve(q.head ? { count: +psql(`select count(*) from public.${tbl} where ${w()}`), error: null } : { data: JSON.parse(psql(`select coalesce(json_agg(t), '[]') from (select ${q.cols} from public.${tbl} where ${w()}) t`)), error: null }).then(ok, no); }
+  };
+  return b;
 } }) };
 {
   const src = fs.readFileSync(path.join(__dirname, '..', 'supabase', 'functions', 'ai', 'index.ts'), 'utf8');

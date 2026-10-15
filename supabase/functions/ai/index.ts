@@ -1,9 +1,13 @@
-// supabase/functions/ai/index.ts  (v12)
+// supabase/functions/ai/index.ts  (v13)
 // 배포: supabase functions deploy ai --no-verify-jwt --project-ref psmmrwhmpezyeehjivav
 // 비밀키: supabase secrets set GEMINI_API_KEY=... AI_DAILY_LIMIT=40 AI_GLOBAL_LIMIT=3000
 //   선택: AI_PRON_LIMIT=200 (선생님 한 명의 하루 발음 채점 횟수. 일반 AI 한도와 따로 세요)
 //   선택: GEMINI_PRON_MODEL=gemini-2.5-flash (발음 채점 모델. gemini-2.5-pro 로 바꾸면 더 꼼꼼하지만 느리고 비싸요)
 //   선택: ALLOWED_ORIGINS=https://vocapro.kro.kr,https://vocapro.pages.dev (쉼표로 구분, 기본값이 이 세 주소)
+//
+// v13 변경점 (SQL 변경 없음, 보안)
+// - 발음 채점의 전체 하루 한도를 일반 AI와 따로 세요(AI_PRON_GLOBAL, 기본 2000). 파일 채점을 많이 보내도 단어 채우기 같은 일반 AI는 막히지 않아요.
+// - 받은 파일 채점(Gemini)은 학생이 1명 이상 들어온 반의 과제에서만 돼요.
 //
 // v12 변경점 (SQL 변경 없음)
 // - { task: 'pinyin', py, lang: 'zh' } : 병음(xuexi, xué xí)으로 흔한 중국어 단어(간체)를 5개까지 찾아 줘요. 단어 추가에서 병음을 쓰면 써요.
@@ -391,6 +395,12 @@ Deno.serve(async (req) => {
       if (noFn(oe)) return out({ error: "발음 평가는 서버 설정(supabase_update_v11.sql)을 마치면 쓸 수 있어요.", code: "missing" }, 501);
       if (oe) return out({ error: "잠시 후 다시 시도해 주세요." }, 503);
       if (own !== true) return out({ error: "AI 채점은 이 과제를 낸 선생님만 할 수 있어요.", code: "not_owner" }, 403);
+      // v13: 받은 파일 채점(Gemini)은 학생이 1명 이상 들어온 반에서만. 빈 반을 만들어 AI만 쓰는 것을 막아요(기기 AI 채점은 언제나 무료)
+      if (pfile) {
+        const { data: a } = await sb.from("voca_assignments").select("class_id").eq("id", assign).maybeSingle();
+        const { count } = a ? await sb.from("voca_class_members").select("uid", { count: "exact", head: true }).eq("class_id", a.class_id) : { count: 0 };
+        if (!count) return out({ error: "파일 AI 채점은 학생이 반에 1명 이상 들어온 뒤에 쓸 수 있어요. 지금은 기기 AI로 채점해 주세요.", code: "no_students" }, 403);
+      }
       if (pfile) items = fileItems;
       else {
         const student = typeof body.student === "string" ? body.student.slice(0, 64) : "";
@@ -412,7 +422,13 @@ Deno.serve(async (req) => {
     const limit = pron ? Number(Deno.env.get("AI_PRON_LIMIT") ?? "200") : Number(Deno.env.get("AI_DAILY_LIMIT") ?? "40");
     const global = Number(Deno.env.get("AI_GLOBAL_LIMIT") ?? "3000");
     const useId = (pron ? "pron:" : "") + String(me.id);
-    let { data: ok, error: useErr } = await sb.rpc("voca_ai_use", { p_uid: useId, p_limit: limit, p_global: global });
+    // v13: 발음 채점은 전체 한도도 따로 세요(AI_PRON_GLOBAL, 기본 2000). 계정을 여러 개 만들어 파일 채점을 잔뜩 보내도 일반 AI(단어 채우기 등)는 막히지 않아요
+    let { data: ok, error: useErr } = await sb.rpc("voca_ai_use", { p_uid: useId, p_limit: limit, p_global: pron ? 0 : global });
+    if (pron && !useErr && ok) {
+      const pg = await sb.rpc("voca_ai_use", { p_uid: "pron:*", p_limit: Number(Deno.env.get("AI_PRON_GLOBAL") ?? "2000"), p_global: 0 });
+      if (pg.error) return out({ error: "잠시 후 다시 시도해 주세요." }, 503);
+      if (!pg.data) return out({ error: "오늘 전체 발음 AI 채점 한도를 다 썼어요. 내일 다시 쓰거나 기기 AI로 채점해 주세요.", code: "limit" }, 429);
+    }
     // supabase_update_v8.sql 을 아직 실행하지 않았으면 예전 함수(계정별 한도만)로 세요.
     // 함수가 없을 때(PGRST202, 42883)만 예전 함수로 바꾸고, 다른 오류면 전체 한도를 건너뛰지 않게 멈춰요.
     if (useErr) {

@@ -226,6 +226,18 @@
     return zhIdxP;
   }
   // 중국어 말하기 문장 (난이도 하 · 중 · 상 · 최상): {1|2|3|4: [[단어, 단어 병음, 뜻, 문장, 문장 병음, 해석], ...]}
+  // 영어 말하기 문장 (난이도 하 · 중 · 상 · 최상): {1|2|3|4: [[단어, 뜻, 문장, 해석], ...]}
+  let esData = null, esP = null;
+  function esLoad() {
+    if (!esP) esP = fetch('dict/en-speak.json').then(r => r.ok ? r.json() : null).catch(() => null).then(d => {
+      if (!d || !Array.isArray(d[1])) { esP = null; return null; }
+      esData = d; gwCache = {};
+      if (!isZh() && currentUser && curTab === 'tabHome' && !S.active) { try { renderHome(); } catch (e) {} }
+      return d;
+    });
+    return esP;
+  }
+  const spkPackLoad = k => k.startsWith('es') ? esLoad() : zsLoad();
   let zsData = null, zsP = null;
   function zsLoad() {
     if (!zsP) zsP = fetch('dict/zh/speak.json').then(r => r.ok ? r.json() : null).catch(() => null).then(d => {

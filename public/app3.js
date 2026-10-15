@@ -231,7 +231,7 @@
       <div class="seg" style="margin-bottom:14px;">
         <button class="on" data-act="add-tab" data-t="one">한 개씩</button>
         <button data-act="add-tab" data-t="bulk">여러 개</button>
-        <button data-act="add-tab" data-t="sent">문장</button>
+        <button data-act="add-tab" data-t="sent">문장·예문</button>
         <button data-act="gx-open" data-from="book">글·사진</button>
       </div>
       <div id="addOne" class="form-stack">${wordFormHtml(null)}</div>
@@ -241,12 +241,12 @@
         <button class="btn btn-soft" id="btnSentFill" data-act="sent-fill">해석${isZh() ? ' · 병음' : ''} 채우기</button>
         <div id="sentRows" class="sent-rows"></div>
         <button class="btn btn-primary btn-block" id="btnSentSave" data-act="sent-save">문장 저장</button>
-        <p class="muted cl-p">문장은 단어처럼 단어장에 들어가요. 말하기 연습과 발음 평가(단어만)에서는 문장으로 읽어요(녹음 최대 10초).${isZh() ? ' 병음은 HSK 단어 목록으로 자동으로 붙여요. 틀린 곳은 고쳐 주세요.' : ''}</p>
+        <p class="muted cl-p">문장에 이 단어장의 단어가 들어 있으면 그 단어의 예문으로 넣을 수 있어요(문장마다 '넣을 곳'에서 골라요). 새 문장으로 넣으면 단어처럼 들어가고, 말하기 연습과 발음 평가(단어만)에서 문장으로 읽어요(녹음 최대 10초).${isZh() ? ' 병음은 HSK 단어 목록으로 자동으로 붙여요. 틀린 곳은 고쳐 주세요.' : ''}</p>
       </div>
       <div id="addBulk" class="form-stack" style="display:none;">
         <textarea id="bulkText" placeholder="한 줄에 단어 하나씩 붙여넣으세요.&#10;&#10;${isZh() ? '学习&#10;朋友&#10;苹果, 사과' : 'consistent&#10;reluctant&#10;apple, 사과'}&#10;&#10;뜻을 같이 적으면(쉼표, 탭, ' - ' 구분) 그 뜻을 쓰고 나머지는 AI가 채워요."></textarea>
-        <div class="bulk-status" id="bulkStatus">한 번에 최대 60개까지 넣을 수 있어요.</div>
-        <button class="btn btn-primary btn-block" id="btnBulk" data-act="bulk-run">AI로 한꺼번에 채우고 저장</button>
+        <div class="bulk-status" id="bulkStatus">한 번에 최대 60개까지 넣을 수 있어요. 내장 사전에 있는 단어는 바로 채우고, 없는 단어만 AI가 채워요.</div>
+        <button class="btn btn-primary btn-block" id="btnBulk" data-act="bulk-run">한꺼번에 채우고 저장</button>
       </div>`);
     if (!bulkBusy) bulkCancel = false;
     setTimeout(() => { const f = $('fieldWord'); if (f) f.focus(); }, 250);
@@ -340,7 +340,15 @@
     out = out.replace(/\s+/g, ' ').trim();
     return out.charAt(0).toUpperCase() + out.slice(1);
   }
-  const sentRowHtml = (t, ko, py) => `<div class="sent-row"><b lang="${HAN.test(t) ? 'zh-CN' : 'en'}">${esc(t)}</b>${isZh() ? `<input type="text" class="sent-py" value="${esc(py || '')}" placeholder="병음" aria-label="병음">` : ''}<input type="text" class="sent-ko" value="${esc(ko || '')}" placeholder="해석" aria-label="해석"></div>`;
+  // 이 단어장에서 문장 속에 들어 있는 단어(영어는 -s · -ed · -ing 같은 꼴도) -> 그 단어의 예문으로 넣을 수 있어요
+  function sentHosts(t) {
+    const cat = curCat(); if (!cat) return [];
+    const low = String(t).toLowerCase(), re = w => new RegExp(`(^|[^a-z])${w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(s|es|d|ed|ing|'s)?($|[^a-z])`);
+    return cat.words.filter(w => w.word && w.word.toLowerCase() !== low && (HAN.test(w.word) ? String(t).includes(w.word) : !sentLike(w.word) && re(w.word.toLowerCase()).test(low)))
+      .sort((a, b) => b.word.length - a.word.length).slice(0, 6);
+  }
+  const sentRowHtml = (t, ko, py) => { const hs = sentHosts(t), pick = hs.findIndex(w => !w.example); return `<div class="sent-row"><b lang="${HAN.test(t) ? 'zh-CN' : 'en'}">${esc(t)}</b>${isZh() ? `<input type="text" class="sent-py" value="${esc(py || '')}" placeholder="병음" aria-label="병음">` : ''}<input type="text" class="sent-ko" value="${esc(ko || '')}" placeholder="해석" aria-label="해석">
+      <label class="sent-to"><span>넣을 곳</span><select class="sent-dest" aria-label="넣을 곳">${hs.map((w, i) => `<option value="${esc(w.id)}"${i === pick ? ' selected' : ''}>'${esc(w.word)}' 예문으로${w.example ? ' (지금 예문 바꿈)' : ''}</option>`).join('')}<option value=""${pick < 0 ? ' selected' : ''}>새 문장으로</option></select></label></div>`; };
   ON.input['sent-text'] = () => { const box = $('sentRows'); if (box && box.dataset.for !== $('sentText').value) { box.innerHTML = ''; box.dataset.for = ''; } };
   async function sentFill() {
     const lines = sentLines(), box = $('sentRows'), btn = $('btnSentFill'); if (!box) return null;
@@ -363,15 +371,23 @@
   ACTIONS['sent-save'] = async () => {
     const cat = curCat(); if (!cat) return;
     const box = $('sentRows');
-    let rows = box && box.dataset.for === $('sentText').value ? [...box.querySelectorAll('.sent-row')].map(r => ({ t: r.querySelector('b').textContent, ko: r.querySelector('.sent-ko').value.trim(), py: r.querySelector('.sent-py') ? r.querySelector('.sent-py').value.trim() : '' })) : null;
-    if (!rows || !rows.length) { rows = await sentFill(); if (!rows) return; }
+    const readRows = () => [...box.querySelectorAll('.sent-row')].map(r => ({ t: r.querySelector('b').textContent, ko: r.querySelector('.sent-ko').value.trim(), py: r.querySelector('.sent-py') ? r.querySelector('.sent-py').value.trim() : '', dest: r.querySelector('.sent-dest').value }));
+    let rows = box && box.dataset.for === $('sentText').value ? readRows() : null;
+    if (!rows || !rows.length) { if (!(await sentFill())) return; rows = readRows(); }
     if (rows.some(x => !x.ko)) return toast('해석이 빈 문장이 있어요. 채운 뒤 저장해 주세요.');
-    const have = new Set(cat.words.map(w => w.word.toLowerCase())), add = rows.filter(x => !have.has(x.t.toLowerCase()));
-    add.slice().reverse().forEach(x => cat.words.unshift(sanitizeWord({ id: uid(), word: x.t, meaning: x.ko, phonetic: x.py })));
+    const have = new Set(cat.words.map(w => w.word.toLowerCase()));
+    let nNew = 0, nEx = 0, dup = 0; const fresh = [];
+    rows.forEach(x => {
+      const host = x.dest && cat.words.find(w => w.id === x.dest);
+      if (host) { host.example = x.t; host.exampleKo = x.ko; host.exPy = isZh() ? x.py : ''; nEx++; return; }
+      if (have.has(x.t.toLowerCase())) { dup++; return; }
+      have.add(x.t.toLowerCase()); fresh.push(sanitizeWord({ id: uid(), word: x.t, meaning: x.ko, phonetic: x.py })); nNew++;
+    });
+    cat.words.unshift(...fresh);
     syncStorage(); renderBookDynamic();
     $('sentText').value = ''; box.innerHTML = ''; box.dataset.for = '';
-    const dup = rows.length - add.length;
-    toast(add.length ? `문장 ${add.length}개를 저장했어요.${dup ? ` (이미 있는 ${dup}개는 건너뛰었어요)` : ''}` : '모두 이미 있는 문장이에요.');
+    const parts = [nEx && `예문 ${nEx}개`, nNew && `새 문장 ${nNew}개`].filter(Boolean);
+    toast(parts.length ? `${parts.join(', ')}를 저장했어요.${dup ? ` (이미 있는 ${dup}개는 건너뛰었어요)` : ''}` : '모두 이미 있는 문장이에요.');
   };
 
   function saveNewWord() {
@@ -405,8 +421,22 @@
     if (!entries.length) return toast(skipped ? '모두 이미 있는 단어예요.' : '단어를 한 줄에 하나씩 입력하세요.');
     bulkBusy = true; btn.dataset.running = '1'; btn.textContent = '중지'; bulkCancel = false;
     const status = $('bulkStatus'); let stopped = '', done = 0;
-    const res = new Map(); const need = [];
-    entries.forEach(e => { const h = aicGet(e.word); if (h) res.set(e.word.toLowerCase(), h); else need.push(e); });
+    const res = new Map(); const need = [], pyMany = [];
+    // 중국어 병음 줄은 HSK 목록에서 한자 하나로 정해질 때만 바꿔요(여럿이면 알려 줘요)
+    if (isZh()) for (const e of entries) {
+      if (!isPyInput(e.word)) continue;
+      const c = await pyCands(e.word);
+      if (c.length === 1 && !seen.has(c[0][0].toLowerCase())) { seen.add(c[0][0].toLowerCase()); e.py = e.word; e.word = c[0][0]; } else if (c.length > 1) pyMany.push(`${e.word}(${c.slice(0, 4).map(x => x[0]).join('·')})`);
+    }
+    // 내장 사전에 있는 단어는 AI 없이 바로 채워요
+    status.textContent = '내장 사전에서 찾는 중...';
+    try { await dictPreload(entries.map(e => e.word)); } catch (e) {}
+    let fromDict = 0;
+    for (const e of entries) {
+      let d = null; try { d = await dictGet(e.word); } catch (err) {}
+      if (d && d.meaning) { res.set(e.word.toLowerCase(), d); fromDict++; continue; }
+      const h = aicGet(e.word); if (h) res.set(e.word.toLowerCase(), h); else need.push(e);
+    }
     const chunks = []; for (let i = 0; i < need.length; i += 6) chunks.push(need.slice(i, i + 6));
     const upd = () => { status.textContent = `${Math.min(entries.length, entries.length - need.length + done)} / ${entries.length} 처리 중...`; };
     let ci = 0; upd();
@@ -436,10 +466,11 @@
     });
     cat.words.unshift(...items);
     syncStorage(); bulkBusy = false; bulkCancel = false;
-    btn.dataset.running = '0'; btn.textContent = 'AI로 한꺼번에 채우고 저장';
+    btn.dataset.running = '0'; btn.textContent = '한꺼번에 채우고 저장';
     renderBookDynamic();
-    let msg = `${items.length}개 저장했어요.`;
+    let msg = `${items.length}개 저장했어요.${fromDict ? ` (내장 사전 ${fromDict}개${items.length - fromDict > 0 ? `, AI ${items.length - fromDict}개` : ''})` : ''}`;
     if (skipped) msg += `\n이미 있어서 건너뜀 ${skipped}개`;
+    if (pyMany.length) msg += `\n병음이 여러 한자에 맞아요(한자로 적어 주세요): ${pyMany.join(', ')}`;
     if (failed.length) msg += `\n실패 ${failed.length}개: ${failed.join(', ')}`;
     if (stopped) msg += `\n${stopped}`;
     status.textContent = msg;
