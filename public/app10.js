@@ -415,10 +415,10 @@
   // 움직임 줄이기 설정이면 자동 재생하지 않고 첫 장면만 보여 줘요. 화면에 보일 때만 재생해요.
   function landingVideo() {
     const v = $('lpVid'); if (!v) return;
+    // 소리 없는 소개 영상이라 항상 자동 재생해요. 움직임 줄이기 설정이면 멈출 수 있게 조작 버튼도 보여 줘요.
     const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-    v.controls = reduce;
-    if (reduce) { v.removeAttribute('autoplay'); v.pause(); return; }
-    const p0 = v.play(); if (p0 && p0.catch) p0.catch(() => {});
+    v.muted = true; v.controls = !!reduce;
+    const p0 = v.play(); if (p0 && p0.catch) p0.catch(() => { v.controls = true; });
     if (!('IntersectionObserver' in window)) return;
     const io = new IntersectionObserver(es => es.forEach(e => { if (!v.isConnected) return io.disconnect(); if (e.isIntersecting) { const p = v.play(); if (p && p.catch) p.catch(() => { v.controls = true; }); } else v.pause(); }), { threshold: .35 });
     io.observe(v);

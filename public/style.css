@@ -2498,7 +2498,7 @@
 
     /* ⑧ 설정의 소개 영상 창 */
     .vid-ov { flex-direction: column; gap: 12px; padding: 64px 20px 24px; }
-    .vid-ov video { width: min(100%, 720px); max-height: calc(100dvh - 140px); aspect-ratio: 16 / 9; object-fit: contain; border-radius: 16px; }
+    .vid-ov video { width: min(100%, 520px); max-height: min(60dvh, calc(100dvh - 140px)); aspect-ratio: 16 / 9; object-fit: contain; border-radius: 16px; }
     .vid-ov .vid-cap { color: rgba(255, 255, 255, .72); font-size: .82rem; }
 
     /* ⑪ 추천 학습 단계 */
