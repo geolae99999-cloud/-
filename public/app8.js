@@ -1,344 +1,485 @@
   /* =========================================================
-   * 설정
+   * AI 연동 (모델 자동 조회)
    * ======================================================= */
-  function setStatus(type, msg) { const el = $('cfgStatus'); el.className = 'cfg-status ' + type; el.textContent = msg; }
-  function renderModelSelect() {
-    const p = $('cfgProvider').value;
-    const list = config.modelLists[p] || [], selected = config.models[p] || '';
-    const all = selected && !list.includes(selected) ? [selected, ...list] : list;
-    $('cfgModel').innerHTML = '<option value="">자동 선택 (권장)</option>' + all.map(m => `<option value="${esc(m)}">${esc(m)}</option>`).join('');
-    $('cfgModel').value = selected;
-  }
-  function loadSettingsUI() {
-    if (!$('creditFoot')) $('tabSettings').insertAdjacentHTML('beforeend', '<div class="foot-credit" id="creditFoot">VocaPro · 개발자 김주원</div>');
-    rmUI();
-    if (!$('lgLinks') && $('creditFoot')) $('creditFoot').insertAdjacentHTML('beforebegin', legalLinksHtml().replace('class="legal-links"', 'class="legal-links" id="lgLinks"'));
-    if (!$('btnLt')) { const g = $('cfgGoal'); if (g && g.parentNode) g.insertAdjacentHTML('afterend', '<button class="btn btn-soft btn-block" id="btnLt" data-act="level-test" style="margin-top:8px;">레벨 테스트로 목표 추천받기</button>'); }
-    const bp = $('btnPw'); if (bp) bp.style.display = cloudMode ? '' : 'none';
-    const bw = $('btnWipe'); if (bw) bw.style.display = cloudMode ? '' : 'none';
-    const an = $('acctName'); if (an) an.textContent = '현재 계정: ' + (currentLabel || currentUser || '');
-    { const p = config.profile || cleanProfile(); $('pfName').value = p.name; $('pfSchool').value = p.school; $('pfSno').value = p.sno; $('pfSno').style.display = isTeacher() ? 'none' : ''; }
-    document.querySelectorAll('#cfgLang button').forEach(b => b.classList.toggle('on', b.dataset.l === LANG));
-    $('cfgProvider').value = config.provider;
-    ttsUI();
-    $('cfgGoal').value = String(config.goal);
-    $('cfgHaptic').checked = config.haptic !== false;
-    if (!('vibrate' in navigator)) $('hapticSub').textContent = '이 기기(브라우저)는 진동을 지원하지 않아서 켜 둬도 울리지 않아요.';
-    $('cfgGrade').innerHTML = `<option value="">선택 안 함</option>${roleOptions(isTeacher() ? 'teacher' : config.grade)}`;
-    onProviderChange(config.provider, true);
-    $('cfgStatus').className = 'cfg-status';
-  }
-  function onProviderChange(p, silent) {
-    if (!silent) config.provider = p;
-    const loc = p === 'local';
-    $('cfgKeyRow').style.display = loc ? 'none' : ''; $('cfgModelRow').style.display = loc ? 'none' : ''; $('cfgLocalNote').style.display = loc ? '' : 'none';
-    $('btnTestConn').textContent = loc ? (VLM.isReady() ? '기기 AI 테스트' : '기기 AI 받기 · 테스트') : '키 저장하고 연결 테스트';
-    $('cfgKeyLabel').textContent = `${PROVIDERS[p].label} API Key`;
-    $('cfgKey').placeholder = PROVIDERS[p].hint;
-    $('cfgKey').value = config.keys[p] || '';
-    renderModelSelect();
-    if (!silent) { $('cfgStatus').className = 'cfg-status'; syncStorage(); }
-  }
-  $('cfgModel').addEventListener('change', e => { config.models[$('cfgProvider').value] = e.target.value; syncStorage(); });
-
-  async function testConnection() {
-    const p = $('cfgProvider').value, btn = $('btnTestConn');
-    config.provider = p;
-    if (p === 'local') return localTest(btn);
-    try {
-      const key = cleanKey($('cfgKey').value);
-      if (!key) return setStatus('err', 'API 키를 입력해 주세요.');
-      config.keys[p] = key; $('cfgKey').value = key; syncStorage();
-      btn.disabled = true;
-      setStatus('info', '모델 목록을 불러오는 중...');
-      let list;
-      try { list = await listModels(p, key); }
-      catch (e) { if ([401, 403].includes(e.status) || e.status === 0) throw e; list = []; }
-      const usedFallback = !list.length;
-      if (usedFallback) list = FALLBACK_MODELS[p];
-      config.modelLists[p] = list;
-      if (config.models[p] && !list.includes(config.models[p]) && !usedFallback) config.models[p] = '';
-      syncStorage(); renderModelSelect();
-
-      setStatus('info', `모델 ${list.length}개를 확인했어요. 실제 호출을 테스트하는 중...`);
-      const tried = [];
-      const order = [config.models[p], ...list].filter(Boolean).filter((m, i, a) => a.indexOf(m) === i).slice(0, 4);
-      for (const model of order) {
-        try {
-          await requestModel(p, key, model, buildPrompt('test', false));
-          config.models[p] = model; syncStorage(); renderModelSelect();
-          setStatus('ok', `연결에 성공했어요.\n사용 모델: ${model}\n사용 가능한 모델 ${list.length}개를 위 목록에 불러왔어요.`);
-          return;
-        } catch (e) {
-          tried.push(`• ${model}: ${e.message.slice(0, 120)}`);
-          if ([401, 403, 429].includes(e.status)) throw e;
-        }
-      }
-      throw new ApiError('시도한 모델이 모두 실패했어요.\n' + tried.join('\n'), 400);
-    } catch (e) {
-      setStatus('err', friendlyError(p, e instanceof ApiError ? e : new ApiError(e.message, 0)));
-    } finally { btn.disabled = false; }
-  }
-
-  async function localTest(btn) {
-    syncStorage();
-    if (!VLM.ok()) return setStatus('err', '이 브라우저에서는 기기 AI를 쓸 수 없어요. 최신 Chrome · Edge · Safari에서 열어 주세요.');
-    let flag = ''; try { flag = LS.getItem(LLM_OK) || ''; } catch (e) {}
-    if (!VLM.isReady() && !flag && !await ask('기기 AI 모델(0.5~0.8GB)을 이 기기에 받아요. 처음 한 번만 받고, 그다음부터는 바로 써요.\n모바일 데이터라면 Wi-Fi에서 받는 걸 권해요. 받을까요?', { ok: '받기' })) return;
-    btn.disabled = true;
-    const prog = (pc, mb) => setStatus('info', `기기 AI 받는 중... ${pc}%${mb ? ` (${mb}MB)` : ''}\n받는 동안 이 화면을 열어 두세요.`);
-    try {
-      setStatus('info', VLM.isReady() ? '기기 AI 테스트 중...' : '기기 AI 준비 중...');
-      await VLM.init(prog);
-      try { LS.setItem(LLM_OK, '1'); } catch (e) {}
-      setStatus('info', '기기 AI가 단어 뜻을 만드는 중...');
-      const t0 = Date.now(), r = await localAi(buildPrompt('apple', false), normalizeResult, { task: 'word' }, {});
-      setStatus('ok', `기기 AI를 쓸 수 있어요. (${VLM.device === 'webgpu' ? '그래픽 가속' : 'CPU'}, ${((Date.now() - t0) / 1000).toFixed(1)}초)\n시험: apple → ${r.meaning}\n이제 AI 버튼을 누르면 이 기기에서 바로 만들어요.`);
-    } catch (e) { setStatus('err', e.message || '기기 AI를 시작하지 못했어요.'); }
-    finally { VLM.off(prog); btn.disabled = false; onProviderChange('local', true); }
-  }
-
-  /* ----- 백업 ----- */
-  ACTIONS['export-json'] = () => {
-    const data = { app: 'VocaPro', version: 13, settings: { ...ttsCfgOut(), darkMode: config.darkMode, goal: config.goal, grade: config.grade, haptic: config.haptic !== false }, ...dataBlob() };
-    download(`VocaPro_${dayKey()}.json`, JSON.stringify(data, null, 2), 'application/json');
-    toast('백업 파일을 내려받았어요. API 키는 포함되지 않아요.');
+  const PROVIDERS = {
+    gemini:    { label: 'Google Gemini',    hint: 'AIza... 로 시작하는 키 (Google AI Studio에서 발급)' },
+    xai:       { label: 'xAI Grok',         hint: 'xai-... 로 시작하는 키 (console.x.ai, 크레딧 충전 필요)' },
+    openai:    { label: 'OpenAI ChatGPT',   hint: 'sk-... 로 시작하는 키' },
+    anthropic: { label: 'Anthropic Claude', hint: 'sk-ant-... 로 시작하는 키' },
+    local:     { label: '기기 AI (Qwen)',    hint: '' }
   };
-  ACTIONS['import-json'] = () => $('importFile').click();
-  function importBackup(e) {
-    const f = e.target.files[0]; if (!f) return;
-    const r = new FileReader();
-    r.onload = async ev => {
-      try {
-        const res = JSON.parse(ev.target.result);
-        const cats = sanitizeCategories(res.categories);
-        if (!cats) throw new Error('형식 오류');
-        const zc = res.zh && sanitizeCategories(res.zh.categories);
-        if (!await ask(`현재 데이터를 지우고 단어장 ${cats.length + (zc ? zc.length : 0)}개를 복원할까요?`, { ok: '복원', danger: true })) { e.target.value = ''; return; }
-        // 중국어가 들어 있는 백업은 두 언어를 모두, 예전 백업은 영어 쪽만 바꿔요.
-        const now = dataBlob();
-        useBlob({ categories: cats, stats: res.stats || now.stats, zh: res.zh || now.zh });
-        if (res.settings) {
-          if (res.settings.ttsRate) config.ttsRate = parseFloat(res.settings.ttsRate) || config.ttsRate;
-          ttsCfgIn(config, res.settings);
-          if (res.settings.goal) config.goal = parseInt(res.settings.goal, 10) || config.goal;
-          if (typeof res.settings.darkMode === 'boolean') config.darkMode = res.settings.darkMode;
-          if (typeof res.settings.haptic === 'boolean') config.haptic = res.settings.haptic;
-          if (GRADE_NAMES[res.settings.grade]) config.grade = res.settings.grade;
-        }
-        currentCategoryId = null; viewOrder = null; openDrawers.clear();
-        applyTheme(); syncStorage(); loadSettingsUI(); toast('복원했어요.');
-      } catch (err) { say('올바른 VocaPro 백업 파일이 아니에요.'); }
-      e.target.value = '';
-    };
-    r.readAsText(f);
-  }
-  ACTIONS['reset-all'] = async () => {
-    if (!await ask('모든 단어장, 단어, 학습 기록이 사라져요. 계속할까요?', { ok: '계속', danger: true })) return;
-    if (!await ask('정말 지울까요? 되돌릴 수 없어요.', { ok: '지우기', danger: true })) return;
-    categories = defaultCats(); stats = { days: {} }; altSet = emptySet();
-    syncStorage(); toast('초기화했어요.');
-  };
+  const FALLBACK_MODELS = { gemini: ['gemini-2.5-flash', 'gemini-2.0-flash'], xai: ['grok-3-mini', 'grok-3'], openai: ['gpt-4o-mini'], anthropic: ['claude-haiku-4-5'] };
 
+  class ApiError extends Error { constructor(msg, status) { super(msg); this.status = status || 0; } }
 
-  /* =========================================================
-   * 번역
-   * ======================================================= */
-  const HANGUL = /[\u3131-\u318e\uac00-\ud7a3]/, WORDRE = /^[A-Za-z][A-Za-z' -]{0,38}$/;
-  let trBusy = false, trLast = null;
-  function closeTranslator() { const o = $('trOv'); if (o) o.remove(); }
-  function openTranslator(prefill) {
-    if ($('trOv')) return;
-    const ov = document.createElement('div'); ov.className = 'tr-ov'; ov.id = 'trOv';
-    ov.innerHTML = `<div class="tr-sheet" role="dialog" aria-modal="true" aria-label="번역"><div class="tr-grab"></div>
-      <div class="tr-head"><b>번역</b><span id="trDir" class="tr-dir">자동 감지</span><button class="tr-x" data-act="tr-close" aria-label="닫기">${IC.x}</button></div>
-      <textarea id="trIn" rows="4" maxlength="1000" placeholder="${LN()} 또는 한국어 문장을 입력하세요" spellcheck="false"></textarea>
-      <div class="tr-actions"><button class="btn btn-soft" data-act="tr-clear">지우기</button><button class="btn btn-primary" id="trGo" data-act="tr-go" style="flex:1">번역하기</button></div>
-      <div id="trOut" class="tr-out" style="display:none"></div></div>`;
-    document.body.appendChild(ov);
-    const inp = $('trIn');
-    const dir = () => { $('trDir').textContent = inp.value.trim() ? (HANGUL.test(inp.value) ? (isZh() ? '한국어 → 中文' : '한국어 → English') : (HAN.test(inp.value) ? '中文 → 한국어' : 'English → 한국어')) : '자동 감지'; };
-    ov.addEventListener('click', e => { if (e.target === ov) closeTranslator(); });
-    inp.addEventListener('input', dir);
-    inp.addEventListener('keydown', e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); ACTIONS['tr-go'](); } });
-    if (prefill) { inp.value = prefill; dir(); }
-    setTimeout(() => inp.focus(), 80);
+  function cleanKey(raw) {
+    const k = String(raw || '').replace(/[\s"'`]/g, '');
+    if (k && !/^[\x21-\x7E]+$/.test(k)) throw new ApiError('API 키에 한글이나 특수문자가 섞여 있어요. 키를 다시 복사해서 붙여넣어 주세요.', 0);
+    return k;
   }
-  // toKo: 외국어 → 한국어. 외국어는 글자를 보고(한자면 중국어), 한국어 → 외국어는 지금 학습 언어로 옮겨요.
-  // 순서: Google 번역(빠르고 정확, 단어면 다른 뜻까지) → AI → MyMemory
-  const POS_KO = { noun: '명사', verb: '동사', adjective: '형용사', adverb: '부사', preposition: '전치사', pronoun: '대명사', conjunction: '접속사', interjection: '감탄사', abbreviation: '약어', phrase: '구', article: '관사', prefix: '접두사', suffix: '접미사', particle: '조사' };
-  async function gtxTranslate(text, from, to) {
-    const G = { en: 'en', ko: 'ko', zh: 'zh-CN' }, ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 10000);
-    try {
-      const res = await fetch('https://translate.googleapis.com/translate_a/single?client=gtx&hl=ko&sl=' + G[from] + '&tl=' + G[to] + '&dt=t&dt=bd&q=' + encodeURIComponent(text), { signal: ctl.signal });
-      if (!res.ok) throw new Error('fail');
-      const j = await res.json();
-      const t = (Array.isArray(j && j[0]) ? j[0] : []).map(x => (x && typeof x[0] === 'string') ? x[0] : '').join('').trim();
-      if (!t) throw new Error('empty');
-      const alts = Array.isArray(j[1]) ? j[1].map(x => ({ pos: POS_KO[x && x[0]] || String(x && x[0] || ''), terms: (Array.isArray(x && x[1]) ? x[1] : []).filter(y => typeof y === 'string' && y.trim()).slice(0, 8) })).filter(x => x.terms.length).slice(0, 4) : [];
-      return { t, alts, by: 'Google 번역' };
-    } finally { clearTimeout(tm); }
-  }
-  async function translateText(text, toKo) {
-    const fl = toKo ? (HAN.test(text) && !/[A-Za-z]{2}/.test(text) ? 'zh' : 'en') : LANG, NAME = { en: 'English', zh: 'Simplified Chinese', ko: 'Korean' };
-    const from = toKo ? fl : 'ko', to = toKo ? 'ko' : fl;
-    // 결과가 엉뚱한 언어로 오면 다음 방법으로 넘어가요.
-    const looksOk = t => to === 'ko' ? HANGUL.test(t) || /^[\d\s.,:;!?%+\-()]+$/.test(t) : to === 'zh' ? HAN.test(t) : /[A-Za-z]/.test(t);
-    try { const r = await gtxTranslate(text, from, to); if (looksOk(r.t)) return r; } catch (e) { /* 다음 방법으로 */ }
-    if (aiReady()) {
-      try {
-        const r = await callAi(`Translate the text below from ${NAME[from]} to ${NAME[to]}. Natural and accurate; keep the meaning and tone. If it is a single word, give its most common meaning(s), separated by ", ". Reply with JSON only, no markdown: {"t":"<translation>"}\n\nTEXT: ${JSON.stringify(text)}`,
-          o => (o && typeof o.t === 'string' && o.t.trim() && looksOk(o.t) ? { t: o.t.trim() } : null), { task: 'translate', text, to, from });
-        return { t: r.t, alts: [], by: 'AI 번역' };
-      } catch (e) { /* 기본 번역으로 대체 */ }
+  async function http(url, options = {}, timeoutMs = 15000) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+    let resp;
+    try { resp = await fetch(url, { ...options, signal: ctrl.signal }); }
+    catch (e) {
+      clearTimeout(timer);
+      if (e.name === 'AbortError') throw new ApiError(`응답 시간이 초과되었어요 (${Math.round(timeoutMs / 1000)}초). 네트워크를 확인하세요.`, 0);
+      throw new ApiError('서버에 연결하지 못했어요. 인터넷 연결, VPN, 광고차단 확장프로그램을 확인하고, 파일을 file:// 로 열었다면 웹 주소로 열어 보세요.', 0);
     }
-    const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 12000), MM = { en: 'en', ko: 'ko', zh: 'zh-CN' };
-    try {
-      const res = await fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(text) + '&langpair=' + MM[from] + '|' + MM[to], { signal: ctl.signal });
-      const j = await res.json();
-      let t = j && j.responseData && j.responseData.translatedText;
-      if (!res.ok || !t || String(j.responseStatus) !== '200' || /MYMEMORY WARNING|INVALID/i.test(t)) throw new Error('fail');
-      const d = document.createElement('textarea'); d.innerHTML = t; t = d.value.trim();
-      if (!t || !looksOk(t)) throw new Error('empty');
-      return { t, alts: [], by: '기본 번역' };
-    } finally { clearTimeout(tm); }
-  }
-  ACTIONS['tr-close'] = closeTranslator;
-  ACTIONS['tr-clear'] = () => { const i = $('trIn'); if (!i) return; i.value = ''; i.dispatchEvent(new Event('input')); $('trOut').style.display = 'none'; i.focus(); };
-  ACTIONS['tr-go'] = async () => {
-    const inp = $('trIn'); if (!inp || trBusy) return;
-    const text = inp.value.trim(); if (!text) return toast('번역할 내용을 입력해 주세요.');
-    const toKo = !HANGUL.test(text), btn = $('trGo'), out = $('trOut');
-    trBusy = true; btn.disabled = true; btn.textContent = '번역 중...';
-    out.style.display = 'block'; out.innerHTML = '<div class="tr-load"><i></i><i></i><i></i></div>';
-    try {
-      const r = await translateText(text, toKo);
-      if (!$('trOut')) return;
-      trLast = { toKo, en: toKo ? text : r.t, ko: toKo ? r.t : text, t: r.t };
-      const fz = isHanWord(trLast.en.trim());
-      // 한 단어면 단어장에 담을 수 있어요. 지금 학습 언어와 같은 언어일 때만.
-      const single = fz ? isZh() && /^[\u3400-\u9fff]{1,8}$/.test(trLast.en.trim()) : !isZh() && WORDRE.test(trLast.en.trim());
-      let dh = null;
-      if (single) { try { dh = await dictGet(trLast.en.trim()); } catch (e) {} if (!$('trOut')) return; }
-      const alts = (r.alts || []).map(x => `<div class="tr-alt"><em>${esc(x.pos)}</em>${x.terms.map(y => toKo ? `<span>${esc(y)}</span>` : `<button class="syn" data-act="tr-pick" data-w="${esc(y)}">${esc(y)}</button>`).join('')}</div>`).join('');
-      $('trOut').innerHTML = `<div class="tr-lang">${toKo ? 'KOREAN' : fz ? 'CHINESE' : 'ENGLISH'} · ${esc(r.by)}</div><div class="tr-text">${esc(r.t)}</div>
-        ${alts ? `<div class="tr-alts"><h4 class="syn-h">${toKo ? '다른 뜻' : '이런 단어도 써요'}</h4>${alts}</div>` : ''}
-        ${dh ? `<div class="tr-dict"><h4 class="syn-h">${IC.book} 사전</h4><b>${esc(dh.word || trLast.en)}</b> <span class="q-pron">${esc(pronText(dh))}</span><div>${esc(dh.meaning)}</div>${dh.example ? `<small>${esc(dh.example)}${dh.exampleKo ? ' · ' + esc(dh.exampleKo) : ''}</small>` : ''}</div>` : ''}
-        <div class="tr-actions"><button class="btn btn-soft" data-act="tr-speak">${IC.speaker} ${fz ? '중국어' : '영어'} 발음</button><button class="btn btn-soft" data-act="tr-copy">복사</button></div>
-        ${single ? `<div class="tr-add"><select id="trBook">${categories.map(c => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('')}</select><button class="btn btn-primary" data-act="tr-add">단어장에 추가</button></div>` : ''}`;
-      if (dh && dh.meaning && toKo) trLast.ko = dh.meaning;
-    } catch (e) { if ($('trOut')) $('trOut').innerHTML = '<div class="tr-err">번역하지 못했어요. 인터넷을 확인하거나 잠시 뒤 다시 시도해 주세요.</div>'; }
-    finally { trBusy = false; const b = $('trGo'); if (b) { b.disabled = false; b.textContent = '번역하기'; } }
-  };
-  ACTIONS['tr-speak'] = () => { if (trLast) playAudio(trLast.en, true); };
-  // 한국어 → 외국어 번역에서 다른 후보 단어를 누르면 그 단어로 바꿔 담을 수 있게 해요.
-  ACTIONS['tr-pick'] = el => { if (!trLast) return; const i = $('trIn'); if (i) { i.value = el.dataset.w; i.dispatchEvent(new Event('input')); } ACTIONS['tr-go'](); };
-  ACTIONS['tr-copy'] = async () => { try { await navigator.clipboard.writeText(trLast.t); toast('복사했어요.'); } catch (e) { toast('복사하지 못했어요. 직접 선택해서 복사해 주세요.'); } };
-  ACTIONS['tr-add'] = () => {
-    const sel = $('trBook'), cat = sel && categories.find(c => c.id === sel.value); if (!cat || !trLast) return;
-    const en = trLast.en.trim(), ko = trLast.ko.trim();
-    if (cat.words.some(w => w.word.toLowerCase() === en.toLowerCase())) return toast('이미 있는 단어예요.');
-    const w = sanitizeWord({ id: uid(), word: en, meaning: ko });
-    cat.words.unshift(w);
-    syncStorage(); try { go(curTab); } catch (e) {}
-    dictFill([w]).then(n => { if (n) syncStorage(); }).catch(() => {});
-    toast(`'${en}'를 ${cat.name}에 추가했어요.`);
-  };
-  document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('trOv') && !document.querySelector('.dlg-ov')) closeTranslator(); });
-  ACTIONS.translator = () => openTranslator();
-
-  const OB = [[IC.sprout, '매일 조금씩, 끝까지', '하루 목표만큼만 외워요. 복습할 시기는 앱이 알아서 챙겨 드려요.'], [IC.repeat, '잊을 때쯤 다시 만나요', '틀린 단어는 더 자주, 아는 단어는 천천히. 검증된 반복 학습 방식이에요.'], [IC.headphones, '눈으로, 귀로, 손으로', '플래시카드, 퀴즈, 받아쓰기, 듣기 모드로 질리지 않게 외워요.']];
-  function showOnboarding() {
-    if (LS.getItem('vocapro_onboarded') || $('obOv')) return;
-    let i = 0; const ov = document.createElement('div'); ov.className = 'ob'; ov.id = 'obOv'; document.body.appendChild(ov);
-    const draw = () => {
-      const [ic, t, d] = OB[i];
-      ov.innerHTML = `<button class="ob-skip" data-ob="skip">건너뛰기</button><div class="ob-body"><div class="ob-art">${MASCOT(['happy', 'think', 'cheer'][i])}<span class="ob-badge">${ic}</span></div><h2>${t}</h2><p>${d}</p></div><div class="ob-foot"><div class="ob-dots">${OB.map((_, k) => `<i class="${k === i ? 'on' : ''}"></i>`).join('')}</div><button class="btn btn-primary btn-block" data-ob="next">${i === OB.length - 1 ? '시작하기' : '다음'}</button></div>`;
-    };
-    const done = () => { try { LS.setItem('vocapro_onboarded', '1'); } catch (e) {} ov.remove(); if (!isTeacher()) setTimeout(() => { try { ltOpen(true); } catch (e) {} }, 150); };
-    ov.addEventListener('click', e => { const b = e.target.closest('[data-ob]'); if (!b) return; if (b.dataset.ob === 'skip' || i === OB.length - 1) return done(); i++; draw(); });
-    draw();
-  }
-  ACTIONS['pw-change'] = async () => {
-    const o = await ask('현재 비밀번호를 입력하세요.', { input: '', pw: true, ok: '다음' }); if (!o) return;
-    const n = await ask('새 비밀번호를 입력하세요. (6자 이상)', { input: '', pw: true, ok: '변경' }); if (!n) return;
-    if (n.length < 6) return say('새 비밀번호는 6자 이상이어야 해요.');
-    try { await Cloud.changePw(o, n); toast('비밀번호를 바꿨어요.'); } catch (e) { say(e.code === 'invalid' ? '현재 비밀번호가 맞지 않아요.' : cloudMsg(e)); }
-  };
-
-  /* ----- 복습 알림 ----- */
-  const rmKey = () => 'vocapro_rm:' + currentUser;
-  const rmGet = () => loadJson(rmKey()) || { on: false, time: '20:00', last: '' };
-  const rmSet = o => { try { LS.setItem(rmKey(), JSON.stringify(o)); } catch (e) {} };
-  const dueCount = () => counts().due;
-  function rmUI() {
-    const r = rmGet(), on = $('rmOn'); if (!on) return;
-    on.checked = !!r.on; $('rmTime').value = r.time;
-    $('rmNote').textContent = r.on ? `복습할 단어가 있는 날, ${r.time} 이후에 앱을 열면 알려 드려요.` : '복습할 단어가 있는 날, 정한 시간 이후에 알려 드려요.';
-  }
-  async function rmSave() {
-    const r = rmGet(); r.on = $('rmOn').checked; r.time = $('rmTime').value || '20:00';
-    if (r.on) {
-      if (!('Notification' in window)) { r.on = false; say('이 브라우저는 알림을 지원하지 않아요.\n홈 화면에 설치한 앱에서 사용해 보세요.'); }
-      else if (Notification.permission !== 'granted') {
-        let perm = 'denied'; try { perm = await Notification.requestPermission(); } catch (e) {}
-        if (perm !== 'granted') { r.on = false; say('알림이 허용되지 않았어요.\n브라우저 설정에서 이 사이트의 알림을 허용해 주세요.'); }
-      }
+    clearTimeout(timer);
+    const text = await resp.text();
+    let body = null; try { body = JSON.parse(text); } catch (e) {}
+    if (!resp.ok) {
+      let m = (body && ((body.error && body.error.message) || body.error || body.message)) || text.slice(0, 200) || resp.statusText;
+      if (typeof m !== 'string') m = JSON.stringify(m);
+      throw new ApiError(m, resp.status);
     }
-    rmSet(r); rmUI(); rmCheck();
+    return body;
   }
-  async function rmCheck() {
-    if (!currentUser) return;
-    const r = rmGet(), n = dueCount();
-    try { if (navigator.setAppBadge) { if (r.on && n > 0) navigator.setAppBadge(n); else navigator.clearAppBadge(); } } catch (e) {}
-    if (!r.on || !('Notification' in window) || Notification.permission !== 'granted' || r.last === dayKey()) return;
-    const d = new Date(), [h, m] = r.time.split(':').map(Number);
-    if (d.getHours() * 60 + d.getMinutes() < h * 60 + m || n === 0 || (stats.days[dayKey()] || { n: 0 }).n > 0) return;
-    r.last = dayKey(); rmSet(r);
-    const opt = { body: `오늘 복습할 단어 ${n}개가 기다리고 있어요.`, icon: 'icon-192.png', badge: 'icon-192.png', tag: 'vocapro-review' };
-    try { const reg = 'serviceWorker' in navigator && await navigator.serviceWorker.getRegistration(); if (reg) await reg.showNotification('VocaPro', opt); else new Notification('VocaPro', opt); } catch (e) {}
+  function authHeaders(p, key) {
+    if (p === 'gemini') return { 'x-goog-api-key': key };
+    if (p === 'anthropic') return { 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' };
+    return { 'Authorization': `Bearer ${key}` };
   }
-  setInterval(rmCheck, 60000);
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) rmCheck(); });
+  function friendlyError(p, e) {
+    const name = PROVIDERS[p].label, s = e.status, raw = e.message || '';
+    if (s === 401 || s === 403 || /API key not valid|invalid.*key|permission/i.test(raw)) {
+      const extra = (p === 'xai' && /credit|billing|spending/i.test(raw)) ? '\nxAI는 크레딧(결제)이 있어야 호출돼요. console.x.ai 에서 확인하세요.' : '';
+      return `${name} 키 인증에 실패했어요 (${s || '키 오류'}). 키를 다시 확인하세요.${extra}\n원문: ${raw}`;
+    }
+    if (s === 429) return `${name} 사용 한도를 넘었거나 요청이 너무 잦아요. 잠시 후 다시 시도하거나 결제/한도를 확인하세요.\n원문: ${raw}`;
+    if (s === 404) return `${name} 모델을 찾지 못했어요. 설정에서 연결 테스트로 모델 목록을 다시 불러오세요.\n원문: ${raw}`;
+    if (s === 400) return `${name} 요청 오류(400).\n원문: ${raw}`;
+    if (s >= 500) return `${name} 서버 오류(${s}). 잠시 후 다시 시도하세요.`;
+    return raw || `${name} 알 수 없는 오류`;
+  }
 
-  /* ----- 짝 맞추기 ----- */
-  let mgT = null;
-  function closeMatch() { clearInterval(mgT); const o = $('mgOv'); if (o) o.remove(); }
-  function openMatch() {
-    const ws = allWords().map(x => x.w).filter(w => w.word && w.meaning);
-    if (ws.length < 4) return toast('단어가 4개 이상 있어야 해요.');
-    closeMatch();
-    // 같은 단어·같은 뜻 타일이 두 번 나오면 짝이 모호해져요 → 단어(소문자)·표시 뜻으로 중복 제거
-    const mT = w => String(w.meaning).split(/[,;/]/)[0].trim() || String(w.meaning), seenW = new Set(), seenM = new Set(), pick = [], tiles = [];
-    for (const w of shuffled(ws)) { const k = w.word.trim().toLowerCase(), m = mT(w); if (seenW.has(k) || seenM.has(m)) continue; seenW.add(k); seenM.add(m); pick.push(w); if (pick.length >= 6) break; }
-    if (pick.length < 4) return toast('서로 다른 단어가 4개 이상 있어야 해요.');
-    pick.forEach((w, i) => { tiles.push({ id: i, t: w.word, en: true }, { id: i, t: mT(w), en: false }); });
-    shuffled(tiles).forEach((t, i) => { tiles[i] = t; });
-    const ov = document.createElement('div'); ov.className = 'mg'; ov.id = 'mgOv';
-    ov.innerHTML = `<div class="mg-top"><button class="round-btn" data-mg="x" aria-label="닫기">${IC.x}</button><b>짝 맞추기</b><span id="mgTime">0.0초</span></div><p class="mg-sub">${LN()}와 뜻을 짝지어 눌러 보세요</p><div class="mg-grid">${tiles.map((t, i) => `<button class="mg-tile" data-i="${i}">${esc(t.t)}</button>`).join('')}</div>`;
-    document.body.appendChild(ov);
-    let sel = -1, done = 0, wrong = 0, locked = false, over = false; const t0 = Date.now();
-    mgT = setInterval(() => { const e = $('mgTime'); if (e) e.textContent = ((Date.now() - t0) / 1000).toFixed(1) + '초'; }, 100);
-    const finish = () => {
-      over = true; const sec = ((Date.now() - t0) / 1000).toFixed(1);
-      ov.innerHTML = `<div class="mg-done"><div class="result-art">${MASCOT(wrong === 0 ? 'cheer' : 'happy')}</div><h2>${wrong === 0 ? '완벽해요!' : '모두 맞췄어요'}</h2><p>${sec}초 · 오답 ${wrong}번</p><button class="btn btn-primary btn-block" data-mg="again">한 번 더</button><button class="btn btn-soft btn-block" data-mg="x" style="margin-top:8px;">닫기</button></div>`;
-    };
-    ov.addEventListener('click', e => {
-      const k = e.target.closest('[data-mg]');
-      if (k) { if (k.dataset.mg === 'again') { closeMatch(); openMatch(); } else closeMatch(); return; }
-      const b = e.target.closest('.mg-tile'); if (!b || locked || over || b.classList.contains('ok')) return;
-      const i = +b.dataset.i;
-      if (sel === i) { b.classList.remove('sel'); sel = -1; return; }
-      if (sel < 0) { sel = i; b.classList.add('sel'); if (tiles[i].en) playAudio(tiles[i].t); return; }
-      const a = tiles[sel], c = tiles[i], ba = ov.querySelector(`[data-i="${sel}"]`);
-      if (a.id === c.id && a.en !== c.en) {
-        [ba, b].forEach(x => { x.classList.remove('sel'); x.classList.add('ok'); }); sel = -1; done++; haptic(true);
-        if (done === pick.length) { clearInterval(mgT); setTimeout(finish, 450); }
-      } else {
-        wrong++; locked = true; haptic(false); [ba, b].forEach(x => x.classList.add('no'));
-        setTimeout(() => { [ba, b].forEach(x => x.classList.remove('no', 'sel')); sel = -1; locked = false; }, 450);
-      }
+  const verOf = id => (id.replace(/-\d{8}$/, '').replace(/-\d{4}-\d{2}-\d{2}$/, '').match(/\d+(?:\.\d+)?/g) || []).map(Number);
+  function cmpVerDesc(a, b) {
+    const A = verOf(a), B = verOf(b);
+    for (let i = 0; i < Math.max(A.length, B.length); i++) { const d = (B[i] || 0) - (A[i] || 0); if (d) return d; }
+    return 0;
+  }
+  function rankModels(p, ids) {
+    let list = [...new Set(ids)], rank;
+    if (p === 'gemini') {
+      list = list.filter(id => /^gemini-/.test(id) && !/image|tts|embed|live|audio|robotics|computer|aqa|imagen|veo|native|learnlm/.test(id));
+      rank = id => (/flash/.test(id) && !/lite/.test(id) ? 0 : /flash-lite/.test(id) ? 1 : 2) + (/preview|exp/.test(id) ? 0.5 : 0);
+    } else if (p === 'xai') {
+      list = list.filter(id => /^grok/.test(id) && !/image|imagine|video|vision/.test(id));
+      rank = id => (/mini|fast/.test(id) ? 0 : 1);
+    } else if (p === 'openai') {
+      list = list.filter(id => /^gpt-/.test(id) && !/audio|realtime|image|tts|transcribe|search|instruct|embedding|moderation|codex|chat-latest|preview|-\d{4}-\d{2}-\d{2}$/.test(id));
+      rank = id => (/mini|nano/.test(id) ? 0 : 1);
+    } else {
+      list = list.filter(id => /^claude-/.test(id));
+      rank = id => (/haiku/.test(id) ? 0 : /sonnet/.test(id) ? 1 : 2);
+    }
+    return list.sort((a, b) => rank(a) - rank(b) || cmpVerDesc(a, b));
+  }
+  async function listModels(p, key) {
+    let ids = [];
+    if (p === 'gemini') {
+      const body = await http('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200', { headers: authHeaders(p, key) });
+      ids = (body.models || []).filter(m => (m.supportedGenerationMethods || []).includes('generateContent')).map(m => String(m.name).replace(/^models\//, ''));
+    } else if (p === 'xai') {
+      ids = ((await http('https://api.x.ai/v1/models', { headers: authHeaders(p, key) })).data || []).map(m => m.id);
+    } else if (p === 'openai') {
+      ids = ((await http('https://api.openai.com/v1/models', { headers: authHeaders(p, key) })).data || []).map(m => m.id);
+    } else {
+      ids = ((await http('https://api.anthropic.com/v1/models?limit=100', { headers: authHeaders(p, key) })).data || []).map(m => m.id);
+    }
+    return rankModels(p, ids);
+  }
+  async function requestModel(p, key, model, prompt) {
+    if (p === 'gemini') {
+      const gurl = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
+      const gsend = gc => http(gurl, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders(p, key) }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: gc }) });
+      let body;
+      try { body = await gsend({ temperature: 0.2, responseMimeType: 'application/json', thinkingConfig: { thinkingBudget: 0 } }); }
+      catch (e) { if (e.status === 400) body = await gsend({ temperature: 0.2, responseMimeType: 'application/json' }); else throw e; }
+      const parts = (body.candidates && body.candidates[0] && body.candidates[0].content && body.candidates[0].content.parts) || [];
+      const text = parts.filter(x => !x.thought).map(x => x.text || '').join('');
+      if (!text) throw new ApiError('빈 응답이 왔어요' + (body.promptFeedback && body.promptFeedback.blockReason ? ` (${body.promptFeedback.blockReason})` : ''), 0);
+      return text;
+    }
+    if (p === 'xai' || p === 'openai') {
+      const url = p === 'xai' ? 'https://api.x.ai/v1/chat/completions' : 'https://api.openai.com/v1/chat/completions';
+      const base = { model, messages: [{ role: 'system', content: 'You are a dictionary API. Reply with a single JSON object only.' }, { role: 'user', content: prompt }] };
+      const send = payload => http(url, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders(p, key) }, body: JSON.stringify(payload) });
+      let body;
+      try { body = await send({ ...base, temperature: 0.2, response_format: { type: 'json_object' } }); }
+      catch (e) { if (e.status === 400) body = await send(base); else throw e; }
+      const text = (body.choices && body.choices[0] && body.choices[0].message && body.choices[0].message.content) || '';
+      if (!text) throw new ApiError('빈 응답이 왔어요', 0);
+      return text;
+    }
+    const body = await http('https://api.anthropic.com/v1/messages', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders(p, key) },
+      body: JSON.stringify({ model, max_tokens: 1600, messages: [{ role: 'user', content: prompt }] })
     });
+    const text = (body.content || []).map(c => c.text || '').join('');
+    if (!text) throw new ApiError('빈 응답이 왔어요', 0);
+    return text;
   }
-  ACTIONS.match = openMatch;
+  function parseJson(text) {
+    if (!text) return null;
+    let clean = String(text).replace(/```json/gi, '').replace(/```/g, '').trim();
+    const a = clean.indexOf('{'), b = clean.lastIndexOf('}');
+    if (a !== -1 && b > a) clean = clean.slice(a, b + 1);
+    try { return JSON.parse(clean); } catch (e) { return null; }
+  }
+  function normalizeResult(r) {
+    if (!r || typeof r !== 'object') return null;
+    const syn = Array.isArray(r.synonyms) ? r.synonyms.join(', ') : r.synonyms;
+    const ex = splitExample(r.example, r.exampleKo);
+    const out = { meaning: str(r.meaning), phonetic: str(r.phonetic), koreanPron: str(r.koreanPron), example: ex.en, exampleKo: ex.ko, synonyms: str(syn) };
+    return out.meaning ? out : null;
+  }
+
+  const ownKey = () => { try { return cleanKey(config.keys && config.keys[config.provider]); } catch (e) { return ''; } };
+  const aiReady = () => (config.provider === 'local' && VLM.ok()) || !!ownKey() || !!(cloudMode && window.Cloud && Cloud.ai);
+  /* ----- 기기 AI (Qwen2.5 0.5B, llm/vp-llm.js 워커) -----
+     처음 한 번 모델(0.5~0.8GB)을 huggingface.co 에서 받아 브라우저 캐시에 두고, 그다음부터는 인터넷 없이도 돌아요.
+     받은 적이 있는지는 LLM_OK 로 기억해요(받기 전에는 설정에서 직접 받게 해요). */
+  const LLM_OK = 'vocapro_llm_ok';
+  const VLM = (() => {
+    let w = null, seq = 0, initP = null, ready = false, device = '';
+    const wait = new Map(), subs = new Set();
+    const ok = () => typeof Worker === 'function' && typeof WebAssembly === 'object' && 'caches' in window && typeof TextDecoder === 'function';
+    function worker() {
+      if (w) return w;
+      w = new Worker('llm/vp-llm.js', { type: 'module' });
+      w.onmessage = e => {
+        const m = e.data || {};
+        if (m.type === 'progress') subs.forEach(f => { try { f(m.p, m.mb); } catch (x) {} });
+        else if (m.type === 'ready') { ready = true; device = m.device || ''; const x = wait.get('init'); if (x) { wait.delete('init'); x.ok(); } }
+        else if (m.type === 'result' || m.type === 'error') {
+          const k = m.id != null ? m.id : 'init', x = wait.get(k); if (!x) return; wait.delete(k);
+          if (m.type === 'result') x.ok(m.text || ''); else x.no(new ApiError(vlmMsg(m.msg, m.load), 0));
+        }
+      };
+      w.onerror = () => { const e = new ApiError('기기 AI를 시작하지 못했어요. 최신 Chrome · Edge · Safari에서 열어 주세요.', 0); wait.forEach(x => x.no(e)); wait.clear(); try { w.terminate(); } catch (x) {} w = null; initP = null; ready = false; };
+      return w;
+    }
+    function init(onProg, pick) {
+      if (onProg) subs.add(onProg);
+      if (ready) return Promise.resolve();
+      if (!ok()) return Promise.reject(new ApiError('이 브라우저에서는 기기 AI를 쓸 수 없어요. 최신 Chrome · Edge · Safari에서 열어 주세요.', 0));
+      if (!initP) initP = new Promise((res, rej) => { wait.set('init', { ok: res, no: rej }); worker().postMessage({ cmd: 'init', ...(pick || {}) }); }).catch(e => { initP = null; throw e; });
+      return initP;
+    }
+    async function gen(prompt, max, ms) {
+      await init();
+      return new Promise((res, rej) => {
+        const id = ++seq; wait.set(id, { ok: res, no: rej });
+        setTimeout(() => { const x = wait.get(id); if (x) { wait.delete(id); x.no(new ApiError('기기 AI 응답이 너무 늦어요. 한 번에 넣는 단어 수를 줄여 보세요.', 0)); } }, ms || 120000);
+        worker().postMessage({ cmd: 'gen', id, prompt, max });
+      });
+    }
+    return { ok, init, gen, off: f => subs.delete(f), isReady: () => ready, get device() { return device; } };
+  })();
+  function vlmMsg(raw, load) {
+    raw = String(raw || '');
+    if (/memory|OOM|allocation|Aborted/i.test(raw)) return '기기 메모리가 부족해 기기 AI를 돌리지 못했어요. 다른 앱 · 탭을 닫고 다시 시도해 주세요.';
+    if (load) { try { console.warn('기기 AI 받기 실패:', raw); } catch (e) {} return '기기 AI 모델을 받지 못했어요. 인터넷 연결을 확인하고 다시 시도해 주세요.'; }
+    return '기기 AI 오류: ' + raw.slice(0, 160);
+  }
+  // 작업마다 만들 글 길이(토큰). 묶음 · 문맥 작업은 길어요
+  const VLM_MAX = { word: 384, batch: 1024, ctx: 1024, translate: 320, pinyin: 200 };
+  // 처음 쓸 때 한 번 물어보고 받아요(동시에 여러 번 불려도 한 번만 물어요). 거절하거나 못 받으면 이번에는 서버 AI 로 해요
+  let vlmGate = null, vlmNo = false;
+  function vlmEnsure() {
+    if (VLM.isReady()) return Promise.resolve(true);
+    if (vlmNo || !VLM.ok()) return Promise.resolve(false);
+    let flag = ''; try { flag = LS.getItem(LLM_OK) || ''; } catch (e) {}
+    if (!vlmGate) vlmGate = (async () => {
+      if (!flag && !await ask('사전에 없는 단어는 무료 오픈소스 AI(Qwen)가 이 기기에서 채워요.\n처음 한 번 모델(0.5~0.8GB)을 받아야 해요. 모바일 데이터라면 Wi-Fi를 권해요. 받을까요?', { ok: '받기' })) { vlmNo = true; return false; }
+      let last = -10; const prog = pc => { if (pc >= last + 10) { last = pc; toast(`기기 AI 받는 중... ${pc}% (처음 한 번만)`); } };
+      try { await VLM.init(prog); try { LS.setItem(LLM_OK, '1'); } catch (e) {} toast('기기 AI 준비 완료'); return true; }
+      catch (e) { vlmNo = true; toast(e.message || '기기 AI를 받지 못했어요.'); return false; }
+      finally { VLM.off(prog); vlmGate = null; }
+    })();
+    return vlmGate;
+  }
+  const cloudAiOk = () => !!(cloudMode && window.Cloud && Cloud.ai);
+  async function localAi(prompt, normalize, task, opt) {
+    if (!await vlmEnsure()) {
+      // 기기 AI 를 못 쓰면 로그인한 사람은 서버 AI(Gemini)로 해요
+      if (cloudAiOk()) return callAi(prompt, normalize, task, { ...(opt || {}), server: true });
+      throw new ApiError(VLM.ok() ? '기기 AI를 받지 않아서 AI로 채울 수 없어요. 설정 > AI 기능에서 받을 수 있어요.' : '이 브라우저에서는 기기 AI를 쓸 수 없어요. 최신 Chrome · Edge · Safari에서 열거나, 로그인해서 서버 AI를 써 주세요.', 401);
+    }
+    const max = VLM_MAX[task && task.task] || 512;
+    let last = null;
+    for (let a = 0; a < 2; a++) {
+      const text = await VLM.gen(prompt, max, 300000);
+      const r = normalize(parseJson(text)); if (r) return r;
+      last = new ApiError('기기 AI 답을 해석하지 못했어요. 다시 시도하거나 직접 입력해 주세요.', 0);
+      if (opt && opt.once) break;
+    }
+    throw last;
+  }
+  /* task: 서버 AI가 프롬프트를 직접 만들 수 있게 보내는 정보 ({task:'word'|'batch'|'translate'|'ctx', ...})
+     opt: { ms: 기다릴 시간, once: 실패해도 다시 보내지 않기(AI 사용 1회만) } */
+  async function callAi(prompt, normalize, task, opt) {
+    opt = opt || {};
+    normalize = normalize || normalizeResult;
+    const p = config.provider;
+    if (p === 'local' && !opt.server) return localAi(prompt, normalize, task, opt);
+    const key = p === 'local' ? '' : cleanKey(config.keys && config.keys[p]);
+    const finish = text => normalize(parseJson(text));
+    if (!key) {
+      if (cloudMode && window.Cloud && Cloud.ai) {
+        let last = null;
+        const tries = opt.once ? 1 : 2;
+        for (let a = 0; a < tries; a++) {
+          try { const r = finish(await Cloud.ai(prompt, task, opt.ms)); if (r) return r; last = new ApiError('AI 응답을 해석하지 못했어요. 다시 시도해 주세요.', 0); }
+          catch (e) { last = e; if (e.status && e.status < 500 && e.status !== 408) break; }
+          if (a < tries - 1) await sleep(600);
+        }
+        throw new ApiError(last && last.message ? last.message : 'AI를 쓸 수 없어요.', last && last.status);
+      }
+      throw new ApiError(`AI를 쓰려면 로그인하거나 설정에서 ${PROVIDERS[p].label} API 키를 입력해 주세요.`, 401);
+    }
+    const deadline = Date.now() + (opt.ms || 30000);
+    const tryModels = async models => {
+      let lastErr = null;
+      for (const model of models) {
+        for (let a = 0; a < 2; a++) {
+          if (Date.now() > deadline) return { err: lastErr || new ApiError('응답이 너무 늦어요. 잠시 후 다시 시도해 주세요.', 0) };
+          try {
+            const parsed = finish(await requestModel(p, key, model, prompt));
+            if (!parsed) { lastErr = new ApiError('AI 응답을 해석하지 못했어요. 다시 시도해 주세요.', 0); continue; }
+            if (config.models[p] !== model) { config.models[p] = model; syncStorage(); }
+            return { ok: parsed };
+          } catch (e) {
+            lastErr = e;
+            if ([401, 403].includes(e.status)) throw new ApiError(friendlyError(p, e), e.status);
+            if (e.status === 429) { await sleep(1200 * (a + 1)); continue; }
+            if (e.status === 404 || e.status === 400 || e.status === 0) break;
+            await sleep(400);
+          }
+        }
+      }
+      return { err: lastErr };
+    };
+    const first = [];
+    [config.models[p], ...(FALLBACK_MODELS[p] || [])].forEach(m => { if (m && !first.includes(m)) first.push(m); });
+    let r = await tryModels(first.slice(0, 2));
+    if (r.ok) return r.ok;
+    if (!(config.modelLists[p] || []).length && Date.now() < deadline) {
+      try {
+        const list = await listModels(p, key); config.modelLists[p] = list; syncStorage();
+        const more = list.filter(m => !first.slice(0, 2).includes(m)).slice(0, 2);
+        if (more.length) { const r2 = await tryModels(more); if (r2.ok) return r2.ok; r = r2.err ? r2 : r; }
+      } catch (e) { if ([401, 403].includes(e.status)) throw new ApiError(friendlyError(p, e), e.status); }
+    }
+    const err = r.err || new ApiError('알 수 없는 오류', 0);
+    throw new ApiError(friendlyError(p, err), err.status);
+  }
+
+  /* ----- 단어 조회 캐시 · 내장 사전 · 묶음 조회 ----- */
+  const AIC_KEY = 'vocapro_aic2'; let aiCache = null;
+  const aicAll = () => aiCache || (aiCache = loadJson(AIC_KEY) || {});
+  const aicGet = w => { const r = aicAll()[String(w).toLowerCase()]; return r ? { ...r } : null; };
+  const aicSet = (w, r) => { const c = aicAll(); c[String(w).toLowerCase()] = r; const ks = Object.keys(c); if (ks.length > 600) delete c[ks[0]]; try { LS.setItem(AIC_KEY, JSON.stringify(c)); } catch (e) {} };
+  // 내장 사전: dict/<첫 글자>.json 을 필요할 때만 불러와요. [단어, 뜻, 발음기호, 한글 발음, 예문, 예문 해석, 유의어]
+  // 중국어 사전은 dict/zh/<0-f>.json (첫 글자 코드 % 16) 이고 뒤에 [예문 병음, HSK 급수] 가 더 붙어요.
+  const DICT_KEYS = ['word', 'meaning', 'phonetic', 'koreanPron', 'example', 'exampleKo', 'synonyms', 'exPy', 'hsk', 'hsk3'];
+  const dictShards = {};
+  function dictShard(c) {
+    if (!dictShards[c]) dictShards[c] = fetch(`dict/${c}.json`).then(r => r.ok ? r.json() : null).catch(() => null)
+      .then(d => { if (!d) delete dictShards[c]; return d || {}; });
+    return dictShards[c];
+  }
+  const dictLetter = w => { const s = String(w || '').trim(); if (isHanWord(s)) return 'zh/' + (s.codePointAt(0) % 16).toString(16); const c = s.charAt(0).toLowerCase(); return c >= 'a' && c <= 'z' ? c : ''; };
+  // 중국어 단어 목록: [단어, 병음, 뜻, 옛 HSK 급수(1~6, 없으면 0), 신HSK 급수(1~7, 7은 7~9급, 없으면 0)]. 중국어로 바꿀 때 한 번만 받아요.
+  const zhLv = e => e[3] || (e[4] ? 6 + e[4] / 10 : 9);
+  const zhTag = (old, nw) => old ? `HSK ${old}급` : nw ? `신HSK ${+nw === 7 ? '7~9' : nw}급` : '';
+  let zhIdx = null, zhIdxP = null, zhMap = null;
+  function zhLoad() {
+    if (!zhIdxP) zhIdxP = fetch('dict/zh/index.json').then(r => r.ok ? r.json() : null).catch(() => null).then(d => {
+      if (!Array.isArray(d)) { zhIdxP = null; return []; }
+      zhIdx = d; zhMap = new Map(d.map(e => [e[0], e])); dictMap = null; gwCache = {}; zhTok = null; zsLoad();
+      if (isZh() && currentUser && curTab === 'tabHome' && !S.active) { try { renderHome(); } catch (e) {} }
+      return d;
+    });
+    return zhIdxP;
+  }
+  // 중국어 말하기 문장 (난이도 하 · 중 · 상 · 최상): {1|2|3|4: [[단어, 단어 병음, 뜻, 문장, 문장 병음, 해석], ...]}
+  // 영어 말하기 문장 (난이도 하 · 중 · 상 · 최상): {1|2|3|4: [[단어, 뜻, 문장, 해석], ...]}
+  let esData = null, esP = null;
+  function esLoad() {
+    if (!esP) esP = fetch('dict/en-speak.json').then(r => r.ok ? r.json() : null).catch(() => null).then(d => {
+      if (!d || !Array.isArray(d[1])) { esP = null; return null; }
+      esData = d; gwCache = {};
+      if (!isZh() && currentUser && curTab === 'tabHome' && !S.active) { try { renderHome(); } catch (e) {} }
+      return d;
+    });
+    return esP;
+  }
+  const spkPackLoad = k => k.startsWith('es') ? esLoad() : zsLoad();
+  let zsData = null, zsP = null;
+  function zsLoad() {
+    if (!zsP) zsP = fetch('dict/zh/speak.json').then(r => r.ok ? r.json() : null).catch(() => null).then(d => {
+      if (!d || !Array.isArray(d[1])) { zsP = null; return null; }
+      zsData = d; gwCache = {};
+      if (isZh() && currentUser && curTab === 'tabHome' && !S.active) { try { renderHome(); } catch (e) {} }
+      return d;
+    });
+    return zsP;
+  }
+  // 변화형: 사전에 "went": "go:VBD" 처럼 원형을 가리키는 항목이 있고, 규칙 변화(-s, -ed, -ing 등)는 원형을 찾아봐요.
+  const FORM_NAMES = { VBD: '과거형', VBN: '과거분사', VBG: '-ing형', VBZ: '3인칭 단수형', NNS: '복수형', JJR: '비교급', JJS: '최상급', RBR: '비교급', RBS: '최상급' };
+  function baseCandidates(w) {
+    const c = [], add = x => { if (x && x.length > 1 && x !== w && !c.includes(x)) c.push(x); };
+    const dbl = x => x.length > 2 && x[x.length - 1] === x[x.length - 2] ? x.slice(0, -1) : '';
+    if (w.endsWith('ies')) add(w.slice(0, -3) + 'y');
+    if (w.endsWith('es')) add(w.slice(0, -2));
+    if (w.endsWith('s') && !w.endsWith('ss')) add(w.slice(0, -1));
+    if (w.endsWith('ied')) add(w.slice(0, -3) + 'y');
+    if (w.endsWith('ed')) { add(w.slice(0, -2)); add(w.slice(0, -1)); add(dbl(w.slice(0, -2))); }
+    if (w.endsWith('ing')) { add(w.slice(0, -3)); add(w.slice(0, -3) + 'e'); add(dbl(w.slice(0, -3))); if (w.endsWith('ying')) add(w.slice(0, -4) + 'ie'); }
+    if (w.endsWith('ier') || w.endsWith('iest')) add(w.replace(/i(er|est)$/, 'y'));
+    if (w.endsWith('er')) { add(w.slice(0, -2)); add(w.slice(0, -1)); add(dbl(w.slice(0, -2))); }
+    if (w.endsWith('est')) { add(w.slice(0, -3)); add(w.slice(0, -2)); add(dbl(w.slice(0, -3))); }
+    return c;
+  }
+  async function dictRaw(w) { const c = dictLetter(w); return c ? (await dictShard(c))[w] : null; }
+  const dictObj = a => { const o = {}; DICT_KEYS.forEach((k, i) => { o[k] = a[i] || ''; }); return o; };
+  async function dictGet(word) {
+    const w = String(word || '').trim().toLowerCase(); if (!dictLetter(w)) return null;
+    let a = await dictRaw(w);
+    if (typeof a === 'string') {
+      const [base, tag] = a.split(':'), b = await dictRaw(base);
+      if (Array.isArray(b)) { const o = dictObj(b); o.base = base; o.meaning = `${o.meaning} (${base}의 ${FORM_NAMES[tag] || '변화형'})`; o.phonetic = ''; o.koreanPron = ''; return o; }
+      a = null;
+    }
+    if (Array.isArray(a)) return dictObj(a);
+    if (w.includes(' ')) {
+      const [h, ...rest] = w.split(' '), r = await dictRaw(h), heads = (typeof r === 'string' ? [r.split(':')[0]] : []).concat(baseCandidates(h));
+      for (const b of heads) { const p = await dictRaw(b + ' ' + rest.join(' ')); if (Array.isArray(p)) { const o = dictObj(p); o.base = b + ' ' + rest.join(' '); return o; } }
+      return null;
+    }
+    for (const base of baseCandidates(w)) {
+      const b = await dictRaw(base);
+      if (Array.isArray(b)) { const o = dictObj(b); o.base = base; o.phonetic = ''; o.koreanPron = ''; return o; }
+    }
+    return null;
+  }
+  async function dictPreload(words) { await Promise.all([...new Set(words.map(dictLetter).filter(Boolean))].map(dictShard)); }
+  async function lookupWord(word, full) {
+    const own = await dictGet(word); if (own) return own;
+    const hit = aicGet(word); if (hit && (hit.example || !full)) return hit;
+    const r = await callAi(buildPrompt(word, full), normalizeResult, { task: 'word', word, full: !!full, lang: aiLang(word) }); if (full) aicSet(word, r); return r;
+  }
+  const aiLang = w => isHanWord(w) ? 'zh' : undefined;
+  const ZH_ENTRY = `"meaning":"핵심 한국어 뜻 (예: 공부하다, 배우다)","phonetic":"pinyin with tone marks, e.g. xuéxí","koreanPron":"한글 발음 (예: 쉬에시)","example":"short natural sentence in simplified Chinese that contains the word","exampleKo":"그 예문의 자연스러운 한국어 해석","synonyms":"中文近义词1, 近义词2 (없으면 빈칸)"`;
+  const buildBatchPrompt = words => words.some(isHanWord) ? `You are a Chinese-Korean dictionary for Korean students. Define each Chinese word below (simplified Chinese).
+Return ONLY one JSON object (no markdown): {"items":[{"word":"<same word as given>",${ZH_ENTRY}}]}
+Keep the same order. WORDS: ${JSON.stringify(words)}` : `You are an English-Korean dictionary for Korean students. Define each English word or phrase below.
+Return ONLY one JSON object (no markdown): {"items":[{"word":"<same word as given>","meaning":"핵심 한국어 뜻 (품사 포함, 예: 형 일관된)","phonetic":"/IPA/","koreanPron":"한글 발음","example":"short natural English sentence (under 12 words)","exampleKo":"그 예문의 자연스러운 한국어 해석","synonyms":"synonym1, synonym2"}]}
+Keep the same order. WORDS: ${JSON.stringify(words)}`;
+  function normalizeBatch(o) {
+    if (!o || !Array.isArray(o.items)) return null;
+    const m = {};
+    o.items.forEach(it => { const n = normalizeResult(it); if (n && it && it.word) m[String(it.word).trim().toLowerCase()] = n; });
+    return Object.keys(m).length ? m : null;
+  }
+
+  const buildPrompt = (word, full) => isHanWord(word) ? `You are a Chinese-Korean dictionary for Korean students. Define the Chinese word "${word}" (simplified Chinese).
+Return ONLY one JSON object (no markdown, no commentary): {${ZH_ENTRY}}${full ? '' : '\nLeave "example", "exampleKo" and "synonyms" as empty strings.'}` : `You are an English-Korean dictionary for Korean students. Define the English word or phrase "${word}".
+Return ONLY one JSON object (no markdown, no commentary) with exactly these keys:
+{"meaning":"가장 핵심적인 한국어 뜻 (품사 포함, 예: 형 일관된)","phonetic":"/IPA/","koreanPron":"한글 발음 표기","example":${full ? '"short natural English sentence (under 12 words)"' : '""'},"exampleKo":${full ? '"그 예문의 자연스러운 한국어 해석"' : '""'},"synonyms":${full ? '"synonym1, synonym2, synonym3"' : '""'}}`;
+
+  let formEditId = null, aiRun = 0;
+  function aiState(html, kind) { const e = $('aiState'); if (!e) return; e.className = 'ai-state' + (html ? ' show ' + (kind || '') : ''); e.innerHTML = html || ''; }
+  // 중국어: 단어 칸에 병음(xuexi, xué xí, xue2 xi2)을 쓰면 한자를 찾아 채워요. HSK 단어에서 먼저 찾고, 없으면 AI로.
+  // 같은 병음 단어가 여럿이면(shi: 是 · 事 · 时 …) 골라요
+  const PY_IN = /^[a-zA-Z\u00C0-\u024F\u0300-\u036F0-5'\s]+$/;
+  const isPyInput = q => isZh() && !HAN.test(q) && PY_IN.test(q) && /[a-z]/i.test(q);
+  const pyMarked = s => String(s || '').normalize('NFC').toLowerCase().replace(/[\s'0-5]/g, '');
+  async function pyCands(q) {
+    const idx = await zhLoad(), pq = pyPlain(q); if (!pq) return [];
+    let hit = idx.filter(e => pyPlain(e[1]) === pq);
+    // 성조 부호를 썼으면 성조까지 같은 단어를 먼저(있을 때만 좁혀요)
+    if (/[\u00C0-\u024F\u0300-\u036F]/.test(q.normalize('NFD').replace(/[a-z]/gi, ''))) { const t = hit.filter(e => pyMarked(e[1]) === pyMarked(q)); if (t.length) hit = t; }
+    return hit.sort((a, b) => zhLv(a) - zhLv(b) || a[0].length - b[0].length).slice(0, 8).map(e => [e[0], e[1], e[2]]);
+  }
+  const normPy = o => { const a = o && Array.isArray(o.items) ? o.items.filter(x => x && HAN.test(String(x.word || '')) && !/[^㐀-鿿豈-﫿]/.test(String(x.word).trim())).map(x => [String(x.word).trim().slice(0, 12), String(x.phonetic || '').slice(0, 60), String(x.meaning || '').slice(0, 80)]).slice(0, 6) : null; return a; };
+  async function pyResolve(q) {
+    const run = ++aiRun;
+    aiState('<span class="dot"></span>병음으로 한자를 찾는 중', 'busy');
+    let c = [];
+    try { c = await pyCands(q); } catch (e) { c = []; }
+    if (!c.length && aiReady()) {
+      try { c = await callAi(`A Korean student typed Mandarin pinyin (tones may be missing): ${JSON.stringify(q)}. List up to 5 common Chinese words in simplified characters whose pinyin is exactly this syllable sequence, most common first. Return ONLY one JSON object: {"items":[{"word":"简体字","phonetic":"pinyin with tone marks","meaning":"핵심 한국어 뜻"}]}. If none, {"items":[]}.`, normPy, { task: 'pinyin', py: q, lang: 'zh' }, { once: true }) || []; }
+      catch (e) { if (run === aiRun) aiState(`병음으로 단어를 찾지 못했어요. 한자로 써 주세요. <small>${esc(String(e.message || '').split('\n')[0])}</small>`, 'err'); return; }
+    }
+    if (run !== aiRun || !$('fieldWord') || $('fieldWord').value.trim() !== q) return;
+    if (!c.length) return aiState(`'${esc(q)}'(으)로 읽는 단어를 찾지 못했어요. 병음을 확인하거나 한자로 써 주세요.`, 'err');
+    if (c.length === 1) { $('fieldWord').value = c[0][0]; return executeFastAi(); }
+    aiState(`<span>같은 병음 단어가 ${c.length}개예요. 골라 주세요</span><span class="py-picks">${c.map(e => `<button class="py-pick" data-act="py-pick" data-word="${esc(e[0])}"><b lang="zh-CN">${esc(e[0])}</b><i>${esc(e[1])}</i><small>${esc(e[2])}</small></button>`).join('')}</span>`, 'ok');
+  }
+  ACTIONS['py-pick'] = el => { const f = $('fieldWord'); if (!f) return; f.value = el.dataset.word; executeFastAi(); };
+  async function executeFastAi() {
+    const query = $('fieldWord').value.trim();
+    if (!query) return toast('단어를 입력하세요.');
+    if (isPyInput(query)) return pyResolve(query);
+    const btn = $('btnRunAi'), run = ++aiRun, edit = !!formEditId;
+    const set = (id, v, force) => { const f = $(id); if (f && v && (force || !f.value.trim())) f.value = v; };
+    const local = builtinMeaning(query);
+    if (local) set('fieldMeaning', local, !edit);
+    btn.disabled = true; btn.textContent = '조회 중';
+    const start = Date.now();
+    const tick = () => { if (run === aiRun) aiState(`<span class="dot"></span>${local ? '기본 뜻을 먼저 채웠어요. 발음과 예문을 채우는 중' : 'AI가 채우는 중'} · ${((Date.now() - start) / 1000).toFixed(1)}초`, 'busy'); };
+    tick(); const timer = setInterval(tick, 100);
+    try {
+      const fromDict = await dictGet(query);
+      const r = fromDict || await lookupWord(query, true);
+      if (run !== aiRun || !$('fieldMeaning')) return;
+      if ($('fieldWord').value.trim() !== query) { clearInterval(timer); aiState(''); return; } // 단어를 바꿨으면 '채우는 중' 표시를 지워요
+      const force = !edit;
+      set('fieldMeaning', r.meaning, force || $('fieldMeaning').value === local); set('fieldPhonetic', r.phonetic, force); set('fieldKoreanPron', r.koreanPron, force);
+      set('fieldExample', r.example, force); set('fieldExampleKo', r.exampleKo, force); set('fieldSynonyms', r.synonyms, force);
+      clearInterval(timer);
+      aiState(fromDict ? '내장 사전에서 바로 채웠어요' : `채웠어요 · ${((Date.now() - start) / 1000).toFixed(1)}초`, 'ok');
+      playAudio(query);
+    } catch (err) {
+      clearInterval(timer);
+      if (run !== aiRun) return;
+      const msg = esc(String(err.message || '').split('\n')[0]);
+      aiState(`${local ? '기본 뜻만 채웠어요. ' : ''}${msg || 'AI 응답을 받지 못했어요.'} <button class="link-btn" data-act="ai-fill">다시 시도</button>`, 'err');
+    } finally { clearInterval(timer); if (run === aiRun && btn) { btn.disabled = false; btn.textContent = 'AI 완성'; } }
+  }
+
+  /* ----- 유의어 시트 ----- */
+  let synData = null;
+  async function inspectSynonym(word) {
+    synData = null;
+    openSheet(word, `<div id="synBox"><div class="q-meaning" style="font-size:1.2rem;">뜻을 찾는 중...</div></div>
+      <div class="row" style="margin-top:16px;"><button class="btn btn-soft" data-act="speak" data-text="${esc(word)}">발음 듣기</button><button class="btn btn-primary" data-act="syn-add">단어장에 추가</button></div>`);
+    playAudio(word);
+    try {
+      const local = builtinMeaning(word);
+      const res = (await dictGet(word)) || (local ? { meaning: local, phonetic: '', koreanPron: '' } : await lookupWord(word, false));
+      if ($('sheetTitle').textContent !== word || !$('synBox')) return;
+      synData = { word, ...res };
+      // 비슷한 단어끼리 이어서 볼 수 있게 칩으로 보여줘요
+      const syns = String(res.synonyms || '').split(',').map(x => x.trim()).filter(x => x && x.toLowerCase() !== word.toLowerCase());
+      $('synBox').innerHTML = `<div class="q-pron" style="margin-bottom:6px;">${esc(pronText(res))}</div><div class="q-meaning" style="font-size:1.4rem;">${esc(res.meaning)}</div>
+        ${res.example ? `<div class="syn-ex"><div>${esc(res.example)}</div>${res.exampleKo ? `<small>${esc(res.exampleKo)}</small>` : ''}</div>` : ''}
+        ${syns.length ? `<h4 class="syn-h">비슷한 단어</h4><div class="syn-chips">${syns.map(x => `<button class="syn" data-act="syn" data-word="${esc(x)}">${esc(x)}</button>`).join('')}</div>` : ''}`;
+    } catch (e) {
+      if ($('synBox')) $('synBox').innerHTML = `<div class="muted">뜻을 가져오지 못했어요.<br>${esc(e.message.split('\n')[0])}</div>`;
+    }
+  }
+  ACTIONS['syn-add'] = () => {
+    const cat = curCat();
+    if (!synData || !cat) return toast('뜻을 불러온 뒤에 추가할 수 있어요.');
+    if (cat.words.some(w => w.word.toLowerCase() === synData.word.toLowerCase())) return toast('이미 이 단어장에 있어요.');
+    cat.words.unshift(sanitizeWord({ id: uid(), word: synData.word, meaning: synData.meaning, phonetic: synData.phonetic, koreanPron: synData.koreanPron, example: synData.example || '', exampleKo: synData.exampleKo || '', synonyms: synData.synonyms || '' }));
+    syncStorage(); closeSheet(); renderBookDynamic(); toast(`'${synData.word}' 을(를) 추가했어요.`);
+  };
 

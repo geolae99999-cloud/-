@@ -19,12 +19,99 @@
   }
   // 단어장 여러 개 골라 지우기: bookSel 이 있으면 카드를 누를 때 열지 않고 골라요
   let bookSel = null;
+  ACTIONS['tools-toggle'] = el => {
+    const list = $('homeToolList'); if (!list) return;
+    const open = list.classList.toggle('tl-fold') === false;
+    try { LS.setItem('vocapro_tools_open', open ? '1' : '0'); } catch (e) {}
+    el.classList.toggle('open', open);
+    const sp = el.querySelector('span'); if (sp) sp.textContent = open ? '접기' : '학습 도구 더 보기';
+  };
+
   function renderBooks() {
     if (bookSel) bookSel.forEach(id => { if (!findBook(id)) bookSel.delete(id); });
     const eb = $('bkEdit'); if (eb) { eb.textContent = bookSel ? '취소' : '여러 개 지우기'; eb.hidden = !bookSel && !categories.length; }
-    $('folderContainer').innerHTML = (bookSel && categories.length ? `<div class="bk-bar"><button class="btn btn-sm btn-soft" data-act="book-all">${bookSel.size === categories.length ? '모두 풀기' : '모두 고르기'}</button><span>${bookSel.size}개 골랐어요</span><button class="btn btn-sm btn-soft cl-danger" data-act="books-del"${bookSel.size ? '' : ' disabled'}>지우기</button></div>` : '') +
+    const hint = !bookSel && categories.length && !LS.getItem('vocapro_lp_hint')
+      ? `<div class="lp-hint-bar" id="lpHintBar"><span>단어장을 꾹 누르면 이름 바꾸기·삭제를 할 수 있어요</span><button data-act="lp-hint-close" aria-label="안내 닫기">${IC.x}</button></div>` : '';
+    $('folderContainer').innerHTML = hint + (bookSel && categories.length ? `<div class="bk-bar"><button class="btn btn-sm btn-soft" data-act="book-all">${bookSel.size === categories.length ? '모두 풀기' : '모두 고르기'}</button><span>${bookSel.size}개 골랐어요</span><button class="btn btn-sm btn-soft cl-danger" data-act="books-del"${bookSel.size ? '' : ' disabled'}>지우기</button></div>` : '') +
       (categories.map(bookCardHtml).join('') || emptyHtml('단어장이 없어요', '위에서 이름을 입력하고 만들기를 눌러 보세요.'));
   }
+  ACTIONS['lp-hint-close'] = () => { try { LS.setItem('vocapro_lp_hint', '1'); } catch (e) {} const b = $('lpHintBar'); if (b) b.remove(); };
+
+  /* ⑤ 단어장 꾹 누르기 메뉴 (모바일 500ms 롱프레스, PC 우클릭) */
+  let lpTimer = 0, lpEl = null, lpX = 0, lpY = 0, lpBlockClick = false;
+  function lpClear() {
+    if (lpTimer) { clearTimeout(lpTimer); lpTimer = 0; }
+    if (lpEl) { lpEl.classList.remove('pressing'); lpEl = null; }
+  }
+  function openBookLongMenu(id) {
+    const b = findBook(id); if (!b) return;
+    const total = b.words.length, end = endOfToday(), due = b.words.filter(w => w.box >= 1 && w.due <= end).length;
+    openSheet(b.name, `<div class="lp-sheet-sub">${total}단어 · 복습 ${due}</div>
+      <div class="menu-list">
+        <button data-act="lp-study" data-id="${esc(id)}">${IC.play}<span>학습 시작</span></button>
+        <button data-act="lp-rename" data-id="${esc(id)}">${IC.edit}<span>이름 바꾸기</span></button>
+        <button data-act="lp-top" data-id="${esc(id)}">${IC.upload}<span>맨 위로 올리기</span></button>
+        <button data-act="lp-share" data-id="${esc(id)}">${IC.users}<span>링크로 공유하기</span></button>
+        <button data-act="lp-del" data-id="${esc(id)}" class="danger">${IC.bookx}<span>단어장 삭제</span></button>
+      </div>`);
+  }
+  document.addEventListener('pointerdown', e => {
+    if (e.button && e.button !== 0) return;
+    const bk = e.target.closest && e.target.closest('.book[data-act="open-book"]');
+    if (!bk) return;
+    lpClear();
+    lpEl = bk; lpX = e.clientX; lpY = e.clientY;
+    bk.classList.add('pressing');
+    lpTimer = setTimeout(() => {
+      lpTimer = 0;
+      const id = bk.dataset.id;
+      bk.classList.remove('pressing'); lpEl = null;
+      lpBlockClick = true;
+      setTimeout(() => { lpBlockClick = false; }, 600);
+      try { if (navigator.vibrate && config.haptic !== false) navigator.vibrate(15); } catch (err) {}
+      openBookLongMenu(id);
+    }, 500);
+  }, { passive: true });
+  document.addEventListener('pointermove', e => {
+    if (!lpTimer) return;
+    if (Math.hypot(e.clientX - lpX, e.clientY - lpY) > 10) lpClear();
+  }, { passive: true });
+  document.addEventListener('pointerup', lpClear, { passive: true });
+  document.addEventListener('pointercancel', lpClear, { passive: true });
+  window.addEventListener('scroll', lpClear, { passive: true, capture: true });
+  document.addEventListener('click', e => {
+    if (lpBlockClick) { lpBlockClick = false; e.preventDefault(); e.stopImmediatePropagation(); }
+  }, true);
+  document.addEventListener('contextmenu', e => {
+    const bk = e.target.closest && e.target.closest('.book[data-act="open-book"]');
+    if (!bk) return;
+    e.preventDefault(); lpClear();
+    openBookLongMenu(bk.dataset.id);
+  });
+
+  ACTIONS['lp-study'] = el => { studyPrefs.src = 'cat:' + el.dataset.id; closeSheet(); go('tabStudy'); };
+  ACTIONS['lp-rename'] = async el => {
+    const b = findBook(el.dataset.id); if (!b) return;
+    closeSheet();
+    const nm = await ask('새 단어장 이름을 입력하세요.', { input: b.name, ok: '바꾸기' });
+    if (nm && nm.trim()) { b.name = nm.trim().slice(0, 40); syncStorage(); go(curTab); toast('이름을 바꿨어요.'); }
+  };
+  ACTIONS['lp-top'] = el => {
+    const idx = categories.findIndex(c => c.id === el.dataset.id);
+    if (idx < 0) return;
+    if (idx > 0) { const [b] = categories.splice(idx, 1); categories.unshift(b); syncStorage(); }
+    closeSheet(); go(curTab); toast('맨 위로 올렸어요.');
+  };
+  ACTIONS['lp-share'] = el => { currentCategoryId = el.dataset.id; ACTIONS['book-share'](); };
+  ACTIONS['lp-del'] = async el => {
+    const b = findBook(el.dataset.id); if (!b) return;
+    closeSheet();
+    if (!await ask(`'${b.name}' 단어장과 안의 단어 ${b.words.length}개를 모두 삭제할까요?`, { ok: '삭제', danger: true })) return;
+    categories = categories.filter(c => c.id !== b.id);
+    if (currentCategoryId === b.id) currentCategoryId = null;
+    syncStorage(); go(curTab); toast('단어장을 삭제했어요.');
+  };
+
   ACTIONS['books-edit'] = () => { bookSel = bookSel ? null : new Set(); renderBooks(); };
   ACTIONS['book-pick'] = el => { if (!bookSel) return; const id = el.dataset.id; if (bookSel.has(id)) bookSel.delete(id); else bookSel.add(id); renderBooks(); const c = document.querySelector(`.book[data-id="${CSS.escape(id)}"]`); if (c) c.focus(); };
   ACTIONS['book-all'] = () => { if (!bookSel) return; bookSel = bookSel.size === categories.length ? new Set() : new Set(categories.map(c => c.id)); renderBooks(); };
@@ -57,16 +144,12 @@
   }
   function buildBookPane() {
     $('paneBook').innerHTML = `
-      <div class="book-sum" id="bookSummary"></div>
-      <div class="book-actions">
-        <button class="btn btn-primary" data-act="start" data-mode="card" data-src="cat:${esc(currentCategoryId)}">카드 학습</button>
-        <button class="btn btn-soft" data-act="start" data-mode="choice" data-src="cat:${esc(currentCategoryId)}">퀴즈</button>
-        <button class="btn btn-soft" data-act="book-menu">더보기</button>
-      </div>
+      <div class="bk-detail-card" id="bookSummary"></div>
       <div class="toolbar">
         <input type="text" id="searchFilter" placeholder="단어나 뜻 검색" data-input="search">
         <button class="icon-btn" data-act="shuffle" aria-label="섞기">${IC.shuffle}</button>
         <button class="icon-btn ${document.body.classList.contains('hide-content') ? 'on' : ''}" id="btnBlurToggle" data-act="blur" aria-label="뜻 가리기">${IC.eyeoff}</button>
+        <button class="icon-btn" data-act="book-menu" aria-label="단어장 관리">${IC.edit}</button>
       </div>
       <div class="chips" id="bookChips"></div>
       <div class="word-list" id="wordCardStream"></div>
@@ -74,14 +157,26 @@
   }
   function onSearch(v) { currentFilter = v.trim(); renderWordList(); }
 
-  const FILTERS = [['all', '전체'], ['new', '새 단어'], ['learning', '학습 중'], ['mastered', '마스터'], ['star', '즐겨찾기'], ['miss', '오답']];
+  const FILTERS = [['all', '전체'], ['learning', '외우는 중'], ['miss', '모름'], ['star', '즐겨찾기'], ['new', '새 단어'], ['mastered', '외움']];
   function renderBookDynamic() {
     const cat = curCat();
     if (!cat) return go('tabBooks');
     const end = endOfToday();
     const total = cat.words.length, mastered = cat.words.filter(w => w.box >= 5).length;
     const due = cat.words.filter(w => w.box >= 1 && w.due <= end).length;
-    $('bookSummary').innerHTML = `<div class="sum-box"><b>${total}</b><span>전체</span></div><div class="sum-box"><b>${mastered}</b><span>마스터</span></div><div class="sum-box"><b>${due}</b><span>오늘 복습</span></div>`;
+    const pct = total ? Math.round(mastered / total * 100) : 0;
+    $('bookSummary').innerHTML = `
+      <div class="bk-detail-top" style="--bk:${bookColor(cat.id)}">
+        <div class="book-spine"><b>${total}</b><small>단어</small></div>
+        <div class="bk-detail-meta">
+          <b>외운 단어 ${mastered}개 · ${pct}%</b>
+          <div class="bar"><i style="width:${pct}%"></i></div>
+        </div>
+      </div>
+      <div class="bk-detail-btns">
+        <button class="btn btn-primary" data-act="start" data-mode="card" data-src="cat:${esc(currentCategoryId)}">학습하기${due ? ` · 복습 ${due}` : ''}</button>
+        <button class="btn btn-soft" data-act="add-sheet">+ 단어</button>
+      </div>`;
     $('bookChips').innerHTML = FILTERS.map(([k, n]) => `<button class="chip ${bookFilter === k ? 'on' : ''}" data-act="filter" data-f="${k}">${n}</button>`).join('');
     renderWordList();
   }
@@ -122,9 +217,18 @@
     return list;
   }
   function lvlBadge(w) {
-    if (w.box === 0) return '<span class="badge b-new">NEW</span>';
-    if (w.box >= 5) return '<span class="badge b-ok">마스터</span>';
-    return `<span class="badge b-learn">Lv.${w.box}</span>`;
+    if (w.miss > 0) return '<span class="badge b-bad">모름</span>';
+    if (w.box === 0) return '<span class="badge b-new">새 단어</span>';
+    if (w.box >= 5) return '<span class="badge b-ok">외움</span>';
+    return '<span class="badge b-learn">외우는 중</span>';
+  }
+  function hlExample(ex, word) {
+    const s = String(ex || ''), w = String(word || '').trim();
+    if (!s || !w) return esc(s);
+    try {
+      const re = new RegExp(`(${w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[a-z]*)`, 'ig');
+      return esc(s).replace(re, '<mark class="w-hl">$1</mark>');
+    } catch (e) { return esc(s); }
   }
   function noteHtml(n) {
     if (!n) return '';
@@ -157,21 +261,21 @@
           <div class="w-main" data-act="expand" role="button" tabindex="0" aria-expanded="${open}">
             <div class="w-head"><span class="w-word ${w.star ? 'hl' : ''}">${esc(w.word)}</span>${w.phonetic ? `<span class="w-pron">${esc(w.phonetic)}</span>` : ''}${w.koreanPron ? `<span class="w-kpron">[${esc(w.koreanPron)}]</span>` : ''}</div>
             <div class="w-mean">${w.meaning ? esc(w.meaning) : '<span class="muted">뜻이 비어 있어요 · 더보기에서 채울 수 있어요</span>'}</div>
-            <div class="w-badges">${lvlBadge(w)}${w.miss > 0 ? '<span class="badge b-bad">오답</span>' : ''}</div>
           </div>
           <div class="w-side">
-            <button class="w-star ${w.star ? 'on' : ''}" data-act="star" aria-label="즐겨찾기">${IC.star}</button>
+            <div class="w-badges">${lvlBadge(w)}</div>
             <button class="w-speak" data-act="speak" data-text="${esc(w.word)}" aria-label="발음 듣기">${IC.speaker}</button>
           </div>
         </div>
         ${open ? `
         <div class="w-detail">
-          ${w.example ? `<div class="w-ex"><h4>예문</h4><p class="ex-en">${esc(w.example)} <button class="ex-say" data-act="speak" data-text="${esc(w.example)}" aria-label="예문 듣기">${IC.speaker}</button></p>${exPyHtml(w)}${w.exampleKo ? `<p class="ex-ko">${esc(w.exampleKo)}</p>` : '<button class="btn btn-soft btn-sm" data-act="fill-exko">예문 해석 채우기</button>'}</div>` : ''}
+          ${w.example ? `<div class="w-ex"><h4>예문</h4><p class="ex-en">${hlExample(w.example, w.word)} <button class="ex-say" data-act="speak" data-text="${esc(w.example)}" aria-label="예문 듣기">${IC.speaker}</button></p>${exPyHtml(w)}${w.exampleKo ? `<p class="ex-ko">${esc(w.exampleKo)}</p>` : '<button class="btn btn-soft btn-sm" data-act="fill-exko">예문 해석 채우기</button>'}</div>` : ''}
           ${syns.length ? `<div><h4>비슷한 단어 (눌러서 뜻 보기)</h4><div class="syn-chips">${syns.map(s => `<button class="syn" data-act="syn" data-word="${esc(s)}">${esc(s)}</button>`).join('')}</div></div>` : ''}
           <div class="muted w-due">${dueText(w)}${w.wrong ? ` · 틀린 횟수 ${w.wrong}` : ''}</div>
           <div class="w-tools">
             <button class="btn btn-soft btn-sm" data-act="edit-word">${IC.edit} 수정</button>
-            <button class="btn btn-soft btn-sm" data-act="mem">${w.box >= 5 ? '마스터 취소' : '이미 알아요'}</button>
+            <button class="btn btn-soft btn-sm w-star ${w.star ? 'on' : ''}" data-act="star" style="width:auto;height:40px;padding:0 14px;border:1px solid var(--line);">${IC.star} 즐겨찾기</button>
+            <button class="btn btn-soft btn-sm" data-act="mem">${w.box >= 5 ? '외움 취소' : '외웠음'}</button>
             <button class="btn btn-soft btn-sm danger" data-act="del-word">삭제</button>
           </div>
         </div>` : ''}

@@ -157,6 +157,7 @@
     'tts-voice': el => { config.voice = Object.assign({ en: '', zh: '', ko: '' }, config.voice); config.voice[el.dataset.l] = el.value; syncStorage(); ttsTry(el.dataset.l); },
     'tts-match': el => { config.matchVoice = el.checked; syncStorage(); },
     haptic: el => { config.haptic = el.checked; syncStorage(); if (el.checked) haptic(true); },
+    kpron: el => { config[isZh() ? 'kpronZh' : 'kpronEn'] = el.checked; applyKpron(); syncStorage(); },
     provider: el => onProviderChange(el.value),
     rm: () => rmSave(),
     'import-backup': (el, e) => importBackup(e),
@@ -166,7 +167,7 @@
     'auth-role': () => authRoleChange(),
     'pq-role': () => pqRoleChange()
   });
-  Object.assign(ON.input, { 'tts-range': el => ttsSet(el.dataset.k, el.value, true), search: el => onSearch(el.value), dict: () => dictType() });
+  Object.assign(ON.input, { 'tts-range': el => ttsSet(el.dataset.k, el.value, true), search: el => onSearch(el.value), dict: () => dictType(), 'sch-input': el => schOnInput(el) });
   Object.assign(ON.enter, { 'add-book': () => ACTIONS['add-book'](), 'ai-fill': () => executeFastAi(), dict: () => dictType(true) });
   ACTIONS['test-conn'] = () => testConnection();
   ACTIONS['ai-fill'] = () => executeFastAi();

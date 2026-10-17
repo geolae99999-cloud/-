@@ -15,7 +15,8 @@
     models: { gemini: '', xai: '', openai: '', anthropic: '' },
     modelLists: { gemini: [], xai: [], openai: [], anthropic: [] },
     ttsRate: 0.9, koRate: 1, ttsPitch: 1, gap: 0.9, wordRep: 1, matchVoice: true, voice: { en: '', zh: '', ko: '' },
-    goal: 20, darkMode: false, grade: '', lang: 'en', haptic: true
+    goal: 20, darkMode: false, grade: '', lang: 'en', haptic: true,
+    kpronEn: true, kpronZh: true, studyCount: SESSION_DEFAULT, guide: {}
   };
 
   function sanitizeNote(n) {
@@ -88,7 +89,16 @@
     { id: 'cat_review', name: '누적 복습', words: [] }
   ];
 
-  const cleanProfile = p => ({ name: String((p && p.name) || '').trim().slice(0, 20), school: String((p && p.school) || '').trim().slice(0, 30), sno: String((p && p.sno) || '').trim().slice(0, 12) });
+  const cleanProfile = p => ({ name: String((p && p.name) || '').trim().slice(0, 20), school: String((p && p.school) || '').trim().slice(0, 30), sno: String((p && p.sno) || '').trim().slice(0, 12), scode: String((p && p.scode) || '').replace(/[^A-Za-z0-9:]/g, '').slice(0, 24) });
+  function cleanGuide(g) {
+    const out = {};
+    if (g && typeof g === 'object') {
+      for (const k of Object.keys(g)) {
+        if (k.length <= 48 && Number.isFinite(+g[k])) out[k] = Math.max(0, Math.min(7, Math.floor(+g[k])));
+      }
+    }
+    return out;
+  }
   // 읽어주기 설정(속도·높이·쉬는 시간·목소리)을 저장본에서 안전하게 읽어요.
   function ttsCfgIn(cfg, d) {
     if (!d) return;
@@ -108,6 +118,10 @@
       cfg.goal = saved.goal || cfg.goal;
       cfg.darkMode = !!saved.darkMode;
       if (typeof saved.haptic === 'boolean') cfg.haptic = saved.haptic;
+      if (typeof saved.kpronEn === 'boolean') cfg.kpronEn = saved.kpronEn;
+      if (typeof saved.kpronZh === 'boolean') cfg.kpronZh = saved.kpronZh;
+      if (Number.isFinite(+saved.studyCount)) cfg.studyCount = Math.max(0, Math.min(500, Math.floor(+saved.studyCount)));
+      if (saved.guide && typeof saved.guide === 'object') cfg.guide = cleanGuide(saved.guide);
       cfg.lang = saved.lang === 'zh' ? 'zh' : 'en';
       cfg.grade = GRADE_NAMES[saved.grade] ? saved.grade : '';
       cfg.role = saved.role === 'teacher' ? 'teacher' : '';
@@ -251,15 +265,19 @@
    * 테마 / 라우팅
    * ======================================================= */
   ACTIONS.theme = () => { config.darkMode = !config.darkMode; applyTheme(); syncStorage(); };
+  const kpronOn = () => config[isZh() ? 'kpronZh' : 'kpronEn'] !== false;
+  function applyKpron() { document.body.classList.toggle('no-kpron', !kpronOn()); }
   function applyTheme() {
     document.body.classList.toggle('dark', !!config.darkMode);
     $('btnTheme').innerHTML = config.darkMode ? IC.sun : IC.moon;
     const m = document.querySelector('meta[name="theme-color"]');
-    if (m) m.setAttribute('content', config.darkMode ? '#101113' : '#f2f4f6');
+    if (m) m.setAttribute('content', config.darkMode ? '#101113' : '#f4f5f8');
+    applyKpron();
   }
   /* 영어 ↔ 중국어 전환: 머리글의 EN/中 스위치나 설정에서 바꿔요. 단어장과 기록은 언어마다 따로예요. */
   function applyLang() {
     document.body.classList.toggle('lang-zh', isZh());
+    applyKpron();
     const b = $('btnLang'); if (b) { b.setAttribute('aria-pressed', isZh() ? 'true' : 'false'); b.title = isZh() ? '영어 단어장으로 바꾸기' : '중국어 단어장으로 바꾸기'; }
     const d = $('btnDict'); if (d) d.setAttribute('aria-label', LN() + '사전');
     if (isZh()) zhLoad();
@@ -386,7 +404,8 @@
       ${shelfHtml()}
 
       <div class="h-tools">${isTeacher() ? teachToolsHtml() : ''}<div class="section-title"><span>학습 도구</span></div>
-      <div class="tool-list">${isTeacher() ? '' : classEntryHtml()}${todayHtml()}${flowEntryHtml()}${wqEntryHtml()}<button class="mg-entry" data-act="fsc-open"><span class="mg-ico i-coral">${IC.mic}</span><span class="mg-txt"><b>녹음 파일 채점</b><small>문장을 넣고 녹음 파일로 정확성 · 유창성 점수, 저장 안 함</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="gx-open"><span class="mg-ico i-mint">${IC.scan}</span><span class="mg-txt"><b>글·사진에서 단어 뽑기</b><small>기사, 유튜브 자막, 유인물 사진 속 모르는 단어만</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="match"><span class="mg-ico i-grape">${IC.cards}</span><span class="mg-txt"><b>짝 맞추기</b><small>${LN()}와 뜻을 빠르게 연결해요</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="rain"><span class="mg-ico i-teal">${IC.play}</span><span class="mg-txt"><b>단어 비</b><small>떨어지는 뜻이 닿기 전에 단어를 골라요</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="exam-open"><span class="mg-ico i-coral">${IC.trophy}</span><span class="mg-txt"><b>실전 시험</b><small>섞인 문제를 풀고 점수와 등급을 받아요</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="dict-open"><span class="mg-ico i-teal">${IC.search}</span><span class="mg-txt"><b>${LN()}사전</b><small>${isZh() ? '한자, 병음, 한글 뜻으로 바로 찾아요' : '뜻, 예문, 비슷한 단어를 바로 찾아요'}</small></span><span class="mg-chev"></span></button>${recEntryHtml()}${packEntryHtml()}${ltEntryHtml()}</div></div>
+      <div class="tool-list${LS.getItem('vocapro_tools_open') === '1' ? '' : ' tl-fold'}" id="homeToolList">${isTeacher() ? '' : classEntryHtml()}${todayHtml()}${flowEntryHtml()}${wqEntryHtml()}<button class="mg-entry" data-act="fsc-open"><span class="mg-ico i-coral">${IC.mic}</span><span class="mg-txt"><b>녹음 파일 채점</b><small>문장을 넣고 녹음 파일로 정확성 · 유창성 점수, 저장 안 함</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="gx-open"><span class="mg-ico i-mint">${IC.scan}</span><span class="mg-txt"><b>글·사진에서 단어 뽑기</b><small>기사, 유튜브 자막, 유인물 사진 속 모르는 단어만</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="match"><span class="mg-ico i-grape">${IC.cards}</span><span class="mg-txt"><b>짝 맞추기</b><small>${LN()}와 뜻을 빠르게 연결해요</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="rain"><span class="mg-ico i-teal">${IC.play}</span><span class="mg-txt"><b>단어 비</b><small>떨어지는 뜻이 닿기 전에 단어를 골라요</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="exam-open"><span class="mg-ico i-coral">${IC.trophy}</span><span class="mg-txt"><b>실전 시험</b><small>섞인 문제를 풀고 점수와 등급을 받아요</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="dict-open"><span class="mg-ico i-teal">${IC.search}</span><span class="mg-txt"><b>${LN()}사전</b><small>${isZh() ? '한자, 병음, 한글 뜻으로 바로 찾아요' : '뜻, 예문, 비슷한 단어를 바로 찾아요'}</small></span><span class="mg-chev"></span></button>${recEntryHtml()}${packEntryHtml()}${ltEntryHtml()}</div>
+      <button class="tl-more-btn${LS.getItem('vocapro_tools_open') === '1' ? ' open' : ''}" data-act="tools-toggle"><span>${LS.getItem('vocapro_tools_open') === '1' ? '접기' : '학습 도구 더 보기'}</span><i></i></button></div>
 
       <div class="h-books"><div class="section-title"><span>내 단어장</span><button data-act="tab" data-t="tabBooks">전체 보기</button></div>
       <div class="book-list">${books || emptyHtml('아직 단어장이 없어요', '단어장 탭에서 새로 만들어 보세요.')}</div></div>

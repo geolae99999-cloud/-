@@ -6,6 +6,27 @@
   if (/^eyJ/.test(cfg.apiKey)) hdr.Authorization = 'Bearer ' + cfg.apiKey;
   const getTok = () => { try { return localStorage.getItem(TK) || sessionStorage.getItem(TK); } catch (e) { return null; } };
   const setTok = (t, keep) => { try { localStorage.removeItem(TK); sessionStorage.removeItem(TK); if (t) (keep ? localStorage : sessionStorage).setItem(TK, t); } catch (e) {} };
+  (function () {
+    try {
+      const h = location.hash || '';
+      if (/^#oauth=/.test(h)) {
+        const p = new URLSearchParams(h.slice(1)), t = p.get('oauth') || '';
+        if (/^[\w.-]{16,400}$/.test(t)) {
+          setTok(t, true);
+          if (p.get('new') === '1') sessionStorage.setItem('vocapro_just_signed_up', '1');
+        }
+        history.replaceState(null, '', location.pathname + location.search);
+      } else if (/^#oerr=/.test(h)) {
+        const code = new URLSearchParams(h.slice(1)).get('oerr') || '';
+        const msg = code === 'cancel' ? '간편 로그인을 취소했어요.'
+          : code === 'config' ? '간편 로그인이 아직 준비되지 않았어요. 아이디로 로그인해 주세요.'
+          : code === 'busy' ? '지금 가입하는 사람이 많아요. 잠시 뒤에 다시 해 주세요.'
+          : '간편 로그인에 실패했어요. 다시 시도해 주세요.';
+        sessionStorage.setItem('vocapro_oauth_err', msg);
+        history.replaceState(null, '', location.pathname + location.search);
+      }
+    } catch (e) {}
+  })();
   async function rpc(fn, args, ka) {
     let r;
     try { r = await fetch(cfg.url.replace(/\/+$/, '') + '/rest/v1/rpc/' + fn, { method: 'POST', headers: hdr, body: JSON.stringify(args), keepalive: !!ka }); }
