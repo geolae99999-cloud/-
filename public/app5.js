@@ -175,7 +175,7 @@
     const comboHtml = (S.combo || 0) >= 2 ? `<span class="fc-b combo">${IC.flame} 연속 정답 ${S.combo}</span>` : '';
     $('stBody').innerHTML = `
       <div class="q-wrap q-choice-wrap">
-        ${S.mode === 'test' ? '' : `<div class="fc-badges"><span class="fc-b no">모름 ${S.no}</span><span class="fc-b ok">외웠음 ${S.ok}</span>${comboHtml}</div>`}
+        ${S.mode === 'test' ? '' : `<div class="fc-badges"><span class="fc-b no">오답 ${S.no}</span><span class="fc-b ok">정답 ${S.ok}</span>${comboHtml}</div>`}
         <div class="q-card">
           ${reverse
             ? `<div class="q-label">이 뜻의 ${LN()} 단어는?</div><div class="q-meaning">${esc(w.meaning)}</div>`

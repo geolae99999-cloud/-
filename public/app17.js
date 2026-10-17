@@ -60,7 +60,7 @@
     let el = $('recOv');
     if (!el) { el = document.createElement('div'); el.className = 'rec'; el.id = 'recOv'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', '추천 단어'); document.body.appendChild(el); }
     const k = config.grade, g = GRADE_NAMES[k];
-    const head = (t, sub) => `<div class="rec-head"><span class="rec-ico">${IC.bell}</span><div class="rec-title"><b>${esc(t)}</b><small>${esc(sub)}</small></div><button class="rec-x" data-act="rec-close" aria-label="닫기">${IC.x}</button></div>`;
+    const head = (t, sub) => `<div class="rec-head"><span class="rec-ico">${IC.bell}</span><div class="rec-title" data-act="rec-expand"><b>${esc(t)}</b><small>${esc(sub)}</small></div><button class="rec-x" data-act="rec-close" aria-label="닫기">${IC.x}</button></div>`;
     const foot = '<label class="rec-skip"><input type="checkbox" id="recSkip"> 오늘 하루 보지 않기</label>';
     let body;
     if (!g) {
@@ -76,9 +76,13 @@
           <div class="rec-actions"><button class="btn btn-soft" data-act="rec-all">100개 전체 보기</button><button class="btn btn-primary" data-act="rec-add">${today.length}개 담기</button></div>`
         : head(`${g} 추천 단어 100개를 다 담았어요`, '다른 학년 단어도 둘러보세요') + `<div class="rec-actions"><button class="btn btn-primary" data-act="rec-all">다른 학년 보기</button></div>`;
     }
-    el.innerHTML = body + foot;
+    el.innerHTML = body + foot; el.classList.remove('mini');
     requestAnimationFrame(() => el.classList.add('show'));
   }
+  // 추천 창이 화면 아래를 계속 가리지 않게: 스크롤하거나 다른 탭으로 가면 작은 막대로 접고, 누르면 다시 펼쳐요
+  ACTIONS['rec-expand'] = () => { const el = $('recOv'); if (el) el.classList.remove('mini'); };
+  const recMini = () => { const el = $('recOv'); if (el && el.classList.contains('show') && !el.classList.contains('mini')) el.classList.add('mini'); };
+  window.addEventListener('scroll', () => { if (window.scrollY > 60) recMini(); }, { passive: true });
   function recClose() {
     const el = $('recOv'); if (!el) return;
     const skip = $('recSkip');

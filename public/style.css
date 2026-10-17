@@ -2457,6 +2457,12 @@
     /* hidden 속성 강제 적용 */
     [hidden], .au-s1-hid[hidden], .au-hide[hidden], .sch-dd[hidden], .modes-more[hidden], .lp-hint-bar[hidden] { display: none !important; }
 
+    /* 추천 창 접기: 제목 줄만 남는 작은 막대 */
+    .rec.mini { width: auto; max-width: min(340px, calc(100vw - 32px)); left: auto; right: 16px; padding: 10px 12px; }
+    .rec.mini .rec-words, .rec.mini .rec-actions, .rec.mini .rec-skip, .rec.mini .rec-grade, .rec.mini .rec-title small { display: none !important; }
+    .rec.mini .rec-head { margin: 0; }
+    .rec.mini .rec-title { cursor: pointer; }
+    .rec.mini .rec-title b { font-size: 14px; }
     /* ③ 한글 발음 끄기 */
     body.no-kpron .w-kpron { display: none !important; }
 
