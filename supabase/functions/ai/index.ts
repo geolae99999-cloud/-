@@ -267,7 +267,7 @@ async function gemini(key: string, model: string, parts: Part[], schema: unknown
 
 // Cloudflare Workers AI(오픈소스 모델: Llama · Gemma · Qwen 등)로 글 작업(단어 뜻 · 묶음 · 번역 · 문맥 · 병음)을 해요.
 // CF_ACCOUNT_ID · CF_API_TOKEN(권한: Workers AI 읽기)이 있으면 Gemini 보다 먼저 써요. 사진 · 녹음 채점은 계속 Gemini 예요.
-const CF_MODELS = (Deno.env.get("CF_AI_MODELS") ?? "@cf/meta/llama-3.3-70b-instruct-fp8-fast,@cf/google/gemma-3-12b-it,@cf/meta/llama-3.1-8b-instruct-fast")
+const CF_MODELS = (Deno.env.get("CF_AI_MODELS") ?? "@cf/meta/llama-4-scout-17b-16e-instruct,@cf/mistralai/mistral-small-3.1-24b-instruct,@cf/meta/llama-3.3-70b-instruct-fp8-fast,@cf/meta/llama-3.1-8b-instruct-fast")
   .split(",").map((m) => m.trim()).filter((m) => /^@cf\/[\w.-]+\/[\w.-]+$/.test(m)).slice(0, 4);
 // Gemini 스키마(type: "OBJECT")를 JSON Schema(type: "object")로
 function jsonSchema(s: unknown): unknown {
@@ -293,7 +293,8 @@ async function cfAi(acct: string, tok: string, model: string, prompt: string, sc
     });
     const j = await r.json().catch(() => ({}));
     if (!r.ok || j?.success === false) return { status: r.status === 200 ? 502 : r.status, text: "" };
-    const res = j?.result?.response;
+    // 모델마다 답 형식이 달라요: 예전 { response } 또는 OpenAI 형식 { choices: [{ message: { content } }] }
+    const res = j?.result?.response ?? j?.result?.choices?.[0]?.message?.content;
     const text = typeof res === "string" ? res : res && typeof res === "object" ? JSON.stringify(res) : "";
     // JSON 이 아니면 실패로 쳐서 다음 모델로
     const a = text.indexOf("{"), b = text.lastIndexOf("}");
@@ -389,6 +390,62 @@ ${items.map(pronLine).join("\n")}` },
 // RPC 함수가 아직 없을 때(PGRST202, 42883)
 const noFn = (e: { code?: string } | null) => !!e && (e.code === "PGRST202" || e.code === "42883");
 
+// AI 결과 공용 캐시(supabase_update_v16.sql): 한 번 만든 단어 뜻 · 병음 찾기 · 번역은 저장해 두고, 다음부터는 누구든 AI 없이 바로 돌려줘요.
+// 캐시로 받은 결과는 하루 AI 한도에서 빼지 않아요. 표가 아직 없거나 오류가 나면 캐시 없이 예전처럼 AI 를 불러요.
+type SB = ReturnType<typeof createClient>;
+type CacheKeys = { task: string; keys: string[]; words?: string[] };
+async function sha(s: string) {
+const b = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s)));
+return Array.from(b, (x) => x.toString(16).padStart(2, "0")).join("");
+}
+async function cacheKeys(body: Record<string, unknown>): Promise<CacheKeys | null> {
+const task = String(body.task ?? ""), lang = body.lang === "zh" ? "zh" : "en";
+const norm = (w: unknown) => String(w ?? "").trim().replace(/\s+/g, " ").toLowerCase();
+if (task === "word") return { task, keys: [`w:${lang}:${body.full === false ? "s" : "f"}:${norm(body.word)}`] };
+if (task === "batch") {
+const words = (Array.isArray(body.words) ? body.words : []).map((x) => String(x).trim());
+return { task, words, keys: words.map((w) => `w:${lang}:f:${norm(w)}`) };
+}
+if (task === "pinyin") return { task, keys: [`py:${norm(String(body.py ?? "").normalize("NFC"))}`] };
+if (task === "translate") return { task, keys: [`tr:${String(body.from ?? "")}>${String(body.to ?? "")}:${await sha(String(body.text ?? "").trim())}`] };
+return null;
+}
+async function cacheGet(sb: SB, ck: CacheKeys | null): Promise<string | null> {
+if (!ck || !ck.keys.length) return null;
+try {
+const { data, error } = await sb.from("voca_ai_cache").select("k,v").in("k", ck.keys);
+if (error || !data) return null;
+const m = new Map((data as { k: string; v: unknown }[]).map((r) => [r.k, r.v]));
+if (!ck.keys.every((k) => m.has(k))) return null;
+if (ck.task === "batch") return JSON.stringify({ items: ck.words!.map((w, i) => ({ ...(m.get(ck.keys[i]) as Record<string, unknown>), word: w })) });
+return JSON.stringify(m.get(ck.keys[0]));
+} catch (_e) {
+return null;
+}
+}
+// 응답을 먼저 보내고 캐시 저장은 뒤에서 마무리해요(Supabase Edge Runtime 의 waitUntil, 없으면 그냥 기다리지 않음)
+const later = (p: Promise<unknown>) => { try { (globalThis as { EdgeRuntime?: { waitUntil(p: Promise<unknown>): void } }).EdgeRuntime?.waitUntil(p); } catch (_e) { /* 무시 */ } };
+async function cacheSave(sb: SB, ck: CacheKeys | null, text: string) {
+if (!ck) return;
+try {
+const j = JSON.parse(text);
+const good = (o: Record<string, unknown>) => !!o && typeof o === "object" && typeof o.meaning === "string" && o.meaning.trim().length > 0;
+const rows: { k: string; v: unknown }[] = [];
+if (ck.task === "word" && good(j)) rows.push({ k: ck.keys[0], v: j });
+if (ck.task === "batch" && Array.isArray(j?.items)) {
+for (const it of j.items) {
+const i = ck.words!.findIndex((w) => w.toLowerCase() === String(it?.word ?? "").trim().toLowerCase());
+if (i >= 0 && good(it)) { const { word: _w, ...v } = it; rows.push({ k: ck.keys[i], v }); }
+}
+}
+if (ck.task === "pinyin" && Array.isArray(j?.items) && j.items.length) rows.push({ k: ck.keys[0], v: j });
+if (ck.task === "translate" && typeof j?.t === "string" && j.t.trim()) rows.push({ k: ck.keys[0], v: j });
+if (rows.length) await sb.from("voca_ai_cache").upsert(rows.map((r) => ({ ...r, used_at: new Date().toISOString() })));
+} catch (_e) {
+// 캐시 저장은 실패해도 괜찮아요
+}
+}
+
 Deno.serve(async (req) => {
   const origin = req.headers.get("origin");
   const cors = corsFor(origin), out = json(cors);
@@ -432,8 +489,12 @@ Deno.serve(async (req) => {
     if (!pron && !ocr && !job) return out({ error: "잘못된 요청이에요. 앱을 새로고침해 주세요." }, 400);
 
     const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-    const { data: me, error } = await sb.rpc("voca_me", { p_token: token });
+    // 로그인 확인과 캐시 찾기를 동시에 해서 기다리는 시간을 줄여요
+    const ck = pron || ocr ? null : await cacheKeys(body ?? {});
+    const [{ data: me, error }, hit] = await Promise.all([sb.rpc("voca_me", { p_token: token }), cacheGet(sb, ck)]);
     if (error || !me || me.err || !me.id) return out({ error: "로그인이 필요해요." }, 401);
+    // 캐시에 있으면 AI 를 부르지 않고 바로 돌려줘요(하루 한도에서도 빼지 않아요)
+    if (hit) return out({ text: hit, model: "cache" });
 
     // 발음 채점: 과제를 낸 반 선생님인지 먼저 보고, 채점할 녹음을 꺼내요 (없으면 AI 사용량을 쓰지 않아요)
     let items: PronItem[] = [], who = String(me.id);
@@ -507,7 +568,7 @@ Deno.serve(async (req) => {
         if (left < 1500) break;
         let r = await cfAi(cfAcct, cfTok, model, job!.prompt, job!.schema, Math.min(ctx ? 20000 : 9000, left), ctx ? 4000 : 1500);
         if (r.status === 400 && cfEnd - Date.now() > 1500) r = await cfAi(cfAcct, cfTok, model, job!.prompt, job!.schema, Math.min(ctx ? 20000 : 9000, cfEnd - Date.now()), ctx ? 4000 : 1500, false);
-        if (r.status === 200) return out({ text: r.text, model });
+        if (r.status === 200) { later(cacheSave(sb, ck, r.text)); return out({ text: r.text, model }); }
         last = r.status;
         if (r.status === 401 || r.status === 403) break; // 토큰 문제는 다른 모델도 똑같아요
       }
@@ -524,7 +585,7 @@ Deno.serve(async (req) => {
           if (typeof t !== "string") { last = 502; continue; }
           return out({ text: JSON.stringify({ t: t.slice(0, 20000) }), model });
         }
-        if (!pron) return out({ text: r.text, model });
+        if (!pron) { later(cacheSave(sb, ck, r.text)); return out({ text: r.text, model }); }
         const res = pronParse(r.text, items, model);
         if (!res.length) { last = 502; continue; } // 형식이 틀렸으면 다음 모델로
         // 받은 파일은 저장하지 않고 결과만 돌려줘요
