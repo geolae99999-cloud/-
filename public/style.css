@@ -2772,15 +2772,55 @@
       .auth-layout { align-items: flex-start; }
       .auth-layout .auth-box { position: sticky; top: 24px; border-radius: 28px; box-shadow: var(--pop); }
     }
+    /* 첫 화면 고급 모션 (2026-10-17) */
+    .lp { position: relative; isolation: isolate; }
+    #authScreen { overflow-x: hidden; } /* 빛 배경이 화면 밖으로 번져도 옆으로 밀리지 않게 */
+    .lp-aura { position: absolute; inset: -60px -40px auto -40px; height: 620px; z-index: -1; pointer-events: none; overflow: visible; }
+    .lp-aura i { position: absolute; display: block; border-radius: 50%; filter: blur(60px); opacity: .55; will-change: transform; }
+    .lp-aura i:nth-child(1) { width: 340px; height: 340px; left: -40px; top: 20px; background: radial-gradient(circle, rgba(47, 91, 234, .35), transparent 70%); animation: lpAuraA 18s ease-in-out infinite alternate; }
+    .lp-aura i:nth-child(2) { width: 300px; height: 300px; right: -30px; top: 140px; background: radial-gradient(circle, rgba(139, 108, 240, .32), transparent 70%); animation: lpAuraB 22s ease-in-out infinite alternate; }
+    .lp-aura i:nth-child(3) { width: 260px; height: 260px; left: 30%; top: 330px; background: radial-gradient(circle, rgba(47, 191, 132, .26), transparent 70%); animation: lpAuraC 20s ease-in-out infinite alternate; }
+    body.dark .lp-aura i { opacity: .35; }
+    @keyframes lpAuraA { to { transform: translate(90px, 60px) scale(1.15); } }
+    @keyframes lpAuraB { to { transform: translate(-80px, 40px) scale(.9); } }
+    @keyframes lpAuraC { to { transform: translate(-60px, -50px) scale(1.2); } }
+    .lp-h .lp-ln { overflow: visible; }
+    .lp-h .lp-ln .lp-ch { display: inline-block; white-space: pre; animation: lpCh .9s cubic-bezier(.16, 1, .3, 1) both; animation-delay: calc(var(--i) * 55ms + .1s); }
+    @keyframes lpCh { from { opacity: 0; transform: translateY(55%) rotate(4deg); filter: blur(10px); } to { opacity: 1; transform: none; filter: blur(0); } }
+    .lp-hl { animation-delay: 1.25s; }
+    .lp-ctas .btn-primary { position: relative; overflow: hidden; transition: transform .2s cubic-bezier(.2, .8, .2, 1), box-shadow .2s; }
+    .lp-ctas .btn-primary::after { content: ''; position: absolute; top: 0; bottom: 0; left: -60%; width: 40%; background: linear-gradient(105deg, transparent, rgba(255, 255, 255, .45), transparent); transform: skewX(-18deg); animation: lpShine 4.5s ease-in-out 2s infinite; }
+    @keyframes lpShine { 0% { left: -60%; } 22%, 100% { left: 130%; } }
+    @media (hover: hover) { .lp-ctas .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 14px 30px rgba(47, 91, 234, .32); } }
+    .lp-demo-stage { --rx: 0deg; --ry: 0deg; transform: perspective(1000px) rotateX(var(--rx)) rotateY(var(--ry)); transition: transform .45s cubic-bezier(.2, .8, .2, 1); transform-style: preserve-3d; }
+    .lp-rv { opacity: 0; transform: translateY(28px); transition: opacity .8s cubic-bezier(.2, .8, .2, 1), transform .8s cubic-bezier(.2, .8, .2, 1); }
+    .lp-rv.in { opacity: 1; transform: none; }
+    .lp-feats.lp-rv > li { opacity: 0; transform: translateY(16px); transition: opacity .6s ease, transform .6s cubic-bezier(.2, .8, .2, 1); }
+    .lp-feats.lp-rv.in > li { opacity: 1; transform: none; }
+    .lp-feats.lp-rv.in > li:nth-child(2) { transition-delay: .08s; }
+    .lp-feats.lp-rv.in > li:nth-child(3) { transition-delay: .16s; }
+    .lp-feats.lp-rv.in > li:nth-child(4) { transition-delay: .24s; }
+
+    /* '움직임 줄이기' 설정이어도 첫 화면은 부드러운 모션만 남겨서 보여 줘요(사이트 전체를 끄는 규칙보다 우선).
+       흔들림 · 뒤집기 · 기울이기처럼 큰 움직임은 빼고, 빛 · 나타나기 · 타이핑만 천천히 */
     @media (prefers-reduced-motion: reduce) {
-      .lp-ln > span, .lp-fade, .lp-deco-sq, .lp-float-card, .lp-fc-inner, .lp-goal-badge, .lp-goal-ring .fg, .lp-mq-track {
-        animation: none !important; opacity: 1 !important; transform: none !important; filter: none !important;
-      }
-      .lp-hl { animation: none !important; background-size: 100% 34% !important; }
-      .lp-dp-type { animation: none !important; width: 9ch !important; border-right: none !important; }
-      .lp-dp-row.r1, .lp-dp-row.r2, .lp-dp-row.r3, .lp-dp-auto { animation: none !important; opacity: 1 !important; transform: none !important; }
-      .lp-goal-ring .fg { stroke-dashoffset: 38 !important; }
+      #authScreen .lp-aura i:nth-child(1) { animation-duration: 30s !important; }
+      #authScreen .lp-aura i:nth-child(2) { animation-duration: 36s !important; }
+      #authScreen .lp-aura i:nth-child(3) { animation-duration: 33s !important; }
+      #authScreen .lp-h .lp-ln .lp-ch { animation-name: lpChSoft !important; animation-duration: .9s !important; }
+      #authScreen .lp-hl { animation-duration: .8s !important; }
+      #authScreen .lp-fade { animation-name: lpFadeSoft !important; animation-duration: .7s !important; }
+      #authScreen .lp-dp-type { animation-duration: 8s, .75s !important; }
+      #authScreen .lp-dp-row.r1, #authScreen .lp-dp-row.r2, #authScreen .lp-dp-row.r3, #authScreen .lp-dp-auto { animation-duration: 8s !important; }
+      #authScreen .lp-goal-ring .fg { animation-duration: 2.2s !important; }
+      #authScreen .lp-mq-track { animation-duration: 70s !important; }
+      #authScreen .lp-ctas .btn-primary::after { animation-duration: 6s !important; }
+      #authScreen .lp-rv, #authScreen .lp-feats.lp-rv > li { transform: none !important; transition-duration: .9s !important; }
+      #authScreen .lp-deco-sq, #authScreen .lp-float-card, #authScreen .lp-fc-inner, #authScreen .lp-goal-badge { animation: none !important; }
+      #authScreen .lp-demo-stage { transform: none !important; }
     }
+    @keyframes lpChSoft { from { opacity: 0; filter: blur(8px); } to { opacity: 1; filter: blur(0); } }
+    @keyframes lpFadeSoft { from { opacity: 0; } to { opacity: 1; } }
 
     /* 6단계 · 학습 흐름 화면 다듬기 */
     /* 단어장 상세 */

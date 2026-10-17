@@ -353,13 +353,41 @@
     ['users', '우리 반', '과제와 실시간 현황']
   ];
   const LP_STEPS = ['눈으로 익히기', '뜻 떠올리기', '단어 떠올리기', '귀로 익히기', '손으로 쓰기', '문장 속에서', '확인 시험'];
+  // 제목을 글자마다 나눠 하나씩 떠오르게 해요(화면 읽기 프로그램은 h1 의 aria-label 을 읽어요)
+  const lpChars = (t, start) => [...t].map((c, i) => `<span class="lp-ch" style="--i:${start + i}">${c}</span>`).join('');
+  // 첫 화면 모션: 스크롤하면 아래 내용이 차례로 나타나고, PC 에서는 데모 카드가 마우스를 따라 살짝 기울어요
+  function landingMotion() {
+    const root = $('lpIntro'); if (!root || root._motion) return; root._motion = true;
+    const els = root.querySelectorAll('.lp-rv');
+    // 로그인 화면이 숨겨진 채 그려진 직후에는 감시가 시작되지 않아서, 화면이 보인 다음에 감시를 시작해요
+    const watch = () => {
+      if (!root.isConnected) return;
+      if (!root.offsetParent) return setTimeout(watch, 120);
+      if (!('IntersectionObserver' in window)) return els.forEach(el => el.classList.add('in'));
+      const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: .15 });
+      els.forEach(el => io.observe(el));
+    };
+    setTimeout(watch, 60);
+    const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const fine = window.matchMedia && matchMedia('(hover: hover) and (pointer: fine)').matches;
+    const stage = root.querySelector('.lp-demo-stage');
+    if (!stage || reduce || !fine) return;
+    let raf = 0;
+    stage.addEventListener('pointermove', e => {
+      const r = stage.getBoundingClientRect(), x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5;
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => { stage.style.setProperty('--ry', (x * 10).toFixed(2) + 'deg'); stage.style.setProperty('--rx', (-y * 8).toFixed(2) + 'deg'); });
+    });
+    stage.addEventListener('pointerleave', () => { cancelAnimationFrame(raf); stage.style.setProperty('--rx', '0deg'); stage.style.setProperty('--ry', '0deg'); });
+  }
   function landingHtml() {
     const chips2 = LP_CHIPS.concat(LP_CHIPS).map(c => `<span class="lp-mq-chip">${c}</span>`).join('');
     return `<section class="lp" id="lpIntro" aria-label="VocaPro 소개">
+      <div class="lp-aura" aria-hidden="true"><i></i><i></i><i></i></div>
       <div class="lp-brand"><img src="media/profile.png" alt="" width="36" height="36"><span><b>Voca</b>Pro</span></div>
-      <h1 class="lp-h">
-        <span class="lp-ln l1"><span>단어,</span></span>
-        <span class="lp-ln l2"><span><em class="lp-hl">끝까지</em> 외우다</span></span>
+      <h1 class="lp-h" aria-label="단어, 끝까지 외우다">
+        <span class="lp-ln l1" aria-hidden="true">${lpChars('단어,', 0)}</span>
+        <span class="lp-ln l2" aria-hidden="true"><em class="lp-hl">${lpChars('끝까지', 3)}</em> ${lpChars('외우다', 7)}</span>
       </h1>
       <p class="lp-sub lp-fade lp-d1">단어만 넣으면 뜻·발음·예문이 채워지고, 잊을 때쯤 다시 복습시켜 줘요. 학교 수업용 영어·중국어 단어장이에요.</p>
       <div class="lp-ctas lp-fade lp-d2">
@@ -393,9 +421,9 @@
         </div>
       </div>
       <div class="lp-mq-wrap lp-fade lp-d4" aria-hidden="true"><div class="lp-mq-track">${chips2}</div></div>
-      <div class="lp-video" id="lpVidBox"><video id="lpVid" poster="media/ad-poster.jpg?v=3" autoplay muted loop playsinline preload="auto" aria-label="VocaPro 소개 영상">${LP_SRC}</video></div>
-      <ul class="lp-feats">${LP_FEATS.map(([ic, t, d]) => `<li>${IC[ic] || ''}<b>${t}</b><small>${d}</small></li>`).join('')}</ul>
-      <div class="lp-dark-box">
+      <div class="lp-video lp-rv" id="lpVidBox"><video id="lpVid" poster="media/ad-poster.jpg?v=3" autoplay muted loop playsinline preload="auto" aria-label="VocaPro 소개 영상">${LP_SRC}</video></div>
+      <ul class="lp-feats lp-rv">${LP_FEATS.map(([ic, t, d]) => `<li>${IC[ic] || ''}<b>${t}</b><small>${d}</small></li>`).join('')}</ul>
+      <div class="lp-dark-box lp-rv">
         <b>무엇부터 할지 고민하지 마세요</b>
         <p>처음 보는 단어를 시험 볼 수 있을 때까지 7단계로 안내해요</p>
         <div class="lp-step-chips">${LP_STEPS.map((s, i) => `<span class="${i === LP_STEPS.length - 1 ? 'last' : ''}">${i + 1}. ${s}</span>`).join('')}</div>
@@ -414,6 +442,7 @@
 
   // 움직임 줄이기 설정이면 자동 재생하지 않고 첫 장면만 보여 줘요. 화면에 보일 때만 재생해요.
   function landingVideo() {
+    landingMotion();
     const v = $('lpVid'); if (!v) return;
     // 소리 없는 소개 영상이라 항상 자동 재생해요. 움직임 줄이기 설정이면 멈출 수 있게 조작 버튼도 보여 줘요.
     const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
