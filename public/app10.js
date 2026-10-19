@@ -276,10 +276,6 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#191919" d="M12 4C6.92 4 2.8 7.23 2.8 11.22c0 2.55 1.7 4.8 4.26 6.08l-.9 3.36c-.06.22.18.4.38.27l3.96-2.62c.49.07 1 .11 1.5.11 5.08 0 9.2-3.23 9.2-7.22S17.08 4 12 4z"/></svg>
         <span>카카오로 ${actTxt}</span>
       </button>
-      <button type="button" class="oauth-btn naver" data-act="oauth" data-p="naver">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#ffffff" d="M15.56 12.82 8.15 4H4v16h4.44v-8.82L15.85 20H20V4h-4.44v8.82z"/></svg>
-        <span>네이버로 ${actTxt}</span>
-      </button>
       <button type="button" class="oauth-btn google" data-act="oauth" data-p="google">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M21.6 12.23c0-.71-.06-1.4-.18-2.05H12v3.88h5.38a4.6 4.6 0 0 1-2 3.02v2.5h3.24c1.89-1.74 2.98-4.3 2.98-7.35z"/><path fill="#34A853" d="M12 22c2.7 0 4.96-.9 6.62-2.42l-3.24-2.5c-.9.6-2.04.95-3.38.95-2.6 0-4.8-1.76-5.58-4.12H3.07v2.58A10 10 0 0 0 12 22z"/><path fill="#FBBC05" d="M6.42 13.91a6.02 6.02 0 0 1 0-3.82V7.51H3.07a10 10 0 0 0 0 8.98l3.35-2.58z"/><path fill="#EA4335" d="M12 5.97c1.47 0 2.78.5 3.82 1.5l2.86-2.86C16.95 2.99 14.7 2 12 2A10 10 0 0 0 3.07 7.51l3.35 2.58C7.2 7.73 9.4 5.97 12 5.97z"/></svg>
         <span>구글로 ${actTxt}</span>
