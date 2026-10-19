@@ -1,0 +1,8 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "kr.kro.vocapro",
+    "sha256_cert_fingerprints": ["4E:3D:6B:CD:D0:41:A8:38:73:22:D9:08:1A:09:F2:A9:DE:BF:BD:6D:8B:51:22:E5:C4:C7:D4:1B:99:4B:8D:77"]
+  }
+}]
