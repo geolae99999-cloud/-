@@ -1350,6 +1350,8 @@
     .about-card img { width: 56px; height: 56px; border-radius: 50%; flex: none; }
     .about-card b { display: block; font-size: 1.05rem; }
     .about-card small { color: var(--muted); font-size: .82rem; line-height: 1.5; }
+    .my-ip { display: block; margin-top: 6px; color: var(--muted); font-size: .72rem; text-align: center; font-variant-numeric: tabular-nums; }
+    .my-ip[hidden] { display: none; }
     .about-vid { display: flex; align-items: center; gap: 12px; width: 100%; margin-top: 12px; padding: 8px; border: 1px solid var(--line, rgba(0, 0, 0, .08)); border-radius: 14px; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
     .about-vid:hover { background: rgba(127, 127, 127, .06); }
     .about-vid-th { position: relative; flex: none; width: 96px; height: 54px; border-radius: 10px; overflow: hidden; background: #000; }
@@ -3198,6 +3200,7 @@ window.VOCA_CLOUD = {
     async load() { const j = await rpc('voca_load', { p_token: getTok() }); return j && j.data ? { data: j.data, updated: Number(j.updated) } : null; },
     save: (d, o) => rpc('voca_save', { p_token: getTok(), p_data: d.data, p_updated: d.updated }, o && o.keepalive),
     changePw: (o, n) => rpc('voca_change_pw', { p_token: getTok(), p_old: o, p_new: n }),
+    visit: () => rpc('voca_visit', { p_token: getTok(), p_ua: String(navigator.userAgent || '').slice(0, 300) }),
     call: (fn, args) => rpc(fn, Object.assign({ p_token: getTok() }, args || {})),
     async remove() { await rpc('voca_delete', { p_token: getTok() }); setTok(null); cur = null; },
     async ai(prompt, task, ms) {
@@ -6707,7 +6710,8 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     $('cfgModel').value = selected;
   }
   function loadSettingsUI() {
-    if (!$('creditFoot')) $('tabSettings').insertAdjacentHTML('beforeend', '<div class="foot-credit" id="creditFoot">VocaPro · 개발자 김주원</div>');
+    if (!$('creditFoot')) $('tabSettings').insertAdjacentHTML('beforeend', '<div class="foot-credit" id="creditFoot">VocaPro · 개발자 김주원<br><span class="my-ip" hidden></span></div>');
+    showMyIp();
     rmUI();
     if (!$('lgLinks') && $('creditFoot')) $('creditFoot').insertAdjacentHTML('beforebegin', legalLinksHtml().replace('class="legal-links"', 'class="legal-links" id="lgLinks"'));
     if (!$('btnLt')) { const g = $('cfgGoal'); if (g && g.parentNode) g.insertAdjacentHTML('afterend', '<button class="btn btn-soft btn-block" id="btnLt" data-act="level-test" style="margin-top:8px;">레벨 테스트로 목표 추천받기</button>'); }
@@ -7370,6 +7374,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
         ${cloudAvail && !s2 ? `<button class="link-btn kid-link" data-act="auth-age" data-k="${kidMode ? 0 : 1}">${kidMode ? '만 14세 이상 계정으로 돌아가기' : (su ? '' : '이 기기의 어린이 계정(만 14세 미만)으로 로그인')}</button>` : ''}
         <p class="muted" style="font-size:.74rem;line-height:1.6;margin:4px 0 0;">${cloudMode ? '같은 아이디로 로그인하면 어느 기기에서든 단어장과 학습 기록이 이어져요. 비밀번호를 잊으면 복구할 수 없어요. API 키는 보안을 위해 기기마다 따로 입력해요.' : '계정은 이 기기의 브라우저에만 저장돼요. 다른 기기와 동기화되지 않고, 비밀번호를 잊으면 복구할 수 없으니 백업 파일을 받아 두세요.'}</p>
         <a class="link-btn lp-mobile-cta" href="#lpVidBox">VocaPro가 처음이라면, 소개 영상 보기</a>
+        <span class="my-ip"${myIp ? '' : ' hidden'}>${myIp ? '내 IP ' + esc(myIp) : ''}</span>
       </div>`;
   }
 
@@ -7650,8 +7655,17 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
   };
   // 서버에서 불러오지 못한 채 열었으면(cloudStale) 서버 사본을 다시 확인하기 전에는 올리지 않아요. 빈 기기 데이터가 서버를 덮어쓰는 것을 막아요.
   let cloudStale = false, cloudBaseTs = 0;
+  // 방문 기록: 서버(voca_visit)에 IP · 시각 · 회원을 남기고, 돌려받은 내 IP를 화면(.my-ip)에 보여 줘요.
+  let myIp = '';
+  function showMyIp() { document.querySelectorAll('.my-ip').forEach(e => { e.textContent = myIp ? '내 IP ' + myIp : ''; e.hidden = !myIp; }); }
+  async function trackVisit() {
+    if (!cloudMode || !window.Cloud || !Cloud.visit) return;
+    try { const ip = await Cloud.visit(); if (typeof ip === 'string' && /^[0-9a-fA-F:.]{3,64}$/.test(ip)) myIp = ip; } catch (e) {}
+    showMyIp();
+  }
   function enterApp(key, remote, label, stale) {
     currentUser = key; currentLabel = label || key; KEY_DATA = 'vocapro_v11_data:' + key; KEY_CFG = 'vocapro_v10_cfg:' + key;
+    if (cloudMode) trackVisit();
     if (cloudMode) {
       try {
         LS.setItem('vocapro_last_uid', key); LS.setItem('vocapro_last_label', currentLabel);
@@ -7780,7 +7794,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
       showAuth(); const m = $('auMsg'); if (m) { m.textContent = '서버에 연결하지 못했어요. 인터넷을 확인하세요.'; m.style.display = 'block'; } return;
     }
     const u = await Cloud.first;
-    if (!u) return showAuth();
+    if (!u) { trackVisit(); return showAuth(); }
     let remote = null, stale = false; try { remote = await Cloud.load(); } catch (e) { stale = true; }
     enterApp(u.uid, remote, u.email, stale);
   }
@@ -10518,7 +10532,7 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
 - 학습 서비스 제공: 단어장·학습 기록·설정의 저장과 기기 간 동기화, 학년에 맞는 추천 단어 제공, 학교·이름을 넣은 시험지 등 학교 수업용 기능 제공
 - AI 기능 제공: AI 단어 완성과 번역 요청 처리, 회원별 하루 사용 한도 관리
 - 우리 반 기능 제공: 선생님의 반·과제 관리, 이용자가 참여한 반의 선생님에게 학습 현황과 과제 결과 제공
-- 서비스 운영: 오류 확인과 대응`],
+- 서비스 운영: 오류 확인과 대응, 방문 기록 확인과 부정 이용 방지`],
         ['제2조 처리하는 개인정보 항목', `회원 가입 시 필수 항목
 - 일반 가입: 아이디, 비밀번호, 학년(또는 선생님), 이름, 학교(학교 코드 포함)
 - 간편 로그인(구글 · 카카오 · 네이버): 각 제공자가 발급한 이용자 고유 식별번호(sub/id), 학년(또는 선생님), 이름, 학교(학교 코드 포함). 이메일, 프로필 사진, 소셜 계정의 이름은 수집하지 않습니다.
@@ -10531,7 +10545,8 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
 - AI 기능의 날짜별 사용 횟수
 - 우리 반을 쓰는 경우: 반 이름, 초대 코드, 과제(제목, 단어 목록, 마감일), 반에 참여할 때의 이름과 학번, 학습 요약(학습한 단어 수, 정답률, 연속 학습일, 많이 틀린 단어, 최근 시험 점수), 과제 결과(점수, 정답 수, 걸린 시간, 틀린 단어, 푼 횟수), 발음 평가 과제의 녹음(음성)과 AI·선생님 채점 결과, 앱이 열려 있는 동안의 접속 상태와 지금 하는 학습(학습 방법, 진행한 문제 수, 맞은·틀린 수, 마지막 접속 시각)
 자동으로 생성되는 정보
-- 서비스에 접속하는 과정에서 IP 주소, 브라우저 종류, 접속 일시가 호스팅·서버 업체의 접속 기록에 남을 수 있습니다.
+- 서비스에 접속할 때 IP 주소, 브라우저 종류, 접속 일시와 (로그인한 경우) 회원 아이디를 운영자의 접속 기록으로 저장합니다. 접속한 본인의 화면에는 자신의 IP 주소를 보여 줍니다.
+- 이와 별도로 IP 주소, 브라우저 종류, 접속 일시가 호스팅·서버 업체의 접속 기록에 남을 수 있습니다.
 수집하지 않는 정보
 - 이메일, 전화번호, 주소, 위치 정보, 광고 식별자는 수집하지 않습니다.
 - 이름, 학교, 학번은 화면 인사, 시험지 머리글 등 이용자 본인의 앱 안에서 씁니다. 이용자가 동의하고 반에 참여한 경우에만 그 반 선생님에게 이름과 학번을 보여 주며(제4조), 그 밖에는 다른 이용자에게 공개하거나 제3자에게 제공하지 않습니다. 설정 > 내 정보에서 언제든 고치거나 지울 수 있습니다(이름은 별명으로 바꿀 수 있습니다).`],
@@ -10540,7 +10555,8 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
 - AI 날짜별 사용 횟수: 30일
 - 발음 평가 녹음(음성): 녹음한 날부터 60일이 지나면 녹음 파일을 자동으로 삭제합니다(점수는 아래 우리 반 정보와 같이 보관). 선생님은 그 전에 언제든 지울 수 있습니다.
 - 우리 반 정보: 학생이 반에서 나가거나 선생님이 내보내면 그 학생의 반 기록을, 선생님이 반이나 과제를 삭제하면 관련 기록을 즉시 삭제합니다. 회원 탈퇴 시에도 함께 삭제합니다.
-- 접속 기록(IP 주소 등): 호스팅·서버 업체의 기록 보관 기간 동안. 운영자는 따로 보관하지 않습니다.
+- 운영자의 접속 기록(IP 주소, 브라우저 종류, 접속 일시, 회원 아이디): 180일이 지나면 자동으로 삭제합니다.
+- 호스팅·서버 업체의 접속 기록: 각 업체의 기록 보관 기간 동안
 서비스는 무료이며 결제 기능이 없어, 법령에 따라 별도로 보관해야 하는 정보는 없습니다.`],
         ['제4조 개인정보의 제3자 제공', `운영자는 이용자의 개인정보를 제3자에게 제공하지 않습니다. 다만 이용자가 동의하거나 법률에 특별한 규정이 있는 경우(「개인정보 보호법」 제17조, 제18조)는 예외로 합니다.
 이용자가 초대 코드로 반에 참여하면서 동의한 경우에는 다음과 같이 제공합니다.

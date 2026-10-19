@@ -320,6 +320,7 @@
         ${cloudAvail && !s2 ? `<button class="link-btn kid-link" data-act="auth-age" data-k="${kidMode ? 0 : 1}">${kidMode ? '만 14세 이상 계정으로 돌아가기' : (su ? '' : '이 기기의 어린이 계정(만 14세 미만)으로 로그인')}</button>` : ''}
         <p class="muted" style="font-size:.74rem;line-height:1.6;margin:4px 0 0;">${cloudMode ? '같은 아이디로 로그인하면 어느 기기에서든 단어장과 학습 기록이 이어져요. 비밀번호를 잊으면 복구할 수 없어요. API 키는 보안을 위해 기기마다 따로 입력해요.' : '계정은 이 기기의 브라우저에만 저장돼요. 다른 기기와 동기화되지 않고, 비밀번호를 잊으면 복구할 수 없으니 백업 파일을 받아 두세요.'}</p>
         <a class="link-btn lp-mobile-cta" href="#lpVidBox">VocaPro가 처음이라면, 소개 영상 보기</a>
+        <span class="my-ip"${myIp ? '' : ' hidden'}>${myIp ? '내 IP ' + esc(myIp) : ''}</span>
       </div>`;
   }
 
@@ -600,8 +601,17 @@
   };
   // 서버에서 불러오지 못한 채 열었으면(cloudStale) 서버 사본을 다시 확인하기 전에는 올리지 않아요. 빈 기기 데이터가 서버를 덮어쓰는 것을 막아요.
   let cloudStale = false, cloudBaseTs = 0;
+  // 방문 기록: 서버(voca_visit)에 IP · 시각 · 회원을 남기고, 돌려받은 내 IP를 화면(.my-ip)에 보여 줘요.
+  let myIp = '';
+  function showMyIp() { document.querySelectorAll('.my-ip').forEach(e => { e.textContent = myIp ? '내 IP ' + myIp : ''; e.hidden = !myIp; }); }
+  async function trackVisit() {
+    if (!cloudMode || !window.Cloud || !Cloud.visit) return;
+    try { const ip = await Cloud.visit(); if (typeof ip === 'string' && /^[0-9a-fA-F:.]{3,64}$/.test(ip)) myIp = ip; } catch (e) {}
+    showMyIp();
+  }
   function enterApp(key, remote, label, stale) {
     currentUser = key; currentLabel = label || key; KEY_DATA = 'vocapro_v11_data:' + key; KEY_CFG = 'vocapro_v10_cfg:' + key;
+    if (cloudMode) trackVisit();
     if (cloudMode) {
       try {
         LS.setItem('vocapro_last_uid', key); LS.setItem('vocapro_last_label', currentLabel);
@@ -730,7 +740,7 @@
       showAuth(); const m = $('auMsg'); if (m) { m.textContent = '서버에 연결하지 못했어요. 인터넷을 확인하세요.'; m.style.display = 'block'; } return;
     }
     const u = await Cloud.first;
-    if (!u) return showAuth();
+    if (!u) { trackVisit(); return showAuth(); }
     let remote = null, stale = false; try { remote = await Cloud.load(); } catch (e) { stale = true; }
     enterApp(u.uid, remote, u.email, stale);
   }
