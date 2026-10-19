@@ -21,21 +21,31 @@ function safeReturnUrl(raw: string | null): string {
   if (!raw) return DEFAULT_RETURN;
   try {
     const u = new URL(raw);
-    if (!originOk(u.origin)) return DEFAULT_RETURN;
+    // 로그인 토큰을 보내는 곳이라 https 사이트(본 사이트 · 미리보기 배포)만 허용해요. localhost 는 받지 않아요.
+    if (u.protocol !== 'https:' || !originOk(u.origin)) return DEFAULT_RETURN;
     return u.origin + u.pathname;
   } catch (_e) {
     return DEFAULT_RETURN;
   }
 }
 
-function redirect(to: string): Response {
-  return new Response(null, {
-    status: 302,
-    headers: {
-      Location: to,
-      'Cache-Control': 'no-store'
-    }
-  });
+function redirect(to: string, cookie?: string): Response {
+  const headers: Record<string, string> = { Location: to, 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer' };
+  if (cookie) headers['Set-Cookie'] = cookie;
+  return new Response(null, { status: 302, headers });
+}
+
+// 로그인을 시작한 브라우저에만 쿠키(nonce)를 심고, 콜백에서 state 의 nonce 와 같은지 확인해요.
+// 남이 만든 콜백 주소를 눌러 그 사람 계정으로 로그인되는 공격(login CSRF)을 막아요.
+const NONCE_COOKIE = 'vp_on';
+const cookieSet = (n: string) => `${NONCE_COOKIE}=${n}; Path=/functions/v1/oauth; Max-Age=600; HttpOnly; Secure; SameSite=Lax`;
+const cookieClear = `${NONCE_COOKIE}=; Path=/functions/v1/oauth; Max-Age=0; HttpOnly; Secure; SameSite=Lax`;
+function cookieGet(req: Request, name: string): string {
+  for (const part of (req.headers.get('cookie') || '').split(';')) {
+    const [k, v] = part.trim().split('=');
+    if (k === name && v && /^[A-Za-z0-9_-]{8,64}$/.test(v)) return v;
+  }
+  return '';
 }
 
 function b64uEncode(bytes: Uint8Array): string {
@@ -112,19 +122,20 @@ Deno.serve(async (req: Request) => {
 
   // 콜백: /functions/v1/oauth/cb
   if (url.pathname.endsWith('/cb')) {
+    const out = (to: string) => redirect(to, cookieClear);
     const stateRaw = url.searchParams.get('state') || '';
     const st = srvKey ? await verifyState(stateRaw, srvKey) : null;
     const ret = safeReturnUrl(st?.r || null);
 
-    if (!st || !supaUrl || !srvKey) {
-      return redirect(`${ret}#oerr=fail`);
+    if (!st || !supaUrl || !srvKey || !st.n || cookieGet(req, NONCE_COOKIE) !== st.n) {
+      return out(`${ret}#oerr=fail`);
     }
     if (url.searchParams.get('error')) {
-      return redirect(`${ret}#oerr=cancel`);
+      return out(`${ret}#oerr=cancel`);
     }
     const code = url.searchParams.get('code') || '';
     if (!code) {
-      return redirect(`${ret}#oerr=fail`);
+      return out(`${ret}#oerr=fail`);
     }
 
     const p = st.p;
@@ -135,7 +146,7 @@ Deno.serve(async (req: Request) => {
       if (p === 'google') {
         const cid = Deno.env.get('GOOGLE_CLIENT_ID') || '';
         const csec = Deno.env.get('GOOGLE_CLIENT_SECRET') || '';
-        if (!cid || !csec) return redirect(`${ret}#oerr=config`);
+        if (!cid || !csec) return out(`${ret}#oerr=config`);
         const tr = await fetchWithTimeout('https://oauth2.googleapis.com/token', {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -147,20 +158,20 @@ Deno.serve(async (req: Request) => {
             grant_type: 'authorization_code'
           })
         });
-        if (!tr.ok) return redirect(`${ret}#oerr=fail`);
+        if (!tr.ok) return out(`${ret}#oerr=fail`);
         const tj = await tr.json();
         const at = String(tj?.access_token || '');
-        if (!at) return redirect(`${ret}#oerr=fail`);
+        if (!at) return out(`${ret}#oerr=fail`);
         const ur = await fetchWithTimeout('https://openidconnect.googleapis.com/v1/userinfo', {
           headers: { Authorization: `Bearer ${at}` }
         });
-        if (!ur.ok) return redirect(`${ret}#oerr=fail`);
+        if (!ur.ok) return out(`${ret}#oerr=fail`);
         const uj = await ur.json();
         sub = String(uj?.sub || '').trim();
       } else if (p === 'kakao') {
         const cid = Deno.env.get('KAKAO_REST_KEY') || '';
         const csec = Deno.env.get('KAKAO_CLIENT_SECRET') || '';
-        if (!cid) return redirect(`${ret}#oerr=config`);
+        if (!cid) return out(`${ret}#oerr=config`);
         const bodyParams: Record<string, string> = {
           grant_type: 'authorization_code',
           client_id: cid,
@@ -173,20 +184,20 @@ Deno.serve(async (req: Request) => {
           headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8' },
           body: new URLSearchParams(bodyParams)
         });
-        if (!tr.ok) return redirect(`${ret}#oerr=fail`);
+        if (!tr.ok) return out(`${ret}#oerr=fail`);
         const tj = await tr.json();
         const at = String(tj?.access_token || '');
-        if (!at) return redirect(`${ret}#oerr=fail`);
+        if (!at) return out(`${ret}#oerr=fail`);
         const ur = await fetchWithTimeout('https://kapi.kakao.com/v2/user/me', {
           headers: { Authorization: `Bearer ${at}` }
         });
-        if (!ur.ok) return redirect(`${ret}#oerr=fail`);
+        if (!ur.ok) return out(`${ret}#oerr=fail`);
         const uj = await ur.json();
         sub = uj?.id != null ? String(uj.id).trim() : '';
       } else if (p === 'naver') {
         const cid = Deno.env.get('NAVER_CLIENT_ID') || '';
         const csec = Deno.env.get('NAVER_CLIENT_SECRET') || '';
-        if (!cid || !csec) return redirect(`${ret}#oerr=config`);
+        if (!cid || !csec) return out(`${ret}#oerr=config`);
         const tUrl =
           'https://nid.naver.com/oauth2.0/token?' +
           new URLSearchParams({
@@ -197,25 +208,25 @@ Deno.serve(async (req: Request) => {
             state: stateRaw
           }).toString();
         const tr = await fetchWithTimeout(tUrl);
-        if (!tr.ok) return redirect(`${ret}#oerr=fail`);
+        if (!tr.ok) return out(`${ret}#oerr=fail`);
         const tj = await tr.json();
         const at = String(tj?.access_token || '');
-        if (!at) return redirect(`${ret}#oerr=fail`);
+        if (!at) return out(`${ret}#oerr=fail`);
         const ur = await fetchWithTimeout('https://openapi.naver.com/v1/nid/me', {
           headers: { Authorization: `Bearer ${at}` }
         });
-        if (!ur.ok) return redirect(`${ret}#oerr=fail`);
+        if (!ur.ok) return out(`${ret}#oerr=fail`);
         const uj = await ur.json();
         sub = String(uj?.response?.id || '').trim();
       } else {
-        return redirect(`${ret}#oerr=fail`);
+        return out(`${ret}#oerr=fail`);
       }
     } catch (_e) {
-      return redirect(`${ret}#oerr=fail`);
+      return out(`${ret}#oerr=fail`);
     }
 
     if (!sub || sub.length > 128) {
-      return redirect(`${ret}#oerr=fail`);
+      return out(`${ret}#oerr=fail`);
     }
 
     try {
@@ -230,18 +241,18 @@ Deno.serve(async (req: Request) => {
       });
       const txt = await rpcRes.text();
       if (!rpcRes.ok) {
-        if (/too_many_signups/i.test(txt)) return redirect(`${ret}#oerr=busy`);
-        return redirect(`${ret}#oerr=fail`);
+        if (/too_many_signups/i.test(txt)) return out(`${ret}#oerr=busy`);
+        return out(`${ret}#oerr=fail`);
       }
       const j = JSON.parse(txt);
       if (!j || j.err || !j.token) {
-        if (/too_many_signups/i.test(String(j?.err || ''))) return redirect(`${ret}#oerr=busy`);
-        return redirect(`${ret}#oerr=fail`);
+        if (/too_many_signups/i.test(String(j?.err || ''))) return out(`${ret}#oerr=busy`);
+        return out(`${ret}#oerr=fail`);
       }
       const isNew = j.new ? '1' : '0';
-      return redirect(`${ret}#oauth=${encodeURIComponent(String(j.token))}&new=${isNew}`);
+      return out(`${ret}#oauth=${encodeURIComponent(String(j.token))}&new=${isNew}`);
     } catch (_e) {
-      return redirect(`${ret}#oerr=fail`);
+      return out(`${ret}#oerr=fail`);
     }
   }
 
@@ -256,10 +267,11 @@ Deno.serve(async (req: Request) => {
   }
 
   const cb = callbackUri();
-  const randBytes = new Uint8Array(12);
+  const randBytes = new Uint8Array(16);
   crypto.getRandomValues(randBytes);
+  const nonce = b64uEncode(randBytes);
   const state = await signState(
-    { p, r: ret, exp: Date.now() + 10 * 60 * 1000, n: b64uEncode(randBytes) },
+    { p, r: ret, exp: Date.now() + 10 * 60 * 1000, n: nonce },
     srvKey
   );
 
@@ -277,7 +289,7 @@ Deno.serve(async (req: Request) => {
         prompt: 'select_account',
         state
       }).toString();
-    return redirect(authUrl);
+    return redirect(authUrl, cookieSet(nonce));
   }
 
   if (p === 'kakao') {
@@ -291,7 +303,7 @@ Deno.serve(async (req: Request) => {
         response_type: 'code',
         state
       }).toString();
-    return redirect(authUrl);
+    return redirect(authUrl, cookieSet(nonce));
   }
 
   if (p === 'naver') {
@@ -306,7 +318,7 @@ Deno.serve(async (req: Request) => {
         response_type: 'code',
         state
       }).toString();
-    return redirect(authUrl);
+    return redirect(authUrl, cookieSet(nonce));
   }
 
   return redirect(`${ret}#oerr=fail`);
