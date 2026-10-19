@@ -10664,6 +10664,10 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
     ov.addEventListener('click', e => { if (e.target.closest('[data-lg]')) ov.remove(); });
     document.body.appendChild(ov);
   };
+  // vocapro.kro.kr/#privacy, #terms 로 바로 열 수 있게 해요. (구글 로그인 동의 화면에 넣는 링크)
+  function legalFromHash() { const k = (location.hash || '').slice(1); if (k === 'privacy' || k === 'terms') ACTIONS.legal({ dataset: { k } }); }
+  window.addEventListener('hashchange', legalFromHash);
+  setTimeout(legalFromHash, 300);
   function legalLinksHtml() { return '<div class="legal-links"><a class="lg-a" data-act="legal" data-k="terms">이용약관</a> · <a class="lg-a" data-act="legal" data-k="privacy">개인정보 처리방침</a> · <a class="lg-a" data-act="legal" data-k="oss">오픈소스 고지</a></div>'; }
 
 
