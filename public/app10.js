@@ -457,9 +457,6 @@
     const ov = document.createElement('div'); ov.className = 'vid-ov'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-label', 'VocaPro 소개 영상');
     ov.innerHTML = `<button class="icon-btn" data-act="about-video-close" aria-label="닫기">${IC.x}</button><video poster="media/ad-poster.jpg?v=3" controls autoplay playsinline>${LP_SRC}</video><span class="vid-cap">VocaPro 소개 영상</span>`;
     ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
-    // 원본은 23초라 1.5배속으로 15초 안에 끝나게 해요.
-    const v = ov.querySelector('video'); v.defaultPlaybackRate = v.playbackRate = 1.5;
-    v.addEventListener('loadedmetadata', () => { v.playbackRate = 1.5; });
     document.body.appendChild(ov);
   };
   ACTIONS['about-video-close'] = () => { const o = document.querySelector('.vid-ov'); if (o) o.remove(); };

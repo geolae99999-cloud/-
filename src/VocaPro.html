@@ -1350,7 +1350,13 @@
     .about-card img { width: 56px; height: 56px; border-radius: 50%; flex: none; }
     .about-card b { display: block; font-size: 1.05rem; }
     .about-card small { color: var(--muted); font-size: .82rem; line-height: 1.5; }
-    .about-banner { display: block; width: 100%; border-radius: 16px; margin-top: 12px; aspect-ratio: 1200 / 630; object-fit: cover; }
+    .about-vid { display: flex; align-items: center; gap: 12px; width: 100%; margin-top: 12px; padding: 8px; border: 1px solid var(--line, rgba(0, 0, 0, .08)); border-radius: 14px; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+    .about-vid:hover { background: rgba(127, 127, 127, .06); }
+    .about-vid-th { position: relative; flex: none; width: 96px; height: 54px; border-radius: 10px; overflow: hidden; background: #000; }
+    .about-vid-th img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .about-vid-th svg { position: absolute; inset: 0; margin: auto; width: 26px; height: 26px; padding: 6px; border-radius: 50%; background: rgba(0, 0, 0, .5); color: #fff; }
+    .about-vid b { display: block; font-size: .95rem; }
+    .about-vid small { color: var(--muted); font-size: .8rem; }
     .vid-ov { position: fixed; inset: 0; z-index: 900; background: rgba(0, 12, 30, .78); display: flex; align-items: center; justify-content: center; padding: 18px; }
     .vid-ov video { width: 100%; max-width: 960px; border-radius: 18px; background: #000; box-shadow: 0 30px 80px rgba(0, 0, 0, .4); }
     .vid-ov .icon-btn { position: absolute; top: 14px; right: 14px; background: rgba(255, 255, 255, .16); color: #fff; }
@@ -3034,9 +3040,8 @@
     <div class="settings-card">
       <div class="settings-title">VocaPro 소개</div>
       <div class="setting-item">
-        <div class="about-card"><img src="media/profile.png" alt="" width="56" height="56" loading="lazy"><div><b>VocaPro</b><small>단어, 끝까지 외우다. 친구나 선생님께 링크를 보내면 아래 그림이 미리보기로 떠요.</small></div></div>
-        <img class="about-banner" src="media/og.jpg" alt="VocaPro 소개 배너" width="1200" height="630" loading="lazy">
-        <button class="btn btn-soft btn-block" style="margin-top:12px;" data-act="about-video">소개 영상 보기 (15초)</button>
+        <div class="about-card"><img src="media/profile.png" alt="" width="56" height="56" loading="lazy"><div><b>VocaPro</b><small>단어, 끝까지 외우다.</small></div></div>
+        <button class="about-vid" data-act="about-video"><span class="about-vid-th"><img src="media/ad-poster.jpg?v=3" alt="" width="128" height="72" loading="lazy"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg></span><span><b>소개 영상 보기</b><small>23초 · 소리 없음</small></span></button>
       </div>
     </div>
 
@@ -7502,9 +7507,6 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     const ov = document.createElement('div'); ov.className = 'vid-ov'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-label', 'VocaPro 소개 영상');
     ov.innerHTML = `<button class="icon-btn" data-act="about-video-close" aria-label="닫기">${IC.x}</button><video poster="media/ad-poster.jpg?v=3" controls autoplay playsinline>${LP_SRC}</video><span class="vid-cap">VocaPro 소개 영상</span>`;
     ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
-    // 원본은 23초라 1.5배속으로 15초 안에 끝나게 해요.
-    const v = ov.querySelector('video'); v.defaultPlaybackRate = v.playbackRate = 1.5;
-    v.addEventListener('loadedmetadata', () => { v.playbackRate = 1.5; });
     document.body.appendChild(ov);
   };
   ACTIONS['about-video-close'] = () => { const o = document.querySelector('.vid-ov'); if (o) o.remove(); };
