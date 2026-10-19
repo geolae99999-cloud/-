@@ -297,7 +297,34 @@
     const had = document.activeElement === el; renderWordList();
     if (had) { const n = [...document.querySelectorAll('.wcard')].find(c => c.dataset.wid === w.id); if (n && n.querySelector('.w-main')) n.querySelector('.w-main').focus(); } // 키보드 포커스 유지
   };
-  ACTIONS.speak = (el, e) => { e.stopPropagation(); playAudio(el.dataset.text, true); };
+  ACTIONS.speak = (el, e) => { e.stopPropagation(); playAudio(el.dataset.text, true); spdPop(el, el.dataset.text); };
+  // 발음 듣기 버튼 옆에 잠깐 뜨는 속도 고르기: 설정까지 가지 않고 그 자리에서 바꾸고 바로 다시 들어요.
+  const SPD_CHIPS = [.6, .8, 1, 1.2, 1.5];
+  let spdTimer = 0, spdText = '';
+  function spdHide() { const p = $('spdPop'); if (p) p.remove(); clearTimeout(spdTimer); }
+  function spdArm() { clearTimeout(spdTimer); spdTimer = setTimeout(spdHide, 4000); }
+  function spdPop(anchor, text) {
+    if (!anchor || !text || !anchor.getBoundingClientRect) return;
+    spdText = text;
+    let p = $('spdPop');
+    if (!p) { p = document.createElement('div'); p.id = 'spdPop'; p.className = 'spd-pop'; p.setAttribute('role', 'group'); p.setAttribute('aria-label', '읽기 속도'); document.body.appendChild(p); }
+    const cur = clampN(config.ttsRate, .5, 2, .9);
+    p.innerHTML = `<span class="spd-ic">${IC.speaker}</span>` + SPD_CHIPS.map(r => `<button class="spd-c${Math.abs(r - cur) < .051 ? ' on' : ''}" data-act="spd-set" data-v="${r}">${r}x</button>`).join('');
+    const r = anchor.getBoundingClientRect(), w = p.offsetWidth || 260, h = p.offsetHeight || 40;
+    const left = Math.max(8, Math.min(innerWidth - w - 8, r.left + r.width / 2 - w / 2));
+    const top = r.bottom + h + 12 < innerHeight ? r.bottom + 8 : Math.max(8, r.top - h - 8);
+    p.style.left = left + 'px'; p.style.top = top + 'px';
+    spdArm();
+  }
+  ACTIONS['spd-set'] = (el, e) => {
+    if (e) e.stopPropagation();
+    config.ttsRate = clampN(+el.dataset.v, .5, 2, .9); syncStorage();
+    document.querySelectorAll('#spdPop .spd-c').forEach(b => b.classList.toggle('on', b === el));
+    if (spdText) playAudio(spdText, true);
+    spdArm();
+  };
+  document.addEventListener('pointerdown', e => { if ($('spdPop') && !e.target.closest('#spdPop, [data-act="speak"], [data-act="tr-speak"]')) spdHide(); }, true);
+  window.addEventListener('scroll', () => { if ($('spdPop')) spdHide(); }, { passive: true, capture: true });
   ACTIONS.mem = el => {
     const w = wordFromEl(el); if (!w) return;
     if (w.box >= 5) { w.box = 0; w.due = 0; w.miss = 0; }

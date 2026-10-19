@@ -1325,6 +1325,14 @@
     .about-card img { width: 56px; height: 56px; border-radius: 50%; flex: none; }
     .about-card b { display: block; font-size: 1.05rem; }
     .about-card small { color: var(--muted); font-size: .82rem; line-height: 1.5; }
+    .spd-pop { position: fixed; z-index: 950; display: flex; align-items: center; gap: 4px; padding: 5px 6px; border-radius: 999px; background: var(--card, #fff); border: 1px solid var(--line, rgba(0, 0, 0, .08)); box-shadow: 0 10px 30px rgba(0, 20, 50, .18); animation: spdIn .16s ease-out; }
+    .spd-pop .spd-ic { display: inline-flex; width: 26px; justify-content: center; color: var(--muted); }
+    .spd-pop .spd-ic .ic { width: 16px; height: 16px; }
+    .spd-c { min-width: 44px; height: 32px; padding: 0 8px; border: 0; border-radius: 999px; background: transparent; color: inherit; font: inherit; font-size: .82rem; font-weight: 700; font-variant-numeric: tabular-nums; cursor: pointer; }
+    .spd-c:hover { background: rgba(127, 127, 127, .1); }
+    .spd-c.on { background: var(--blue, #3182f6); color: #fff; }
+    @keyframes spdIn { from { opacity: 0; transform: translateY(-4px) scale(.97); } }
+    @media (prefers-reduced-motion: reduce) { .spd-pop { animation: none; } }
     .my-ip { display: block; margin-top: 6px; color: var(--muted); font-size: .72rem; text-align: center; font-variant-numeric: tabular-nums; }
     .my-ip[hidden] { display: none; }
     .about-vid { display: flex; align-items: center; gap: 12px; width: 100%; margin-top: 12px; padding: 8px; border: 1px solid var(--line, rgba(0, 0, 0, .08)); border-radius: 14px; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }

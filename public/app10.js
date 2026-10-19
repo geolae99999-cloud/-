@@ -237,7 +237,7 @@
     } catch (e) { if ($('trOut')) $('trOut').innerHTML = '<div class="tr-err">번역하지 못했어요. 인터넷을 확인하거나 잠시 뒤 다시 시도해 주세요.</div>'; }
     finally { trBusy = false; const b = $('trGo'); if (b) { b.disabled = false; b.textContent = '번역하기'; } }
   };
-  ACTIONS['tr-speak'] = () => { if (trLast) playAudio(trLast.en, true); };
+  ACTIONS['tr-speak'] = el => { if (trLast) { playAudio(trLast.en, true); spdPop(el, trLast.en); } };
   // 한국어 → 외국어 번역에서 다른 후보 단어를 누르면 그 단어로 바꿔 담을 수 있게 해요.
   ACTIONS['tr-pick'] = el => { if (!trLast) return; const i = $('trIn'); if (i) { i.value = el.dataset.w; i.dispatchEvent(new Event('input')); } ACTIONS['tr-go'](); };
   ACTIONS['tr-copy'] = async () => { try { await navigator.clipboard.writeText(trLast.t); toast('복사했어요.'); } catch (e) { toast('복사하지 못했어요. 직접 선택해서 복사해 주세요.'); } };
