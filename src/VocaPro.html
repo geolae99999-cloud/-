@@ -3671,6 +3671,58 @@ window.VOCA_CLOUD = {
    * ======================================================= */
   ACTIONS.theme = () => { config.darkMode = !config.darkMode; applyTheme(); syncStorage(); };
   const kpronOn = () => config[isZh() ? 'kpronZh' : 'kpronEn'] !== false;
+  // 병음 -> 한글 발음 (국립국어원 중국어 표기 기준). 한글 발음이 비어 있는 중국어 단어도 [셰셰]처럼 보여 줘요.
+  const PY_INI = { b: 'ㅂ', p: 'ㅍ', m: 'ㅁ', f: 'ㅍ', d: 'ㄷ', t: 'ㅌ', n: 'ㄴ', l: 'ㄹ', g: 'ㄱ', k: 'ㅋ', h: 'ㅎ', j: 'ㅈ', q: 'ㅊ', x: 'ㅅ', zh: 'ㅈ', ch: 'ㅊ', sh: 'ㅅ', r: 'ㄹ', z: 'ㅉ', c: 'ㅊ', s: 'ㅆ' };
+  // 운모 -> [모음, 받침] 음절 목록. 첫 음절에만 성모가 붙어요.
+  const PY_FIN = {
+    a: [['ㅏ']], ai: [['ㅏ'], ['ㅣ']], ao: [['ㅏ'], ['ㅗ']], an: [['ㅏ', 'ㄴ']], ang: [['ㅏ', 'ㅇ']],
+    o: [['ㅗ']], ou: [['ㅓ'], ['ㅜ']], ong: [['ㅜ', 'ㅇ']],
+    e: [['ㅓ']], ei: [['ㅔ'], ['ㅣ']], en: [['ㅓ', 'ㄴ']], eng: [['ㅓ', 'ㅇ']], er: [['ㅓ', 'ㄹ']],
+    i: [['ㅣ']], ia: [['ㅑ']], ie: [['ㅖ']], iao: [['ㅑ'], ['ㅗ']], iu: [['ㅠ']], ian: [['ㅕ', 'ㄴ']], in: [['ㅣ', 'ㄴ']], iang: [['ㅑ', 'ㅇ']], ing: [['ㅣ', 'ㅇ']], iong: [['ㅠ', 'ㅇ']],
+    u: [['ㅜ']], ua: [['ㅘ']], uo: [['ㅝ']], uai: [['ㅘ'], ['ㅣ']], ui: [['ㅜ'], ['ㅣ']], uan: [['ㅘ', 'ㄴ']], un: [['ㅜ', 'ㄴ']], uang: [['ㅘ', 'ㅇ']],
+    uei: [['ㅞ'], ['ㅣ']], uen: [['ㅝ', 'ㄴ']], ueng: [['ㅝ', 'ㅇ']],
+    v: [['ㅟ']], ve: [['ㅞ']], van: [['ㅟ'], ['ㅏ', 'ㄴ']], vn: [['ㅟ', 'ㄴ']]
+  };
+  const PY_Y = { yi: 'i', ya: 'ia', ye: 'ie', yao: 'iao', you: 'iu', yan: 'ian', yin: 'in', yang: 'iang', ying: 'ing', yong: 'iong', yu: 'v', yue: 've', yuan: 'van', yun: 'vn', wu: 'u', wa: 'ua', wo: 'uo', wai: 'uai', wei: 'uei', wan: 'uan', wen: 'uen', wang: 'uang', weng: 'ueng' };
+  const HJ_CHO = 'ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ', HJ_JUNG = 'ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ', HJ_JONG = ' ㄱㄲㄳㄴㄵㄶㄷㄹㄺㄻㄼㄽㄾㄿㅀㅁㅂㅄㅅㅆㅇㅈㅊㅋㅌㅍㅎ';
+  const PLAIN_V = { 'ㅑ': 'ㅏ', 'ㅕ': 'ㅓ', 'ㅛ': 'ㅗ', 'ㅠ': 'ㅜ', 'ㅒ': 'ㅐ', 'ㅖ': 'ㅔ' };
+  function hjMake(cho, jung, jong) {
+    if ((cho === 'ㅈ' || cho === 'ㅊ' || cho === 'ㅉ') && PLAIN_V[jung]) jung = PLAIN_V[jung];
+    return String.fromCharCode(0xAC00 + (HJ_CHO.indexOf(cho) * 21 + HJ_JUNG.indexOf(jung)) * 28 + Math.max(0, HJ_JONG.indexOf(jong || ' ')));
+  }
+  function pySyl(s) {
+    let r = false;
+    let m = s.match(/^(zh|ch|sh|[bpmfdtnlgkhjqxrzcs])?([a-z]+)$/); if (!m) return null;
+    let ini = m[1] || '', fin = m[2];
+    if (!ini && PY_Y[fin]) fin = PY_Y[fin];
+    else if (!ini && /^[yw]/.test(fin)) return null;
+    if (!PY_FIN[fin] && fin.length > 1 && fin.endsWith('r')) { fin = fin.slice(0, -1); r = true; } // 얼화 (huār)
+    if (/^[jqx]$/.test(ini) && /^u/.test(fin)) fin = 'v' + fin.slice(1);
+    let parts = PY_FIN[fin]; if (!parts) return null;
+    if (fin === 'i' && /^(zh|ch|sh|r|z|c|s)$/.test(ini)) parts = [['ㅡ']];
+    let out = parts.map(([v, j], i) => hjMake(i === 0 && ini ? PY_INI[ini] : 'ㅇ', v, j)).join('');
+    return r ? out + '얼' : out;
+  }
+  const pyKoCache = new Map();
+  function pinyinKo(py) {
+    py = String(py || '').trim(); if (!py || py.length > 80) return '';
+    if (pyKoCache.has(py)) return pyKoCache.get(py);
+    const t = py.normalize('NFD').replace(/ü|u:|v/gi, 'v').replace(/ü/g, 'v').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[’'·\-]/g, ' ');
+    let res = '';
+    for (const w of t.split(/\s+/).filter(Boolean)) {
+      // 띄어 쓰지 않은 병음(xuexi)은 앞에서부터 가장 긴 음절로 잘라요.
+      let s = w.replace(/[^a-z]/g, ''), i = 0;
+      while (i < s.length) {
+        let got = null, len = 0;
+        for (let L = Math.min(6, s.length - i); L >= 1; L--) { const k = pySyl(s.substr(i, L)); if (k) { got = k; len = L; break; } }
+        if (!got) { res = ''; i = s.length; pyKoCache.set(py, ''); return ''; }
+        res += got; i += len;
+      }
+    }
+    pyKoCache.set(py, res); return res;
+  }
+  // 저장된 한글 발음이 없으면 중국어는 병음에서 만들어요.
+  const kpronOf = w => (w && w.koreanPron) || (w && isZh() && /[㐀-鿿]/.test(w.word || '') ? pinyinKo(w.phonetic) : '');
   function applyKpron() { document.body.classList.toggle('no-kpron', !kpronOn()); }
   function applyTheme() {
     document.body.classList.toggle('dark', !!config.darkMode);
@@ -4082,7 +4134,7 @@ window.VOCA_CLOUD = {
         <div class="w-row">
           <span class="w-no">${String(i + 1).padStart(3, '0')}</span>
           <div class="w-main" data-act="expand" role="button" tabindex="0" aria-expanded="${open}">
-            <div class="w-head"><span class="w-word ${w.star ? 'hl' : ''}">${esc(w.word)}</span>${w.phonetic ? `<span class="w-pron">${esc(w.phonetic)}</span>` : ''}${w.koreanPron ? `<span class="w-kpron">[${esc(w.koreanPron)}]</span>` : ''}</div>
+            <div class="w-head"><span class="w-word ${w.star ? 'hl' : ''}">${esc(w.word)}</span>${w.phonetic ? `<span class="w-pron">${esc(w.phonetic)}</span>` : ''}${kpronOf(w) ? `<span class="w-kpron">[${esc(kpronOf(w))}]</span>` : ''}</div>
             <div class="w-mean">${w.meaning ? esc(w.meaning) : '<span class="muted">뜻이 비어 있어요 · 더보기에서 채울 수 있어요</span>'}</div>
           </div>
           <div class="w-side">
@@ -4753,7 +4805,7 @@ window.VOCA_CLOUD = {
     if (S.mode === 'test') { const qc = $('stBody').querySelector('.q-card'); if (qc) qc.insertAdjacentHTML('afterbegin', `<div class="exam-no">문제 ${S.idx + 1}</div>`); }
     $('stBody').scrollTop = 0;
   }
-  const pronText = w => `${w.phonetic || ''} ${w.koreanPron && kpronOn() ? `[${w.koreanPron}]` : ''}`.trim();
+  const pronText = w => `${w.phonetic || ''} ${kpronOf(w) && kpronOn() ? `[${kpronOf(w)}]` : ''}`.trim();
 
   function recordResult(item, ok) {
     const w = item.w;
@@ -8453,7 +8505,19 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
   const myName = () => (config.profile && config.profile.name) || currentLabel || currentUser || '';
   const schoolLine = () => { const p = config.profile || {}; return [p.school, !isTeacher() && p.sno ? '학번 ' + p.sno : ''].filter(Boolean).join(' · '); };
   let gwCache = {};
-  function gradeWords(k) {
+  // 중국어 학년별 추천: HSK 1급부터 쉬운 순서로 줄 세운 뒤 초1부터 100개씩 나눠요 (고3까지 1,200개).
+  function zhGradeWords(k) {
+    if (!zhIdx) return [];
+    const key = 'zg:' + k;
+    if (!gwCache[key]) {
+      const i = GRADES.findIndex(([g]) => g === k);
+      const all = gwCache['zg:all'] || (gwCache['zg:all'] = zhIdx.filter(e => e[3] > 0).sort((a, b) => a[3] - b[3]));
+      gwCache[key] = i < 0 ? [] : all.slice(i * 100, i * 100 + 100).map(e => ({ w: e[0], m: e[2], p: e[1] }));
+    }
+    return gwCache[key];
+  }
+  function gradeWords(k, en) {
+    if (GRADE_NAMES[k] && !en && isZh()) return zhGradeWords(k);
     if (ZS_NAMES[k] && k[0] === 'e') { if (!esData) return []; return gwCache[k] || (gwCache[k] = (esData[k.slice(3)] || []).map(e => ({ w: e[0], m: e[1], ex: e[2], exKo: e[3] }))); }
     if (ZS_NAMES[k]) { if (!zsData) return []; return gwCache[k] || (gwCache[k] = (zsData[k.slice(3)] || []).map(e => ({ w: e[0], p: e[1], m: e[2], ex: e[3], exPy: e[4], exKo: e[5] }))); }
     if (ZH_PACK_NAMES[k]) { if (!zhIdx) return []; const nw = k[0] === 'n', lv = +k.replace(/\D/g, ''); return gwCache[k] || (gwCache[k] = zhIdx.filter(e => (nw ? e[4] : e[3]) === lv).map(e => ({ w: e[0], m: e[2], p: e[1] }))); }
@@ -8466,7 +8530,7 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
   let dictMap = null;
   function builtinMeaning(word) {
     if (isHanWord(word)) { const e = zhMap && zhMap.get(String(word).trim()); return e ? e[2] : ''; }
-    if (!dictMap) { dictMap = new Map(); [...GRADES, ...PACKS].forEach(([k]) => gradeWords(k).forEach(e => { const w = e.w.toLowerCase(); if (!dictMap.has(w)) dictMap.set(w, e.m); })); }
+    if (!dictMap) { dictMap = new Map(); [...GRADES, ...PACKS].forEach(([k]) => gradeWords(k, true).forEach(e => { const w = e.w.toLowerCase(); if (!dictMap.has(w)) dictMap.set(w, e.m); })); }
     return dictMap.get(String(word || '').trim().toLowerCase()) || '';
   }
   function setGrade(v) {
@@ -8484,10 +8548,12 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
   function ownedFor(k) { if (!ZS_NAMES[k]) return ownedWords(); const c = categories.find(x => x.name === recBookName(k)); return new Set(c ? c.words.map(w => w.word) : []); }
   const recLeft = k => { const o = ownedWords(); return gradeWords(k).filter(e => !o.has(e.w.toLowerCase())); };
   function recMaybeShow() {
-    if (recShown || !currentUser || isTeacher() || isZh() || $('pfOv')) return;
+    if (recShown || !currentUser || isTeacher() || $('pfOv')) return;
     let hid = ''; try { hid = LS.getItem(recHideKey()) || ''; } catch (e) {}
     if (hid === dayKey()) return;
-    recShown = true; setTimeout(() => recOpen(), 500);
+    recShown = true;
+    if (isZh() && !zhIdx) { zhLoad().then(d => { if (d && d.length && isZh()) recOpen(); }); return; }
+    setTimeout(() => recOpen(), 500);
   }
   function recOpen(note) {
     if (!currentUser || $('authScreen').style.display !== 'none') return;
@@ -8543,7 +8609,10 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
     if (cat) recOpen(`'${cat.name}' 단어장에 ${list.length}개를 담았어요.`);
   };
   ACTIONS['rec-study'] = () => { const id = recView; recClose(); if (id && findBook(id)) startSession('card', { type: 'cat', id }, 10); };
-  ACTIONS['rec-all'] = () => recSheet(config.grade || 'e1');
+  ACTIONS['rec-all'] = async () => {
+    if (isZh() && !zhIdx) { const d = await zhLoad(); if (!d.length) return toast('단어 목록을 불러오지 못했어요. 인터넷을 확인해 주세요.'); }
+    recSheet(config.grade || 'e1');
+  };
   ACTIONS['grade-pick'] = () => openSheet('학년 선택', `<p class="muted" style="margin:0 0 12px;font-size:.88rem;">학년에 맞는 단어 100개를 추천해 드려요.</p><div class="grade-grid">${GRADES.map(([k, n]) => `<button class="grade-btn ${k === config.grade && !isTeacher() ? 'on' : ''}" data-act="grade-set" data-g="${k}"><b>${n}</b><small>${gradeFull(k).replace(/\s.*/, '')}</small></button>`).join('')}<button class="grade-btn wide ${isTeacher() ? 'on' : ''}" data-act="grade-set" data-g="teacher"><b>선생님</b><small>수업 도구를 먼저 보여줘요</small></button></div>`);
   ACTIONS['grade-set'] = el => { closeSheet(); setGrade(el.dataset.g); if (isTeacher()) return; recShown = false; try { LS.removeItem(recHideKey()); } catch (e) {} recMaybeShow(); };
 
@@ -8552,7 +8621,7 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
     recSheetK = k;
     const own = ownedFor(k), list = gradeWords(k), left = list.filter(e => !own.has(e.w.toLowerCase())).length, zs = ZS_NAMES[k];
     openSheet(zs ? `${listName(k)} 문장 ${list.length}` : `${listName(k)} 단어 ${list.length}`, `${zs ? '<p class="muted rec-zs">단어와 그 단어가 들어간 문장을 함께 담아요. 선생님은 이 단어장으로 발음 평가를 내고 \'예문까지\'를 고르면 학생이 문장을 읽어요.</p>' : ''}
-      <div class="rec-tabs">${(zs ? [k[0] === 'e' ? ES_PACKS : ZS_PACKS] : ZH_PACK_NAMES[k] ? [ZH_PACKS, ZH_PACKS_NEW] : [PACKS, GRADES]).map(g => `<div class="rec-tab-row">${g.map(([gk, n]) => `<button class="chip ${gk === k ? 'on' : ''}${PACK_NAMES[gk] ? ' pack' : ''}" data-act="rec-tab" data-g="${gk}">${n}</button>`).join('')}</div>`).join('')}</div>
+      <div class="rec-tabs">${(zs ? [k[0] === 'e' ? ES_PACKS : ZS_PACKS] : isZh() ? [GRADES, ZH_PACKS, ZH_PACKS_NEW] : [PACKS, GRADES]).map(g => `<div class="rec-tab-row">${g.map(([gk, n]) => `<button class="chip ${gk === k ? 'on' : ''}${PACK_NAMES[gk] ? ' pack' : ''}" data-act="rec-tab" data-g="${gk}">${n}</button>`).join('')}</div>`).join('')}</div>
       <div class="rec-list" id="recList"></div><button class="rec-more" id="recMore" data-act="rec-more" hidden>더 보기</button>
       <div class="rec-bar"><button class="btn btn-soft" data-act="rec-pick-add">선택한 단어 담기</button><button class="btn btn-primary" data-act="rec-left-add" ${left ? '' : 'disabled'}>남은 ${left}개 모두 담기</button></div>`);
     recRowsAt = 0; recOwn = own; recMore();
@@ -8562,7 +8631,7 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
   }
   ACTIONS['rec-tab'] = async el => {
     const g = el.dataset.g;
-    if (ZH_PACK_NAMES[g] && !zhIdx) { const d = await zhLoad(); if (!d.length) return toast('단어 목록을 불러오지 못했어요. 인터넷을 확인해 주세요.'); } // 중국어 책장은 목록부터
+    if ((ZH_PACK_NAMES[g] || (GRADE_NAMES[g] && isZh())) && !zhIdx) { const d = await zhLoad(); if (!d.length) return toast('단어 목록을 불러오지 못했어요. 인터넷을 확인해 주세요.'); } // 중국어 책장은 목록부터
     if (ZS_NAMES[g] && !(g[0] === 'e' ? esData : zsData) && !(await spkPackLoad(g))) return toast('문장 목록을 불러오지 못했어요. 인터넷을 확인해 주세요.');
     recSheet(g);
   };
@@ -8625,7 +8694,7 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
     recSheet(config.grade === 'h3' ? 'csat' : /^h/.test(config.grade) ? 'high' : /^m/.test(config.grade) ? 'mid' : 'basic');
   };
   function recEntryHtml() {
-    if (isZh()) return '';
+    if (isZh() && !zhIdx) zhLoad();
     const k = config.grade, g = GRADE_NAMES[k];
     const sub = g ? `100개 중 ${gradeWords(k).length - recLeft(k).length}개를 담았어요` : '학년을 고르면 맞춤 단어를 추천해요';
     return `<button class="mg-entry" data-act="${g ? 'rec-all' : 'grade-pick'}"><span class="mg-ico i-sun">${IC.bell}</span><span class="mg-txt"><b>${g ? `${g} 추천 단어 100` : '학년별 추천 단어'}</b><small>${sub}</small></span><span class="mg-chev"></span></button>`;
