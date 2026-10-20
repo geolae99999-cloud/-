@@ -39,7 +39,7 @@
     return String(h);
   }
   let authMode = 'login', authStep = 1, pendingGrade = '', pendingProfile = null, ageOk = false;
-  let auDraft = { id: '', pw: '', pw2: '', role: 'student', grade: '', school: '', scode: '', skind: '', name: '', sno: '', keep: true };
+  let auDraft = { id: '', pw: '', pw2: '', email: '', ecode: '', role: 'student', grade: '', school: '', scode: '', skind: '', name: '', sno: '', keep: true };
   const schCache = new Map();
   let schTimer = 0, schActivePfx = '', schItems = [], schIdx = -1;
 
@@ -48,6 +48,8 @@
     if (v('auId') !== null) auDraft.id = v('auId');
     if (v('auPw') !== null) auDraft.pw = v('auPw');
     if (v('auPw2') !== null) auDraft.pw2 = v('auPw2');
+    if (v('auEmail') !== null) auDraft.email = v('auEmail');
+    if (v('auCode') !== null) auDraft.ecode = v('auCode');
     if (v('auSchool') !== null) auDraft.school = v('auSchool');
     if (v('auSchoolCode') !== null) auDraft.scode = v('auSchoolCode');
     if (v('auSchoolKind') !== null) auDraft.skind = v('auSchoolKind');
@@ -308,6 +310,7 @@
           <input type="text" id="auId" value="${esc(auDraft.id)}" placeholder="아이디 (2~20자)" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="20">
           <input type="password" id="auPw" value="${esc(auDraft.pw)}" placeholder="비밀번호 (${cloudMode ? 6 : 4}자 이상)" autocomplete="${su ? 'new-password' : 'current-password'}">
           ${su ? `<input type="password" id="auPw2" value="${esc(auDraft.pw2)}" placeholder="비밀번호 확인" autocomplete="new-password">` : ''}
+          ${su && cloudMode && !kidMode ? emailCodeHtml('au', auDraft.email, auDraft.ecode, 'signup') : ''}
         </div>
         ${s2 ? roleSchoolBlockHtml('au', auDraft) : ''}
         ${!su || s2 ? authExtraHtml(su) : ''}
@@ -316,9 +319,10 @@
         ${su && !s2
           ? `<button class="btn btn-primary btn-block" id="auNext" data-act="auth-next">다음</button>`
           : `<button class="btn btn-primary btn-block" id="auGo" data-act="auth-go">${su ? '가입 완료' : '로그인'}</button>`}
+        ${!su && cloudMode && !kidMode ? '<button type="button" class="link-btn au-forgot" data-act="pw-forgot">아이디 · 비밀번호를 잊었어요</button>' : ''}
         ${!s2 ? oauthButtonsHtml(su) : ''}
         ${cloudAvail && !s2 ? `<button class="link-btn kid-link" data-act="auth-age" data-k="${kidMode ? 0 : 1}">${kidMode ? '만 14세 이상 계정으로 돌아가기' : (su ? '' : '이 기기의 어린이 계정(만 14세 미만)으로 로그인')}</button>` : ''}
-        <p class="muted" style="font-size:.74rem;line-height:1.6;margin:4px 0 0;">${cloudMode ? '같은 아이디로 로그인하면 어느 기기에서든 단어장과 학습 기록이 이어져요. 비밀번호를 잊으면 복구할 수 없어요. API 키는 보안을 위해 기기마다 따로 입력해요.' : '계정은 이 기기의 브라우저에만 저장돼요. 다른 기기와 동기화되지 않고, 비밀번호를 잊으면 복구할 수 없으니 백업 파일을 받아 두세요.'}</p>
+        <p class="muted" style="font-size:.74rem;line-height:1.6;margin:4px 0 0;">${cloudMode ? '같은 아이디로 로그인하면 어느 기기에서든 단어장과 학습 기록이 이어져요. 비밀번호를 잊으면 등록한 이메일로 다시 정할 수 있어요.' : '계정은 이 기기의 브라우저에만 저장돼요. 다른 기기와 동기화되지 않고, 비밀번호를 잊으면 복구할 수 없으니 백업 파일을 받아 두세요.'}</p>
         <a class="link-btn lp-mobile-cta" href="#lpVidBox">VocaPro가 처음이라면, 소개 영상 보기</a>
         <span class="my-ip"${myIp ? '' : ' hidden'}>${myIp ? '내 IP ' + esc(myIp) : ''}</span>
       </div>`;
@@ -506,6 +510,74 @@
     const prev = config.profile || {};
     config.profile = cleanProfile({ name: nm, school: sc, sno: sn, scode: prev.school === sc ? prev.scode : '' }); syncStorage(); toast('내 정보를 저장했어요.');
   };
+  // ===== 이메일 인증코드 (가입 · 비밀번호 찾기 · 이메일 등록) =====
+  const EMAIL_RE = /^[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9.-]{1,185}\.[A-Za-z]{2,24}$/;
+  const emailCodeHtml = (pfx, email, code, purpose) => `<div class="em-row"><input type="email" id="${pfx}Email" value="${esc(email || '')}" placeholder="이메일 (비밀번호 찾기에 써요)" autocomplete="email" autocapitalize="none" spellcheck="false" maxlength="254"><button type="button" class="btn btn-soft em-send" data-act="em-send" data-f="${pfx}Email" data-c="${pfx}Code" data-p="${purpose}">인증코드 받기</button></div>
+    <input type="text" id="${pfx}Code" value="${esc(code || '')}" placeholder="인증코드 6자리" inputmode="numeric" autocomplete="one-time-code" maxlength="6">`;
+  ACTIONS['em-send'] = async el => {
+    const f = $(el.dataset.f), email = f ? f.value.trim().toLowerCase() : '';
+    const box = el.closest('.dlg') ? el.closest('.dlg').querySelector('.dlg-msg') : $('auMsg');
+    const msg = m => { if (box) { box.textContent = m; box.style.display = m ? 'block' : 'none'; } else if (m) toast(m); };
+    if (!EMAIL_RE.test(email)) { msg('이메일 주소를 확인해 주세요.'); if (f) f.focus(); return; }
+    if (el.disabled || !window.Cloud || !Cloud.sendCode) return;
+    el.disabled = true; el.textContent = '보내는 중...';
+    try {
+      await Cloud.sendCode(email, el.dataset.p);
+      msg(''); toast(`${email} 로 인증코드를 보냈어요. 메일함(스팸함도)을 확인해 주세요.`);
+      const c = $(el.dataset.c); if (c) c.focus();
+      let left = 60;
+      const tick = () => { if (!el.isConnected) return; if (left <= 0) { el.disabled = false; el.textContent = '다시 받기'; return; } el.textContent = `다시 받기 ${left}초`; left--; setTimeout(tick, 1000); };
+      tick();
+    } catch (e) { el.disabled = false; el.textContent = '인증코드 받기'; msg(cloudMsg(e)); }
+  };
+  // 작은 입력 창 (비밀번호 찾기 · 이메일 등록)
+  function emDialog(title, sub, bodyHtml, okText, onOk) {
+    const ov = document.createElement('div'); ov.className = 'dlg-ov em-dlg';
+    ov.innerHTML = `<div class="dlg" role="dialog" aria-modal="true" aria-label="${esc(title)}"><h3 class="em-t">${esc(title)}</h3><p class="em-s">${esc(sub)}</p><div class="form-stack">${bodyHtml}</div><div class="dlg-msg"></div><div class="row"><button class="btn btn-soft" style="flex:1" data-em="x">닫기</button><button class="btn btn-primary" style="flex:1" data-em="ok">${esc(okText)}</button></div></div>`;
+    document.body.appendChild(ov);
+    const close = () => ov.remove();
+    const showMsg = m => { const b = ov.querySelector('.dlg-msg'); b.textContent = m; b.style.display = m ? 'block' : 'none'; };
+    ov.addEventListener('click', async e => {
+      const b = e.target.closest('[data-em]'); if (!b) { if (e.target === ov) close(); return; }
+      if (b.dataset.em === 'x') return close();
+      if (b.disabled) return; b.disabled = true;
+      try { await onOk(ov, showMsg, close); } finally { if (b.isConnected) b.disabled = false; }
+    });
+    setTimeout(() => { const i = ov.querySelector('input'); if (i) i.focus(); }, 60);
+    return ov;
+  }
+  ACTIONS['pw-forgot'] = () => {
+    emDialog('아이디 · 비밀번호 찾기', '가입할 때 등록한 이메일로 인증코드를 보내요. 확인되면 아이디를 알려 주고 새 비밀번호로 바꿔요.',
+      emailCodeHtml('fg', '', '', 'reset') + '<input type="password" id="fgPw" placeholder="새 비밀번호 (6자 이상)" autocomplete="new-password" maxlength="72"><input type="password" id="fgPw2" placeholder="새 비밀번호 확인" autocomplete="new-password" maxlength="72">',
+      '비밀번호 바꾸기', async (ov, msg, close) => {
+        const email = $('fgEmail').value.trim().toLowerCase(), code = $('fgCode').value.trim(), pw = $('fgPw').value;
+        if (!EMAIL_RE.test(email)) return msg('이메일 주소를 확인해 주세요.');
+        if (!/^\d{6}$/.test(code)) return msg('이메일로 받은 인증코드 6자리를 입력해 주세요.');
+        if (pw.length < 6) return msg('새 비밀번호는 6자 이상이어야 해요.');
+        if (pw !== $('fgPw2').value) return msg('새 비밀번호 확인이 달라요.');
+        let r; try { r = await Cloud.resetPw(email, code, pw); } catch (e) { return msg(cloudMsg(e)); }
+        close();
+        saveAuDraft(); auDraft.id = r.username || auDraft.id; auDraft.pw = ''; authMode = 'login'; renderAuth();
+        // 로그인 화면 위에서는 확인 창이 가려져서, 로그인 카드 안에 바로 알려 줘요.
+        const m = $('auMsg'); if (m) { m.textContent = `비밀번호를 바꿨어요. 아이디는 '${r.username}' 예요. 새 비밀번호로 로그인해 주세요.`; m.style.color = 'var(--green, #16a34a)'; m.style.display = 'block'; }
+        const pf = $('auPw'); if (pf) pf.focus();
+      });
+  };
+  async function acctEmailLoad() {
+    const row = $('acctEmail'); if (!row) return;
+    if (!cloudMode || !window.Cloud || !Cloud.myEmail || !currentUser) { row.hidden = true; return; }
+    row.hidden = false;
+    let em = null; try { em = (await Cloud.myEmail()).email; } catch (e) { $('acctEmailTxt').textContent = '불러오지 못했어요'; return; }
+    $('acctEmailTxt').textContent = em || '등록 안 함 · 등록하면 비밀번호를 잊어도 다시 정할 수 있어요';
+    const b = row.querySelector('button'); if (b) b.textContent = em ? '변경' : '등록';
+  }
+  ACTIONS['email-link'] = () => emDialog('이메일 등록', '비밀번호를 잊었을 때 이 이메일로 다시 정할 수 있어요. 받은 인증코드를 넣어 주세요.', emailCodeHtml('lk', '', '', 'link'), '등록', async (ov, msg, close) => {
+    const email = $('lkEmail').value.trim().toLowerCase(), code = $('lkCode').value.trim();
+    if (!EMAIL_RE.test(email)) return msg('이메일 주소를 확인해 주세요.');
+    if (!/^\d{6}$/.test(code)) return msg('이메일로 받은 인증코드 6자리를 입력해 주세요.');
+    try { await Cloud.linkEmail(email, code); } catch (e) { return msg(cloudMsg(e)); }
+    close(); toast('이메일을 등록했어요.'); acctEmailLoad();
+  });
   ACTIONS['auth-mode'] = el => { saveAuDraft(); authMode = el.dataset.m; authStep = 1; renderAuth(); };
   ACTIONS['auth-back'] = () => { saveAuDraft(); authStep = 1; renderAuth(); };
   ACTIONS['auth-next'] = () => {
@@ -518,6 +590,10 @@
     if (pw.length < minLen) return fail(`비밀번호는 ${minLen}자 이상이어야 해요.`);
     if (pw !== pw2) return fail('비밀번호 확인이 달라요.');
     if (!cloudMode && getUsers()[id.toLowerCase()]) return fail('이미 있는 아이디예요.');
+    if (cloudMode && !kidMode) {
+      if (!EMAIL_RE.test(auDraft.email.trim())) return fail('이메일 주소를 확인해 주세요.');
+      if (!/^\d{6}$/.test(auDraft.ecode.trim())) return fail('이메일로 받은 인증코드 6자리를 입력해 주세요.');
+    }
     authStep = 2; renderAuth();
     setTimeout(() => { const f = $('auSchool'); if (f) f.focus(); }, 60);
   };
@@ -539,7 +615,7 @@
     saveAuDraft();
     const btn = $('auGo'); if (!btn || btn.disabled) return;
     const fail = m => {
-      const e = $('auMsg'); e.textContent = m; e.style.display = 'block'; btn.disabled = false;
+      const e = $('auMsg'); e.textContent = m; e.style.color = 'var(--coral)'; e.style.display = 'block'; btn.disabled = false;
       if (authMode !== 'signup' && !/보안문자|동의/.test(m)) { authFails++; if (authFails >= 3) { const cb = $('capBox'); if (cb) cb.style.display = 'block'; drawCaptcha(); } }
     };
     { const g = authGate(); if (g) return fail(g); }
@@ -563,12 +639,16 @@
       btn.disabled = true;
       try {
         if (!window.Cloud) throw { code: 'offline' };
-        const u = su0 ? await Cloud.signup(email, pw0, keep0) : await Cloud.login(email, pw0, keep0);
-        if (su0) { try { sessionStorage.setItem('vocapro_just_signed_up', '1'); } catch (e) {} }
+        const u = su0 ? await Cloud.signupEmail(email, pw0, auDraft.email.trim().toLowerCase(), auDraft.ecode.trim(), keep0) : await Cloud.login(email, pw0, keep0);
+        if (su0) { auDraft.email = auDraft.ecode = ''; try { sessionStorage.setItem('vocapro_just_signed_up', '1'); } catch (e) {} }
         let remote = null, stale = false;
         try { remote = await Cloud.load(); } catch (e) { stale = true; toast('서버에서 불러오지 못해 이 기기의 저장본을 써요.'); }
         enterApp(u.uid, remote, u.email, stale);
-      } catch (e) { fail(cloudMsg(e)); }
+      } catch (e) {
+        // 이메일 · 인증코드 · 아이디 문제는 첫 단계에서 고쳐야 해서 1단계로 돌아가요.
+        if (su0 && e && /^(bad_code|email_taken|exists)$/.test(e.code)) { saveAuDraft(); if (e.code === 'bad_code') auDraft.ecode = ''; authStep = 1; renderAuth(); const m = $('auMsg'); if (m) { m.textContent = cloudMsg(e); m.style.display = 'block'; } return; }
+        fail(cloudMsg(e));
+      }
       return;
     }
     const id = $('auId').value.trim(), pw = $('auPw').value, keep = $('auKeep').checked, su = authMode === 'signup';
@@ -674,7 +754,8 @@
     const c = (e && e.code) || '';
     if (/too_many_signups/.test((e && e.message) || '')) return '지금 가입하는 사람이 너무 많아 잠시 막혔어요. 잠시 후 다시 해 주세요.';
     if (c === 'server' && e.message) return '서버에서 오류가 났어요: ' + String(e.message).slice(0, 120);
-    return ({ exists: '이미 있는 아이디예요.', invalid: '아이디 또는 비밀번호가 맞지 않아요.', locked: '비밀번호를 여러 번 틀려서 10분간 잠겼어요. 잠시 후 다시 해 주세요.',
+    if (c === 'bad_code') return '인증코드가 맞지 않거나 시간이 지났어요. 코드를 다시 받아 주세요.';
+    return ({ email_taken: '이미 가입된 이메일이에요. 로그인 화면의 \'아이디 · 비밀번호를 잊었어요\'를 눌러 주세요.', too_many: '인증코드를 너무 자주 보냈어요. 1분쯤 뒤에 다시 해 주세요.', send_failed: '메일을 보내지 못했어요. 주소를 확인하고 다시 해 주세요.', config: '이메일 인증이 아직 준비되지 않았어요. 잠시 후 다시 해 주세요.', exists: '이미 있는 아이디예요.', invalid: '아이디 또는 비밀번호가 맞지 않아요.', locked: '비밀번호를 여러 번 틀려서 10분간 잠겼어요. 잠시 후 다시 해 주세요.',
       bad_input: '아이디(2~20자)와 비밀번호(6자 이상)를 확인해 주세요.', auth: '로그인이 만료됐어요. 다시 로그인해 주세요.', network: '인터넷 연결을 확인해 주세요.',
       server: '서버 설정에 문제가 있어요. SQL을 실행했는지, config.js 값이 맞는지 확인해 주세요.', offline: '서버에 연결하지 못했어요. 잠시 후 다시 해 주세요.' })[c] || ('오류: ' + (c || (e && e.message) || '알 수 없음'));
   }

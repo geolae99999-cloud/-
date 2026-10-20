@@ -1350,6 +1350,22 @@
     .about-card img { width: 56px; height: 56px; border-radius: 50%; flex: none; }
     .about-card b { display: block; font-size: 1.05rem; }
     .about-card small { color: var(--muted); font-size: .82rem; line-height: 1.5; }
+    .em-row { display: flex; gap: 8px; }
+    .em-row input { flex: 1; min-width: 0; }
+    .em-row .em-send { flex: none; white-space: nowrap; padding: 0 14px; font-size: .85rem; }
+    .au-forgot { display: block; margin: 2px auto 0; font-size: .82rem; }
+    .acct-email { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+    .acct-email[hidden] { display: none; }
+    .acct-email span { min-width: 0; }
+    .acct-email b { display: block; font-size: .9rem; }
+    .acct-email small { color: var(--muted); font-size: .8rem; overflow-wrap: anywhere; }
+    .acct-email .btn { flex: none; padding: 0 16px; }
+    .em-dlg { z-index: 800; }
+    .em-dlg .dlg { max-width: 400px; width: calc(100% - 32px); text-align: left; }
+    .em-dlg .em-t { margin: 0 0 4px; font-size: 1.05rem; }
+    .em-dlg .em-s { margin: 0 0 14px; color: var(--muted); font-size: .84rem; line-height: 1.55; }
+    .em-dlg .dlg-msg { display: none; margin: 10px 0 0; color: var(--coral); font-weight: 600; font-size: .84rem; }
+    .em-dlg .row { margin-top: 14px; }
     .spd-pop { position: fixed; z-index: 950; display: flex; align-items: center; gap: 4px; padding: 5px 6px; border-radius: 999px; background: var(--card, #fff); border: 1px solid var(--line, rgba(0, 0, 0, .08)); box-shadow: 0 10px 30px rgba(0, 20, 50, .18); animation: spdIn .16s ease-out; }
     .spd-pop .spd-ic { display: inline-flex; width: 26px; justify-content: center; color: var(--muted); }
     .spd-pop .spd-ic .ic { width: 16px; height: 16px; }
@@ -3069,6 +3085,7 @@
       <div class="settings-title">계정</div>
       <div class="setting-item">
         <div id="acctName" class="muted" style="margin-bottom:10px;font-weight:600;"></div>
+        <div class="acct-email" id="acctEmail" hidden><span><b>이메일</b><small id="acctEmailTxt">불러오는 중</small></span><button class="btn btn-soft" data-act="email-link">등록</button></div>
         <button class="btn btn-soft btn-block" id="btnPw" data-act="pw-change" style="display:none;margin-bottom:8px;">비밀번호 변경</button>
         <button class="btn btn-soft btn-block" data-act="logout">로그아웃</button>
         <button class="btn btn-soft btn-block" id="btnWipe" data-act="logout-wipe" style="display:none;margin-top:8px;">로그아웃하고 이 기기에서 지우기 (공용 컴퓨터)</button>
@@ -3208,6 +3225,18 @@ window.VOCA_CLOUD = {
     async load() { const j = await rpc('voca_load', { p_token: getTok() }); return j && j.data ? { data: j.data, updated: Number(j.updated) } : null; },
     save: (d, o) => rpc('voca_save', { p_token: getTok(), p_data: d.data, p_updated: d.updated }, o && o.keepalive),
     changePw: (o, n) => rpc('voca_change_pw', { p_token: getTok(), p_old: o, p_new: n }),
+    // 이메일 인증: 코드는 서버 함수 mail 이 보내고, 확인 · 가입 · 재설정은 DB 함수가 해요.
+    async sendCode(email, purpose) {
+      let r; try { r = await fetch(cfg.url.replace(/\/+$/, '') + '/functions/v1/mail', { method: 'POST', headers: hdr, body: JSON.stringify({ email, purpose }) }); }
+      catch (e) { throw { code: 'network' }; }
+      let j = null; try { j = await r.json(); } catch (e) {}
+      if (!r.ok || !j || !j.ok) throw { code: (j && j.error) || 'server' };
+      return true;
+    },
+    async signupEmail(u, p, email, code, k) { const j = await rpc('voca_signup_email', { p_user: u, p_pw: p, p_email: email, p_code: code }); setTok(j.token, k !== false); cur = me(j); return cur; },
+    resetPw: (email, code, pw) => rpc('voca_pw_reset', { p_email: email, p_code: code, p_new: pw }),
+    linkEmail: (email, code) => rpc('voca_email_link', { p_token: getTok(), p_email: email, p_code: code }),
+    myEmail: () => rpc('voca_email_mine', { p_token: getTok() }),
     visit: () => rpc('voca_visit', { p_token: getTok(), p_ua: String(navigator.userAgent || '').slice(0, 300) }),
     call: (fn, args) => rpc(fn, Object.assign({ p_token: getTok() }, args || {})),
     async remove() { await rpc('voca_delete', { p_token: getTok() }); setTok(null); cur = null; },
@@ -6803,6 +6832,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     if (!$('lgLinks') && $('creditFoot')) $('creditFoot').insertAdjacentHTML('beforebegin', legalLinksHtml().replace('class="legal-links"', 'class="legal-links" id="lgLinks"'));
     if (!$('btnLt')) { const g = $('cfgGoal'); if (g && g.parentNode) g.insertAdjacentHTML('afterend', '<button class="btn btn-soft btn-block" id="btnLt" data-act="level-test" style="margin-top:8px;">레벨 테스트로 목표 추천받기</button>'); }
     const bp = $('btnPw'); if (bp) bp.style.display = cloudMode ? '' : 'none';
+    acctEmailLoad();
     const bw = $('btnWipe'); if (bw) bw.style.display = cloudMode ? '' : 'none';
     const an = $('acctName'); if (an) an.textContent = '현재 계정: ' + (currentLabel || currentUser || '');
     { const p = config.profile || cleanProfile(); $('pfName').value = p.name; $('pfSchool').value = p.school; $('pfSno').value = p.sno; $('pfSno').style.display = isTeacher() ? 'none' : ''; }
@@ -7180,7 +7210,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     return String(h);
   }
   let authMode = 'login', authStep = 1, pendingGrade = '', pendingProfile = null, ageOk = false;
-  let auDraft = { id: '', pw: '', pw2: '', role: 'student', grade: '', school: '', scode: '', skind: '', name: '', sno: '', keep: true };
+  let auDraft = { id: '', pw: '', pw2: '', email: '', ecode: '', role: 'student', grade: '', school: '', scode: '', skind: '', name: '', sno: '', keep: true };
   const schCache = new Map();
   let schTimer = 0, schActivePfx = '', schItems = [], schIdx = -1;
 
@@ -7189,6 +7219,8 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     if (v('auId') !== null) auDraft.id = v('auId');
     if (v('auPw') !== null) auDraft.pw = v('auPw');
     if (v('auPw2') !== null) auDraft.pw2 = v('auPw2');
+    if (v('auEmail') !== null) auDraft.email = v('auEmail');
+    if (v('auCode') !== null) auDraft.ecode = v('auCode');
     if (v('auSchool') !== null) auDraft.school = v('auSchool');
     if (v('auSchoolCode') !== null) auDraft.scode = v('auSchoolCode');
     if (v('auSchoolKind') !== null) auDraft.skind = v('auSchoolKind');
@@ -7449,6 +7481,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
           <input type="text" id="auId" value="${esc(auDraft.id)}" placeholder="아이디 (2~20자)" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="20">
           <input type="password" id="auPw" value="${esc(auDraft.pw)}" placeholder="비밀번호 (${cloudMode ? 6 : 4}자 이상)" autocomplete="${su ? 'new-password' : 'current-password'}">
           ${su ? `<input type="password" id="auPw2" value="${esc(auDraft.pw2)}" placeholder="비밀번호 확인" autocomplete="new-password">` : ''}
+          ${su && cloudMode && !kidMode ? emailCodeHtml('au', auDraft.email, auDraft.ecode, 'signup') : ''}
         </div>
         ${s2 ? roleSchoolBlockHtml('au', auDraft) : ''}
         ${!su || s2 ? authExtraHtml(su) : ''}
@@ -7457,9 +7490,10 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
         ${su && !s2
           ? `<button class="btn btn-primary btn-block" id="auNext" data-act="auth-next">다음</button>`
           : `<button class="btn btn-primary btn-block" id="auGo" data-act="auth-go">${su ? '가입 완료' : '로그인'}</button>`}
+        ${!su && cloudMode && !kidMode ? '<button type="button" class="link-btn au-forgot" data-act="pw-forgot">아이디 · 비밀번호를 잊었어요</button>' : ''}
         ${!s2 ? oauthButtonsHtml(su) : ''}
         ${cloudAvail && !s2 ? `<button class="link-btn kid-link" data-act="auth-age" data-k="${kidMode ? 0 : 1}">${kidMode ? '만 14세 이상 계정으로 돌아가기' : (su ? '' : '이 기기의 어린이 계정(만 14세 미만)으로 로그인')}</button>` : ''}
-        <p class="muted" style="font-size:.74rem;line-height:1.6;margin:4px 0 0;">${cloudMode ? '같은 아이디로 로그인하면 어느 기기에서든 단어장과 학습 기록이 이어져요. 비밀번호를 잊으면 복구할 수 없어요. API 키는 보안을 위해 기기마다 따로 입력해요.' : '계정은 이 기기의 브라우저에만 저장돼요. 다른 기기와 동기화되지 않고, 비밀번호를 잊으면 복구할 수 없으니 백업 파일을 받아 두세요.'}</p>
+        <p class="muted" style="font-size:.74rem;line-height:1.6;margin:4px 0 0;">${cloudMode ? '같은 아이디로 로그인하면 어느 기기에서든 단어장과 학습 기록이 이어져요. 비밀번호를 잊으면 등록한 이메일로 다시 정할 수 있어요.' : '계정은 이 기기의 브라우저에만 저장돼요. 다른 기기와 동기화되지 않고, 비밀번호를 잊으면 복구할 수 없으니 백업 파일을 받아 두세요.'}</p>
         <a class="link-btn lp-mobile-cta" href="#lpVidBox">VocaPro가 처음이라면, 소개 영상 보기</a>
         <span class="my-ip"${myIp ? '' : ' hidden'}>${myIp ? '내 IP ' + esc(myIp) : ''}</span>
       </div>`;
@@ -7647,6 +7681,74 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     const prev = config.profile || {};
     config.profile = cleanProfile({ name: nm, school: sc, sno: sn, scode: prev.school === sc ? prev.scode : '' }); syncStorage(); toast('내 정보를 저장했어요.');
   };
+  // ===== 이메일 인증코드 (가입 · 비밀번호 찾기 · 이메일 등록) =====
+  const EMAIL_RE = /^[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9.-]{1,185}\.[A-Za-z]{2,24}$/;
+  const emailCodeHtml = (pfx, email, code, purpose) => `<div class="em-row"><input type="email" id="${pfx}Email" value="${esc(email || '')}" placeholder="이메일 (비밀번호 찾기에 써요)" autocomplete="email" autocapitalize="none" spellcheck="false" maxlength="254"><button type="button" class="btn btn-soft em-send" data-act="em-send" data-f="${pfx}Email" data-c="${pfx}Code" data-p="${purpose}">인증코드 받기</button></div>
+    <input type="text" id="${pfx}Code" value="${esc(code || '')}" placeholder="인증코드 6자리" inputmode="numeric" autocomplete="one-time-code" maxlength="6">`;
+  ACTIONS['em-send'] = async el => {
+    const f = $(el.dataset.f), email = f ? f.value.trim().toLowerCase() : '';
+    const box = el.closest('.dlg') ? el.closest('.dlg').querySelector('.dlg-msg') : $('auMsg');
+    const msg = m => { if (box) { box.textContent = m; box.style.display = m ? 'block' : 'none'; } else if (m) toast(m); };
+    if (!EMAIL_RE.test(email)) { msg('이메일 주소를 확인해 주세요.'); if (f) f.focus(); return; }
+    if (el.disabled || !window.Cloud || !Cloud.sendCode) return;
+    el.disabled = true; el.textContent = '보내는 중...';
+    try {
+      await Cloud.sendCode(email, el.dataset.p);
+      msg(''); toast(`${email} 로 인증코드를 보냈어요. 메일함(스팸함도)을 확인해 주세요.`);
+      const c = $(el.dataset.c); if (c) c.focus();
+      let left = 60;
+      const tick = () => { if (!el.isConnected) return; if (left <= 0) { el.disabled = false; el.textContent = '다시 받기'; return; } el.textContent = `다시 받기 ${left}초`; left--; setTimeout(tick, 1000); };
+      tick();
+    } catch (e) { el.disabled = false; el.textContent = '인증코드 받기'; msg(cloudMsg(e)); }
+  };
+  // 작은 입력 창 (비밀번호 찾기 · 이메일 등록)
+  function emDialog(title, sub, bodyHtml, okText, onOk) {
+    const ov = document.createElement('div'); ov.className = 'dlg-ov em-dlg';
+    ov.innerHTML = `<div class="dlg" role="dialog" aria-modal="true" aria-label="${esc(title)}"><h3 class="em-t">${esc(title)}</h3><p class="em-s">${esc(sub)}</p><div class="form-stack">${bodyHtml}</div><div class="dlg-msg"></div><div class="row"><button class="btn btn-soft" style="flex:1" data-em="x">닫기</button><button class="btn btn-primary" style="flex:1" data-em="ok">${esc(okText)}</button></div></div>`;
+    document.body.appendChild(ov);
+    const close = () => ov.remove();
+    const showMsg = m => { const b = ov.querySelector('.dlg-msg'); b.textContent = m; b.style.display = m ? 'block' : 'none'; };
+    ov.addEventListener('click', async e => {
+      const b = e.target.closest('[data-em]'); if (!b) { if (e.target === ov) close(); return; }
+      if (b.dataset.em === 'x') return close();
+      if (b.disabled) return; b.disabled = true;
+      try { await onOk(ov, showMsg, close); } finally { if (b.isConnected) b.disabled = false; }
+    });
+    setTimeout(() => { const i = ov.querySelector('input'); if (i) i.focus(); }, 60);
+    return ov;
+  }
+  ACTIONS['pw-forgot'] = () => {
+    emDialog('아이디 · 비밀번호 찾기', '가입할 때 등록한 이메일로 인증코드를 보내요. 확인되면 아이디를 알려 주고 새 비밀번호로 바꿔요.',
+      emailCodeHtml('fg', '', '', 'reset') + '<input type="password" id="fgPw" placeholder="새 비밀번호 (6자 이상)" autocomplete="new-password" maxlength="72"><input type="password" id="fgPw2" placeholder="새 비밀번호 확인" autocomplete="new-password" maxlength="72">',
+      '비밀번호 바꾸기', async (ov, msg, close) => {
+        const email = $('fgEmail').value.trim().toLowerCase(), code = $('fgCode').value.trim(), pw = $('fgPw').value;
+        if (!EMAIL_RE.test(email)) return msg('이메일 주소를 확인해 주세요.');
+        if (!/^\d{6}$/.test(code)) return msg('이메일로 받은 인증코드 6자리를 입력해 주세요.');
+        if (pw.length < 6) return msg('새 비밀번호는 6자 이상이어야 해요.');
+        if (pw !== $('fgPw2').value) return msg('새 비밀번호 확인이 달라요.');
+        let r; try { r = await Cloud.resetPw(email, code, pw); } catch (e) { return msg(cloudMsg(e)); }
+        close();
+        saveAuDraft(); auDraft.id = r.username || auDraft.id; auDraft.pw = ''; authMode = 'login'; renderAuth();
+        // 로그인 화면 위에서는 확인 창이 가려져서, 로그인 카드 안에 바로 알려 줘요.
+        const m = $('auMsg'); if (m) { m.textContent = `비밀번호를 바꿨어요. 아이디는 '${r.username}' 예요. 새 비밀번호로 로그인해 주세요.`; m.style.color = 'var(--green, #16a34a)'; m.style.display = 'block'; }
+        const pf = $('auPw'); if (pf) pf.focus();
+      });
+  };
+  async function acctEmailLoad() {
+    const row = $('acctEmail'); if (!row) return;
+    if (!cloudMode || !window.Cloud || !Cloud.myEmail || !currentUser) { row.hidden = true; return; }
+    row.hidden = false;
+    let em = null; try { em = (await Cloud.myEmail()).email; } catch (e) { $('acctEmailTxt').textContent = '불러오지 못했어요'; return; }
+    $('acctEmailTxt').textContent = em || '등록 안 함 · 등록하면 비밀번호를 잊어도 다시 정할 수 있어요';
+    const b = row.querySelector('button'); if (b) b.textContent = em ? '변경' : '등록';
+  }
+  ACTIONS['email-link'] = () => emDialog('이메일 등록', '비밀번호를 잊었을 때 이 이메일로 다시 정할 수 있어요. 받은 인증코드를 넣어 주세요.', emailCodeHtml('lk', '', '', 'link'), '등록', async (ov, msg, close) => {
+    const email = $('lkEmail').value.trim().toLowerCase(), code = $('lkCode').value.trim();
+    if (!EMAIL_RE.test(email)) return msg('이메일 주소를 확인해 주세요.');
+    if (!/^\d{6}$/.test(code)) return msg('이메일로 받은 인증코드 6자리를 입력해 주세요.');
+    try { await Cloud.linkEmail(email, code); } catch (e) { return msg(cloudMsg(e)); }
+    close(); toast('이메일을 등록했어요.'); acctEmailLoad();
+  });
   ACTIONS['auth-mode'] = el => { saveAuDraft(); authMode = el.dataset.m; authStep = 1; renderAuth(); };
   ACTIONS['auth-back'] = () => { saveAuDraft(); authStep = 1; renderAuth(); };
   ACTIONS['auth-next'] = () => {
@@ -7659,6 +7761,10 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     if (pw.length < minLen) return fail(`비밀번호는 ${minLen}자 이상이어야 해요.`);
     if (pw !== pw2) return fail('비밀번호 확인이 달라요.');
     if (!cloudMode && getUsers()[id.toLowerCase()]) return fail('이미 있는 아이디예요.');
+    if (cloudMode && !kidMode) {
+      if (!EMAIL_RE.test(auDraft.email.trim())) return fail('이메일 주소를 확인해 주세요.');
+      if (!/^\d{6}$/.test(auDraft.ecode.trim())) return fail('이메일로 받은 인증코드 6자리를 입력해 주세요.');
+    }
     authStep = 2; renderAuth();
     setTimeout(() => { const f = $('auSchool'); if (f) f.focus(); }, 60);
   };
@@ -7680,7 +7786,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     saveAuDraft();
     const btn = $('auGo'); if (!btn || btn.disabled) return;
     const fail = m => {
-      const e = $('auMsg'); e.textContent = m; e.style.display = 'block'; btn.disabled = false;
+      const e = $('auMsg'); e.textContent = m; e.style.color = 'var(--coral)'; e.style.display = 'block'; btn.disabled = false;
       if (authMode !== 'signup' && !/보안문자|동의/.test(m)) { authFails++; if (authFails >= 3) { const cb = $('capBox'); if (cb) cb.style.display = 'block'; drawCaptcha(); } }
     };
     { const g = authGate(); if (g) return fail(g); }
@@ -7704,12 +7810,16 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
       btn.disabled = true;
       try {
         if (!window.Cloud) throw { code: 'offline' };
-        const u = su0 ? await Cloud.signup(email, pw0, keep0) : await Cloud.login(email, pw0, keep0);
-        if (su0) { try { sessionStorage.setItem('vocapro_just_signed_up', '1'); } catch (e) {} }
+        const u = su0 ? await Cloud.signupEmail(email, pw0, auDraft.email.trim().toLowerCase(), auDraft.ecode.trim(), keep0) : await Cloud.login(email, pw0, keep0);
+        if (su0) { auDraft.email = auDraft.ecode = ''; try { sessionStorage.setItem('vocapro_just_signed_up', '1'); } catch (e) {} }
         let remote = null, stale = false;
         try { remote = await Cloud.load(); } catch (e) { stale = true; toast('서버에서 불러오지 못해 이 기기의 저장본을 써요.'); }
         enterApp(u.uid, remote, u.email, stale);
-      } catch (e) { fail(cloudMsg(e)); }
+      } catch (e) {
+        // 이메일 · 인증코드 · 아이디 문제는 첫 단계에서 고쳐야 해서 1단계로 돌아가요.
+        if (su0 && e && /^(bad_code|email_taken|exists)$/.test(e.code)) { saveAuDraft(); if (e.code === 'bad_code') auDraft.ecode = ''; authStep = 1; renderAuth(); const m = $('auMsg'); if (m) { m.textContent = cloudMsg(e); m.style.display = 'block'; } return; }
+        fail(cloudMsg(e));
+      }
       return;
     }
     const id = $('auId').value.trim(), pw = $('auPw').value, keep = $('auKeep').checked, su = authMode === 'signup';
@@ -7815,7 +7925,8 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     const c = (e && e.code) || '';
     if (/too_many_signups/.test((e && e.message) || '')) return '지금 가입하는 사람이 너무 많아 잠시 막혔어요. 잠시 후 다시 해 주세요.';
     if (c === 'server' && e.message) return '서버에서 오류가 났어요: ' + String(e.message).slice(0, 120);
-    return ({ exists: '이미 있는 아이디예요.', invalid: '아이디 또는 비밀번호가 맞지 않아요.', locked: '비밀번호를 여러 번 틀려서 10분간 잠겼어요. 잠시 후 다시 해 주세요.',
+    if (c === 'bad_code') return '인증코드가 맞지 않거나 시간이 지났어요. 코드를 다시 받아 주세요.';
+    return ({ email_taken: '이미 가입된 이메일이에요. 로그인 화면의 \'아이디 · 비밀번호를 잊었어요\'를 눌러 주세요.', too_many: '인증코드를 너무 자주 보냈어요. 1분쯤 뒤에 다시 해 주세요.', send_failed: '메일을 보내지 못했어요. 주소를 확인하고 다시 해 주세요.', config: '이메일 인증이 아직 준비되지 않았어요. 잠시 후 다시 해 주세요.', exists: '이미 있는 아이디예요.', invalid: '아이디 또는 비밀번호가 맞지 않아요.', locked: '비밀번호를 여러 번 틀려서 10분간 잠겼어요. 잠시 후 다시 해 주세요.',
       bad_input: '아이디(2~20자)와 비밀번호(6자 이상)를 확인해 주세요.', auth: '로그인이 만료됐어요. 다시 로그인해 주세요.', network: '인터넷 연결을 확인해 주세요.',
       server: '서버 설정에 문제가 있어요. SQL을 실행했는지, config.js 값이 맞는지 확인해 주세요.', offline: '서버에 연결하지 못했어요. 잠시 후 다시 해 주세요.' })[c] || ('오류: ' + (c || (e && e.message) || '알 수 없음'));
   }
@@ -10632,13 +10743,13 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
     return {
       privacy: ['개인정보 처리방침', `${I.operator}(이하 "운영자")은 VocaPro(이하 "서비스")를 운영하면서 「개인정보 보호법」 제30조에 따라 이용자의 개인정보를 보호하고 관련 고충을 빠르게 처리하기 위해 다음과 같이 개인정보 처리방침을 공개합니다.`, [
         ['제1조 개인정보의 처리 목적', `운영자는 다음 목적으로만 개인정보를 처리하며, 목적이 바뀌면 「개인정보 보호법」 제18조에 따라 별도 동의를 받는 등 필요한 조치를 합니다.
-- 회원 가입과 관리: 회원 식별, 로그인 유지, 비밀번호 무차별 대입 같은 부정 이용 방지
+- 회원 가입과 관리: 회원 식별, 이메일 인증, 아이디 · 비밀번호 찾기, 로그인 유지, 비밀번호 무차별 대입 같은 부정 이용 방지
 - 학습 서비스 제공: 단어장·학습 기록·설정의 저장과 기기 간 동기화, 학년에 맞는 추천 단어 제공, 학교·이름을 넣은 시험지 등 학교 수업용 기능 제공
 - AI 기능 제공: AI 단어 완성과 번역 요청 처리, 회원별 하루 사용 한도 관리
 - 우리 반 기능 제공: 선생님의 반·과제 관리, 이용자가 참여한 반의 선생님에게 학습 현황과 과제 결과 제공
 - 서비스 운영: 오류 확인과 대응, 방문 기록 확인과 부정 이용 방지`],
         ['제2조 처리하는 개인정보 항목', `회원 가입 시 필수 항목
-- 일반 가입: 아이디, 비밀번호, 학년(또는 선생님), 이름, 학교(학교 코드 포함)
+- 일반 가입: 아이디, 비밀번호, 이메일 주소, 학년(또는 선생님), 이름, 학교(학교 코드 포함)
 - 간편 로그인(구글 · 카카오 · 네이버): 각 제공자가 발급한 이용자 고유 식별번호(sub/id), 학년(또는 선생님), 이름, 학교(학교 코드 포함). 이메일, 프로필 사진, 소셜 계정의 이름은 수집하지 않습니다.
 회원 가입 시 선택 항목
 - 학번(학생만)
@@ -10647,16 +10758,19 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
 - 이용자가 입력한 단어장(단어, 뜻, 발음, 예문, 메모 등), 학습 기록과 통계, 앱 설정
 - 로그인 세션 정보(토큰은 해시로 바꿔 저장), 가입·로그인 일시, 로그인 실패 횟수
 - AI 기능의 날짜별 사용 횟수
+- 이메일 인증코드(되돌릴 수 없는 해시로만 저장), 인증코드를 보낸 시각과 요청한 IP 주소(보내기 횟수 제한용)
 - 우리 반을 쓰는 경우: 반 이름, 초대 코드, 과제(제목, 단어 목록, 마감일), 반에 참여할 때의 이름과 학번, 학습 요약(학습한 단어 수, 정답률, 연속 학습일, 많이 틀린 단어, 최근 시험 점수), 과제 결과(점수, 정답 수, 걸린 시간, 틀린 단어, 푼 횟수), 발음 평가 과제의 녹음(음성)과 AI·선생님 채점 결과, 앱이 열려 있는 동안의 접속 상태와 지금 하는 학습(학습 방법, 진행한 문제 수, 맞은·틀린 수, 마지막 접속 시각)
 자동으로 생성되는 정보
 - 서비스에 접속할 때 IP 주소, 브라우저 종류, 접속 일시와 (로그인한 경우) 회원 아이디를 운영자의 접속 기록으로 저장합니다. 접속한 본인의 화면에는 자신의 IP 주소를 보여 줍니다.
 - 이와 별도로 IP 주소, 브라우저 종류, 접속 일시가 호스팅·서버 업체의 접속 기록에 남을 수 있습니다.
 수집하지 않는 정보
-- 이메일, 전화번호, 주소, 위치 정보, 광고 식별자는 수집하지 않습니다.
+- 전화번호, 주소, 위치 정보, 광고 식별자는 수집하지 않습니다. 이메일은 일반 가입과 설정 > 계정의 이메일 등록에서 이용자가 직접 입력한 경우에만 받습니다.
 - 이름, 학교, 학번은 화면 인사, 시험지 머리글 등 이용자 본인의 앱 안에서 씁니다. 이용자가 동의하고 반에 참여한 경우에만 그 반 선생님에게 이름과 학번을 보여 주며(제4조), 그 밖에는 다른 이용자에게 공개하거나 제3자에게 제공하지 않습니다. 설정 > 내 정보에서 언제든 고치거나 지울 수 있습니다(이름은 별명으로 바꿀 수 있습니다).`],
         ['제3조 개인정보의 처리 및 보유 기간', `- 계정 정보, 단어장, 학습 기록, 설정: 회원 탈퇴(계정 삭제) 시까지. 탈퇴하면 즉시 삭제합니다.
 - 로그인 세션 정보: 로그인 후 90일 또는 로그아웃할 때까지
 - AI 날짜별 사용 횟수: 30일
+- 이메일 주소: 회원 탈퇴 시까지(설정 > 계정에서 바꿀 수 있습니다)
+- 이메일 인증코드: 보낸 뒤 10분 동안만 쓸 수 있고, 하루 안에 자동으로 삭제합니다.
 - 발음 평가 녹음(음성): 녹음한 날부터 60일이 지나면 녹음 파일을 자동으로 삭제합니다(점수는 아래 우리 반 정보와 같이 보관). 선생님은 그 전에 언제든 지울 수 있습니다.
 - 우리 반 정보: 학생이 반에서 나가거나 선생님이 내보내면 그 학생의 반 기록을, 선생님이 반이나 과제를 삭제하면 관련 기록을 즉시 삭제합니다. 회원 탈퇴 시에도 함께 삭제합니다.
 - 운영자의 접속 기록(IP 주소, 브라우저 종류, 접속 일시, 회원 아이디): 180일이 지나면 자동으로 삭제합니다.
@@ -10673,10 +10787,12 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
 - Supabase, Inc.: 계정과 학습 데이터 저장, 서버 기능 실행 (서버 위치: ${region})
 - Cloudflare, Inc.: 웹앱 배포와 호스팅, AI 단어 완성 · 번역 처리(Workers AI, 오픈소스 모델) (미국)
 - Google LLC: AI 단어 완성, 번역, 발음 평가 채점, 사진 속 글자 읽기 처리(Gemini API) (미국)
+- Sendinblue SAS(Brevo): 이메일 인증코드 메일 발송 (프랑스)
 운영자는 「개인정보 보호법」 제26조에 따라 수탁자가 개인정보를 안전하게 처리하는지 관리합니다.`],
         ['제6조 개인정보의 국외 이전', `서비스 이용 과정에서 다음과 같이 개인정보가 국외로 이전됩니다. 모든 전송은 암호화된 통신(HTTPS)으로 이루어집니다.
 - Google LLC (미국, https://policies.google.com/privacy): AI 완성·번역을 누를 때 입력한 영어·중국어 단어나 문장을, 선생님이 발음 평가 AI 채점을 누를 때 학생 녹음(음성)과 읽을 단어·문장을(선생님이 직접 넣은 녹음 파일은 채점에만 쓰고 운영자 서버에 저장하지 않습니다), '글·사진에서 단어 뽑기'에서 사진 속 글자 읽기를 누를 때 고른 사진(줄인 JPEG)을, 문맥 뜻 채우기를 켜고 단어를 넣을 때 고른 단어와 글 속 문장을 보냅니다. 사진은 운영자 서버에 저장하지 않습니다. 아이디 등 계정 정보는 보내지 않습니다. 목적은 AI 결과 생성이며, 보유 기간은 Google의 Gemini API 약관을 따릅니다.
 - Cloudflare, Inc. (미국, privacyquestions@cloudflare.com): 서비스에 접속할 때 IP 주소, 브라우저 정보가 전송됩니다. 목적은 웹앱 전송이며, 보유 기간은 Cloudflare의 기록 보관 기간을 따릅니다. AI 완성 · 번역을 누를 때 입력한 단어나 문장을 오픈소스 AI 모델(Workers AI)로 처리합니다. 목적은 뜻 · 예문 · 번역 생성입니다.
+- Sendinblue SAS, Brevo (프랑스, https://www.brevo.com/legal/privacypolicy/): 일반 가입, 아이디 · 비밀번호 찾기, 이메일 등록에서 인증코드를 받을 때 이메일 주소와 인증코드가 전송됩니다. 목적은 인증 메일 발송이며, 보유 기간은 Brevo의 발송 기록 보관 기간을 따릅니다.
 - Translated srl, MyMemory (이탈리아, https://mymemory.translated.net): AI 번역을 쓸 수 없을 때 번역할 문장을 보냅니다. 목적은 번역 결과 생성입니다.
 - Supabase, Inc. (서버 위치: ${region}): 서버 위치가 국외인 경우 제2조의 계정·학습 정보가 그 국가에 저장됩니다.
 말하기 연습과, 선생님이 발음 평가에서 '기기 AI (무료)'로 채점할 때는 음성을 외부로 보내지 않고 이용자 기기(브라우저) 안에서 처리합니다. 이때 기기 AI가 매긴 점수와 들은 말만 운영자 서버에 저장합니다.
@@ -10730,7 +10846,7 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
         ['제3조 (약관의 게시와 변경)', `- 운영자는 이 약관을 가입 화면과 설정 화면에서 언제든 볼 수 있게 합니다.
 - 운영자는 관련 법령을 어기지 않는 범위에서 약관을 바꿀 수 있습니다. 바꿀 때는 적용일과 이유를 적어 적용일 7일 전부터 앱 안에서 알리며, 회원에게 불리한 변경은 30일 전부터 알립니다.
 - 알린 적용일까지 거부 의사를 밝히지 않으면 바뀐 약관에 동의한 것으로 본다는 점을 함께 알렸는데도 회원이 거부하지 않으면 동의한 것으로 봅니다. 동의하지 않는 회원은 탈퇴할 수 있습니다.`],
-        ['제4조 (회원 가입)', `- 아이디, 비밀번호, 학년(또는 선생님), 이름, 학교를 입력하고 이 약관과 개인정보 처리방침에 동의하면 가입됩니다.
+        ['제4조 (회원 가입)', `- 아이디, 비밀번호, 이메일(인증코드로 확인), 학년(또는 선생님), 이름, 학교를 입력하고 이 약관과 개인정보 처리방침에 동의하면 가입됩니다. 한 이메일로는 계정을 하나만 만들 수 있습니다.
 - 만 14세 미만은 서버 계정을 만들 수 없으며 "이 기기에만 저장" 방식으로 이용합니다.
 - 다른 사람의 정보를 도용하거나 서비스 운영을 방해할 목적으로 가입한 경우 가입을 거절하거나 취소할 수 있습니다.`],
         ['제5조 (계정 관리)', '회원은 아이디와 비밀번호를 스스로 관리해야 하며 다른 사람이 쓰게 해서는 안 됩니다. 서비스는 이메일 같은 복구 수단을 받지 않으므로 비밀번호를 잊으면 계정을 되찾을 수 없습니다. 도용을 알게 되면 바로 비밀번호를 바꾸고 운영자에게 알려 주세요.'],
