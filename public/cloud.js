@@ -59,6 +59,19 @@
     async load() { const j = await rpc('voca_load', { p_token: getTok() }); return j && j.data ? { data: j.data, updated: Number(j.updated) } : null; },
     save: (d, o) => rpc('voca_save', { p_token: getTok(), p_data: d.data, p_updated: d.updated }, o && o.keepalive),
     changePw: (o, n) => rpc('voca_change_pw', { p_token: getTok(), p_old: o, p_new: n }),
+    // 이메일 인증: 코드는 서버 함수 mail 이 보내고, 확인 · 가입 · 재설정은 DB 함수가 해요.
+    async sendCode(email, purpose) {
+      let r; try { r = await fetch(cfg.url.replace(/\/+$/, '') + '/functions/v1/mail', { method: 'POST', headers: hdr, body: JSON.stringify({ email, purpose }) }); }
+      catch (e) { throw { code: 'network' }; }
+      let j = null; try { j = await r.json(); } catch (e) {}
+      if (!r.ok || !j || !j.ok) throw { code: (j && j.error) || 'server' };
+      return true;
+    },
+    async signupEmail(u, p, email, code, k) { const j = await rpc('voca_signup_email', { p_user: u, p_pw: p, p_email: email, p_code: code }); setTok(j.token, k !== false); cur = me(j); return cur; },
+    resetPw: (email, code, pw) => rpc('voca_pw_reset', { p_email: email, p_code: code, p_new: pw }),
+    linkEmail: (email, code) => rpc('voca_email_link', { p_token: getTok(), p_email: email, p_code: code }),
+    myEmail: () => rpc('voca_email_mine', { p_token: getTok() }),
+    visit: () => rpc('voca_visit', { p_token: getTok(), p_ua: String(navigator.userAgent || '').slice(0, 300) }),
     call: (fn, args) => rpc(fn, Object.assign({ p_token: getTok() }, args || {})),
     async remove() { await rpc('voca_delete', { p_token: getTok() }); setTok(null); cur = null; },
     async ai(prompt, task, ms) {
