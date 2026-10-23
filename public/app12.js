@@ -1,213 +1,835 @@
   /* =========================================================
-   * 레벨 테스트 · 맞춤 시작
+   * 대화상자 / 계정
    * ======================================================= */
-  const LT_BANK = [
-    [["apple","사과"],["friend","친구"],["happy","행복한"],["school","학교"],["water","물"],["family","가족"],["morning","아침"],["travel","여행하다"],["bright","밝은"],["borrow","빌리다"]],
-    [["improve","향상시키다"],["decide","결정하다"],["expensive","비싼"],["ordinary","평범한"],["advice","조언"],["habit","습관"],["support","지지하다"],["prepare","준비하다"],["environment","환경"],["communicate","의사소통하다"]],
-    [["reluctant","꺼리는"],["ambiguous","모호한"],["inevitable","피할 수 없는"],["authentic","진짜의"],["enhance","높이다"],["restrict","제한하다"],["acquire","습득하다"],["tolerate","참아내다"],["controversy","논란"],["prosperity","번영"]],
-    [["ubiquitous","어디에나 있는"],["ephemeral","덧없는"],["pragmatic","실용적인"],["meticulous","꼼꼼한"],["scrutinize","면밀히 조사하다"],["alleviate","덜어주다"],["exacerbate","악화시키다"],["indigenous","토착의"],["ostensible","표면상의"],["scarce","드문, 부족한"]]
-  ];
-  // 중국어 레벨 테스트: HSK 1~2급, 3급, 4급, 5~6급
-  const LT_BANK_ZH = [
-    [["学校","학교"],["朋友","친구"],["吃","먹다"],["喜欢","좋아하다"],["医生","의사"],["漂亮","예쁘다"],["天气","날씨"],["睡觉","잠을 자다"],["衣服","옷"],["便宜","(값이) 싸다"]],
-    [["习惯","습관"],["环境","환경"],["担心","걱정하다"],["简单","간단하다"],["选择","선택하다"],["解决","해결하다"],["健康","건강"],["经常","자주"],["认真","성실하다, 진지하다"],["突然","갑자기"]],
-    [["积累","쌓다, 축적하다"],["激动","감격하다"],["详细","상세하다"],["浪费","낭비하다"],["承认","인정하다"],["竞争","경쟁하다"],["鼓励","격려하다"],["尊重","존중하다"],["缺点","단점"],["减少","줄이다"]],
-    [["犹豫","망설이다"],["谨慎","신중하다"],["繁荣","번영하다"],["珍惜","소중히 여기다"],["妥协","타협하다"],["弥补","메우다, 보완하다"],["隐私","사생활"],["坦率","솔직하다"],["舆论","여론"],["尴尬","난처하다"]]
-  ];
-  const ltBank = () => isZh() ? LT_BANK_ZH : LT_BANK;
-  const LT_LV = [
-    { name: '입문', goal: 10, desc: '기초 단어부터 차근차근 시작해요.' },
-    { name: '초급', goal: 10, desc: '일상 단어는 익숙해요. 핵심 단어를 늘려가요.' },
-    { name: '중급', goal: 20, desc: '탄탄한 기본기가 있어요. 꾸준히 확장해요.' },
-    { name: '상급', goal: 30, desc: '어려운 단어도 잘 알고 있어요. 고난도에 도전해요.' },
-    { name: '최상급', goal: 50, desc: '최상위 수준이에요. 고난도 단어로 완성해요.' }
-  ];
-  const ltKey = () => 'vocapro_level:' + (isZh() ? 'zh:' : '') + currentUser;
-  let LT = null;
-  function ltBuild() {
-    const qs = [];
-    ltBank().forEach((pool, lv) => {
-      shuffled(pool.slice()).slice(0, 3).forEach(([w, m]) => {
-        const wrong = shuffled(pool.filter(x => x[1] !== m)).slice(0, 3).map(x => x[1]);
-        qs.push({ lv, w, m, opts: shuffled([m, ...wrong]) });
-      });
+  function ask(msg, o = {}) {
+    return new Promise(res => {
+      const ov = document.createElement('div'); ov.className = 'dlg-ov';
+      ov.innerHTML = `<div class="dlg" role="alertdialog" aria-modal="true"><p>${esc(msg)}</p>${o.input !== undefined ? `<input type="${o.pw ? 'password' : 'text'}" id="dlgIn" maxlength="72">` : ''}<div class="row">${o.alert ? '' : '<button class="btn btn-soft" style="flex:1" data-d="0">취소</button>'}<button class="btn ${o.danger ? 'btn-bad' : 'btn-primary'}" style="flex:1" data-d="1">${esc(o.ok || '확인')}</button></div></div>`;
+      document.body.appendChild(ov);
+      const inp = ov.querySelector('#dlgIn');
+      if (inp) { inp.value = o.input; setTimeout(() => { inp.focus(); inp.select(); }, 50); } else ov.querySelector('[data-d="1"]').focus();
+      const done = v => { ov.remove(); document.removeEventListener('keydown', kd, true); res(v); };
+      const kd = e => {
+        if (e.key === 'Escape') { e.stopImmediatePropagation(); done(inp ? null : false); }
+        else if (e.key === 'Enter') {
+          const f = document.activeElement, b = f && ov.contains(f) && f.closest('[data-d]');
+          e.preventDefault(); e.stopImmediatePropagation();
+          if (b && b.dataset.d === '0') done(inp ? null : false); else done(inp ? inp.value : true);
+        }
+      };
+      ov.addEventListener('click', e => { const b = e.target.closest('[data-d]'); if (b) done(b.dataset.d === '1' ? (inp ? inp.value : true) : (inp ? null : false)); });
+      document.addEventListener('keydown', kd, true);
     });
-    return qs;
   }
-  function ltOpen(intro) {
-    if ($('ltOv')) return;
-    LT = { qs: ltBuild(), i: 0, ok: [0, 0, 0, 0], locked: false };
-    const ov = document.createElement('div'); ov.className = 'ob lt'; ov.id = 'ltOv'; document.body.appendChild(ov);
-    ltIntro(ov, intro);
-  }
-  function ltIntro(ov, intro) {
-    ov.innerHTML = `<button class="ob-skip" data-lt="close">${intro ? '나중에 할게요' : '닫기'}</button>
-      <div class="ob-body"><div class="ob-art">${MASCOT('think')}</div><h2>내 ${LN()} 수준 알아보기</h2>
-      <p>12문제, 약 2분이면 끝나요.<br>결과에 맞춰 하루 목표와 시작 단어를 추천해 드려요.</p></div>
-      <div class="ob-foot"><button class="btn btn-primary btn-block" data-lt="start">테스트 시작</button></div>`;
-  }
-  function ltDraw() {
-    const ov = $('ltOv'); if (!ov || !LT) return;
-    if (LT.i >= LT.qs.length) return ltResult();
-    const q = LT.qs[LT.i];
-    ov.innerHTML = `<button class="ob-skip" data-lt="close">그만하기</button>
-      <div class="lt-bar"><i style="width:${Math.round(LT.i / LT.qs.length * 100)}%"></i></div>
-      <div class="ob-body lt-q"><div class="muted" style="font-weight:700;margin-bottom:10px;">${LT.i + 1} / ${LT.qs.length}</div>
-      <h2 style="font-size:2.1rem;">${esc(q.w)}</h2><p style="margin-bottom:22px;">이 단어의 뜻은?</p>
-      <div class="opts" style="width:100%;">${q.opts.map((o, k) => `<button class="opt" data-lt="opt" data-v="${esc(o)}"><span class="opt-n">${k + 1}</span><span>${esc(o)}</span></button>`).join('')}</div></div>
-      <div class="ob-foot"><button class="btn btn-soft btn-block" data-lt="opt" data-v="">잘 모르겠어요</button></div>`;
-    LT.locked = false;
-  }
-  function ltAnswer(v) {
-    if (!LT || LT.locked) return; LT.locked = true;
-    const q = LT.qs[LT.i];
-    if (v === q.m) LT.ok[q.lv]++;
-    const ov = $('ltOv');
-    ov.querySelectorAll('.opt').forEach(b => { if (b.dataset.v === q.m) b.classList.add('correct'); else if (b.dataset.v === v) b.classList.add('wrong'); });
-    const lt = LT; setTimeout(() => { if (LT === lt) { LT.i++; ltDraw(); } }, v === q.m ? 450 : 900); // 닫고 새로 연 테스트엔 영향 없게
-  }
-  function ltLevel() { let r = 0; for (let l = 0; l < 4; l++) { if (LT.ok[l] >= 2) r++; else break; } return r; }
-  function ltResult() {
-    const ov = $('ltOv'); if (!ov) return;
-    const r = ltLevel(), info = LT_LV[r], total = LT.ok.reduce((a, b) => a + b, 0);
-    LT.r = r;
-    try { LS.setItem(ltKey(), JSON.stringify({ lv: r, score: total, at: Date.now() })); } catch (e) {}
-    ov.innerHTML = `<div class="ob-body"><div class="ob-art">${MASCOT('cheer')}</div>
-      <div class="muted" style="font-weight:700;">내 수준은</div><h2 style="font-size:2.4rem;">${info.name}</h2>
-      <p>${info.desc}<br>12문제 중 <b>${total}</b>문제를 맞혔어요.</p>
-      <div class="card" style="width:100%;margin-top:22px;text-align:left;"><b>추천 하루 목표 ${info.goal}개</b><div class="muted" style="font-size:.85rem;margin-top:4px;">'${info.name} 시작 단어' 단어장 ${ltBank()[Math.min(r, 3)].length}개도 만들어 드려요.</div></div></div>
-      <div class="ob-foot"><button class="btn btn-primary btn-block" data-lt="apply">추천대로 시작하기</button>
-      <button class="btn btn-soft btn-block" data-lt="goal" style="margin-top:8px;">목표만 적용하기</button></div>`;
-  }
-  function ltApply(withBook) {
-    if (!LT || LT.r === undefined) return;
-    const info = LT_LV[LT.r]; config.goal = info.goal;
-    let id = null;
-    if (withBook) {
-      const nm = info.name + ' 시작 단어';
-      let cat = categories.find(c => c.name === nm);
-      if (!cat) {
-        cat = { id: 'c' + uid(), name: nm, words: ltBank()[Math.min(LT.r, 3)].map(([w, m]) => sanitizeWord({ id: uid(), word: w, meaning: m })) };
-        categories.push(cat);
-        dictFill(cat.words).then(n => { if (n) syncStorage(); }).catch(() => {});
-      }
-      id = cat.id;
+  const say = msg => ask(msg, { alert: true });
+
+  const getUsers = () => loadJson(KEY_USERS) || {};
+  const saveUsers = u => { try { LS.setItem(KEY_USERS, JSON.stringify(u)); return true; } catch (e) { return false; } };
+  const hasCrypto = () => !!(window.crypto && crypto.subtle && window.TextEncoder);
+  async function hashPw(pw, salt, m) {
+    if (m === 'p') {
+      if (!hasCrypto()) throw new Error('이 주소에서는 로그인 암호화를 쓸 수 없어요. https 주소로 열어 주세요.');
+      const enc = new TextEncoder();
+      const km = await crypto.subtle.importKey('raw', enc.encode(pw), 'PBKDF2', false, ['deriveBits']);
+      const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt: enc.encode(salt), iterations: 100000, hash: 'SHA-256' }, km, 256);
+      return [...new Uint8Array(bits)].map(b => b.toString(16).padStart(2, '0')).join('');
     }
-    syncStorage(); const ov = $('ltOv'); if (ov) ov.remove(); LT = null;
-    try { go(curTab); } catch (e) {}
-    toast(withBook ? '추천 단어장을 만들었어요.' : '하루 목표를 ' + info.goal + '개로 바꿨어요.');
-    if (id) { try { ACTIONS.start({ dataset: { mode: 'card', src: 'cat:' + id } }); } catch (e) {} }
+    let h = 5381; const t = salt + pw;
+    for (let r = 0; r < 2000; r++) for (let i = 0; i < t.length; i++) h = ((h * 33) ^ t.charCodeAt(i)) >>> 0;
+    return String(h);
   }
-  document.addEventListener('click', e => {
-    const b = e.target.closest && e.target.closest('#ltOv [data-lt]'); if (!b) return;
-    const a = b.dataset.lt;
-    if (a === 'close') { const ov = $('ltOv'); if (ov) ov.remove(); LT = null; }
-    else if (a === 'start') ltDraw();
-    else if (a === 'opt') ltAnswer(b.dataset.v);
-    else if (a === 'apply') ltApply(true);
-    else if (a === 'goal') ltApply(false);
-  });
-  ACTIONS['level-test'] = () => ltOpen(false);
-  function ltEntryHtml() {
-    let s = null; try { s = JSON.parse(LS.getItem(ltKey()) || 'null'); } catch (e) {}
-    const t = s && LT_LV[s.lv] ? '내 수준: ' + LT_LV[s.lv].name + ' · 다시 테스트' : `내 ${LN()} 수준 알아보기`;
-    const sub = s ? '실력이 늘었다면 다시 측정해 보세요' : '12문제로 하루 목표와 시작 단어를 추천받아요';
-    return `<button class="mg-entry" data-act="level-test"><span class="mg-ico i-coral">${IC.sprout}</span><span class="mg-txt"><b>${esc(t)}</b><small>${sub}</small></span><span class="mg-chev"></span></button>`;
+  let authMode = 'login', authStep = 1, pendingGrade = '', pendingProfile = null, ageOk = false;
+  let auDraft = { id: '', pw: '', pw2: '', email: '', ecode: '', role: 'student', grade: '', school: '', scode: '', skind: '', name: '', sno: '', keep: true };
+  const schCache = new Map();
+  let schTimer = 0, schActivePfx = '', schItems = [], schIdx = -1;
+
+  function saveAuDraft() {
+    const v = id => $(id) ? $(id).value : null;
+    if (v('auId') !== null) auDraft.id = v('auId');
+    if (v('auPw') !== null) auDraft.pw = v('auPw');
+    if (v('auPw2') !== null) auDraft.pw2 = v('auPw2');
+    if (v('auEmail') !== null) auDraft.email = v('auEmail');
+    if (v('auCode') !== null) auDraft.ecode = v('auCode');
+    if (v('auSchool') !== null) auDraft.school = v('auSchool');
+    if (v('auSchoolCode') !== null) auDraft.scode = v('auSchoolCode');
+    if (v('auSchoolKind') !== null) auDraft.skind = v('auSchoolKind');
+    if (v('auGrade') !== null) {
+      const g = v('auGrade');
+      if (g === 'teacher') auDraft.role = 'teacher';
+      else if (g) { auDraft.role = 'student'; auDraft.grade = g; }
+    }
+    if (v('auName') !== null) auDraft.name = v('auName');
+    if (v('auSno') !== null) auDraft.sno = v('auSno');
+    if ($('auKeep')) auDraft.keep = $('auKeep').checked;
   }
 
-  /* =========================================================
-   * 4단계 집중 학습 (카드 → 뜻 고르기 → 따라 쓰기 → 시험)
-   * ======================================================= */
-  const FL_STEPS = ['카드 보기', '뜻 고르기', '따라 쓰기', '마무리 시험'];
-  let FL = null;
-  function flPick() {
-    let it = poolFor({ type: 'due' }); if (!it.length) it = poolFor({ type: 'new' }); if (!it.length) it = poolFor({ type: 'all' });
-    return shuffled(it.map(x => ({ w: x.w, catId: x.catId }))).slice(0, 8);
+  function gradesForKind(kind) {
+    const k = String(kind || '');
+    if (/초등/.test(k)) return GRADES.filter(([c]) => c[0] === 'e');
+    if (/중학/.test(k)) return GRADES.filter(([c]) => c[0] === 'm');
+    if (/고등/.test(k)) return GRADES.filter(([c]) => c[0] === 'h');
+    return GRADES;
   }
-  function flOpts(w, rev) {
-    const pool = allWords().map(x => rev ? x.w.word : x.w.meaning).concat(ltBank().flat().map(x => rev ? x[0] : x[1]));
-    const ans = rev ? w.word : w.meaning, seen = new Set([ans.toLowerCase()]), out = [];
-    shuffled(pool).forEach(o => { if (out.length < 3 && o && !seen.has(o.toLowerCase())) { seen.add(o.toLowerCase()); out.push(o); } });
-    return shuffled([ans, ...out]);
+
+  function roleSchoolBlockHtml(pfx, st) {
+    const isT = st.role === 'teacher';
+    const gVal = isT ? 'teacher' : (st.grade || '');
+    const gId = pfx === 'au' ? 'auGrade' : 'pqRole';
+    const list = gradesForKind(st.skind);
+    return `
+      <div class="seg role-sw" id="${pfx}RoleSw">
+        <button type="button" class="${isT ? '' : 'on'}" data-act="role-pick" data-pfx="${pfx}" data-r="student">학생</button>
+        <button type="button" class="${isT ? 'on' : ''}" data-act="role-pick" data-pfx="${pfx}" data-r="teacher">선생님</button>
+      </div>
+      <input type="hidden" id="${gId}" value="${esc(gVal)}">
+      <div class="sch-wrap" id="${pfx}SchWrap">
+        <span class="sch-lbl" id="${pfx}SchLbl">${isT ? '근무하는 학교' : '학교'}</span>
+        <div class="sch-in-box">
+          ${IC.search}
+          <input type="text" id="${pfx}School" value="${esc(st.school || '')}" placeholder="학교 이름 검색 (예: 한빛중)" autocomplete="off" maxlength="30" data-input="sch-input" data-pfx="${pfx}">
+          <span class="sch-st" id="${pfx}SchSt">${st.scode ? `<span class="sch-ok">${IC.tick}</span>` : ''}</span>
+        </div>
+        <input type="hidden" id="${pfx}SchoolCode" value="${esc(st.scode || '')}">
+        <input type="hidden" id="${pfx}SchoolKind" value="${esc(st.skind || '')}">
+        <div class="sch-dd" id="${pfx}SchDd" hidden></div>
+      </div>
+      <div class="grade-grid3 au-hide" id="${pfx}GradeBox"${isT ? ' hidden' : ''}>
+        ${list.map(([k, n]) => `<button type="button" class="${st.grade === k ? 'on' : ''}" data-act="grade-btn-pick" data-pfx="${pfx}" data-g="${k}">${n}</button>`).join('')}
+      </div>
+      <div class="au-row2${isT ? ' one' : ''}" id="${pfx}NameRow">
+        <input type="text" id="${pfx}Name" value="${esc(st.name || '')}" placeholder="이름" autocomplete="name" maxlength="20" aria-label="이름">
+        <input type="text" id="${pfx}Sno" class="au-hide" value="${esc(isT ? '' : (st.sno || ''))}" placeholder="학번 (예: 20315)" inputmode="numeric" maxlength="12" aria-label="학번"${isT ? ' hidden' : ''}>
+      </div>`;
   }
-  ACTIONS.flow = () => flOpen();
-  function flOpen(items) {
-    if ($('flOv')) return;
-    items = items || flPick();
-    if (!items.length) return toast('학습할 단어가 없어요. 먼저 단어를 추가해 보세요.');
-    FL = { items, step: 0, i: 0, res: {}, locked: false, miss: {} };
-    const ov = document.createElement('div'); ov.className = 'ob lt fl'; ov.id = 'flOv'; document.body.appendChild(ov);
-    flDraw();
+
+  function renderGradeGridFor(pfx) {
+    const box = $(pfx + 'GradeBox'); if (!box) return;
+    const gId = pfx === 'au' ? 'auGrade' : 'pqRole';
+    const gIn = $(gId), kind = ($(pfx + 'SchoolKind') || {}).value || '';
+    const list = gradesForKind(kind);
+    let cur = gIn && gIn.value !== 'teacher' ? gIn.value : '';
+    if (cur && !list.some(([k]) => k === cur)) { cur = ''; if (gIn) gIn.value = ''; }
+    box.innerHTML = list.map(([k, n]) => `<button type="button" class="${cur === k ? 'on' : ''}" data-act="grade-btn-pick" data-pfx="${pfx}" data-g="${k}">${n}</button>`).join('');
   }
-  function flTotal() { return FL.items.length * 4; }
-  function flDraw() {
-    const ov = $('flOv'); if (!ov || !FL) return;
-    if (FL.i >= FL.items.length) { FL.step++; FL.i = 0; if (FL.step >= 4) return flResult(); }
-    const it = FL.items[FL.i], w = it.w, st = FL.step;
-    const head = `<button class="ob-skip" data-fl="close">그만하기</button><div class="lt-bar"><i style="width:${Math.round((st * FL.items.length + FL.i) / flTotal() * 100)}%"></i></div><div class="muted fl-step"><b>${st + 1}/4 ${FL_STEPS[st]}</b> · ${FL.i + 1}/${FL.items.length}</div>`;
-    FL.locked = false; let body = '', foot = '';
-    if (st === 0) {
-      body = `<div class="fl-card"><button class="q-speak" data-act="speak" data-text="${esc(w.word)}" aria-label="발음 듣기">${IC.speaker}</button><div class="fl-word">${esc(w.word)}</div><div class="q-pron">${esc(pronText(w))}</div><div class="fl-mean">${esc(w.meaning)}</div>${w.example ? `<div class="fl-ex">${esc(w.example)}${exPyHtml(w)}${w.exampleKo ? `<span class="ex-ko">${esc(w.exampleKo)}</span>` : ''}</div>` : ''}</div>`;
-      foot = `<button class="btn btn-primary btn-block" data-fl="next">${FL.i === FL.items.length - 1 ? '뜻 고르기로' : '다음'}</button>`;
-      setTimeout(() => { try { playAudio(w.word); } catch (e) {} }, 150);
-    } else if (st === 1 || st === 3) {
-      const rev = st === 3, opts = flOpts(w, rev);
-      body = `<div class="ob-body lt-q"><div class="muted" style="font-weight:700;margin-bottom:8px;">${rev ? `알맞은 ${LN()} 단어는?` : '이 단어의 뜻은?'}</div><h2 style="font-size:2rem;">${esc(rev ? w.meaning : w.word)}</h2><div class="opts" style="width:100%;margin-top:22px;">${opts.map((o, k) => `<button class="opt" data-fl="opt" data-v="${esc(o)}"><span class="opt-n">${k + 1}</span><span>${esc(o)}</span></button>`).join('')}</div></div>`;
-      foot = `<button class="btn btn-soft btn-block" data-fl="opt" data-v="">잘 모르겠어요</button>`;
-    } else {
-      body = `<div class="ob-body lt-q"><div class="muted" style="font-weight:700;margin-bottom:8px;">뜻에 맞는 단어를 써 보세요</div><h2 style="font-size:2rem;">${esc(w.meaning)}</h2><div class="muted" style="margin:6px 0 18px;letter-spacing:.2em;">${isHanWord(w.word) ? `${'□'.repeat(w.word.length)}` : `${esc(w.word.charAt(0))}${'_'.repeat(Math.max(0, Math.min(w.word.length - 1, 24)))}`}</div><input type="text" id="flIn" class="fl-in" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="${isHanWord(w.word) ? '병음(예: xuexi) 또는 한자' : '영어 단어'}"><div id="flFb" class="fl-fb"></div></div>`;
-      foot = `<button class="btn btn-primary btn-block" id="flGo" data-fl="type">확인</button>`;
-      setTimeout(() => { const i = $('flIn'); if (i) i.focus(); }, 80);
+
+  ACTIONS['role-pick'] = el => {
+    const pfx = el.dataset.pfx, isT = el.dataset.r === 'teacher';
+    const gId = pfx === 'au' ? 'auGrade' : 'pqRole';
+    const sw = $(pfx + 'RoleSw');
+    if (sw) sw.querySelectorAll('button').forEach(b => b.classList.toggle('on', b === el));
+    const gBox = $(pfx + 'GradeBox'), sn = $(pfx + 'Sno'), row = $(pfx + 'NameRow'), lbl = $(pfx + 'SchLbl'), gIn = $(gId);
+    if (gBox) gBox.hidden = isT;
+    if (sn) { sn.hidden = isT; if (isT) sn.value = ''; }
+    if (row) row.classList.toggle('one', isT);
+    if (lbl) lbl.textContent = isT ? '근무하는 학교' : '학교';
+    if (gIn) {
+      if (isT) gIn.value = 'teacher';
+      else {
+        const onBtn = gBox && gBox.querySelector('button.on');
+        gIn.value = onBtn ? onBtn.dataset.g : '';
+      }
     }
-    ov.innerHTML = head + (st === 0 ? `<div class="ob-body">${body}</div>` : body) + `<div class="ob-foot">${foot}</div>`;
+    if (pfx === 'au') auDraft.role = isT ? 'teacher' : 'student';
+  };
+
+  ACTIONS['grade-btn-pick'] = el => {
+    const pfx = el.dataset.pfx, g = el.dataset.g;
+    const gId = pfx === 'au' ? 'auGrade' : 'pqRole';
+    const gBox = $(pfx + 'GradeBox'), gIn = $(gId);
+    if (gBox) gBox.querySelectorAll('button').forEach(b => b.classList.toggle('on', b === el));
+    if (gIn) gIn.value = g;
+    if (pfx === 'au') { auDraft.grade = g; auDraft.role = 'student'; }
+  };
+
+  function schBadgeInfo(kind) {
+    const k = String(kind || '');
+    if (/초등/.test(k)) return ['초', 'k-e'];
+    if (/중학/.test(k)) return ['중', 'k-m'];
+    if (/고등/.test(k)) return ['고', 'k-h'];
+    return ['특', 'k-s'];
   }
-  function flAdvance(ms) { const fl = FL; setTimeout(() => { if (FL === fl && fl) { FL.i++; flDraw(); } }, ms); }
-  function flAnswer(v) {
-    if (!FL || FL.locked) return; FL.locked = true;
-    const it = FL.items[FL.i], w = it.w, rev = FL.step === 3, ans = rev ? w.word : w.meaning, ok = v === ans;
-    if (FL.step === 3) FL.res[w.id] = ok; if (!ok) FL.miss[w.id] = true;
-    $('flOv').querySelectorAll('.opt').forEach(b => { if (b.dataset.v === ans) b.classList.add('correct'); else if (b.dataset.v === v) b.classList.add('wrong'); });
-    haptic(ok); flAdvance(ok ? 450 : 1000);
+  function schHighlight(name, q) {
+    const s = String(name || ''), t = String(q || '').trim();
+    if (!t) return esc(s);
+    const idx = s.toLowerCase().indexOf(t.toLowerCase());
+    if (idx < 0) return esc(s);
+    return esc(s.slice(0, idx)) + '<em>' + esc(s.slice(idx, idx + t.length)) + '</em>' + esc(s.slice(idx + t.length));
   }
-  function flType() {
-    if (!FL) return; const it = FL.items[FL.i], w = it.w, inp = $('flIn'), fb = $('flFb'), btn = $('flGo'); if (!inp) return;
-    if (FL.locked) { FL.i++; return flDraw(); }
-    const v = inp.value.trim().toLowerCase(); if (!v) return toast('단어를 입력해 주세요.');
-    const ok = answerOk(v, w); if (!ok) FL.miss[w.id] = true;
-    FL.locked = true; inp.disabled = true; haptic(ok);
-    fb.innerHTML = ok ? `<b style="color:var(--blue)">정답이에요!${w.phonetic && isHanWord(w.word) ? ` ${esc(w.word)} ${esc(w.phonetic)}` : ''}</b>` : `<b style="color:var(--coral)">정답: ${esc(w.word)}${w.phonetic && isHanWord(w.word) ? ` (${esc(w.phonetic)})` : ''}</b>`;
-    btn.textContent = '다음';
+  function schRenderDd(pfx, q, items, errMsg) {
+    const dd = $(pfx + 'SchDd'); if (!dd) return;
+    schActivePfx = pfx; schItems = items || []; schIdx = -1;
+    if (errMsg) {
+      dd.innerHTML = `<div class="sch-empty">${esc(errMsg)}</div><div class="sch-foot">학교 정보: 나이스 교육정보개방포털</div>`;
+      dd.hidden = false;
+      return;
+    }
+    if (!schItems.length) {
+      dd.innerHTML = `<div class="sch-empty">검색 결과가 없어요. 쓴 이름 그대로 저장할 수 있어요.</div><div class="sch-foot">학교 정보: 나이스 교육정보개방포털</div>`;
+      dd.hidden = false;
+      return;
+    }
+    dd.innerHTML = schItems.map((it, i) => {
+      const [ch, cls] = schBadgeInfo(it.kind);
+      const meta = [it.region, it.found, it.coedu].filter(Boolean).join(' · ');
+      return `<button type="button" class="sch-item" data-act="sch-pick" data-pfx="${pfx}" data-i="${i}">
+        <span class="sch-badge ${cls}">${ch}</span>
+        <span class="sch-txt"><b>${schHighlight(it.name, q)}</b><small>${esc(meta)}</small></span>
+      </button>`;
+    }).join('') + '<div class="sch-foot">학교 정보: 나이스 교육정보개방포털</div>';
+    dd.hidden = false;
   }
-  function flResult() {
-    const ov = $('flOv'); if (!ov) return;
-    let good = 0; const wrongs = [];
-    FL.items.forEach(it => { const ok = !!FL.res[it.w.id]; grade(it.w, ok); recordStat(ok); if (ok) good++; else wrongs.push(it); });
-    syncStorage(); FL.wrongs = wrongs;
-    try { go(curTab); } catch (e) {}
-    ov.innerHTML = `<div class="ob-body"><div class="ob-art">${MASCOT(wrongs.length ? 'happy' : 'cheer')}</div><div class="muted" style="font-weight:700;">마무리 시험 결과</div><h2 style="font-size:2.4rem;">${good} / ${FL.items.length}</h2><p>${wrongs.length ? '틀린 단어는 내일 다시 복습해요.' : '모두 맞혔어요. 대단해요!'}</p>${wrongs.length ? `<div class="card" style="width:100%;margin-top:18px;text-align:left;">${wrongs.map(it => `<div class="wrong-item"><b>${esc(it.w.word)}</b><span>${esc(it.w.meaning)}</span></div>`).join('')}</div>` : ''}</div><div class="ob-foot">${wrongs.length ? '<button class="btn btn-primary btn-block" data-fl="again">틀린 것만 다시</button><button class="btn btn-soft btn-block" data-fl="close" style="margin-top:8px;">마치기</button>' : '<button class="btn btn-primary btn-block" data-fl="close">마치기</button>'}</div>`;
-    if (good === FL.items.length) { try { confetti(); } catch (e) {} }
+  function schCloseDd(pfx) {
+    const list = pfx ? [pfx] : ['au', 'pq'];
+    list.forEach(p => { const dd = $(p + 'SchDd'); if (dd) dd.hidden = true; });
+    schItems = []; schIdx = -1;
+  }
+  function schSelectItem(pfx, it) {
+    if (!it) return;
+    const inp = $(pfx + 'School'), cIn = $(pfx + 'SchoolCode'), kIn = $(pfx + 'SchoolKind'), st = $(pfx + 'SchSt');
+    if (inp) inp.value = it.name;
+    if (cIn) cIn.value = it.code || '';
+    if (kIn) kIn.value = it.kind || '';
+    if (st) st.innerHTML = `<span class="sch-ok">${IC.tick}</span>`;
+    if (pfx === 'au') { auDraft.school = it.name; auDraft.scode = it.code || ''; auDraft.skind = it.kind || ''; }
+    schCloseDd(pfx);
+    renderGradeGridFor(pfx);
+  }
+  ACTIONS['sch-pick'] = el => {
+    const pfx = el.dataset.pfx, it = schItems[+el.dataset.i];
+    schSelectItem(pfx, it);
+  };
+  function schOnInput(el) {
+    const pfx = el.dataset.pfx || 'au';
+    const cIn = $(pfx + 'SchoolCode'), kIn = $(pfx + 'SchoolKind'), st = $(pfx + 'SchSt');
+    if (cIn) cIn.value = '';
+    if (kIn) kIn.value = '';
+    if (st) st.innerHTML = '';
+    renderGradeGridFor(pfx);
+    clearTimeout(schTimer);
+    if (!cloudMode || !(window.VOCA_CLOUD && VOCA_CLOUD.url && VOCA_CLOUD.apiKey)) {
+      schCloseDd(pfx);
+      return;
+    }
+    const q = el.value.replace(/\s+/g, ' ').trim();
+    if (q.length < 2) { schCloseDd(pfx); return; }
+    if (schCache.has(q)) {
+      schRenderDd(pfx, q, schCache.get(q), '');
+      return;
+    }
+    schTimer = setTimeout(async () => {
+      const curIn = $(pfx + 'School');
+      if (!curIn || curIn.value.replace(/\s+/g, ' ').trim() !== q) return;
+      if (st) st.innerHTML = '<i class="sch-spin"></i>';
+      try {
+        const res = await fetch(VOCA_CLOUD.url.replace(/\/+$/, '') + '/functions/v1/school?q=' + encodeURIComponent(q), {
+          headers: { apikey: VOCA_CLOUD.apiKey }
+        });
+        if (!res.ok) throw new Error('err');
+        const data = await res.json();
+        const items = Array.isArray(data && data.items) ? data.items.slice(0, 10) : [];
+        schCache.set(q, items);
+        if ($(pfx + 'School') && $(pfx + 'School').value.replace(/\s+/g, ' ').trim() === q) {
+          if (st) st.innerHTML = '';
+          schRenderDd(pfx, q, items, '');
+        }
+      } catch (e) {
+        if ($(pfx + 'School') && $(pfx + 'School').value.replace(/\s+/g, ' ').trim() === q) {
+          if (st) st.innerHTML = '';
+          schRenderDd(pfx, q, [], '학교 검색이 잠시 안 돼요. 학교 이름을 그대로 써 주세요.');
+        }
+      }
+    }, 300);
   }
   document.addEventListener('click', e => {
-    const b = e.target.closest && e.target.closest('#flOv [data-fl]'); if (!b) return;
-    const a = b.dataset.fl;
-    if (a === 'close') { const ov = $('flOv'); if (ov) ov.remove(); FL = null; }
-    else if (a === 'next') { FL.i++; flDraw(); }
-    else if (a === 'opt') flAnswer(b.dataset.v);
-    else if (a === 'type') flType();
-    else if (a === 'again') { const w = FL && FL.wrongs; const ov = $('flOv'); if (ov) ov.remove(); FL = null; if (w && w.length) flOpen(w); }
+    if (!e.target.closest || !e.target.closest('.sch-wrap')) schCloseDd();
   });
   document.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && FL && FL.step === 2 && e.target && e.target.id === 'flIn') { e.preventDefault(); flType(); }
-  });
-  /* =========================================================
-   * 학년별 추천 단어 데이터 (초등)
-   * ======================================================= */
-  const GW_E = {
-    e1: "hello:안녕(만날 때)|bye:잘 가|yes:네, 응|no:아니요|mom:엄마|dad:아빠|baby:아기|boy:소년|girl:소녀|one:하나, 1|two:둘, 2|three:셋, 3|four:넷, 4|five:다섯, 5|six:여섯, 6|seven:일곱, 7|eight:여덟, 8|nine:아홉, 9|ten:열, 10|red:빨간색|blue:파란색|yellow:노란색|green:초록색|pink:분홍색|black:검은색|white:흰색|brown:갈색|cat:고양이|dog:개|pig:돼지|cow:소|duck:오리|bird:새|fish:물고기|lion:사자|tiger:호랑이|bear:곰|monkey:원숭이|rabbit:토끼|horse:말|frog:개구리|ant:개미|bee:벌|apple:사과|banana:바나나|egg:달걀|milk:우유|water:물|juice:주스|bread:빵|cake:케이크|candy:사탕|pizza:피자|grape:포도|orange:오렌지|lemon:레몬|rice:밥, 쌀|eye:눈|ear:귀|nose:코|mouth:입|hand:손|foot:발|head:머리|arm:팔|leg:다리|face:얼굴|sun:해, 태양|moon:달|star:별|tree:나무|flower:꽃|ball:공|doll:인형|toy:장난감|book:책|pen:펜|bag:가방|hat:모자|box:상자|car:자동차|bus:버스|big:큰|small:작은|happy:행복한|sad:슬픈|hot:뜨거운, 더운|cold:차가운, 추운|go:가다|run:달리다|walk:걷다|jump:뛰다|swim:수영하다|sing:노래하다|dance:춤추다|eat:먹다|drink:마시다|sleep:자다|sit:앉다|stand:서다",
-    e2: "come:오다|look:보다|like:좋아하다|love:사랑하다|play:놀다|friend:친구|teacher:선생님|school:학교|house:집|room:방|bed:침대|door:문|window:창문|desk:책상|chair:의자|table:탁자|pencil:연필|cup:컵|shoe:신발|sock:양말|cap:야구 모자|bike:자전거|ship:배|brother:형, 오빠, 남동생|sister:언니, 누나, 여동생|family:가족|grandma:할머니|grandpa:할아버지|name:이름|chicken:닭|sheep:양|goat:염소|mouse:쥐|snake:뱀|turtle:거북|whale:고래|elephant:코끼리|giraffe:기린|zebra:얼룩말|butterfly:나비|melon:멜론|peach:복숭아|corn:옥수수|carrot:당근|potato:감자|tomato:토마토|onion:양파|strawberry:딸기|watermelon:수박|cookie:쿠키|sandwich:샌드위치|soup:수프|salad:샐러드|breakfast:아침 식사|lunch:점심 식사|dinner:저녁 식사|rain:비|snow:눈(내리는 눈)|sunny:맑은|cloudy:흐린|rainy:비 오는|windy:바람 부는|spring:봄|summer:여름|fall:가을; 떨어지다|winter:겨울|morning:아침|night:밤|today:오늘|tall:키가 큰|short:짧은, 키가 작은|long:긴|fast:빠른|slow:느린|old:늙은, 오래된|young:어린, 젊은|new:새로운|good:좋은|bad:나쁜|pretty:예쁜|cute:귀여운|hungry:배고픈|tired:피곤한|read:읽다|write:쓰다|draw:그리다|open:열다|close:닫다|listen:듣다|help:돕다|cook:요리하다; 요리사|wash:씻다|fly:날다|ride:타다|park:공원|zoo:동물원|farm:농장|kitchen:부엌|bathroom:욕실|garden:정원",
-    e3: "mother:어머니|father:아버지|man:남자|woman:여자|student:학생|classroom:교실|home:집, 가정|bedroom:침실|sofa:소파|lamp:전등|clock:시계(벽시계)|spoon:숟가락|fork:포크|plate:접시|color:색깔|purple:보라색|gray:회색|shape:모양|circle:원|square:정사각형|triangle:삼각형|number:숫자|eleven:열하나, 11|twelve:열둘, 12|twenty:스물, 20|hundred:백, 100|hair:머리카락|finger:손가락|tooth:이, 치아|body:몸|sky:하늘|cloud:구름|wind:바람|warm:따뜻한|cool:시원한; 멋진|weather:날씨|sick:아픈|fine:괜찮은|thirsty:목마른|coat:외투|shirt:셔츠|pants:바지|skirt:치마|dress:원피스|jacket:재킷|glasses:안경|gloves:장갑|umbrella:우산|eraser:지우개|ruler:자|scissors:가위|glue:풀|notebook:공책|paper:종이|picture:그림, 사진|song:노래|music:음악|art:미술|math:수학|science:과학|English:영어|Korean:한국어; 한국의|week:주, 일주일|Monday:월요일|Tuesday:화요일|Wednesday:수요일|Thursday:목요일|Friday:금요일|Saturday:토요일|Sunday:일요일|weekend:주말|time:시간|hour:시간(60분)|minute:분|have:가지다|want:원하다|make:만들다|know:알다|see:보다|hear:듣다, 들리다|say:말하다|talk:이야기하다|ask:묻다, 부탁하다|give:주다|take:가져가다, 잡다|put:놓다|find:찾다|buy:사다|here:여기|there:거기|under:~아래에|behind:~뒤에|near:가까운|far:먼|left:왼쪽|right:오른쪽; 옳은|river:강|sea:바다|mountain:산|train:기차",
-    e4: "airplane:비행기|taxi:택시|subway:지하철|boat:배, 보트|road:도로|street:거리|bridge:다리(건너는 다리)|city:도시|town:마을|shop:가게|store:가게|hospital:병원|library:도서관|restaurant:식당|bakery:빵집|market:시장|bank:은행|museum:박물관|station:역|airport:공항|doctor:의사|nurse:간호사|farmer:농부|police officer:경찰관|soccer:축구|baseball:야구|basketball:농구|tennis:테니스|game:게임, 경기|team:팀|player:선수|win:이기다|lose:지다, 잃어버리다|hobby:취미|movie:영화|camera:카메라|piano:피아노|guitar:기타|violin:바이올린|drum:북, 드럼|camping:캠핑|fishing:낚시|hiking:등산|birthday:생일|party:파티|gift:선물|present:선물; 현재의|holiday:휴일|vacation:방학, 휴가|trip:여행|travel:여행하다|visit:방문하다|invite:초대하다|meet:만나다|wait:기다리다|start:시작하다|finish:끝내다|stop:멈추다|learn:배우다|study:공부하다|teach:가르치다|think:생각하다|feel:느끼다|need:필요하다|homework:숙제|test:시험|question:질문|answer:대답; 대답하다|word:단어|letter:글자, 편지|story:이야기|money:돈|coin:동전|price:가격|cheap:값싼|expensive:비싼|easy:쉬운|difficult:어려운|busy:바쁜|free:자유로운, 무료의|kind:친절한; 종류|funny:재미있는|smart:똑똑한|brave:용감한|lazy:게으른|quiet:조용한|loud:시끄러운|strong:강한|weak:약한|heavy:무거운|light:가벼운; 빛|dark:어두운|bright:밝은|dirty:더러운|clean:깨끗한; 청소하다|wet:젖은|dry:마른|beautiful:아름다운|wonderful:멋진|great:훌륭한",
-    e5: "day:날, 낮|afternoon:오후|evening:저녁|first:첫 번째의|second:두 번째의; 초|third:세 번째의|tea:차|food:음식|snack:간식|fruit:과일|vegetable:채소|meat:고기|sugar:설탕|salt:소금|cheese:치즈|butter:버터|noodle:국수|sweet:달콤한|salty:짠|spicy:매운|sour:신|delicious:맛있는|neck:목|shoulder:어깨|knee:무릎|back:등; 뒤로|stomach:배, 위|heart:심장, 마음|headache:두통|stomachache:복통|fever:열|cough:기침|medicine:약|dentist:치과의사|hurt:다치게 하다, 아프다|rest:휴식; 쉬다|computer:컴퓨터|phone:전화기|television:텔레비전|beach:해변|island:섬|forest:숲|lake:호수|ocean:대양|nature:자연|animal:동물|insect:곤충|plant:식물; 심다|map:지도|place:장소|way:길, 방법|corner:모퉁이|post office:우체국|north:북쪽|south:남쪽|east:동쪽|west:서쪽|job:직업, 일|work:일하다; 일|singer:가수|pilot:조종사|artist:예술가|writer:작가|scientist:과학자|firefighter:소방관|engineer:기술자|dream:꿈; 꿈꾸다|future:미래|tell:말해 주다|speak:말하다|call:부르다, 전화하다|live:살다|stay:머무르다|leave:떠나다|wake:깨다|drive:운전하다|sell:팔다|use:사용하다|always:항상|usually:보통|often:자주|sometimes:가끔|never:결코 ~ 않다|early:이른; 일찍|late:늦은; 늦게|cry:울다|laugh:웃다|smile:미소; 미소 짓다|angry:화난|afraid:두려워하는|excited:신이 난|bored:지루해하는|surprised:놀란|enjoy:즐기다|worry:걱정하다|remember:기억하다|forget:잊다|try:시도하다|hope:바라다|healthy:건강한",
-    e6: "month:달, 월|year:해, 연도|January:1월|February:2월|March:3월|April:4월|May:5월|June:6월|July:7월|August:8월|September:9월|October:10월|November:11월|December:12월|season:계절|tomorrow:내일|yesterday:어제|tonight:오늘 밤|soon:곧|later:나중에|ago:~전에|already:이미|still:아직, 여전히|grade:학년, 성적|subject:과목|lesson:수업, 교훈|classmate:반 친구|uniform:교복, 제복|middle school:중학교|elementary:초등의|cousin:사촌|uncle:삼촌|aunt:이모, 고모|son:아들|daughter:딸|parent:부모|neighbor:이웃|guest:손님|king:왕|queen:여왕|prince:왕자|princess:공주|castle:성|village:마을|building:건물|floor:층, 바닥|wall:벽|stairs:계단|elevator:엘리베이터|key:열쇠|country:나라|world:세계|earth:지구|culture:문화|history:역사|language:언어|festival:축제|contest:대회|prize:상|club:동아리|member:회원|leader:지도자|rule:규칙|safe:안전한|danger:위험|accident:사고|trash:쓰레기|recycle:재활용하다|save:구하다, 아끼다|health:건강|exercise:운동; 운동하다|choose:고르다|decide:결정하다|agree:동의하다|believe:믿다|understand:이해하다|explain:설명하다|bring:가져오다|send:보내다|carry:나르다|build:짓다|fix:고치다|change:바꾸다; 변화|become:~이 되다|nervous:긴장한|proud:자랑스러운|lonely:외로운|honest:정직한|careful:조심하는|enough:충분한|almost:거의|between:~사이에|through:~을 통해|across:건너편에|along:~을 따라|maybe:아마도|probably:아마|instead:대신에|tradition:전통|temperature:온도"
+    const pfx = schActivePfx;
+    const dd = pfx && $(pfx + 'SchDd');
+    if (!dd || dd.hidden) return;
+    const btns = [...dd.querySelectorAll('.sch-item')];
+    if (e.key === 'ArrowDown') {
+      e.preventDefault(); e.stopImmediatePropagation();
+      if (!btns.length) return;
+      schIdx = (schIdx + 1) % btns.length;
+      btns.forEach((b, i) => b.classList.toggle('active', i === schIdx));
+      if (btns[schIdx]) btns[schIdx].scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault(); e.stopImmediatePropagation();
+      if (!btns.length) return;
+      schIdx = (schIdx - 1 + btns.length) % btns.length;
+      btns.forEach((b, i) => b.classList.toggle('active', i === schIdx));
+      if (btns[schIdx]) btns[schIdx].scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'Enter' && schIdx >= 0 && schItems[schIdx]) {
+      e.preventDefault(); e.stopImmediatePropagation();
+      schSelectItem(pfx, schItems[schIdx]);
+    } else if (e.key === 'Escape') {
+      e.preventDefault(); e.stopImmediatePropagation();
+      schCloseDd(pfx);
+    }
+  }, true);
+
+  function oauthButtonsHtml(su) {
+    if (!cloudMode || kidMode) return '';
+    const actTxt = su ? '시작' : '로그인';
+    return `<div class="oauth-wrap">
+      <div class="oauth-div">${su ? '간편 가입' : '간편 로그인'}</div>
+      <button type="button" class="oauth-btn kakao" data-act="oauth" data-p="kakao">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#191919" d="M12 4C6.92 4 2.8 7.23 2.8 11.22c0 2.55 1.7 4.8 4.26 6.08l-.9 3.36c-.06.22.18.4.38.27l3.96-2.62c.49.07 1 .11 1.5.11 5.08 0 9.2-3.23 9.2-7.22S17.08 4 12 4z"/></svg>
+        <span>카카오로 ${actTxt}</span>
+      </button>
+      <button type="button" class="oauth-btn google" data-act="oauth" data-p="google">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M21.6 12.23c0-.71-.06-1.4-.18-2.05H12v3.88h5.38a4.6 4.6 0 0 1-2 3.02v2.5h3.24c1.89-1.74 2.98-4.3 2.98-7.35z"/><path fill="#34A853" d="M12 22c2.7 0 4.96-.9 6.62-2.42l-3.24-2.5c-.9.6-2.04.95-3.38.95-2.6 0-4.8-1.76-5.58-4.12H3.07v2.58A10 10 0 0 0 12 22z"/><path fill="#FBBC05" d="M6.42 13.91a6.02 6.02 0 0 1 0-3.82V7.51H3.07a10 10 0 0 0 0 8.98l3.35-2.58z"/><path fill="#EA4335" d="M12 5.97c1.47 0 2.78.5 3.82 1.5l2.86-2.86C16.95 2.99 14.7 2 12 2A10 10 0 0 0 3.07 7.51l3.35 2.58C7.2 7.73 9.4 5.97 12 5.97z"/></svg>
+        <span>구글로 ${actTxt}</span>
+      </button>
+    </div>`;
+  }
+  ACTIONS.oauth = el => {
+    if (!cloudMode || !(window.VOCA_CLOUD && VOCA_CLOUD.url)) return;
+    const p = el.dataset.p;
+    location.href = VOCA_CLOUD.url.replace(/\/+$/, '') + '/functions/v1/oauth?p=' + encodeURIComponent(p) + '&r=' + encodeURIComponent(location.origin + location.pathname);
   };
+
+  function authBoxInnerHtml() {
+    const su = authMode === 'signup';
+    const s2 = su && authStep === 2;
+    return `
+      ${s2 ? `<div class="au-s2-head">
+        <button type="button" class="au-back-btn" data-act="auth-back">← 회원가입 2 / 2</button>
+        <div class="au-step-bars"><i class="on"></i><i class="on"></i></div>
+        <div class="au-s2-title">어느 학교에 다니나요?</div>
+        <div class="au-s2-sub">우리 반 과제와 랭킹에 쓰여요</div>
+      </div>` : `<div class="auth-hero">${MASCOT('happy')}</div>
+      <div class="page-title" style="text-align:center;margin-bottom:6px;"><b>Voca</b>Pro</div>
+      <p class="muted" style="text-align:center;margin:0 0 18px;">${su ? '새 계정을 만들어요 · 1 / 2' : '로그인하고 이어서 외워요'}</p>
+      ${kidMode ? '<div class="kid-note"><b>만 14세 미만 계정</b>보호자와 함께 만들어 주세요. 단어장과 기록은 이 기기에만 저장되고 서버로 보내지 않아요.</div>' : ''}
+      <div class="seg" style="margin-bottom:14px;"><button class="${su ? '' : 'on'}" data-act="auth-mode" data-m="login">로그인</button><button class="${su ? 'on' : ''}" data-act="auth-mode" data-m="signup">회원가입</button></div>
+      ${su && cloudAvail && !kidMode ? `<div class="seg age-seg" style="margin-bottom:12px;"><button class="${ageOk ? 'on' : ''}" data-act="auth-age" data-k="0">만 14세 이상</button><button data-act="auth-age" data-k="1">만 14세 미만</button></div>` : ''}`}
+      <div class="form-stack">
+        <div class="form-stack au-s1-hid"${s2 ? ' hidden' : ''}>
+          <input type="text" id="auId" value="${esc(auDraft.id)}" placeholder="아이디 (2~20자)" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="20">
+          <input type="password" id="auPw" value="${esc(auDraft.pw)}" placeholder="비밀번호 (${cloudMode ? 6 : 4}자 이상)" autocomplete="${su ? 'new-password' : 'current-password'}">
+          ${su ? `<input type="password" id="auPw2" value="${esc(auDraft.pw2)}" placeholder="비밀번호 확인" autocomplete="new-password">` : ''}
+          ${su && cloudMode && !kidMode ? emailCodeHtml('au', auDraft.email, auDraft.ecode, 'signup') : ''}
+        </div>
+        ${s2 ? roleSchoolBlockHtml('au', auDraft) : ''}
+        ${!su || s2 ? authExtraHtml(su) : ''}
+        ${!su || s2 ? `<label class="switch-row"><input type="checkbox" id="auKeep" ${auDraft.keep !== false ? 'checked' : ''}> 로그인 유지</label>` : ''}
+        <div id="auMsg" style="display:none;color:var(--coral);font-weight:600;font-size:.85rem;"></div>
+        ${su && !s2
+          ? `<button class="btn btn-primary btn-block" id="auNext" data-act="auth-next">다음</button>`
+          : `<button class="btn btn-primary btn-block" id="auGo" data-act="auth-go">${su ? '가입 완료' : '로그인'}</button>`}
+        ${!su && cloudMode && !kidMode ? '<button type="button" class="link-btn au-forgot" data-act="pw-forgot">아이디 · 비밀번호를 잊었어요</button>' : ''}
+        ${!s2 ? oauthButtonsHtml(su) : ''}
+        ${cloudAvail && !s2 ? `<button class="link-btn kid-link" data-act="auth-age" data-k="${kidMode ? 0 : 1}">${kidMode ? '만 14세 이상 계정으로 돌아가기' : (su ? '' : '이 기기의 어린이 계정(만 14세 미만)으로 로그인')}</button>` : ''}
+        <p class="muted" style="font-size:.74rem;line-height:1.6;margin:4px 0 0;">${cloudMode ? '같은 아이디로 로그인하면 어느 기기에서든 단어장과 학습 기록이 이어져요. 비밀번호를 잊으면 등록한 이메일로 다시 정할 수 있어요.' : '계정은 이 기기의 브라우저에만 저장돼요. 다른 기기와 동기화되지 않고, 비밀번호를 잊으면 복구할 수 없으니 백업 파일을 받아 두세요.'}</p>
+        <a class="link-btn lp-mobile-cta" href="#lpVidBox">VocaPro가 처음이라면, 소개 영상 보기</a>
+        <span class="my-ip"${myIp ? '' : ' hidden'}>${myIp ? '내 IP ' + esc(myIp) : ''}</span>
+      </div>`;
+  }
+
+  function renderAuth() {
+    if (!$('authBox')) {
+      $('authScreen').innerHTML = `<div class="auth-layout">${landingHtml()}<div class="auth-box" id="authBox"></div></div>`;
+      landingVideo();
+    }
+    $('authBox').innerHTML = authBoxInnerHtml();
+    try {
+      const oerr = sessionStorage.getItem('vocapro_oauth_err');
+      if (oerr) {
+        sessionStorage.removeItem('vocapro_oauth_err');
+        const m = $('auMsg'); if (m) { m.textContent = oerr; m.style.display = 'block'; }
+      }
+    } catch (e) {}
+    setTimeout(drawCaptcha, 0);
+  }
+
+  /* 5단계 · 웹 첫 화면 (로그인 전 소개) */
+  const LP_SRC = '<source src="media/ad.webm?v=3" type="video/webm"><source src="media/ad.mp4?v=3" type="video/mp4">';
+  const LP_CHIPS = ['자동 완성', '간격 반복 복습', '플래시카드', '받아쓰기', '발음 평가', '우리 반 과제', '퀴즈 게임', 'HSK 중국어', '시험지 인쇄'];
+  const LP_FEATS = [
+    ['sparkles', '자동 완성', '단어만 넣으면 뜻·발음·예문까지'],
+    ['cards', '13가지 학습', '카드, 퀴즈, 받아쓰기, 말하기'],
+    ['repeat', '간격 반복', '잊을 때쯤 다시 복습'],
+    ['users', '우리 반', '과제와 실시간 현황']
+  ];
+  const LP_STEPS = ['눈으로 익히기', '뜻 떠올리기', '단어 떠올리기', '귀로 익히기', '손으로 쓰기', '문장 속에서', '확인 시험'];
+  // 제목을 글자마다 나눠 하나씩 떠오르게 해요(화면 읽기 프로그램은 h1 의 aria-label 을 읽어요)
+  const lpChars = (t, start) => [...t].map((c, i) => `<span class="lp-ch" style="--i:${start + i}">${c}</span>`).join('');
+  // 첫 화면 모션: 스크롤하면 아래 내용이 차례로 나타나고, PC 에서는 데모 카드가 마우스를 따라 살짝 기울어요
+  function landingMotion() {
+    const root = $('lpIntro'); if (!root || root._motion) return; root._motion = true;
+    const els = root.querySelectorAll('.lp-rv');
+    // 로그인 화면이 숨겨진 채 그려진 직후에는 감시가 시작되지 않아서, 화면이 보인 다음에 감시를 시작해요
+    const watch = () => {
+      if (!root.isConnected) return;
+      if (!root.offsetParent) return setTimeout(watch, 120);
+      if (!('IntersectionObserver' in window)) return els.forEach(el => el.classList.add('in'));
+      const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: .15 });
+      els.forEach(el => io.observe(el));
+    };
+    setTimeout(watch, 60);
+    const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const fine = window.matchMedia && matchMedia('(hover: hover) and (pointer: fine)').matches;
+    const stage = root.querySelector('.lp-demo-stage');
+    if (!stage || reduce || !fine) return;
+    let raf = 0;
+    stage.addEventListener('pointermove', e => {
+      const r = stage.getBoundingClientRect(), x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5;
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => { stage.style.setProperty('--ry', (x * 10).toFixed(2) + 'deg'); stage.style.setProperty('--rx', (-y * 8).toFixed(2) + 'deg'); });
+    });
+    stage.addEventListener('pointerleave', () => { cancelAnimationFrame(raf); stage.style.setProperty('--rx', '0deg'); stage.style.setProperty('--ry', '0deg'); });
+  }
+  function landingHtml() {
+    const chips2 = LP_CHIPS.concat(LP_CHIPS).map(c => `<span class="lp-mq-chip">${c}</span>`).join('');
+    return `<section class="lp" id="lpIntro" aria-label="VocaPro 소개">
+      <div class="lp-aura" aria-hidden="true"><i></i><i></i><i></i></div>
+      <div class="lp-brand"><img src="media/profile.png" alt="" width="36" height="36"><span><b>Voca</b>Pro</span></div>
+      <h1 class="lp-h" aria-label="단어, 끝까지 외우다">
+        <span class="lp-ln l1" aria-hidden="true">${lpChars('단어,', 0)}</span>
+        <span class="lp-ln l2" aria-hidden="true"><em class="lp-hl">${lpChars('끝까지', 3)}</em> ${lpChars('외우다', 7)}</span>
+      </h1>
+      <p class="lp-sub lp-fade lp-d1">단어만 넣으면 뜻·발음·예문이 채워지고, 잊을 때쯤 다시 복습시켜 줘요. 학교 수업용 영어·중국어 단어장이에요.</p>
+      <div class="lp-ctas lp-fade lp-d2">
+        <button type="button" class="btn btn-primary" data-act="lp-start">무료로 시작하기 →</button>
+        <a class="btn btn-soft" href="#lpVidBox">▶ 30초 영상</a>
+      </div>
+      <div class="lp-checks lp-fade lp-d3">
+        <span><i>${IC.tick}</i>설치 없이 브라우저에서</span>
+        <span><i>${IC.tick}</i>휴대폰·태블릿·PC</span>
+      </div>
+      <div class="lp-demo-stage lp-fade lp-d4" aria-hidden="true">
+        <div class="lp-deco-sq"></div>
+        <div class="lp-float-card">
+          <div class="lp-fc-inner">
+            <div class="lp-fc-f front"><small>CARD 12/30</small><b>consistent</b><span>[컨시스턴트]</span></div>
+            <div class="lp-fc-f back"><small>뜻</small><b>형 일관된</b><span>외웠음 · 모름</span></div>
+          </div>
+        </div>
+        <div class="lp-demo-panel">
+          <div class="lp-dp-head"><span>단어 추가</span><span class="lp-dp-auto">자동 완성</span></div>
+          <div class="lp-dp-input"><span class="lp-dp-type">persevere</span></div>
+          <div class="lp-dp-rows">
+            <div class="lp-dp-row r1"><em>뜻</em><span>동 끝까지 해내다</span></div>
+            <div class="lp-dp-row r2"><em>발음</em><span>/ˌpɜːrsəˈvɪər/ [퍼서비어]</span></div>
+            <div class="lp-dp-row r3"><em>예문</em><span>She persevered until the end.</span></div>
+          </div>
+        </div>
+        <div class="lp-goal-badge">
+          <svg class="lp-goal-ring" viewBox="0 0 48 48"><circle class="bg" cx="24" cy="24" r="20"/><circle class="fg" cx="24" cy="24" r="20"/></svg>
+          <div class="lp-goal-txt"><b>오늘 목표 70%</b><span>14 / 20단어</span></div>
+        </div>
+      </div>
+      <div class="lp-mq-wrap lp-fade lp-d4" aria-hidden="true"><div class="lp-mq-track">${chips2}</div></div>
+      <div class="lp-video lp-rv" id="lpVidBox"><video id="lpVid" poster="media/ad-poster.jpg?v=3" autoplay muted loop playsinline preload="auto" aria-label="VocaPro 소개 영상">${LP_SRC}</video></div>
+      <ul class="lp-feats lp-rv">${LP_FEATS.map(([ic, t, d]) => `<li>${IC[ic] || ''}<b>${t}</b><small>${d}</small></li>`).join('')}</ul>
+      <div class="lp-dark-box lp-rv">
+        <b>무엇부터 할지 고민하지 마세요</b>
+        <p>처음 보는 단어를 시험 볼 수 있을 때까지 7단계로 안내해요</p>
+        <div class="lp-step-chips">${LP_STEPS.map((s, i) => `<span class="${i === LP_STEPS.length - 1 ? 'last' : ''}">${i + 1}. ${s}</span>`).join('')}</div>
+      </div>
+      <p class="lp-foot">문의 vocaproe2@gmail.com</p>
+    </section>`;
+  }
+  ACTIONS['lp-start'] = () => {
+    saveAuDraft();
+    authMode = 'signup'; authStep = 1;
+    renderAuth();
+    const box = $('authBox');
+    if (box && box.scrollIntoView) box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setTimeout(() => { const f = $('auId'); if (f) f.focus(); }, 300);
+  };
+
+  // 움직임 줄이기 설정이면 자동 재생하지 않고 첫 장면만 보여 줘요. 화면에 보일 때만 재생해요.
+  function landingVideo() {
+    landingMotion();
+    const v = $('lpVid'); if (!v) return;
+    // 소리 없는 소개 영상이라 항상 자동 재생해요. 움직임 줄이기 설정이면 멈출 수 있게 조작 버튼도 보여 줘요.
+    const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    v.muted = true; v.controls = !!reduce;
+    const p0 = v.play(); if (p0 && p0.catch) p0.catch(() => { v.controls = true; });
+    if (!('IntersectionObserver' in window)) return;
+    const io = new IntersectionObserver(es => es.forEach(e => { if (!v.isConnected) return io.disconnect(); if (e.isIntersecting) { const p = v.play(); if (p && p.catch) p.catch(() => { v.controls = true; }); } else v.pause(); }), { threshold: .35 });
+    io.observe(v);
+  }
+  // 어디서든 소개 영상 열기 (설정의 소개 카드)
+  ACTIONS['about-video'] = () => {
+    const ov = document.createElement('div'); ov.className = 'vid-ov'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-label', 'VocaPro 소개 영상');
+    ov.innerHTML = `<button class="icon-btn" data-act="about-video-close" aria-label="닫기">${IC.x}</button><video poster="media/ad-poster.jpg?v=3" controls autoplay playsinline>${LP_SRC}</video><span class="vid-cap">VocaPro 소개 영상</span>`;
+    ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
+    document.body.appendChild(ov);
+  };
+  ACTIONS['about-video-close'] = () => { const o = document.querySelector('.vid-ov'); if (o) o.remove(); };
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') ACTIONS['about-video-close'](); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.querySelector('.vid-ov')) { e.stopImmediatePropagation(); ACTIONS['about-video-close'](); } }, true);
+  function showAuth() {
+    authMode = cloudMode ? 'login' : (Object.keys(getUsers()).length ? 'login' : 'signup');
+    authStep = 1;
+    renderAuth();
+    $('authScreen').style.display = 'flex';
+    setTimeout(() => { const f = $('auId'); if (f) f.focus(); }, 100);
+  }
+  // 이름, 학교, 학번이 비어 있는 계정은 로그인하면 먼저 입력받아요
+  const profileMissing = () => { const p = config.profile || {}; return !p.name || !p.school || (!isTeacher() && !p.sno); };
+  function profileCheck() {
+    if (!currentUser || !profileMissing() || $('pfOv')) return;
+    const p = config.profile || cleanProfile(), role = isTeacher() ? 'teacher' : 'student';
+    const ov = document.createElement('div'); ov.id = 'pfOv'; ov.className = 'dlg-ov pf-ov';
+    ov.innerHTML = `<div class="dlg pf-dlg" role="dialog" aria-modal="true" aria-labelledby="pfT">
+      <div class="pf-art">${MASCOT('happy')}</div>
+      <h3 id="pfT">내 정보를 알려 주세요</h3>
+      <p class="muted">학교에서 함께 쓰려면 이름, 학교, 학번이 필요해요. 내 앱 안에서만 쓰고 다른 사람에게 보여주지 않아요.</p>
+      <div class="form-stack">
+        ${roleSchoolBlockHtml('pq', { role, grade: config.grade || '', school: p.school || '', scode: p.scode || '', skind: '', name: p.name || '', sno: p.sno || '' })}
+        <div id="pqMsg" class="pf-msg"></div>
+        <button class="btn btn-primary btn-block" data-act="pq-save">저장하고 시작</button>
+      </div></div>`;
+    document.body.appendChild(ov);
+    setTimeout(() => { const i = ov.querySelector('#pqSchool:placeholder-shown, #pqName'); if (i) i.focus(); }, 80);
+  }
+  function pqRoleChange() { const t = ($('pqRole') || {}).value === 'teacher', sn = $('pqSno'); if (sn) { sn.hidden = t; if (t) sn.value = ''; } }
+  ACTIONS['pq-save'] = () => {
+    const role = ($('pqRole') || {}).value || '', nm = ($('pqName') || {}).value.trim(), sc = ($('pqSchool') || {}).value.trim(), scode = (($('pqSchoolCode') || {}).value || '').trim(), sn = role === 'teacher' ? '' : ($('pqSno') || {}).value.trim();
+    const msg = t => { $('pqMsg').textContent = t; };
+    if (!GRADE_NAMES[role] && role !== 'teacher') return msg('학년이나 선생님을 골라 주세요.');
+    if (!sc) return msg('학교 이름을 입력해 주세요.');
+    if (!nm) return msg('이름을 입력해 주세요.');
+    if (role !== 'teacher' && !sn) return msg('학번을 입력해 주세요. (예: 2학년 3반 15번이면 20315)');
+    if (sn && !/^[0-9A-Za-z-]{1,12}$/.test(sn)) return msg('학번은 숫자로 입력해 주세요.');
+    if (role === 'teacher') { config.role = 'teacher'; config.grade = ''; } else { config.role = ''; config.grade = role; }
+    config.profile = cleanProfile({ name: nm, school: sc, sno: sn, scode }); syncStorage();
+    $('pfOv').remove(); toast('내 정보를 저장했어요.'); go(curTab); showOnboarding(); recShown = false; recMaybeShow(); shareCheck();
+  };
+  ACTIONS['pf-save'] = () => {
+    const nm = $('pfName').value.trim(), sc = $('pfSchool').value.trim(), sn = isTeacher() ? '' : $('pfSno').value.trim();
+    if (!nm) return toast('이름을 입력해 주세요.');
+    if (!sc) return toast('학교 이름을 입력해 주세요.');
+    if (!isTeacher() && !sn) return toast('학번을 입력해 주세요.');
+    if (sn && !/^[0-9A-Za-z-]{1,12}$/.test(sn)) return toast('학번은 숫자로 입력해 주세요.');
+    const prev = config.profile || {};
+    config.profile = cleanProfile({ name: nm, school: sc, sno: sn, scode: prev.school === sc ? prev.scode : '' }); syncStorage(); toast('내 정보를 저장했어요.');
+  };
+  // ===== 이메일 인증코드 (가입 · 비밀번호 찾기 · 이메일 등록) =====
+  const EMAIL_RE = /^[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9.-]{1,185}\.[A-Za-z]{2,24}$/;
+  const emailCodeHtml = (pfx, email, code, purpose) => `<div class="em-row"><input type="email" id="${pfx}Email" value="${esc(email || '')}" placeholder="이메일 (비밀번호 찾기에 써요)" autocomplete="email" autocapitalize="none" spellcheck="false" maxlength="254"><button type="button" class="btn btn-soft em-send" data-act="em-send" data-f="${pfx}Email" data-c="${pfx}Code" data-p="${purpose}">인증코드 받기</button></div>
+    <input type="text" id="${pfx}Code" value="${esc(code || '')}" placeholder="인증코드 6자리" inputmode="numeric" autocomplete="one-time-code" maxlength="6">`;
+  ACTIONS['em-send'] = async el => {
+    const f = $(el.dataset.f), email = f ? f.value.trim().toLowerCase() : '';
+    const box = el.closest('.dlg') ? el.closest('.dlg').querySelector('.dlg-msg') : $('auMsg');
+    const msg = m => { if (box) { box.textContent = m; box.style.display = m ? 'block' : 'none'; } else if (m) toast(m); };
+    if (!EMAIL_RE.test(email)) { msg('이메일 주소를 확인해 주세요.'); if (f) f.focus(); return; }
+    if (el.disabled || !window.Cloud || !Cloud.sendCode) return;
+    el.disabled = true; el.textContent = '보내는 중...';
+    try {
+      await Cloud.sendCode(email, el.dataset.p);
+      msg(''); toast(`${email} 로 인증코드를 보냈어요. 메일함(스팸함도)을 확인해 주세요.`);
+      const c = $(el.dataset.c); if (c) c.focus();
+      let left = 60;
+      const tick = () => { if (!el.isConnected) return; if (left <= 0) { el.disabled = false; el.textContent = '다시 받기'; return; } el.textContent = `다시 받기 ${left}초`; left--; setTimeout(tick, 1000); };
+      tick();
+    } catch (e) { el.disabled = false; el.textContent = '인증코드 받기'; msg(cloudMsg(e)); }
+  };
+  // 작은 입력 창 (비밀번호 찾기 · 이메일 등록)
+  function emDialog(title, sub, bodyHtml, okText, onOk) {
+    const ov = document.createElement('div'); ov.className = 'dlg-ov em-dlg';
+    ov.innerHTML = `<div class="dlg" role="dialog" aria-modal="true" aria-label="${esc(title)}"><h3 class="em-t">${esc(title)}</h3><p class="em-s">${esc(sub)}</p><div class="form-stack">${bodyHtml}</div><div class="dlg-msg"></div><div class="row"><button class="btn btn-soft" style="flex:1" data-em="x">닫기</button><button class="btn btn-primary" style="flex:1" data-em="ok">${esc(okText)}</button></div></div>`;
+    document.body.appendChild(ov);
+    const close = () => ov.remove();
+    const showMsg = m => { const b = ov.querySelector('.dlg-msg'); b.textContent = m; b.style.display = m ? 'block' : 'none'; };
+    ov.addEventListener('click', async e => {
+      const b = e.target.closest('[data-em]'); if (!b) { if (e.target === ov) close(); return; }
+      if (b.dataset.em === 'x') return close();
+      if (b.disabled) return; b.disabled = true;
+      try { await onOk(ov, showMsg, close); } finally { if (b.isConnected) b.disabled = false; }
+    });
+    setTimeout(() => { const i = ov.querySelector('input'); if (i) i.focus(); }, 60);
+    return ov;
+  }
+  ACTIONS['pw-forgot'] = () => {
+    emDialog('아이디 · 비밀번호 찾기', '가입할 때 등록한 이메일로 인증코드를 보내요. 확인되면 아이디를 알려 주고 새 비밀번호로 바꿔요.',
+      emailCodeHtml('fg', '', '', 'reset') + '<input type="password" id="fgPw" placeholder="새 비밀번호 (6자 이상)" autocomplete="new-password" maxlength="72"><input type="password" id="fgPw2" placeholder="새 비밀번호 확인" autocomplete="new-password" maxlength="72">',
+      '비밀번호 바꾸기', async (ov, msg, close) => {
+        const email = $('fgEmail').value.trim().toLowerCase(), code = $('fgCode').value.trim(), pw = $('fgPw').value;
+        if (!EMAIL_RE.test(email)) return msg('이메일 주소를 확인해 주세요.');
+        if (!/^\d{6}$/.test(code)) return msg('이메일로 받은 인증코드 6자리를 입력해 주세요.');
+        if (pw.length < 6) return msg('새 비밀번호는 6자 이상이어야 해요.');
+        if (pw !== $('fgPw2').value) return msg('새 비밀번호 확인이 달라요.');
+        let r; try { r = await Cloud.resetPw(email, code, pw); } catch (e) { return msg(cloudMsg(e)); }
+        close();
+        saveAuDraft(); auDraft.id = r.username || auDraft.id; auDraft.pw = ''; authMode = 'login'; renderAuth();
+        // 로그인 화면 위에서는 확인 창이 가려져서, 로그인 카드 안에 바로 알려 줘요.
+        const m = $('auMsg'); if (m) { m.textContent = `비밀번호를 바꿨어요. 아이디는 '${r.username}' 예요. 새 비밀번호로 로그인해 주세요.`; m.style.color = 'var(--green, #16a34a)'; m.style.display = 'block'; }
+        const pf = $('auPw'); if (pf) pf.focus();
+      });
+  };
+  async function acctEmailLoad() {
+    const row = $('acctEmail'); if (!row) return;
+    if (!cloudMode || !window.Cloud || !Cloud.myEmail || !currentUser) { row.hidden = true; return; }
+    row.hidden = false;
+    let em = null; try { em = (await Cloud.myEmail()).email; } catch (e) { $('acctEmailTxt').textContent = '불러오지 못했어요'; return; }
+    $('acctEmailTxt').textContent = em || '등록 안 함 · 등록하면 비밀번호를 잊어도 다시 정할 수 있어요';
+    const b = row.querySelector('button'); if (b) b.textContent = em ? '변경' : '등록';
+  }
+  ACTIONS['email-link'] = () => emDialog('이메일 등록', '비밀번호를 잊었을 때 이 이메일로 다시 정할 수 있어요. 받은 인증코드를 넣어 주세요.', emailCodeHtml('lk', '', '', 'link'), '등록', async (ov, msg, close) => {
+    const email = $('lkEmail').value.trim().toLowerCase(), code = $('lkCode').value.trim();
+    if (!EMAIL_RE.test(email)) return msg('이메일 주소를 확인해 주세요.');
+    if (!/^\d{6}$/.test(code)) return msg('이메일로 받은 인증코드 6자리를 입력해 주세요.');
+    try { await Cloud.linkEmail(email, code); } catch (e) { return msg(cloudMsg(e)); }
+    close(); toast('이메일을 등록했어요.'); acctEmailLoad();
+  });
+  ACTIONS['auth-mode'] = el => { saveAuDraft(); authMode = el.dataset.m; authStep = 1; renderAuth(); };
+  ACTIONS['auth-back'] = () => { saveAuDraft(); authStep = 1; renderAuth(); };
+  ACTIONS['auth-next'] = () => {
+    saveAuDraft();
+    const fail = m => { const e = $('auMsg'); if (e) { e.textContent = m; e.style.display = 'block'; } };
+    const id = auDraft.id.trim(), pw = auDraft.pw, pw2 = auDraft.pw2;
+    if (cloudMode && !ageOk) return fail('만 14세 이상인지 골라 주세요. 만 14세 미만은 이 기기에만 저장하는 계정으로 만들어요.');
+    if (!/^[\w가-힣-]{2,20}$/.test(id)) return fail('아이디는 2~20자의 한글, 영문, 숫자, _, - 만 쓸 수 있어요.');
+    const minLen = cloudMode ? 6 : 4;
+    if (pw.length < minLen) return fail(`비밀번호는 ${minLen}자 이상이어야 해요.`);
+    if (pw !== pw2) return fail('비밀번호 확인이 달라요.');
+    if (!cloudMode && getUsers()[id.toLowerCase()]) return fail('이미 있는 아이디예요.');
+    if (cloudMode && !kidMode) {
+      if (!EMAIL_RE.test(auDraft.email.trim())) return fail('이메일 주소를 확인해 주세요.');
+      if (!/^\d{6}$/.test(auDraft.ecode.trim())) return fail('이메일로 받은 인증코드 6자리를 입력해 주세요.');
+    }
+    authStep = 2; renderAuth();
+    setTimeout(() => { const f = $('auSchool'); if (f) f.focus(); }, 60);
+  };
+  function authRoleChange() {
+    const g = $('auGrade'), sn = $('auSno'), sc = $('auSchool'); if (!g || !sn) return;
+    const t = g.value === 'teacher'; sn.hidden = t; if (t) sn.value = '';
+    if (sc) sc.placeholder = '학교 이름 검색 (예: 한빛중)';
+  }
+  ACTIONS['auth-age'] = el => {
+    saveAuDraft();
+    const kid = el.dataset.k === '1';
+    if (kid) { setKidMode(true); if (!Object.keys(getUsers()).length) authMode = 'signup'; authStep = 1; }
+    else if (kidMode) { setKidMode(false); authStep = 1; }
+    else ageOk = true;
+    renderAuth();
+  };
+  ACTIONS['auth-go'] = async () => {
+    if (authMode === 'signup' && authStep === 1) return ACTIONS['auth-next']();
+    saveAuDraft();
+    const btn = $('auGo'); if (!btn || btn.disabled) return;
+    const fail = m => {
+      const e = $('auMsg'); e.textContent = m; e.style.color = 'var(--coral)'; e.style.display = 'block'; btn.disabled = false;
+      if (authMode !== 'signup' && !/보안문자|동의/.test(m)) { authFails++; if (authFails >= 3) { const cb = $('capBox'); if (cb) cb.style.display = 'block'; drawCaptcha(); } }
+    };
+    { const g = authGate(); if (g) return fail(g); }
+    if (authMode === 'signup') {
+      const gr = $('auGrade') && $('auGrade').value;
+      const sc = ($('auSchool') || {}).value.trim(), scode = (($('auSchoolCode') || {}).value || '').trim();
+      const nm = ($('auName') || {}).value.trim(), sn = gr === 'teacher' ? '' : ($('auSno') || {}).value.trim();
+      if (!sc) return fail('학교 이름을 입력해 주세요.');
+      if (!GRADE_NAMES[gr] && gr !== 'teacher') return fail('학년이나 선생님을 골라 주세요. 학년에 맞는 단어를 추천해 드려요.');
+      if (!nm) return fail('이름을 입력해 주세요.');
+      if (gr !== 'teacher' && !sn) return fail('학번을 입력해 주세요. (예: 2학년 3반 15번이면 20315)');
+      if (sn && !/^[0-9A-Za-z-]{1,12}$/.test(sn)) return fail('학번은 숫자로 입력해 주세요. (예: 20315)');
+      pendingGrade = gr; pendingProfile = cleanProfile({ name: nm, school: sc, sno: sn, scode });
+    } else { pendingGrade = ''; pendingProfile = null; }
+    if (cloudMode) {
+      const email = $('auId').value.trim(), pw0 = $('auPw').value, keep0 = $('auKeep').checked, su0 = authMode === 'signup';
+      if (!/^[\w가-힣-]{2,20}$/.test(email)) return fail('아이디는 2~20자의 한글, 영문, 숫자, _, - 만 쓸 수 있어요.');
+      if (pw0.length < 6) return fail('비밀번호는 6자 이상이어야 해요.');
+      if (su0 && pw0 !== $('auPw2').value) return fail('비밀번호 확인이 달라요.');
+      if (su0 && !ageOk) return fail('만 14세 이상인지 골라 주세요. 만 14세 미만은 이 기기에만 저장하는 계정으로 만들어요.');
+      btn.disabled = true;
+      try {
+        if (!window.Cloud) throw { code: 'offline' };
+        const u = su0 ? await Cloud.signupEmail(email, pw0, auDraft.email.trim().toLowerCase(), auDraft.ecode.trim(), keep0) : await Cloud.login(email, pw0, keep0);
+        if (su0) { auDraft.email = auDraft.ecode = ''; try { sessionStorage.setItem('vocapro_just_signed_up', '1'); } catch (e) {} }
+        let remote = null, stale = false;
+        try { remote = await Cloud.load(); } catch (e) { stale = true; toast('서버에서 불러오지 못해 이 기기의 저장본을 써요.'); }
+        enterApp(u.uid, remote, u.email, stale);
+      } catch (e) {
+        // 이메일 · 인증코드 · 아이디 문제는 첫 단계에서 고쳐야 해서 1단계로 돌아가요.
+        if (su0 && e && /^(bad_code|email_taken|exists)$/.test(e.code)) { saveAuDraft(); if (e.code === 'bad_code') auDraft.ecode = ''; authStep = 1; renderAuth(); const m = $('auMsg'); if (m) { m.textContent = cloudMsg(e); m.style.display = 'block'; } return; }
+        fail(cloudMsg(e));
+      }
+      return;
+    }
+    const id = $('auId').value.trim(), pw = $('auPw').value, keep = $('auKeep').checked, su = authMode === 'signup';
+    if (!/^[\w가-힣-]{2,20}$/.test(id)) return fail('아이디는 2~20자의 한글, 영문, 숫자, _, - 만 쓸 수 있어요.');
+    if (pw.length < 4) return fail('비밀번호는 4자 이상이어야 해요.');
+    if (su && pw !== $('auPw2').value) return fail('비밀번호 확인이 달라요.');
+    btn.disabled = true;
+    const key = id.toLowerCase(), users = getUsers();
+    try {
+      if (su) {
+        if (users[key]) return fail('이미 있는 아이디예요.');
+        const salt = Math.random().toString(36).slice(2) + Date.now().toString(36), m = hasCrypto() ? 'p' : 'f';
+        users[key] = { name: id, s: salt, m, h: await hashPw(pw, salt, m), t: Date.now() };
+        if (!saveUsers(users)) return fail('브라우저가 저장을 막고 있어서 가입할 수 없어요. 사이트 데이터/쿠키 차단을 확인해 주세요.');
+        if (Object.keys(users).length === 1) {
+          try {
+            const old = loadJson('vocapro_v11_data');
+            if (old) { LS.setItem('vocapro_v11_data:' + key, JSON.stringify(old)); const oc = loadJson('vocapro_v10_cfg'); if (oc) LS.setItem('vocapro_v10_cfg:' + key, JSON.stringify(oc)); }
+          } catch (e) {}
+        }
+      } else {
+        const u = users[key];
+        if (!u || (await hashPw(pw, u.s, u.m)) !== u.h) return fail('아이디 또는 비밀번호가 맞지 않아요.');
+        // 예전 약한 해시로 만든 계정은 맞게 로그인했을 때 PBKDF2로 바꿔 저장해요.
+        if (u.m !== 'p' && hasCrypto()) { try { u.m = 'p'; u.s = Math.random().toString(36).slice(2) + Date.now().toString(36); u.h = await hashPw(pw, u.s, 'p'); saveUsers(users); } catch (e) {} }
+      }
+    } catch (e) { return fail(e.message || '오류가 발생했어요.'); }
+    try { LS.removeItem(KEY_SESS); sessionStorage.removeItem(KEY_SESS); (keep ? LS : sessionStorage).setItem(KEY_SESS, key); if (su) sessionStorage.setItem('vocapro_just_signed_up', '1'); } catch (e) {}
+    enterApp(key);
+  };
+  // 서버에서 불러오지 못한 채 열었으면(cloudStale) 서버 사본을 다시 확인하기 전에는 올리지 않아요. 빈 기기 데이터가 서버를 덮어쓰는 것을 막아요.
+  let cloudStale = false, cloudBaseTs = 0;
+  // 방문 기록: 서버(voca_visit)에 IP · 시각 · 회원을 남기고, 돌려받은 내 IP를 화면(.my-ip)에 보여 줘요.
+  let myIp = '';
+  function showMyIp() { document.querySelectorAll('.my-ip').forEach(e => { e.textContent = myIp ? '내 IP ' + myIp : ''; e.hidden = !myIp; }); }
+  async function trackVisit() {
+    if (!cloudMode || !window.Cloud || !Cloud.visit) return;
+    try { const ip = await Cloud.visit(); if (typeof ip === 'string' && /^[0-9a-fA-F:.]{3,64}$/.test(ip)) myIp = ip; } catch (e) {}
+    showMyIp();
+  }
+  function enterApp(key, remote, label, stale) {
+    currentUser = key; currentLabel = label || key; KEY_DATA = 'vocapro_v11_data:' + key; KEY_CFG = 'vocapro_v10_cfg:' + key;
+    if (cloudMode) trackVisit();
+    if (cloudMode) {
+      try {
+        LS.setItem('vocapro_last_uid', key); LS.setItem('vocapro_last_label', currentLabel);
+        if (!remote && !LS.getItem(KEY_DATA) && !LS.getItem('vocapro_legacy_taken')) {
+          const old = loadJson('vocapro_v11_data'), oc = loadJson('vocapro_v10_cfg');
+          if (old) { LS.setItem(KEY_DATA, JSON.stringify(old)); if (oc) LS.setItem(KEY_CFG, JSON.stringify(oc)); LS.setItem('vocapro_legacy_taken', '1'); }
+        }
+      } catch (e) {}
+    }
+    try { if (kidMode) LS.setItem(KEY_KID, '1'); else LS.removeItem(KEY_KID); } catch (e) {}
+    config = loadConfig(); loadDb(); applyLang();
+    currentCategoryId = null; viewOrder = null; openDrawers.clear(); S = { active: false };
+    ['studyScreen', 'sheetOv'].forEach(i => $(i).classList.remove('open'));
+    document.body.classList.remove('no-scroll');
+    $('authScreen').style.display = 'none';
+    let applied = false;
+    cloudStale = !!(cloudMode && stale); cloudBaseTs = +LS.getItem(KEY_DATA + ':ts') || 0;
+    if (remote && remote.updated > (+LS.getItem(KEY_DATA + ':ts') || 0)) { try { applyRemote(remote); applied = true; } catch (e) { toast('서버 데이터를 읽지 못했어요.'); } }
+    if (pendingGrade) { if (pendingGrade === 'teacher') { config.role = 'teacher'; config.grade = ''; } else { config.role = ''; config.grade = pendingGrade; } pendingGrade = ''; applied = false; }
+    if (pendingProfile) { config.profile = pendingProfile; pendingProfile = null; applied = false; }
+    recShown = false; applyTheme(); if (!applied) syncStorage(); go('tabHome'); if (profileMissing()) profileCheck(); else showOnboarding(); rmCheck(); setTimeout(shareCheck, 700);
+  }
+  ACTIONS.logout = async () => {
+    if (cloudTimer) await cloudPush();
+    if (cloudMode && window.Cloud) { try { await Cloud.logout(); } catch (e) {} try { LS.removeItem('vocapro_last_uid'); } catch (e) {} }
+    L.token++; try { window.speechSynthesis.cancel(); } catch (e) {}
+    try { LS.removeItem(KEY_SESS); sessionStorage.removeItem(KEY_SESS); } catch (e) {}
+    currentUser = null; S = { active: false };
+    ['studyScreen', 'sheetOv'].forEach(i => $(i).classList.remove('open'));
+    if (kidMode) { setKidMode(false); try { LS.removeItem(KEY_KID); } catch (e) {} }
+    showAuth();
+  };
+  // 공용 컴퓨터: 서버에 다 올라간 걸 확인한 뒤 이 기기에 남은 이 계정의 단어 · 설정 · 기록을 지워요.
+  ACTIONS['logout-wipe'] = async () => {
+    if (!cloudMode || !currentUser) return ACTIONS.logout();
+    if (!await ask('이 기기에 저장된 내 단어, 설정, 기록을 지우고 로그아웃해요. 서버에 저장된 건 그대로라 다시 로그인하면 돌아와요.', { ok: '지우고 로그아웃' })) return;
+    await cloudPush();
+    if (LS.getItem(KEY_DATA + ':dirty')) return say('서버 저장이 끝나지 않아 지우지 않았어요. 인터넷을 확인하고 다시 눌러 주세요.');
+    const u = currentUser;
+    try {
+      const del = [];
+      for (let i = 0; i < LS.length; i++) { const k = LS.key(i); if (k && (k.endsWith(':' + u) || k.includes(':' + u + ':') || k === AIC_KEY || k === 'vocapro_last_label')) del.push(k); }
+      del.forEach(k => LS.removeItem(k)); aiCache = null;
+    } catch (e) {}
+    await ACTIONS.logout();
+    toast('이 기기에서 지웠어요.');
+  };
+  ACTIONS['acct-del'] = async () => {
+    if (!await ask(`'${currentUser}' 계정과 모든 단어, 학습 기록이 삭제돼요.\n되돌릴 수 없어요. 계속할까요?`, { ok: '삭제', danger: true })) return;
+    if (cloudMode) {
+      try { await Cloud.call('voca_class_forget'); } catch (e) {}
+      try { await Cloud.call('voca_game_forget'); } catch (e) {}
+      try { await Cloud.remove(); } catch (e) { return say(e.code === 'auth/requires-recent-login' ? '보안을 위해 로그인한 직후에만 삭제할 수 있어요. 로그아웃하고 다시 로그인한 뒤 시도해 주세요.' : '삭제하지 못했어요: ' + (e.code || e.message)); }
+    } else { const u = getUsers(); delete u[currentUser]; saveUsers(u); }
+    try { LS.removeItem(KEY_DATA); LS.removeItem(KEY_CFG); } catch (e) {}
+    ACTIONS.logout();
+  };
+  /* ----- 클라우드 동기화 ----- */
+  function cloudMsg(e) {
+    const c = (e && e.code) || '';
+    if (/too_many_signups/.test((e && e.message) || '')) return '지금 가입하는 사람이 너무 많아 잠시 막혔어요. 잠시 후 다시 해 주세요.';
+    if (c === 'server' && e.message) return '서버에서 오류가 났어요: ' + String(e.message).slice(0, 120);
+    if (c === 'bad_code') return '인증코드가 맞지 않거나 시간이 지났어요. 코드를 다시 받아 주세요.';
+    return ({ email_taken: '이미 가입된 이메일이에요. 로그인 화면의 \'아이디 · 비밀번호를 잊었어요\'를 눌러 주세요.', too_many: '인증코드를 너무 자주 보냈어요. 1분쯤 뒤에 다시 해 주세요.', send_failed: '메일을 보내지 못했어요. 주소를 확인하고 다시 해 주세요.', config: '이메일 인증이 아직 준비되지 않았어요. 잠시 후 다시 해 주세요.', exists: '이미 있는 아이디예요.', invalid: '아이디 또는 비밀번호가 맞지 않아요.', locked: '비밀번호를 여러 번 틀려서 10분간 잠겼어요. 잠시 후 다시 해 주세요.',
+      bad_input: '아이디(2~20자)와 비밀번호(6자 이상)를 확인해 주세요.', auth: '로그인이 만료됐어요. 다시 로그인해 주세요.', network: '인터넷 연결을 확인해 주세요.',
+      server: '서버 설정에 문제가 있어요. SQL을 실행했는지, config.js 값이 맞는지 확인해 주세요.', offline: '서버에 연결하지 못했어요. 잠시 후 다시 해 주세요.' })[c] || ('오류: ' + (c || (e && e.message) || '알 수 없음'));
+  }
+  function cloudQueue() { if (!cloudMode || !window.Cloud || !currentUser) return; clearTimeout(cloudTimer); cloudTimer = setTimeout(cloudPush, 1500); }
+  // 서버에 아직 못 올린 변경이 있는지(:dirty) — 저장 실패 후에도 기기에 남아 있어 다시 시도해요
+  const cloudDirty = () => { try { return !!LS.getItem(KEY_DATA + ':dirty'); } catch (e) { return false; } };
+  async function cloudPush(ka) {
+    clearTimeout(cloudTimer); cloudTimer = null;
+    if (!cloudMode || !window.Cloud || !currentUser || !Cloud.user()) return;
+    if (cloudStale) {
+      let r; try { r = await Cloud.load(); } catch (e) { cloudTimer = setTimeout(cloudPush, 30000); return; }
+      cloudStale = false;
+      if (r && r.updated > cloudBaseTs) { applyRemote(r); if (!(S && S.active)) go(curTab); toast('서버에 더 새로운 저장본이 있어 그걸 불러왔어요.'); return; }
+    }
+    const json = JSON.stringify({ ...dataBlob(), cfg: { ...ttsCfgOut(), goal: config.goal, darkMode: config.darkMode, provider: config.provider, aiv: 2, grade: config.grade, role: config.role || '', profile: config.profile || cleanProfile(), gameName: config.gameName || '', haptic: config.haptic !== false, kpronEn: config.kpronEn !== false, kpronZh: config.kpronZh !== false, studyCount: config.studyCount, guide: cleanGuide(config.guide) } });
+    if (json.length > 900000) toast('데이터가 서버 저장 한도(약 1MB)에 가까워요. 단어장을 줄이거나 백업해 두세요.');
+    const up = +LS.getItem(KEY_DATA + ':ts') || Date.now(), key = KEY_DATA;
+    // 페이지를 떠날 때는 keepalive로 최대한 보내요(본문 64KB 제한이 있어 작을 때만)
+    try { await Cloud.save({ data: json, updated: up }, { keepalive: ka === true && json.length < 60000 }); if ((+LS.getItem(key + ':ts') || 0) === up) LS.removeItem(key + ':dirty'); clReport(); }
+    catch (e) { toast('서버 저장에 실패했어요. 인터넷을 확인하세요. (' + (e.code || e.message) + ')'); }
+  }
+  function applyRemote(r) {
+    const d = JSON.parse(r.data);
+    useBlob(d);
+    if (d.cfg) {
+      config.ttsRate = parseFloat(d.cfg.ttsRate) || config.ttsRate; ttsCfgIn(config, d.cfg); config.goal = parseInt(d.cfg.goal, 10) || config.goal;
+      config.darkMode = !!d.cfg.darkMode; if (typeof d.cfg.haptic === 'boolean') config.haptic = d.cfg.haptic;
+      if (typeof d.cfg.kpronEn === 'boolean') config.kpronEn = d.cfg.kpronEn;
+      if (typeof d.cfg.kpronZh === 'boolean') config.kpronZh = d.cfg.kpronZh;
+      if (Number.isFinite(+d.cfg.studyCount)) { config.studyCount = Math.max(0, Math.min(500, Math.floor(+d.cfg.studyCount))); studyPrefs.count = config.studyCount; }
+      if (d.cfg.guide && typeof d.cfg.guide === 'object') config.guide = cleanGuide(d.cfg.guide);
+      if (PROVIDERS[d.cfg.provider] && d.cfg.aiv === 2) config.provider = d.cfg.provider;
+      if (GRADE_NAMES[d.cfg.grade]) config.grade = d.cfg.grade;
+      if (d.cfg.role !== undefined) config.role = d.cfg.role === 'teacher' ? 'teacher' : '';
+      if (d.cfg.profile) config.profile = cleanProfile(d.cfg.profile);
+      if (d.cfg.gameName) config.gameName = String(d.cfg.gameName).replace(/[\u0000-\u001f<>]/g, '').slice(0, 12);
+    }
+    LS.setItem(KEY_DATA, JSON.stringify(dataBlob())); LS.setItem(KEY_CFG, JSON.stringify(config)); LS.setItem(KEY_DATA + ':ts', String(r.updated)); LS.removeItem(KEY_DATA + ':dirty');
+    applyTheme(); applyLang();
+  }
+  // 단어를 붙잡고 있는 화면(4단계·게임·발표)이 열려 있으면 서버 사본으로 바꾸지 않아요
+  const wordOvOpen = () => ['flOv', 'wqOv', 'rnOv', 'mgOv', 'pvOv'].some(i => $(i));
+  async function cloudPull() {
+    if (!cloudMode || !window.Cloud || !currentUser || cloudTimer || !Cloud.user()) return;
+    if (cloudDirty()) return cloudPush(); // 못 올린 변경이 먼저 — 서버 사본으로 덮지 않아요(stale이면 cloudPush가 서버 사본부터 확인)
+    if ((S && S.active) || $('sheetOv').classList.contains('open') || wordOvOpen()) return;
+    try {
+      const r = await Cloud.load();
+      if (cloudStale) { cloudStale = false; if (r && r.updated > cloudBaseTs) { applyRemote(r); go(curTab); toast('서버의 저장본을 불러왔어요.'); } else cloudQueue(); return; }
+      if (r && r.updated > (+LS.getItem(KEY_DATA + ':ts') || 0)) { applyRemote(r); go(curTab); toast('다른 기기의 변경 내용을 불러왔어요.'); }
+    } catch (e) {}
+  }
+  window.addEventListener('pagehide', () => { if (cloudTimer) cloudPush(true); });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) { if (cloudTimer) cloudPush(true); } else cloudPull(); });
+  window.addEventListener('online', () => { if (currentUser && !cloudTimer && cloudDirty()) cloudPush(); });
+  async function bootCloud() {
+    $('authScreen').style.display = 'flex';
+    $('authScreen').innerHTML = '<div class="auth-box"><p class="muted" style="text-align:center">불러오는 중...</p></div>';
+    const ok = await new Promise(r => { if (window.Cloud) return r(true); window.addEventListener('cloudready', () => r(true), { once: true }); setTimeout(() => r(false), 8000); });
+    if (!ok) {
+      const last = LS.getItem('vocapro_last_uid');
+      if (last) { toast('서버에 연결하지 못해 이 기기의 저장본으로 열었어요.'); return enterApp(last, null, LS.getItem('vocapro_last_label'), true); }
+      showAuth(); const m = $('auMsg'); if (m) { m.textContent = '서버에 연결하지 못했어요. 인터넷을 확인하세요.'; m.style.display = 'block'; } return;
+    }
+    const u = await Cloud.first;
+    if (!u) { trackVisit(); return showAuth(); }
+    let remote = null, stale = false; try { remote = await Cloud.load(); } catch (e) { stale = true; }
+    enterApp(u.uid, remote, u.email, stale);
+  }
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && /^(INPUT|SELECT)$/.test(e.target.tagName) && e.target.closest('#authScreen')) {
+      e.preventDefault();
+      if (authMode === 'signup' && authStep === 1) ACTIONS['auth-next']();
+      else ACTIONS['auth-go']();
+    }
+  });
 

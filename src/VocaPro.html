@@ -1350,6 +1350,50 @@
     .about-card img { width: 56px; height: 56px; border-radius: 50%; flex: none; }
     .about-card b { display: block; font-size: 1.05rem; }
     .about-card small { color: var(--muted); font-size: .82rem; line-height: 1.5; }
+    /* 본문 읽기 */
+    .rd-ov { position: fixed; inset: 0; z-index: 640; background: var(--bg, #f2f4f6); display: flex; flex-direction: column; }
+    .rd-top { display: flex; align-items: center; justify-content: space-between; padding: calc(12px + env(safe-area-inset-top, 0px)) 16px 12px; background: var(--card, #fff); border-bottom: 1px solid var(--line, rgba(0, 0, 0, .06)); }
+    .rd-top b { font-size: 1.05rem; }
+    .rd-x { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border: 0; border-radius: 50%; background: transparent; color: inherit; cursor: pointer; }
+    .rd-x:hover { background: rgba(127, 127, 127, .1); }
+    .rd-body { flex: 1; overflow-y: auto; padding: 16px 16px calc(220px + env(safe-area-inset-bottom, 0px)); max-width: 760px; width: 100%; margin: 0 auto; box-sizing: border-box; }
+    .rd-help { margin: 0 0 10px; color: var(--muted); font-size: .88rem; line-height: 1.6; }
+    .rd-in { width: 100%; min-height: 220px; box-sizing: border-box; padding: 14px; border-radius: 14px; border: 1px solid var(--line, rgba(0, 0, 0, .1)); background: var(--card, #fff); color: inherit; font: inherit; font-size: 1rem; line-height: 1.7; resize: vertical; }
+    .rd-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 10px; }
+    .rd-rh { margin-top: 22px; }
+    .rd-recent { display: grid; gap: 8px; }
+    .rd-rec { text-align: left; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line, rgba(0, 0, 0, .08)); background: var(--card, #fff); color: inherit; font: inherit; font-size: .86rem; line-height: 1.5; cursor: pointer; }
+    .rd-tools { display: flex; gap: 8px; margin-bottom: 14px; }
+    .rd-tools .btn { flex: 1; }
+    .rd-tools .btn.on { background: var(--blue, #3182f6); color: #fff; }
+    .rd-doc { background: var(--card, #fff); border-radius: 16px; padding: 6px 18px; }
+    .rd-s { padding: 14px 0; border-bottom: 1px solid var(--line, rgba(0, 0, 0, .06)); }
+    .rd-s:last-child { border-bottom: 0; }
+    .rd-en { margin: 0; font-size: 1.08rem; line-height: 1.85; overflow-wrap: anywhere; }
+    .rd-w { cursor: pointer; border-radius: 5px; padding: 1px 1px; transition: background .12s; }
+    .rd-w:hover { background: rgba(49, 130, 246, .1); }
+    .rd-w.own { text-decoration: underline; text-decoration-color: var(--blue, #3182f6); text-decoration-thickness: 2px; text-underline-offset: 4px; }
+    .rd-w.sel { background: rgba(49, 130, 246, .2); }
+    .rd-sp { display: inline-flex; vertical-align: middle; align-items: center; justify-content: center; width: 30px; height: 30px; margin-left: 4px; border: 0; border-radius: 50%; background: rgba(127, 127, 127, .1); color: var(--muted); cursor: pointer; }
+    .rd-sp .ic { width: 16px; height: 16px; }
+    .rd-ko { margin: 6px 0 0; color: var(--muted); font-size: .93rem; line-height: 1.65; }
+    .rd-ko.load { opacity: .6; }
+    .rd-ko.err { color: var(--coral); }
+    .rd-doc.hide-ko .rd-ko { filter: blur(6px); cursor: pointer; user-select: none; }
+    .rd-doc.hide-ko .rd-ko.peek { filter: none; }
+    .rd-note { font-size: .78rem; margin: 12px 2px 0; }
+    .rd-pop { position: fixed; left: 50%; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 660; width: min(560px, calc(100% - 24px)); box-sizing: border-box; padding: 14px 16px 16px; border-radius: 18px; background: var(--card, #fff); box-shadow: 0 18px 50px rgba(0, 20, 50, .22); border: 1px solid var(--line, rgba(0, 0, 0, .06)); animation: spdIn .16s ease-out; }
+    .rd-pw { display: flex; align-items: center; gap: 10px; }
+    .rd-pw b { font-size: 1.3rem; }
+    .rd-pw .q-pron { flex: 1; min-width: 0; margin: 0; text-align: left; overflow-wrap: anywhere; }
+    .rd-pw .rd-x { margin-left: auto; }
+    .rd-pm { margin: 6px 0 0; font-size: 1rem; font-weight: 600; line-height: 1.55; }
+    .rd-pm.load { color: var(--muted); font-weight: 400; }
+    .rd-pe { margin: 8px 0 0; font-size: .86rem; line-height: 1.55; color: var(--muted); }
+    .rd-pe small { display: block; }
+    .rd-pa { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+    .rd-pa select { flex: 1; min-width: 120px; }
+    @media (prefers-reduced-motion: reduce) { .rd-pop { animation: none; } }
     .em-row { display: flex; gap: 8px; }
     .em-row input { flex: 1; min-width: 0; }
     .em-row .em-send { flex: none; white-space: nowrap; padding: 0 14px; font-size: .85rem; }
@@ -3898,7 +3942,7 @@ window.VOCA_CLOUD = {
       ${shelfHtml()}
 
       <div class="h-tools">${isTeacher() ? teachToolsHtml() : ''}<div class="section-title"><span>학습 도구</span></div>
-      <div class="tool-list${LS.getItem('vocapro_tools_open') === '1' ? '' : ' tl-fold'}" id="homeToolList">${isTeacher() ? '' : classEntryHtml()}${todayHtml()}${flowEntryHtml()}${wqEntryHtml()}<button class="mg-entry" data-act="fsc-open"><span class="mg-ico i-coral">${IC.mic}</span><span class="mg-txt"><b>녹음 파일 채점</b><small>문장을 넣고 녹음 파일로 정확성 · 유창성 점수, 저장 안 함</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="gx-open"><span class="mg-ico i-mint">${IC.scan}</span><span class="mg-txt"><b>글·사진에서 단어 뽑기</b><small>기사, 유튜브 자막, 유인물 사진 속 모르는 단어만</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="match"><span class="mg-ico i-grape">${IC.cards}</span><span class="mg-txt"><b>짝 맞추기</b><small>${LN()}와 뜻을 빠르게 연결해요</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="rain"><span class="mg-ico i-teal">${IC.play}</span><span class="mg-txt"><b>단어 비</b><small>떨어지는 뜻이 닿기 전에 단어를 골라요</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="exam-open"><span class="mg-ico i-coral">${IC.trophy}</span><span class="mg-txt"><b>실전 시험</b><small>섞인 문제를 풀고 점수와 등급을 받아요</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="dict-open"><span class="mg-ico i-teal">${IC.search}</span><span class="mg-txt"><b>${LN()}사전</b><small>${isZh() ? '한자, 병음, 한글 뜻으로 바로 찾아요' : '뜻, 예문, 비슷한 단어를 바로 찾아요'}</small></span><span class="mg-chev"></span></button>${recEntryHtml()}${packEntryHtml()}${ltEntryHtml()}</div>
+      <div class="tool-list${LS.getItem('vocapro_tools_open') === '1' ? '' : ' tl-fold'}" id="homeToolList">${isTeacher() ? '' : classEntryHtml()}${todayHtml()}${flowEntryHtml()}${rdEntryHtml()}${wqEntryHtml()}<button class="mg-entry" data-act="fsc-open"><span class="mg-ico i-coral">${IC.mic}</span><span class="mg-txt"><b>녹음 파일 채점</b><small>문장을 넣고 녹음 파일로 정확성 · 유창성 점수, 저장 안 함</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="gx-open"><span class="mg-ico i-mint">${IC.scan}</span><span class="mg-txt"><b>글·사진에서 단어 뽑기</b><small>기사, 유튜브 자막, 유인물 사진 속 모르는 단어만</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="match"><span class="mg-ico i-grape">${IC.cards}</span><span class="mg-txt"><b>짝 맞추기</b><small>${LN()}와 뜻을 빠르게 연결해요</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="rain"><span class="mg-ico i-teal">${IC.play}</span><span class="mg-txt"><b>단어 비</b><small>떨어지는 뜻이 닿기 전에 단어를 골라요</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="exam-open"><span class="mg-ico i-coral">${IC.trophy}</span><span class="mg-txt"><b>실전 시험</b><small>섞인 문제를 풀고 점수와 등급을 받아요</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="dict-open"><span class="mg-ico i-teal">${IC.search}</span><span class="mg-txt"><b>${LN()}사전</b><small>${isZh() ? '한자, 병음, 한글 뜻으로 바로 찾아요' : '뜻, 예문, 비슷한 단어를 바로 찾아요'}</small></span><span class="mg-chev"></span></button>${recEntryHtml()}${packEntryHtml()}${ltEntryHtml()}</div>
       <button class="tl-more-btn${LS.getItem('vocapro_tools_open') === '1' ? ' open' : ''}" data-act="tools-toggle"><span>${LS.getItem('vocapro_tools_open') === '1' ? '접기' : '학습 도구 더 보기'}</span><i></i></button></div>
 
       <div class="h-books"><div class="section-title"><span>내 단어장</span><button data-act="tab" data-t="tabBooks">전체 보기</button></div>
@@ -7070,6 +7114,143 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
   };
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('trOv') && !document.querySelector('.dlg-ov')) closeTranslator(); });
   ACTIONS.translator = () => openTranslator();
+
+  /* =========================================================
+   * 본문 읽기: 영어 · 중국어 글을 붙여 넣으면 문장마다 해석이 나오고, 단어를 누르면 뜻과 발음이 떠요.
+   * ======================================================= */
+  const RD_MAX = 4000, RD_SENT_MAX = 80;
+  const rdKey = () => 'vocapro_reader:' + currentUser;
+  let RD = null; // { text, zh, sents: [{ t, toks, ko }], hideKo, seq }
+  function rdEntryHtml() { return `<button class="mg-entry" data-act="rd-open"><span class="mg-ico">${IC.book}</span><span class="mg-txt"><b>본문 읽기 · 해석</b><small>글을 붙여 넣으면 문장마다 해석, 단어를 누르면 뜻과 발음</small></span><span class="mg-chev"></span></button>`; }
+  const rdRecent = () => { const a = loadJson(rdKey()); return Array.isArray(a) ? a.filter(x => x && typeof x.t === 'string').slice(0, 6) : []; };
+  function rdRemember(t) {
+    const a = rdRecent().filter(x => x.t !== t); a.unshift({ t, at: Date.now() });
+    try { LS.setItem(rdKey(), JSON.stringify(a.slice(0, 6))); } catch (e) {}
+  }
+  function rdClose() { const o = $('rdOv'); if (o) o.remove(); rdPopHide(); RD = null; }
+  function rdShell(inner) {
+    let ov = $('rdOv');
+    if (!ov) { ov = document.createElement('div'); ov.className = 'rd-ov'; ov.id = 'rdOv'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-modal', 'true'); ov.setAttribute('aria-label', '본문 읽기'); document.body.appendChild(ov); }
+    ov.innerHTML = `<div class="rd-top"><b>본문 읽기</b><button class="rd-x" data-act="rd-close" aria-label="닫기">${IC.x}</button></div><div class="rd-body" id="rdBody">${inner}</div>`;
+    return ov;
+  }
+  function rdOpen(prefill) {
+    const rec = rdRecent();
+    rdShell(`<p class="rd-help">영어나 중국어 본문을 붙여 넣으세요. 문장마다 한국어 해석이 나오고, 단어를 누르면 뜻과 발음이 떠요.</p>
+      <textarea id="rdIn" class="rd-in" maxlength="${RD_MAX}" placeholder="예) Plants make their own food. They use sunlight, water and air..." spellcheck="false">${esc(prefill || '')}</textarea>
+      <div class="rd-row"><small id="rdCnt" class="muted">0 / ${RD_MAX.toLocaleString()}자</small><button class="btn btn-primary" data-act="rd-go">해석 보기</button></div>
+      ${rec.length ? `<h4 class="syn-h rd-rh">최근 본문</h4><div class="rd-recent">${rec.map((x, i) => `<button class="rd-rec" data-act="rd-rec" data-i="${i}">${esc(x.t.slice(0, 90))}${x.t.length > 90 ? '…' : ''}</button>`).join('')}</div>` : ''}`);
+    const inp = $('rdIn'), cnt = () => { $('rdCnt').textContent = `${inp.value.length.toLocaleString()} / ${RD_MAX.toLocaleString()}자`; };
+    inp.addEventListener('input', cnt); cnt();
+    setTimeout(() => inp.focus(), 60);
+  }
+  ACTIONS['rd-open'] = () => rdOpen();
+  ACTIONS['rd-close'] = rdClose;
+  ACTIONS['rd-rec'] = el => { const x = rdRecent()[+el.dataset.i]; if (x) rdRun(x.t); };
+  ACTIONS['rd-go'] = () => { const t = (($('rdIn') || {}).value || '').trim(); if (!t) return toast('본문을 붙여 넣어 주세요.'); rdRun(t); };
+  ACTIONS['rd-edit'] = () => rdOpen(RD ? RD.text : '');
+
+  // 문장 나누기: 영어는 . ! ? 뒤, 중국어는 。！？； 뒤. 줄바꿈도 문장 경계로 봐요.
+  function rdSplit(text, zh) {
+    const out = [];
+    text.replace(/\r/g, '').split(/\n+/).forEach(par => {
+      const p = par.trim(); if (!p) return;
+      const parts = zh ? p.split(/(?<=[。！？；!?])/) : p.split(/(?<=[.!?]["'”’)]?)\s+(?=["'“‘(]?[A-Z0-9])/);
+      parts.forEach(x => { x = x.trim(); if (x) out.push(x); });
+    });
+    return out.slice(0, RD_SENT_MAX);
+  }
+  // 단어 나누기: 영어는 글자 묶음, 중국어는 내장 사전에서 가장 긴 단어부터 맞춰요.
+  function rdTokens(sent, zh) {
+    const toks = [];
+    if (!zh) {
+      let last = 0;
+      sent.replace(/[A-Za-z]+(?:['’-][A-Za-z]+)*/g, (m, i) => { if (i > last) toks.push({ s: sent.slice(last, i) }); toks.push({ s: m, w: m.replace(/’/g, "'") }); last = i + m.length; return m; });
+      if (last < sent.length) toks.push({ s: sent.slice(last) });
+      return toks;
+    }
+    const chars = [...sent];
+    for (let i = 0; i < chars.length;) {
+      if (!HAN.test(chars[i])) { let j = i; while (j < chars.length && !HAN.test(chars[j])) j++; toks.push({ s: chars.slice(i, j).join('') }); i = j; continue; }
+      let L = Math.min(6, chars.length - i);
+      for (; L > 1; L--) { const c = chars.slice(i, i + L).join(''); if (zhMap && zhMap.has(c)) break; }
+      const w = chars.slice(i, i + L).join(''); toks.push({ s: w, w }); i += L;
+    }
+    return toks;
+  }
+  async function rdRun(text) {
+    text = String(text || '').slice(0, RD_MAX).trim(); if (!text) return;
+    const zh = HAN.test(text) && !/[A-Za-z]{3}/.test(text.replace(/[A-Z]{1,3}\d*/g, ''));
+    if (zh) await zhLoad();
+    rdRemember(text);
+    const sents = rdSplit(text, zh).map(t => ({ t, toks: rdTokens(t, zh), ko: null }));
+    RD = { text, zh, sents, hideKo: false, seq: (RD && RD.seq || 0) + 1 };
+    rdRender();
+    // 문장마다 번역해요(동시에 4개씩). 다 끝나기 전에도 끝난 문장부터 보여 줘요.
+    const seq = RD.seq; let next = 0;
+    const work = async () => {
+      while (RD && RD.seq === seq && next < sents.length) {
+        const i = next++, s = sents[i];
+        try { s.ko = (await translateText(s.t, true)).t; } catch (e) { s.ko = ''; }
+        if (!RD || RD.seq !== seq) return;
+        const el = document.querySelector(`#rdBody .rd-s[data-i="${i}"] .rd-ko`);
+        if (el) { el.textContent = s.ko || '해석을 가져오지 못했어요.'; el.classList.toggle('err', !s.ko); el.classList.remove('load'); }
+      }
+    };
+    await Promise.all([work(), work(), work(), work()]);
+  }
+  function rdRender() {
+    if (!RD) return;
+    const own = ownedWords();
+    const body = RD.sents.map((s, i) => `<div class="rd-s" data-i="${i}">
+        <p class="rd-en" lang="${RD.zh ? 'zh-CN' : 'en'}">${s.toks.map(t => t.w ? `<span class="rd-w${own.has(t.w.toLowerCase()) ? ' own' : ''}" data-act="rd-word" data-w="${esc(t.w)}">${esc(t.s)}</span>` : esc(t.s)).join('')}<button class="rd-sp" data-act="speak" data-text="${esc(s.t)}" aria-label="이 문장 듣기">${IC.speaker}</button></p>
+        <p class="rd-ko${s.ko === null ? ' load' : ''}">${s.ko === null ? '해석하는 중…' : esc(s.ko || '해석을 가져오지 못했어요.')}</p></div>`).join('');
+    rdShell(`<div class="rd-tools"><button class="btn btn-soft" data-act="rd-edit">본문 바꾸기</button><button class="btn btn-soft${RD.hideKo ? ' on' : ''}" data-act="rd-hide">${RD.hideKo ? '해석 보이기' : '해석 가리기'}</button></div>
+      <div class="rd-doc${RD.hideKo ? ' hide-ko' : ''}">${body}</div>
+      <p class="rd-note muted">밑줄 친 단어는 내 단어장에 있는 단어예요. 해석은 자동 번역이라 조금 어색할 수 있어요.</p>`);
+  }
+  ACTIONS['rd-hide'] = el => { if (!RD) return; RD.hideKo = !RD.hideKo; const d = document.querySelector('#rdBody .rd-doc'); if (d) d.classList.toggle('hide-ko', RD.hideKo); el.textContent = RD.hideKo ? '해석 보이기' : '해석 가리기'; el.classList.toggle('on', RD.hideKo); };
+  // 숨긴 해석은 그 문장을 누르면 잠깐 보여요.
+  document.addEventListener('click', e => { const k = e.target.closest && e.target.closest('.rd-doc.hide-ko .rd-ko'); if (k) k.classList.toggle('peek'); });
+
+  // 단어 누르기 → 아래쪽 카드에 뜻 · 발음 · 듣기 · 단어장에 담기
+  let rdPopWord = null, rdPopSeq = 0;
+  function rdPopHide() { const p = $('rdPop'); if (p) p.remove(); rdPopWord = null; document.querySelectorAll('.rd-w.sel').forEach(x => x.classList.remove('sel')); }
+  ACTIONS['rd-word'] = async (el, e) => {
+    if (e) e.stopPropagation();
+    document.querySelectorAll('.rd-w.sel').forEach(x => x.classList.remove('sel')); el.classList.add('sel');
+    const raw = el.dataset.w, zh = RD && RD.zh, seq = ++rdPopSeq;
+    let p = $('rdPop');
+    if (!p) { p = document.createElement('div'); p.id = 'rdPop'; p.className = 'rd-pop'; p.setAttribute('role', 'dialog'); p.setAttribute('aria-label', '단어 뜻'); document.body.appendChild(p); }
+    p.innerHTML = `<div class="rd-pw"><b>${esc(raw)}</b><button class="rd-x" data-act="rd-pop-x" aria-label="닫기">${IC.x}</button></div><p class="rd-pm load">뜻을 찾는 중…</p>`;
+    let d = null;
+    try { d = await dictGet(zh ? raw : raw.toLowerCase()); } catch (er) {}
+    // 변화형(plants, went)은 원형의 발음을 보여 줘요.
+    if (d && d.base && !d.phonetic && !zh) { try { const b = await dictGet(d.base); if (b) { d.phonetic = b.phonetic; d.koreanPron = b.koreanPron; } } catch (er) {} }
+    if (!d) { try { const r = await translateText(raw, true); d = { word: raw, meaning: r.t + (r.alts && r.alts.length ? ' · ' + r.alts.map(a => a.terms.slice(0, 3).join(', ')).join(' / ') : ''), phonetic: '', koreanPron: '' }; } catch (er) {} }
+    if (seq !== rdPopSeq || !$('rdPop')) return;
+    const head = d && d.base && !zh ? d.base : raw;
+    rdPopWord = { word: zh ? raw : head.toLowerCase(), meaning: d ? String(d.meaning || '').replace(/\s*\(.+의 [^)]*\)$/, '') : '', d };
+    const pr = d ? pronText(d) : '';
+    p.innerHTML = `<div class="rd-pw"><b lang="${zh ? 'zh-CN' : 'en'}">${esc(head)}</b>${pr ? `<span class="q-pron">${esc(pr)}</span>` : ''}<button class="rd-x" data-act="rd-pop-x" aria-label="닫기">${IC.x}</button></div>
+      <p class="rd-pm">${d && d.meaning ? esc(d.meaning) : '뜻을 찾지 못했어요. 인터넷을 확인해 주세요.'}</p>
+      ${d && d.example ? `<p class="rd-pe">${esc(d.example)}${d.exampleKo ? `<small>${esc(d.exampleKo)}</small>` : ''}</p>` : ''}
+      <div class="rd-pa"><button class="btn btn-soft" data-act="speak" data-text="${esc(head)}">${IC.speaker} 발음 듣기</button>
+      ${d && d.meaning ? `<select id="rdBook" aria-label="담을 단어장">${categories.map(c => `<option value="${esc(c.id)}"${c.id === currentCategoryId ? ' selected' : ''}>${esc(c.name)}</option>`).join('')}</select><button class="btn btn-primary" data-act="rd-add">${IC.plus} 담기</button>` : ''}</div>`;
+    playAudio(head, true);
+  };
+  ACTIONS['rd-pop-x'] = () => rdPopHide();
+  ACTIONS['rd-add'] = () => {
+    const sel = $('rdBook'), cat = sel && categories.find(c => c.id === sel.value), x = rdPopWord; if (!cat || !x || !x.meaning) return;
+    if (cat.words.some(w => w.word.toLowerCase() === x.word.toLowerCase())) return toast('이미 그 단어장에 있는 단어예요.');
+    const d = x.d || {}, w = sanitizeWord({ id: uid(), word: x.word, meaning: x.meaning, phonetic: d.phonetic || '', koreanPron: d.koreanPron || '', example: d.example || '', exampleKo: d.exampleKo || '', synonyms: d.synonyms || '' });
+    cat.words.unshift(w); syncStorage();
+    dictFill([w]).then(n => { if (n) syncStorage(); }).catch(() => {});
+    document.querySelectorAll('#rdBody .rd-w').forEach(s => { if (s.dataset.w.toLowerCase() === x.word.toLowerCase()) s.classList.add('own'); });
+    toast(`'${x.word}'를 ${cat.name}에 담았어요.`);
+  };
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('rdOv') && !document.querySelector('.dlg-ov')) { if ($('rdPop')) rdPopHide(); else rdClose(); } });
+  document.addEventListener('pointerdown', e => { if ($('rdPop') && !e.target.closest('#rdPop, .rd-w, #spdPop')) rdPopHide(); }, true);
 
   const OB = [[IC.sprout, '매일 조금씩, 끝까지', '하루 목표만큼만 외워요. 복습할 시기는 앱이 알아서 챙겨 드려요.'], [IC.repeat, '잊을 때쯤 다시 만나요', '틀린 단어는 더 자주, 아는 단어는 천천히. 검증된 반복 학습 방식이에요.'], [IC.headphones, '눈으로, 귀로, 손으로', '플래시카드, 퀴즈, 받아쓰기, 듣기 모드로 질리지 않게 외워요.']];
   function showOnboarding() {

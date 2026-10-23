@@ -1,928 +1,239 @@
   /* =========================================================
-   * 발음 평가 (수행평가): 학생 녹음 -> 16kHz MP3 -> 서버 저장 -> 선생님 보드(10초마다) -> 선생님 AI 채점 · 점수 · 받은 파일 채점
+   * 우리 반 (반 만들기 · 초대 코드 · 과제 · 학생 현황 · 결과 제출)
    * ======================================================= */
-  const SP_MAX = 20, SP_RATE = 16000, SP_KBPS = 32, SP_FILE_SEC = 180, SP_POLL = 10000;
-  const SP_MISSING = '발음 평가는 서버 설정이 필요해요. 운영자(선생님)가 Supabase SQL Editor에서 supabase_update_v11.sql을 실행하면 바로 쓸 수 있어요.';
-  const SP_AI_OLD = 'AI 채점은 서버의 AI 함수를 새로 배포(v9)하면 쓸 수 있어요. 녹음 듣기와 점수 매기기는 지금도 돼요.';
-  const spMsg = e => e && e.code === 'missing' ? SP_MISSING : clMsg(e);
-  const spAiMsg = e => e && e.code === 'missing' ? SP_MISSING : e && (e.status === 400 || e.status === 413) && e.code !== 'bad_input' ? SP_AI_OLD : (e && e.message) || '잠시 후 다시 시도해 주세요.';
-  const spCap = it => it[3] === 's' ? 10 : 4; // 녹음 최대 길이(초): 단어 4초, 문장 10초
-  const spTone = v => v == null ? '' : v >= 80 ? ' good' : v >= 60 ? ' mid' : ' low';
-  const spLang = it => it[2] === 'zh' ? 'zh' : 'en';
-  const spItems = a => (Array.isArray(a.words) ? a.words : []).slice(0, SP_MAX).map(x => Array.isArray(x) ? x : [String(x || '')]);
-  const spAvg = v => v.length ? Math.round(v.reduce((s, x) => s + x, 0) / v.length) : null;
-  // 학생 한 명의 AI 정확성 · 유창성 평균 (앱 녹음은 ai_detail, 파일 채점은 결과에 바로)
-  const spAF = list => { const v = (list || []).filter(d => d && typeof d.acc === 'number'); return v.length ? { a: spAvg(v.map(d => d.acc)), f: spAvg(v.map(d => +d.flu || 0)) } : null; };
-  const spAFOf = m => m && m.submitted ? spAF((m.items || []).map(r => r.ai_detail)) : null;
-  const spAFHtml = af => af ? `<i class="sp-af">정확성 ${esc(af.a)} · 유창성 ${esc(af.f)}</i>` : '';
-  // 여러 명 채점: 동시에 SP_PAR개씩. AI가 바쁘거나 늦으면(502·503·504·408·연결 끊김) 잠깐 쉬고 두 번 더 해 봐요
-  const SP_PAR = 4;
-  async function spPool(list, n, fn) {
-    let i = 0;
-    await Promise.all(Array.from({ length: Math.min(n, list.length) }, async () => { while (i < list.length) await fn(list[i++]); }));
-  }
-  async function spAiTry(body, ms, ok) {
-    for (let k = 0; ; k++) {
-      try { return await Cloud.ai(undefined, body, ms); }
-      catch (e) { if (k >= 2 || !(e && [0, 408, 502, 503, 504].includes(e.status)) || !ok()) throw e; await new Promise(r => setTimeout(r, k ? 9000 : 4000)); }
-    }
-  }
-  // 채점 AI: 기기 AI(무료, 이 컴퓨터에서 채점, 영어 · 중국어) 또는 Gemini(서버)
-  const SP_V12 = '기기 AI 채점 점수를 저장하려면 운영자(선생님)가 Supabase SQL Editor에서 supabase_update_v12.sql을 한 번 실행해야 해요. 그 전에는 위에서 채점 AI를 Gemini로 바꿔 쓰세요.';
-  const spEngLocal = () => { if (!VPA.ok()) return false; try { return localStorage.getItem('vp_eng') !== 'ai'; } catch (e) { return true; } };
-  const spEngHtml = () => VPA.ok() ? `<div class="sp-eng"><span>채점 AI</span><div class="seg"><button class="${spEngLocal() ? 'on' : ''}" data-act="sp-eng" data-v="local">기기 AI (무료)</button><button class="${spEngLocal() ? '' : 'on'}" data-act="sp-eng" data-v="ai">Gemini (서버)</button></div></div>` : '';
-  ACTIONS['sp-eng'] = el => { const t = SPT; if (!t || t.q || t.frun) return; try { localStorage.setItem('vp_eng', el.dataset.v); } catch (e) {} spTDraw(); if (el.dataset.v === 'local') VPA.init().catch(() => {}); };
-  // 기기 AI 진행률(처음 한 번 모델 받기)
-  function spVpaProg(t) {
-    if (!SPT) return () => {};
-    const langs = [...new Set(spItems(t.r.assign).map(it => spLang(it)).concat(spfItems(t).map(x => x.lang), t.files.flatMap(f => spfLines(f.txt).map(x => x.lang))))].filter(l => !VPA.isReady(l));
-    if (!langs.length) return () => {};
-    const fs = langs.map(l => { const mb = vpaMB(l), f = p => { const b = $('spEngP'); if (b && SPT === t) b.textContent = p < 100 ? `${l === 'zh' ? '중국어 ' : ''}기기 AI 준비 중 ${p}% (처음 한 번만 약 ${mb}MB)` : ''; }; VPA.init(f, l).catch(() => {}); return [f, l]; });
-    return () => fs.forEach(([f, l]) => { VPA.off(f, l); f(100); });
-  }
-  const spBySno = (a, b) => String(a.sno || '~').localeCompare(String(b.sno || '~'), 'ko', { numeric: true }) || String(a.name || '').localeCompare(String(b.name || ''), 'ko');
-  const spTime = s => { const d = new Date(s); return !s || isNaN(d) ? '' : `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
-  let SP = null; // 학생 녹음 화면 상태
-  let SPT = null; // 선생님 보드 상태
-  const spUrls = new Set();
-  let spAudio = null, spSeq = 0;
-
-  /* ----- 재생: 하나 또는 여러 개를 차례로 (전체 듣기) ----- */
-  const spBtn = (b, on) => { b.classList.toggle('on', on); if (!b.classList.contains('sp-bi')) b.innerHTML = on ? IC.pause : IC.play; };
-  function spStopAudio() {
-    spSeq++; const a = spAudio; spAudio = null; if (a) { try { a.pause(); } catch (e) {} }
-    document.querySelectorAll('.sp-play.on, .sp-bi.on').forEach(b => spBtn(b, false));
-  }
-  // url 하나 재생: 끝까지 들으면 true, 멈추거나 못 틀면 false
-  const spPlayOne = url => new Promise(res => {
-    const au = new Audio(url); spAudio = au; let done = false;
-    const end = v => { if (done) return; done = true; if (spAudio === au) spAudio = null; res(v); };
-    au.addEventListener('ended', () => end(true)); au.addEventListener('pause', () => end(au.ended));
-    au.play().catch(() => { end(false); toast('이 기기에서 녹음을 재생하지 못했어요.'); });
-  });
-  async function spPlay(gets, btn) {
-    spStopAudio(); try { window.speechSynthesis.cancel(); } catch (e) {}
-    const my = ++spSeq; if (btn) spBtn(btn, true);
-    for (const get of gets) {
-      let url; try { url = await get(); } catch (e) { if (my === spSeq) toast(spMsg(e)); break; }
-      if (my !== spSeq || !await spPlayOne(url) || my !== spSeq) break;
-      await new Promise(r => setTimeout(r, 350));
-    }
-    if (my !== spSeq) return;
-    if (btn) spBtn(btn, false);
-    if (SPT && SPT.later) spTRender(); // 듣는 동안 미뤄 둔 보드 새로 그리기
-  }
-  const spBlobUrl = (u8, type) => { const url = URL.createObjectURL(new Blob([u8], { type: type || 'audio/mpeg' })); spUrls.add(url); return url; };
-  const spB64 = u8 => { let s = ''; for (let i = 0; i < u8.length; i += 8192) s += String.fromCharCode.apply(null, u8.subarray(i, i + 8192)); return btoa(s); };
-  const spUnB64 = b => { const s = atob(b), u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return u; };
-  // 시트를 닫거나 다른 화면으로 가면: 녹음 중지, 마이크 끄기, 보드 새로 고침 멈춤, 재생 멈춤, blob 주소 반납
-  function spEnd() {
-    if (SP) { spRecStop(true); if (SP.stream) SP.stream.getTracks().forEach(t => t.stop()); if (SP.ctx) SP.ctx.close().catch(() => {}); SP = null; }
-    if (SPT) { clearInterval(SPT.timer); if (SPT.q) SPT.q.stop = true; SPT = null; }
-    document.body.classList.remove('sp-drag'); spStopAudio(); spUrls.forEach(u => URL.revokeObjectURL(u)); spUrls.clear();
-  }
-
-  /* ----- 라이브러리: 쓸 때만 같은 주소에서 불러와요 (lame.min.js = MP3 만들기, fflate.min.js = zip 풀기) ----- */
-  const spLibP = {};
-  function spLib(file, name) {
-    if (window[name]) return Promise.resolve(window[name]);
-    if (!spLibP[file]) spLibP[file] = new Promise((ok, no) => {
-      const s = document.createElement('script'); s.src = file;
-      s.addEventListener('load', () => window[name] ? ok(window[name]) : no(new Error(file)));
-      s.addEventListener('error', () => { delete spLibP[file]; s.remove(); no(new Error(file)); });
-      document.head.appendChild(s);
-    });
-    return spLibP[file];
-  }
-
-  /* ----- 소리 -> 16kHz 모노 -> 앞뒤 무음 자르기 -> MP3 (32kbps, 단어 2초 ≈ 8KB) ----- */
-  // 16kHz로 바꾸기: 줄일 때는 구간 평균(잡음 줄이기), 늘릴 때는 가까운 값
-  function spResample(x, rate) {
-    if (rate === SP_RATE) return x;
-    const n = x.length, r = rate / SP_RATE, m = Math.floor(n / r), y = new Float32Array(m);
-    for (let i = 0; i < m; i++) {
-      const a = Math.floor(i * r), b = Math.min(n, Math.max(a + 1, Math.floor((i + 1) * r)));
-      let s = 0; for (let k = a; k < b; k++) s += x[k]; y[i] = s / (b - a);
-    }
-    return y;
-  }
-  // 20ms 단위 소리 크기로 앞뒤 무음 자르기 (앞 0.15초, 뒤 0.2초 여유). 너무 작게 녹음됐으면 키워요(최대 4배)
-  function spTrim(y) {
-    const m = y.length, F = 320, fr = [];
-    for (let i = 0; i + F <= m; i += F) { let s = 0; for (let k = i; k < i + F; k++) s += y[k] * y[k]; fr.push(Math.sqrt(s / F)); }
-    let peak = 0; fr.forEach(v => { if (v > peak) peak = v; }); if (peak < 0.006) return null;
-    const th = Math.max(0.005, peak * 0.12), first = fr.findIndex(v => v >= th);
-    let last = fr.length - 1; while (last > first && fr[last] < th) last--;
-    const s0 = Math.max(0, (first - 8) * F), s1 = Math.min(m, (last + 11) * F), len = s1 - s0;
-    if (len < SP_RATE * 0.15) return null;
-    let mx = 0; for (let i = s0; i < s1; i++) mx = Math.max(mx, Math.abs(y[i]));
-    const g = Math.min(4, 0.9 / (mx || 1)), out = new Float32Array(len);
-    for (let i = 0; i < len; i++) out[i] = Math.max(-1, Math.min(1, y[s0 + i] * g));
-    return { y: out, ms: Math.round(len / SP_RATE * 1000) };
-  }
-  function spPcm(chunks, rate) {
-    let n = 0; chunks.forEach(c => { n += c.length; });
-    const x = new Float32Array(n); let o = 0; chunks.forEach(c => { x.set(c, o); o += c.length; });
-    return spTrim(spResample(x, rate));
-  }
-  // 16kHz 모노 -> MP3. 긴 파일은 조금씩 쉬며 만들어 화면이 멈추지 않게
-  async function spMp3(y) {
-    const L = await spLib('lame.min.js', 'lamejs'), enc = new L.Mp3Encoder(1, SP_RATE, SP_KBPS), out = [], B = 1152 * 16;
-    const pcm = new Int16Array(y.length);
-    for (let i = 0; i < y.length; i++) { const s = Math.max(-1, Math.min(1, y[i])); pcm[i] = s < 0 ? s * 0x8000 : s * 0x7fff; }
-    for (let i = 0, k = 0; i < pcm.length; i += B, k++) { const b = enc.encodeBuffer(pcm.subarray(i, i + B)); if (b.length) out.push(b); if (k % 40 === 39) await new Promise(r => setTimeout(r)); }
-    const f = enc.flush(); if (f.length) out.push(f);
-    let n = 0; out.forEach(b => { n += b.length; });
-    const u8 = new Uint8Array(n); let o = 0; out.forEach(b => { u8.set(new Uint8Array(b.buffer, b.byteOffset, b.length), o); o += b.length; });
-    return u8;
-  }
-  // 받은 소리 파일 풀기: 16kHz로 바로 풀고(안 되면 44.1kHz로 풀어 직접 바꿔요) 채널을 섞어 모노로. 앞 3분까지만
-  async function spDecode(buf) {
-    const OC = window.OfflineAudioContext || window.webkitOfflineAudioContext; if (!OC) throw new Error('이 브라우저에서는 소리 파일을 읽을 수 없어요.');
-    let ctx; try { ctx = new OC(1, 1, SP_RATE); } catch (e) { ctx = new OC(1, 1, 44100); }
-    const ab = await new Promise((ok, no) => { const p = ctx.decodeAudioData(buf, ok, no); if (p && p.then) p.then(ok, no); });
-    const n = Math.min(ab.length, Math.ceil(SP_FILE_SEC * ab.sampleRate)), ch = ab.numberOfChannels, x = new Float32Array(n);
-    for (let c = 0; c < ch; c++) { const d = ab.getChannelData(c); for (let i = 0; i < n; i++) x[i] += d[i] / ch; }
-    return { y: spResample(x, ab.sampleRate), sec: ab.duration };
-  }
-  // MP3 첫 프레임 위치와 머리글 (ID3 태그는 건너뛰어요)
-  function spMp3Head(u8) {
-    let p = 0; if (u8[0] === 0x49 && u8[1] === 0x44 && u8[2] === 0x33) p = 10 + (u8[6] & 127) * 2097152 + (u8[7] & 127) * 16384 + (u8[8] & 127) * 128 + (u8[9] & 127);
-    return u8[p] === 255 && (u8[p + 1] & 0xe6) === 0xe2 && ((u8[p + 2] >> 2) & 3) === 2 ? { pos: p, h: u8.subarray(p, p + 4) } : null;
-  }
-  // 무음 MP3 프레임(같은 머리글, 내용 0): 문항 사이에 넣어요. 다시 만들지 않아 빨라요
-  function spSilence(h, sec) {
-    const kb = [0, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160][h[2] >> 4], fl = 72 * kb * 1000 / SP_RATE, n = Math.ceil(sec * SP_RATE / 576), out = new Uint8Array(fl * n);
-    for (let i = 0; i < n; i++) out.set([255, h[1] | 1, h[2] & 0xfd, h[3]], i * fl);
-    return out;
-  }
-  const spSafe = s => String(s || '').replace(/[\\/:*?"<>|\u0000-\u001f]+/g, ' ').replace(/\s+/g, ' ').trim();
-
-  /* ----- 학생: 마이크 · 녹음 ----- */
-  async function spMic() {
-    const AC = window.AudioContext || window.webkitAudioContext;
-    if (!AC || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.isSecureContext) throw { code: 'unsupported' };
-    if (!SP.ctx) SP.ctx = new AC();
-    if (SP.ctx.state === 'suspended') await SP.ctx.resume().catch(() => {});
-    if (!SP.stream || !SP.stream.getAudioTracks().some(t => t.readyState === 'live')) {
-      try { SP.stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true } }); }
-      catch (e) { throw { code: e && (e.name === 'NotAllowedError' || e.name === 'SecurityError') ? 'denied' : e && (e.name === 'NotFoundError' || e.name === 'OverconstrainedError') ? 'nomic' : 'unsupported' }; }
-      if (SP.ctx.state !== 'running') await SP.ctx.resume().catch(() => {}); // 아이폰: 마이크를 켠 뒤 소리 처리가 멈춰 있을 수 있어요
-    }
-  }
-  const SP_MIC_ERR = {
-    denied: '마이크를 쓸 수 없어요. 브라우저 주소창의 자물쇠(또는 설정 > 사이트 권한)에서 마이크를 허용한 뒤 다시 눌러 주세요.',
-    nomic: '마이크를 찾지 못했어요. 이어폰 마이크나 기기 마이크가 연결됐는지 확인해 주세요.',
-    unsupported: '이 브라우저에서는 녹음할 수 없어요. 최신 Chrome, Safari(iPhone은 iOS 14.3 이상)에서 열어 주세요.'
+  const clOk = () => !!(cloudMode && window.Cloud && Cloud.call && currentUser);
+  const CL_ERR = {
+    no_class: '그 코드의 반을 찾지 못했어요. 코드를 다시 확인해 주세요.', own_class: '내가 만든 반이에요. 학생 계정으로 참여해 주세요.',
+    too_many: '더 만들거나 참여할 수 없어요. 쓰지 않는 반을 먼저 정리해 주세요.', full: '이 반은 인원이 꽉 찼어요(200명).',
+    no_assign: '과제를 찾지 못했어요. 선생님이 지웠을 수 있어요.', bad_input: '입력한 내용을 다시 확인해 주세요.',
+    auth: '로그인이 만료됐어요. 다시 로그인해 주세요.', missing: '우리 반 기능은 아직 준비 중이에요. 운영자가 서버 설정을 마치면 바로 쓸 수 있어요.',
+    network: '서버에 연결하지 못했어요. 인터넷 연결을 확인해 주세요.', too_many_tries: '틀린 코드를 너무 많이 넣었어요. 내일 다시 시도하거나 선생님께 코드를 확인해 주세요.',
+    too_big: '녹음이 너무 길어요. 조금 더 짧게 읽어 주세요.', bad_audio: '녹음 파일을 읽지 못했어요. 다시 녹음해 주세요.', not_done: '아직 녹음하지 않은 문항이 있어요.',
+    no_rec: '녹음을 찾지 못했어요. 60일이 지나 지워졌을 수 있어요.', too_fast: '문제를 너무 빨리 풀어서 받지 않았어요. 과제를 다시 열어 차근차근 풀어 주세요.'
   };
-  async function spRecStart() {
-    const it = SP.items[SP.i], cap = spCap(it), ctx = SP.ctx;
-    const src = ctx.createMediaStreamSource(SP.stream), proc = ctx.createScriptProcessor(4096, 1, 1), mute = ctx.createGain();
-    mute.gain.value = 0; // 내 목소리가 스피커로 다시 나오지 않게
-    const R = { chunks: [], n: 0, lv: 0, t0: performance.now(), cap, src, proc, mute, idx: SP.i, max: Math.ceil(cap * ctx.sampleRate) };
-    proc.onaudioprocess = e => {
-      if (SP.rec !== R) return;
-      const d = e.inputBuffer.getChannelData(0); let s = 0; for (let i = 0; i < d.length; i += 4) s += d[i] * d[i];
-      R.lv = Math.min(1, Math.sqrt(s / (d.length / 4)) * 6);
-      if (R.n < R.max) { const c = d.subarray(0, Math.min(d.length, R.max - R.n)); R.chunks.push(new Float32Array(c)); R.n += c.length; }
-      if (R.n >= R.max) spRecStop();
-    };
-    src.connect(proc); proc.connect(mute); mute.connect(ctx.destination);
-    SP.rec = R; spDraw();
-    const tick = () => {
-      if (SP && SP.rec === R) {
-        const left = Math.max(0, cap - (performance.now() - R.t0) / 1000), lv = $('spLv'), cd = $('spCd'), ring = $('spRing');
-        if (lv) lv.style.transform = `scaleX(${R.lv.toFixed(3)})`;
-        if (ring) ring.style.setProperty('--p', (left / cap).toFixed(3));
-        if (cd) cd.textContent = `${left.toFixed(1)}초 남았어요 · 다 읽으면 버튼을 눌러요`;
-        if (left <= 0) spRecStop(); else requestAnimationFrame(tick);
-      }
-    };
-    requestAnimationFrame(tick);
+  const clMsg = e => e && e.code === 'sp_missing' ? SP_MISSING : CL_ERR[e && e.code] || '잠시 후 다시 시도해 주세요.';
+  const CL_KIND = { test: '시험', study: '단어 학습', speak: '발음 평가' };
+  const clCount = a => a.kind === 'speak' ? `${a.count}문항` : `${a.count}단어`;
+  // 학생 목록 오른쪽: 발음 평가는 선생님이 점수를 매겨야 점수를, 그전에는 '제출 완료' (AI 점수는 학생에게 오지 않아요)
+  const clMine = a => !a.mine ? '<span class="cl-todo">시작</span>' : a.kind === 'speak' && a.mine.score == null ? '<span class="cl-done sp-wait">제출 완료</span>' : `<span class="cl-done">${esc(a.mine.score)}점</span>`;
+  const clKey = () => 'vocapro_cls:' + currentUser;
+  const clCache = () => loadJson(clKey()) || { joined: 0, pending: 0 };
+  let CL = null, CLV = { id: null, tab: 'stu', open: null, data: null };
+  const clDate = s => { if (!s) return ''; const d = new Date(s); return isNaN(d) ? '' : d.toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' }); };
+  const clDue = due => { if (!due) return ''; const left = Math.round((new Date(due + 'T23:59:59').getTime() - Date.now()) / DAY); return left < 0 ? '마감 지남' : left === 0 ? '오늘 마감' : `${clDate(due)}까지`; };
+  const clLoading = t => `<div class="cl-load">${MASCOT('think')}<span>${t || '불러오는 중...'}</span></div>`;
+  function clFail(e, back) { $('sheetBody').innerHTML = `<div class="cl-load">${MASCOT('sleep')}<span>${esc(clMsg(e))}</span></div>${back ? `<button class="btn btn-soft btn-block" data-act="${back}">돌아가기</button>` : ''}`; }
+
+  function classEntryHtml() {
+    if (!clOk()) return '';
+    const c = clCache(), p = !isTeacher() && c.pending > 0;
+    const sub = isTeacher() ? '반 만들기, 과제 내기, 학생별 학습 현황' : c.joined ? (p ? `남은 과제 ${c.pending}개` : '과제와 결과를 확인해요') : '선생님께 받은 코드로 반에 참여해요';
+    return `<button class="mg-entry${p ? ' cl-hot' : ''}" data-act="class-open"><span class="mg-ico i-sun">${IC.users}</span><span class="mg-txt"><b>우리 반</b><small>${sub}</small></span>${p ? `<span class="cl-badge">${c.pending}</span>` : ''}<span class="mg-chev"></span></button>`;
   }
-  // 녹음 멈춤 -> 16kHz로 줄이고 앞뒤 무음 자르기 -> MP3 -> 바로 올리기 (drop 이면 버리기)
-  function spRecStop(drop) {
-    const R = SP && SP.rec; if (!R) return;
-    SP.rec = null;
-    try { R.src.disconnect(); R.proc.disconnect(); R.mute.disconnect(); } catch (e) {}
-    R.proc.onaudioprocess = null;
-    // 녹음이 끝나면 마이크를 꺼요(주소창 마이크 표시가 계속 켜져 있지 않게). 다음 녹음 때 다시 켜요
-    if (SP.stream) { SP.stream.getTracks().forEach(t => t.stop()); SP.stream = null; }
-    if (drop) return;
-    const pcm = spPcm(R.chunks, SP.ctx.sampleRate);
-    if (!pcm) { SP.note = '소리가 들리지 않았어요. 마이크 가까이에서 또렷하게 다시 읽어 주세요.'; return spDraw(); }
-    spUpload(R.idx, pcm);
-  }
-  async function spUpload(idx, pcm) {
-    const sp = SP; sp.busy = idx; sp.note = ''; spDraw();
-    try {
-      let u8; try { u8 = await spMp3(pcm.y); } catch (e) { throw { code: 'mp3' }; }
-      const r = await Cloud.call('voca_speak_put', { p_assign: sp.a.id, p_idx: idx, p_b64: spB64(u8) });
-      if (SP !== sp) return;
-      const old = sp.local[idx]; if (old) { URL.revokeObjectURL(old); spUrls.delete(old); }
-      sp.local[idx] = spBlobUrl(u8, 'audio/mpeg'); sp.raw[idx] = u8;
-      sp.mine[idx] = Object.assign(sp.mine[idx] || {}, { idx, dur_ms: r.dur_ms, bytes: r.bytes, audio: true, t_score: null, t_note: null });
-      sp.dirty = true;
-    } catch (e) { if (SP !== sp) return; sp.note = e && e.code === 'mp3' ? '녹음을 MP3로 바꾸지 못했어요. 인터넷 연결을 확인하고 다시 녹음해 주세요.' : '녹음을 올리지 못했어요. ' + spMsg(e); }
-    sp.busy = null; spDraw();
+  function clSaveCache(r) {
+    const pending = (r.joined || []).reduce((s, c) => s + c.assignments.filter(a => !a.mine && !(a.due && clDue(a.due) === '마감 지남')).length, 0);
+    try { LS.setItem(clKey(), JSON.stringify({ joined: (r.joined || []).length, pending })); } catch (e) {}
   }
 
-  /* ----- 학생: 발음 평가 열기 · 녹음 화면 · 제출 완료 화면 (AI 점수는 보이지 않아요) ----- */
-  async function spOpen(a) {
-    spEnd();
-    const items = spItems(a).filter(x => x[0]);
-    if (!items.length) return say('과제에 문항이 없어요.');
-    openSheet(a.title, clLoading()); const tok = sheetTok;
-    let m; try { m = await Cloud.call('voca_speak_mine', { p_assign: a.id }); } catch (e) { return tok === sheetTok && clFail(e && e.code === 'missing' ? { code: 'sp_missing' } : e, 'cl-home'); }
-    if (tok !== sheetTok) return;
-    SP = { a, items, i: 0, mine: {}, local: {}, raw: {}, submitted: !!m.submitted, at: m.at, score: m.score, tnote: m.note || '', view: m.submitted ? 'done' : 'rec', rec: null, busy: null, note: '' };
-    (m.items || []).forEach(x => { SP.mine[x.idx] = x; });
-    if (!SP.submitted) { const k = items.findIndex((_, i) => !SP.mine[i]); SP.i = k < 0 ? 0 : k; }
-    spDraw();
-  }
-  const spDone = () => SP.items.filter((_, i) => SP.mine[i]).length;
-  function spDraw() {
-    const sp = SP; if (!sp || !$('sheetOv').classList.contains('open')) return;
-    $('sheetTitle').textContent = sp.a.title;
-    if (sp.view === 'done') return spDoneDraw();
-    const it = sp.items[sp.i], r = sp.mine[sp.i], rec = sp.rec && sp.rec.idx === sp.i, busy = sp.busy === sp.i, n = spDone(), last = sp.i === sp.items.length - 1;
-    const zh = spLang(it) === 'zh', cap = spCap(it);
-    $('sheetBody').innerHTML = `<div class="sp">
-      <div class="sp-top"><span class="sp-step"><b>${sp.i + 1}</b> / ${sp.items.length}</span><span class="sp-got">녹음 ${n}/${sp.items.length}</span></div>
-      <div class="sp-dots">${sp.items.map((_, i) => `<button class="${i === sp.i ? 'cur ' : ''}${sp.mine[i] ? 'ok' : ''}" data-act="sp-go" data-i="${i}" aria-label="${i + 1}번 문항"></button>`).join('')}</div>
-      <div class="sp-card">
-        <small class="sp-kind">${it[3] === 's' ? '문장' : '단어'} · ${zh ? '중국어' : '영어'}</small>
-        <b class="sp-text${zh ? ' zh' : ''}${it[3] === 's' ? ' long' : ''}" lang="${zh ? 'zh-CN' : 'en'}">${esc(it[0])}</b>${zh && it[4] ? `<small class="sp-py">${esc(String(it[4]))}</small>` : ''}
-        ${it[1] ? `<span class="sp-mean">${esc(it[1])}</span>` : ''}
-        <button class="btn btn-sm btn-soft sp-listen" data-act="sp-listen">${IC.speaker} 원어민 발음 듣기</button>
-      </div>
-      <div class="sp-recbox${rec ? ' on' : ''}">
-        <button class="sp-mic${rec ? ' on' : ''}" id="spRing" data-act="sp-rec"${busy ? ' disabled' : ''} aria-label="${rec ? '녹음 멈추기' : r ? '다시 녹음하기' : '녹음 시작'}">${rec ? '<i class="sp-stop"></i>' : IC.mic}</button>
-        <div class="sp-meter"><i id="spLv"></i></div>
-        <p class="sp-hint" id="spCd">${rec ? `${cap}초 남았어요` : busy ? '올리는 중...' : r ? '다시 누르면 새로 녹음해요' : `버튼을 누르고 읽어 주세요 · 최대 ${cap}초`}</p>
-      </div>
-      ${sp.note ? `<p class="sp-note">${esc(sp.note)}</p>` : ''}
-      ${r ? `<div class="sp-mine"><button class="sp-play" data-act="sp-play" data-i="${sp.i}" aria-label="내 녹음 듣기"${r.audio === false ? ' disabled' : ''}>${IC.play}</button><span>내 녹음 <small>${r.audio === false ? '파일 지워짐' : (r.dur_ms / 1000).toFixed(1) + '초'}</small></span>${r.t_score != null ? `<em class="sp-sc sp-t">선생님 ${esc(r.t_score)}점</em>` : ''}</div>` : ''}
-      <div class="row sp-nav"><button class="btn btn-soft" data-act="sp-go" data-i="${sp.i - 1}"${sp.i && !rec ? '' : ' disabled'}>이전</button>${last
-        ? `<button class="btn btn-primary" data-act="sp-submit"${n < sp.items.length || sp.busy != null || rec ? ' disabled' : ''}>${n < sp.items.length ? `${sp.items.length - n}개 더 녹음해요` : sp.submitted && !sp.dirty ? '제출 완료 보기' : sp.submitted ? '다시 제출하기' : '선생님께 제출하기'}</button>`
-        : `<button class="btn btn-primary" data-act="sp-go" data-i="${sp.i + 1}"${rec ? ' disabled' : ''}>다음</button>`}</div>
-      <p class="muted cl-p sp-foot">녹음은 선생님만 들을 수 있고 60일 뒤 자동으로 지워져요.</p></div>`;
-  }
-  function spDoneDraw() {
-    const sp = SP;
-    $('sheetBody').innerHTML = `<div class="sp">
-      <div class="sp-sum sp-done"><i class="sp-ok">${IC.check}</i><b>제출 완료</b><span>${sp.at ? esc(spTime(sp.at)) + ' 제출 · ' : ''}${sp.items.length}문항 · 선생님께 녹음이 모였어요</span></div>
-      ${sp.score != null || sp.tnote ? `<div class="sp-tbox"><small>선생님 점수</small>${sp.score != null ? `<b class="${spTone(sp.score).trim()}">${esc(sp.score)}<em>점</em></b>` : ''}${sp.tnote ? `<p>${esc(sp.tnote)}</p>` : ''}</div>`
-        : '<p class="sp-wait-t">선생님이 녹음을 듣고 점수를 매기면 여기에 보여요.</p>'}
-      ${sp.note ? `<p class="sp-note">${esc(sp.note)}</p>` : ''}
-      <div class="sp-list">${sp.items.map((it, i) => { const r = sp.mine[i] || {}; return `<div class="sp-ri">
-        <div class="sp-ri-top"><button class="sp-play" data-act="sp-play" data-i="${i}" aria-label="${i + 1}번 내 녹음 듣기"${r.idx == null || r.audio === false ? ' disabled' : ''}>${IC.play}</button>
-          <div class="sp-ri-t"><b lang="${spLang(it) === 'zh' ? 'zh-CN' : 'en'}">${esc(it[0])}</b><small>${esc([it[1], r.audio === false ? '녹음 파일 지워짐' : r.dur_ms ? (r.dur_ms / 1000).toFixed(1) + '초' : ''].filter(Boolean).join(' · '))}</small></div>
-          ${r.t_score != null ? `<em class="sp-sc${spTone(r.t_score)}">${esc(r.t_score)}</em>` : ''}</div>
-        ${r.t_note ? `<p class="sp-tnote">선생님 · ${esc(r.t_note)}</p>` : ''}</div>`; }).join('')}</div>
-      <button class="btn btn-soft btn-block" data-act="sp-save">${IC.download} 내 녹음 저장 (MP3)</button>
-      <div class="row"><button class="btn btn-soft" data-act="sp-redo">다시 녹음하기</button><button class="btn btn-primary" data-act="cl-home">반 목록</button></div></div>`;
-  }
-  ACTIONS['sp-go'] = el => { if (!SP || SP.rec) return; const i = +el.dataset.i; if (i < 0 || i >= SP.items.length) return; SP.i = i; SP.note = ''; spStopAudio(); spDraw(); };
-  ACTIONS['sp-listen'] = () => { if (!SP) return; const it = SP.items[SP.i]; spStopAudio(); speak(it[0], spLang(it) === 'zh' ? 'zh-CN' : 'en-US', { ask: true }); };
-  ACTIONS['sp-rec'] = async () => {
-    const sp = SP; if (!sp || sp.busy != null) return;
-    if (sp.rec) return spRecStop();
-    // 처음 한 번: 녹음 안내 + 마이크 허락
-    const k = 'vocapro_sp_ok:' + currentUser;
-    if (!LS.getItem(k)) {
-      if (!await ask('녹음 안내\n녹음은 선생님만 들을 수 있고 60일 뒤 자동으로 지워져요.\n선생님이 채점할 때 AI(Google Gemini)로 보낼 수 있어요.\n다음 화면에서 마이크 사용을 허락해 주세요.', { ok: '녹음 시작' })) return;
-      try { LS.setItem(k, '1'); } catch (e) {}
+  ACTIONS['class-open'] = async () => {
+    if (!clOk()) return say(kidMode ? '이 기기에만 저장하는 계정(만 14세 미만)은 반에 참여할 수 없어요.' : '우리 반은 로그인한 서버 계정에서만 쓸 수 있어요.');
+    openSheet('우리 반', clLoading()); const tok = sheetTok;
+    let r; try { r = await Cloud.call('voca_class_mine'); } catch (e) { return tok === sheetTok && clFail(e); }
+    CL = r; clSaveCache(CL); if (tok !== sheetTok) return; clHome();
+    if (CL.joined.length) clReport(true);
+  };
+  function clHome() {
+    const r = CL || { owned: [], joined: [] }, teach = isTeacher();
+    let h = '';
+    if (teach || r.owned.length) {
+      h += `<div class="cl-sec"><h4 class="syn-h">내가 만든 반</h4>${r.owned.length ? `<div class="menu-list">${r.owned.map(c => `<button data-act="cl-class" data-id="${c.id}"><span class="cl-li"><b>${esc(c.name)}</b><small>학생 ${c.members}명 · 과제 ${c.assignments}개 · 코드 ${esc(c.code)}</small></span></button>`).join('')}</div>` : '<p class="muted cl-p">아직 만든 반이 없어요.</p>'}
+        <div class="cl-new"><input type="text" id="clName" maxlength="40" placeholder="반 이름 (예: 2학년 3반 영어)"><button class="btn btn-primary" data-act="cl-create">반 만들기</button></div></div>`;
     }
-    if (SP !== sp) return;
-    spLib('lame.min.js', 'lamejs').catch(() => {}); // MP3 만들 준비 (녹음하는 동안 받아요)
-    try { await spMic(); } catch (e) { if (SP === sp) { sp.note = SP_MIC_ERR[e.code] || SP_MIC_ERR.unsupported; spDraw(); } return; }
-    if (SP !== sp || sp.rec) return;
-    try { window.speechSynthesis.cancel(); } catch (e) {} spStopAudio();
-    try { await spRecStart(); } catch (e) { sp.note = SP_MIC_ERR.unsupported; spDraw(); }
-  };
-  // 내 녹음 받기 (기기에 없으면 서버에서)
-  async function spMineU8(sp, i) {
-    if (sp.raw[i]) return sp.raw[i];
-    const r = await Cloud.call('voca_speak_audio', { p_assign: sp.a.id, p_uid: String(currentUser), p_idx: i });
-    return (sp.raw[i] = spUnB64(r.b64));
+    if (!teach || r.joined.length) {
+      h += r.joined.map(c => `<div class="cl-sec card cl-cls"><div class="cl-head"><div><b>${esc(c.name)}</b><small>${esc([c.school, c.teacher && c.teacher + ' 선생님'].filter(Boolean).join(' · '))}</small></div><button class="btn btn-sm btn-soft" data-act="cl-leave" data-id="${c.id}">나가기</button></div>
+        ${c.assignments.length ? c.assignments.map(a => `<button class="cl-asg" data-act="cl-do" data-id="${a.id}"><span class="cl-li"><b>${esc(a.title)}</b><small>${CL_KIND[a.kind] || ''} · ${clCount(a)}${a.due ? ' · ' + clDue(a.due) : ''}</small></span>${clMine(a)}</button>`).join('') : '<p class="muted cl-p">아직 과제가 없어요.</p>'}</div>`).join('');
+      h += `<div class="cl-sec"><h4 class="syn-h">반 참여하기</h4><div class="cl-new"><input type="text" id="clCode" maxlength="6" placeholder="초대 코드 6자리" autocapitalize="characters" autocomplete="off"><button class="btn btn-primary" data-act="cl-join">참여</button></div>
+        <label class="cl-agree"><input type="checkbox" id="clAgree"> 이 반 선생님에게 내 이름${isTeacher() ? '' : ', 학번'}, 학습 요약(학습한 단어 수, 정답률, 연속 학습, 많이 틀린 단어, 최근 시험 점수), 과제 결과(발음 평가 녹음과 점수 포함), 앱을 켜 두는 동안의 접속 상태와 지금 하는 학습을 보여 주는 데 동의해요. 반에서 나가면 선생님 화면에서 바로 지워져요.</label></div>`;
+    }
+    $('sheetTitle').textContent = '우리 반';
+    $('sheetBody').innerHTML = `<div class="form-stack cl">${h}</div>`;
   }
-  ACTIONS['sp-play'] = el => {
-    const sp = SP, i = +el.dataset.i; if (!sp || !sp.mine[i]) return;
-    if (el.classList.contains('on')) return spStopAudio();
-    spPlay([async () => sp.local[i] || (sp.local[i] = spBlobUrl(await spMineU8(sp, i), spMp3Head(sp.raw[i]) ? 'audio/mpeg' : 'audio/wav'))], el);
+  ACTIONS['cl-home'] = () => ACTIONS['class-open']();
+  ACTIONS['cl-create'] = async el => {
+    const name = (($('clName') || {}).value || '').trim(); if (!name) return toast('반 이름을 적어 주세요.');
+    const p = config.profile || {}; el.disabled = true;
+    try { const r = await Cloud.call('voca_class_create', { p_name: name, p_teacher: p.name || '', p_school: p.school || '' }); toast(`'${r.name}' 반을 만들었어요. 초대 코드는 ${r.code}예요.`); clDetail(r.id); }
+    catch (e) { el.disabled = false; say(clMsg(e)); }
   };
-  // 내 녹음 저장: 문항 녹음을 0.6초 무음으로 이어 붙여 '학번_이름_과제명.mp3'
-  ACTIONS['sp-save'] = async el => {
-    const sp = SP; if (!sp) return; el.disabled = true;
-    try {
-      const parts = [];
-      for (let i = 0; i < sp.items.length; i++) {
-        if (!sp.mine[i] || sp.mine[i].audio === false) continue;
-        const u8 = await spMineU8(sp, i); if (SP !== sp) return;
-        const h = spMp3Head(u8); if (!h) continue; // 예전 WAV 녹음은 빼요
-        if (parts.length) parts.push(spSilence(h.h, 0.6));
-        parts.push(u8.subarray(h.pos));
-      }
-      if (!parts.length) throw { code: 'no_rec' };
-      const p = config.profile || {};
-      download([p.sno, p.name || currentLabel, sp.a.title].map(spSafe).filter(Boolean).join('_').slice(0, 120) + '.mp3', new Blob(parts, { type: 'audio/mpeg' }), 'audio/mpeg');
-      toast('내 녹음을 MP3 파일로 받았어요.');
-    } catch (e) { toast(spMsg(e)); }
-    el.disabled = false;
+  ACTIONS['cl-join'] = async el => {
+    const code = (($('clCode') || {}).value || '').trim().toUpperCase();
+    if (!/^[A-Z0-9]{6}$/.test(code)) return toast('초대 코드 6자리를 적어 주세요.');
+    if (!($('clAgree') || {}).checked) return toast('선생님에게 보여 주는 정보에 동의해야 참여할 수 있어요.');
+    const p = config.profile || {}; el.disabled = true;
+    try { const r = await Cloud.call('voca_class_join', { p_code: code, p_name: p.name || currentLabel || '', p_sno: isTeacher() ? '' : (p.sno || '') }); toast(`'${r.name}' 반에 참여했어요.`); await ACTIONS['class-open'](); }
+    catch (e) { el.disabled = false; say(clMsg(e)); }
   };
-  ACTIONS['sp-redo'] = () => { if (!SP) return; SP.view = 'rec'; SP.i = 0; SP.note = ''; spStopAudio(); spDraw(); };
-  ACTIONS['sp-submit'] = async el => {
-    const sp = SP; if (!sp) return;
-    if (sp.submitted && !sp.dirty) { sp.view = 'done'; return spDraw(); }
+  ACTIONS['cl-leave'] = async el => {
+    if (!await ask('이 반에서 나갈까요?\n선생님 화면에서 내 학습 현황과 과제 결과가 지워져요.', { ok: '나가기', danger: true })) return;
+    try { await Cloud.call('voca_class_leave', { p_class: +el.dataset.id }); toast('반에서 나왔어요.'); ACTIONS['class-open'](); } catch (e) { say(clMsg(e)); }
+  };
+
+  /* ----- 선생님: 반 상세 ----- */
+  async function clDetail(id, keep) {
+    CLV.id = id; if (!keep) { CLV.tab = 'stu'; CLV.open = null; }
+    openSheet('우리 반', clLoading()); const tok = sheetTok;
+    let d; try { d = await Cloud.call('voca_class_detail', { p_class: id }); } catch (e) { return tok === sheetTok && clFail(e, 'cl-home'); }
+    if (tok !== sheetTok || CLV.id !== id) return; CLV.data = d; clDraw();
+  }
+  ACTIONS['cl-class'] = el => clDetail(+el.dataset.id);
+  ACTIONS['cl-tab'] = el => { CLV.tab = el.dataset.t; clDraw(); };
+  ACTIONS['cl-stu'] = el => { CLV.open = CLV.open === el.dataset.uid ? null : el.dataset.uid; clDraw(); };
+  function clWeakTop(lists, n) {
+    const m = new Map();
+    lists.forEach(l => (Array.isArray(l) ? l : []).forEach(x => { const w = Array.isArray(x) ? x[0] : x; if (!w) return; const k = String(w).toLowerCase(); const o = m.get(k) || { w: String(w), mean: Array.isArray(x) ? x[1] || '' : '', c: 0 }; o.c++; m.set(k, o); }));
+    return [...m.values()].sort((a, b) => b.c - a.c).slice(0, n);
+  }
+  function clDraw() {
+    const d = CLV.data, c = d.class, mem = d.members, asg = d.assignments;
+    $('sheetTitle').textContent = c.name;
+    const head = `<div class="cl-code"><div><small>초대 코드</small><b>${esc(c.code)}</b></div><button class="btn btn-sm btn-soft" data-act="cl-copy" data-code="${esc(c.code)}">복사</button><button class="btn btn-sm btn-soft" data-act="cl-rot">새 코드</button></div>
+      <button class="btn btn-primary btn-block lv-open" data-act="cl-live"><i class="lv-dot"></i>실시간 보기 (누가 들어와서 무엇을 하는지)</button>
+      <p class="muted cl-p">학생은 홈의 '우리 반'에서 이 코드를 넣으면 들어와요. 만 14세 미만(이 기기에만 저장하는 계정)은 참여할 수 없어요.</p>
+      <div class="seg"><button class="${CLV.tab === 'stu' ? 'on' : ''}" data-act="cl-tab" data-t="stu">학생 ${mem.length}명</button><button class="${CLV.tab === 'asg' ? 'on' : ''}" data-act="cl-tab" data-t="asg">과제 ${asg.length}개</button><button class="${CLV.tab === 'rank' ? 'on' : ''}" data-act="cl-tab" data-t="rank">랭킹</button></div>`;
+    let body = '';
+    if (CLV.tab === 'rank') body = rkHtml(mem, false);
+    else if (CLV.tab === 'stu') {
+      const weak = clWeakTop(mem.map(m => (m.progress && m.progress.weak) || []), 10);
+      body = mem.length ? `${weak.length ? `<div class="cl-weak"><h4 class="syn-h">반에서 많이 틀린 단어</h4><div class="cl-chips">${weak.map(x => `<span>${esc(x.w)}${x.mean ? ` <small>${esc(x.mean)}</small>` : ''} <b>${x.c}명</b></span>`).join('')}</div></div>` : ''}
+        <div class="cl-table"><div class="cl-tr cl-th"><span>이름</span><span>최근 학습</span><span>7일 단어</span><span>정답률</span><span>과제</span></div>
+        ${mem.map(m => { const p = m.progress || {}; const open = CLV.open === m.uid; return `<button class="cl-tr${open ? ' on' : ''}" data-act="cl-stu" data-uid="${esc(m.uid)}"><span><b>${esc(m.name || '이름 없음')}</b>${m.sno ? `<small>${esc(m.sno)}</small>` : ''}</span><span>${p.last ? clDate(p.last) : '-'}</span><span>${p.n7 != null ? esc(p.n7) : '-'}</span><span>${p.acc7 != null ? esc(p.acc7) + '%' : '-'}</span><span>${esc(m.done)}/${asg.length}</span></button>${open ? clStuHtml(m) : ''}`; }).join('')}</div>`
+        : `<div class="cl-load">${MASCOT('happy')}<span>아직 들어온 학생이 없어요. 초대 코드를 칠판에 적어 주세요.</span></div>`;
+    } else {
+      body = `<button class="btn btn-primary btn-block" data-act="cl-anew">${IC.plus} 과제 내기</button>
+        ${asg.length ? `<div class="menu-list">${asg.map(a => `<button data-act="cl-ares" data-id="${a.id}"><span class="cl-li"><b>${esc(a.title)}</b><small>${CL_KIND[a.kind] || ''} · ${clCount(a)}${a.kind === 'test' ? ` · ${a.n}문제` : ''}${a.due ? ' · ' + clDue(a.due) : ''} · 제출 ${a.subs}/${mem.length}${a.avg != null ? ` · 평균 ${a.avg}점` : ''}</small></span></button>`).join('')}</div>` : '<p class="muted cl-p">아직 낸 과제가 없어요.</p>'}`;
+    }
+    $('sheetBody').innerHTML = `<div class="form-stack cl">${head}${body}<button class="btn btn-soft btn-block" data-act="cl-csv">학습 현황 · 과제 점수 엑셀로 받기</button><div class="row cl-foot"><button class="btn btn-soft" data-act="cl-home">반 목록</button><button class="btn btn-soft cl-danger" data-act="cl-delete">반 삭제</button></div></div>`;
+  }
+  function clStuHtml(m) {
+    const p = m.progress || {};
+    const tests = (Array.isArray(p.tests) ? p.tests : []).filter(Array.isArray).map(t => `<span>${esc(t[2] || '')} <b>${esc(t[1])}점</b> <small>${clDate(t[0])}</small></span>`).join('');
+    return `<div class="cl-stu">${p.at ? `<div class="cl-kv"><span>전체 단어 <b>${esc(p.total || 0)}</b></span><span>마스터 <b>${esc(p.mastered || 0)}</b></span><span>연속 학습 <b>${esc(p.streak || 0)}일</b></span><span>오늘 <b>${esc(p.today || 0)}</b></span></div>
+      ${Array.isArray(p.weak) && p.weak.length ? `<h4 class="syn-h">많이 틀린 단어</h4><div class="cl-chips">${p.weak.filter(Array.isArray).map(x => `<span>${esc(x[0])} <small>${esc(x[1] || '')}</small> <b>${esc(x[2])}회</b></span>`).join('')}</div>` : ''}
+      ${tests ? `<h4 class="syn-h">최근 시험</h4><div class="cl-chips">${tests}</div>` : ''}<p class="muted cl-p">${clDate(p.at)} 기준</p>` : '<p class="muted cl-p">아직 학습 기록이 올라오지 않았어요. 학생이 앱을 열면 올라와요.</p>'}
+      <button class="btn btn-sm btn-soft cl-danger" data-act="cl-kick" data-uid="${esc(m.uid)}" data-name="${esc(m.name)}">반에서 내보내기</button></div>`;
+  }
+  /* ----- 우리 반 랭킹: 7일 학습량 · 정답률 · 연속 학습 · 마스터 단어로 순위. 시상대와 칠판용 큰 화면 (클래스카드 반 랭킹) ----- */
+  const RK_M = [['n7', '7일 학습', '개'], ['acc7', '정답률', '%'], ['streak', '연속 학습', '일'], ['mastered', '마스터', '개']];
+  const RK_C = ['#3182f6', '#f04452', '#03b26c', '#8b5cf6', '#fe9800', '#0aa5b4', '#e64980', '#1b64da'];
+  const rkColor = s => RK_C[[...String(s || '')].reduce((a, c) => a + c.charCodeAt(0), 0) % RK_C.length];
+  function rkRank(mem, m) {
+    const v = x => { const p = x.progress || {}, n = p[m]; return n == null || n === '' ? -1 : +n || 0; };
+    // 정답률은 7일 동안 10개 넘게 푼 학생만 줄을 세워요(한두 개만 풀고 100%가 1등이 되지 않게).
+    const ok = x => m !== 'acc7' || ((x.progress || {}).n7 || 0) >= 10;
+    return mem.filter(x => ok(x) && v(x) > 0).map(x => ({ name: x.name || '이름 없음', sno: x.sno || '', v: v(x) })).sort((a, b) => b.v - a.v || a.name.localeCompare(b.name, 'ko'));
+  }
+  function rkHtml(mem, big) {
+    const m = CLV.rk || 'n7', [, label, unit] = RK_M.find(x => x[0] === m), list = rkRank(mem, m);
+    const chips = `<div class="rk-ms">${RK_M.map(([k, n]) => `<button class="${k === m ? 'on' : ''}" data-act="cl-rk" data-m="${k}">${n}</button>`).join('')}</div>`;
+    if (!list.length) return chips + `<div class="cl-load">${MASCOT('think')}<span>${m === 'acc7' ? '7일 동안 10개 넘게 푼 학생이 아직 없어요.' : '아직 순위를 매길 학습 기록이 없어요.'}</span></div>`;
+    const top = [list[1], list[0], list[2]], medal = ['#9aa5b1', '#f5a524', '#c8783a'];
+    const pod = `<div class="rk-pod">${top.map((x, i) => { const r = [2, 1, 3][i]; return x ? `<div class="rk-p r${r}"><div class="rk-av" style="background:${rkColor(x.name)}">${esc([...x.name][0] || '?')}<i style="background:${medal[i]}">${r}</i></div><b>${esc(x.name)}</b><small>${x.v.toLocaleString()}${unit}</small><div class="rk-ped">${r}</div></div>` : '<div></div>'; }).join('')}</div>`;
+    if (big) return pod + chips;
+    const max = list[0].v || 1;
+    const rest = list.slice(3).map((x, i) => `<div class="rk-row"><span>${i + 4}</span><b>${esc(x.name)}${x.sno ? ` <small class="muted">${esc(x.sno)}</small>` : ''}</b><em>${x.v.toLocaleString()}${unit}</em><div class="rk-bar"><i style="width:${Math.round(x.v / max * 100)}%"></i></div></div>`).join('');
+    return `${chips}${pod}${rest ? `<div class="rk-list">${rest}</div>` : ''}<button class="btn btn-primary btn-block" data-act="cl-rk-big">${IC.podium} 칠판에 크게 띄우기</button><p class="muted cl-p">${label} 기준 · 학생이 앱을 열 때 올라온 기록이에요.</p>`;
+  }
+  ACTIONS['cl-rk'] = el => { CLV.rk = el.dataset.m; if (TT && TT.kind === 'rank') ttDraw(); else clDraw(); };
+  ACTIONS['cl-rk-big'] = () => ttOpen('rank', {});
+  function rkDraw() {
+    const ov = $('ttOv'), d = CLV.data; if (!ov || !d) return;
+    const m = CLV.rk || 'n7', label = RK_M.find(x => x[0] === m)[1];
+    const conf = Array.from({ length: 36 }, (_, i) => `<i style="left:${(i * 97) % 100}%;background:${RK_C[i % RK_C.length]};animation-delay:${-(i * 0.37) % 3.2}s;animation-duration:${2.6 + (i % 5) * 0.3}s"></i>`).join('');
+    ov.innerHTML = `${ttTop(d.class.name + ' · 랭킹')}<div class="rk-conf">${conf}</div><div class="rk-big"><h2>${m === 'n7' ? '이번 주 우리 반 학습 왕' : `우리 반 ${esc(label)} 왕`}</h2><p class="rk-sub">${esc(d.class.name)} · 학생 ${d.members.length}명</p>${rkHtml(d.members, true)}</div>`;
+  }
+  // 초대 코드 바꾸기: 코드가 밖으로 퍼졌거나 내보낸 학생이 다시 들어오려 할 때. 이미 들어온 학생은 그대로예요
+  ACTIONS['cl-rot'] = async el => {
+    const d = CLV && CLV.data; if (!d) return;
+    if (!await ask('초대 코드를 새로 바꿀까요?\n이미 들어온 학생은 그대로이고, 예전 코드로는 더 들어올 수 없어요.', { ok: '바꾸기' })) return;
     el.disabled = true;
-    let r; try { r = await Cloud.call('voca_speak_submit', { p_assign: sp.a.id }); }
-    catch (e) { el.disabled = false; return say(spMsg(e)); }
-    if (SP !== sp) return;
-    const first = !sp.submitted; sp.submitted = true; sp.dirty = false; sp.at = r.at || new Date().toISOString(); sp.view = 'done';
-    if (first) { const c = clCache(); if (c.pending > 0) { c.pending--; try { LS.setItem(clKey(), JSON.stringify(c)); } catch (e) {} } }
-    toast('선생님께 제출했어요.'); spStopAudio(); spDraw();
+    try { const r = await Cloud.call('voca_class_rotate_code', { p_class: d.class.id }); if (CLV && CLV.data === d) { d.class.code = r.code; clDraw(); } toast('새 초대 코드: ' + r.code); }
+    catch (e) { el.disabled = false; say(e && e.code === 'missing' ? '코드 바꾸기는 운영자가 Supabase에서 supabase_update_v12.sql을 실행하면 쓸 수 있어요.' : clMsg(e)); }
+  };
+  ACTIONS['cl-copy'] = async el => { try { await navigator.clipboard.writeText(el.dataset.code); toast('초대 코드를 복사했어요.'); } catch (e) { toast('코드: ' + el.dataset.code); } };
+  ACTIONS['cl-kick'] = async el => {
+    if (!await ask(`${el.dataset.name || '이 학생'} 학생을 반에서 내보낼까요?\n이 반의 과제 결과도 함께 지워져요.`, { ok: '내보내기', danger: true })) return;
+    try { await Cloud.call('voca_class_kick', { p_class: CLV.id, p_uid: el.dataset.uid }); CLV.open = null; clDetail(CLV.id, true); } catch (e) { say(clMsg(e)); }
+  };
+  ACTIONS['cl-delete'] = async () => {
+    if (!await ask(`'${CLV.data.class.name}' 반을 삭제할까요?\n학생 목록, 과제, 제출 결과가 모두 지워지고 되돌릴 수 없어요.`, { ok: '삭제', danger: true })) return;
+    try { await Cloud.call('voca_class_delete', { p_class: CLV.id }); toast('반을 삭제했어요.'); ACTIONS['class-open'](); } catch (e) { say(clMsg(e)); }
   };
 
-  /* ----- 선생님: 발음 평가 보드 (제출 카드 · 결과 목록 · 받은 파일 채점) ----- */
-  async function spResults(id) {
-    spEnd();
-    openSheet('발음 평가', clLoading()); const tok = sheetTok;
-    let r; try { r = await Cloud.call('voca_speak_results', { p_assign: id }); } catch (e) { return tok === sheetTok && clFail(e && e.code === 'missing' ? { code: 'sp_missing' } : e, 'cl-back'); }
+  /* ----- 선생님: 과제 내기 · 결과 ----- */
+  ACTIONS['cl-anew'] = () => {
+    const books = categories.filter(c => c.words.length);
+    if (!books.length) return toast('먼저 단어장에 단어를 담아 주세요. 기초 · 중학교 · 고등학교 · 수능 단어에서 바로 담을 수 있어요.');
+    const due = new Date(Date.now() + 7 * DAY), dv = `${due.getFullYear()}-${String(due.getMonth() + 1).padStart(2, '0')}-${String(due.getDate()).padStart(2, '0')}`;
+    $('sheetTitle').textContent = '과제 내기';
+    $('sheetBody').innerHTML = `<div class="form-stack cl">
+      <label class="setting-label" for="caBook">단어장</label>
+      <select id="caBook">${books.map(c => `<option value="${esc(c.id)}"${c.id === currentCategoryId ? ' selected' : ''}>${esc(c.name)} (${c.words.length}개)</option>`).join('')}</select>
+      <label class="setting-label" for="caTitle">과제 이름 (비우면 단어장 이름)</label>
+      <input type="text" id="caTitle" maxlength="60" placeholder="예: Day 3 단어 시험">
+      <label class="setting-label">종류</label>
+      <div class="seg" id="caKind"><button class="on" data-act="ca-kind" data-g="caKind" data-v="test">시험</button><button data-act="ca-kind" data-g="caKind" data-v="study">단어 학습</button><button data-act="ca-kind" data-g="caKind" data-v="speak">발음 평가</button></div>
+      <div id="caNumBox" class="form-stack"><label class="setting-label">시험 문제 수</label>
+      <div class="seg" id="caNum">${[10, 20, 30, 50].map(k => `<button class="${k === 20 ? 'on' : ''}" data-act="pt-opt" data-g="caNum" data-v="${k}">${k}문제</button>`).join('')}</div></div>
+      <div id="caSpBox" class="form-stack" hidden><label class="setting-label">읽을 내용</label>
+      <div class="seg" id="caSp"><button class="on" data-act="pt-opt" data-g="caSp" data-v="w">단어만</button><button data-act="pt-opt" data-g="caSp" data-v="s">예문까지</button></div>
+      <p class="muted cl-p">단어장 앞에서부터 20개까지 들어가요. '예문까지'는 예문이 있는 단어는 예문을, 없으면 단어를 읽어요. 학생이 앱에서 녹음해 제출하면 선생님 보드에 바로 모여요. 선생님이 듣고 AI 채점(0~100점)을 누르거나 직접 점수를 매겨요. 학생에게는 선생님이 매긴 점수만 보여요. 녹음은 작은 MP3로 저장하고, 선생님과 학생 본인만 들을 수 있고 60일 뒤 지워져요.</p>${true ? `<button class="mg-entry" data-act="rec-tab" data-g="${isZh() ? 'zs-2' : 'es-2'}"><span class="mg-ico i-sun">${IC.mic}</span><span class="mg-txt"><b>${isZh() ? '중국어' : '영어'} 말하기 문장 (하 · 중 · 상 · 최상)</b><small>여기서 단어장을 만든 뒤 '예문까지'로 내면 학생 화면에 병음도 함께 보여요</small></span><span class="mg-chev"></span></button>` : ''}</div>
+      <label class="setting-label" for="caDue">마감일</label>
+      <input type="date" id="caDue" value="${dv}">
+      <p class="muted cl-p" id="caNote">학생은 단어장을 그대로 받아 풀고, 끝나면 점수와 틀린 단어가 자동으로 제출돼요. 여러 번 풀면 가장 높은 점수가 남아요.</p>
+      <div class="row"><button class="btn btn-soft" data-act="cl-back">취소</button><button class="btn btn-primary" data-act="cl-acreate">과제 내기</button></div></div>`;
+  };
+  // 종류를 바꾸면 시험 문제 수 / 발음 평가 설정을 바꿔 보여 줘요
+  ACTIONS['ca-kind'] = el => {
+    ACTIONS['pt-opt'](el); const sp = el.dataset.v === 'speak';
+    $('caNumBox').hidden = el.dataset.v !== 'test'; $('caSpBox').hidden = !sp; $('caNote').hidden = sp;
+  };
+  ACTIONS['cl-back'] = () => clDetail(CLV.id, true);
+  ACTIONS['cl-acreate'] = async el => {
+    const cat = categories.find(c => c.id === ($('caBook') || {}).value); if (!cat) return;
+    const kind = (document.querySelector('#caKind .on') || { dataset: { v: 'test' } }).dataset.v, n = +(document.querySelector('#caNum .on') || { dataset: { v: 20 } }).dataset.v;
+    const sent = kind === 'speak' && (document.querySelector('#caSp .on') || { dataset: {} }).dataset.v === 's';
+    // 발음 평가 문항: [읽을 글, 뜻, 언어, 'w' 단어 | 's' 문장, (중국어) 병음] 20개까지
+    const words = kind === 'speak'
+      ? cat.words.slice(0, SP_MAX).map(w => { const s = sent && w.example, py = LANG === 'zh' ? ((s ? w.exPy : w.phonetic) || '').slice(0, 200) : ''; const it = s ? [w.example.slice(0, 200), (w.exampleKo || w.meaning || '').slice(0, 160), LANG, 's'] : sentLike(w.word) ? [w.word.slice(0, 200), (w.meaning || '').slice(0, 160), LANG, 's'] : [w.word.slice(0, 80), (w.meaning || '').slice(0, 120), LANG, 'w']; if (py) it.push(py); return it; })
+      : cat.words.slice(0, 500).map(w => [w.word.slice(0, 80), (w.meaning || '').slice(0, 120)]);
+    el.disabled = true;
+    try {
+      // 발음 평가는 서버 v11이 있어야 해요. 없으면 과제를 만들기 전에 알려 줘요
+      if (kind === 'speak') { try { await Cloud.call('voca_speak_results', { p_assign: 0 }); } catch (e) { if (e && e.code === 'missing') { el.disabled = false; return say(SP_MISSING); } } }
+      await Cloud.call('voca_assign_create', { p_class: CLV.id, p_title: (($('caTitle') || {}).value || '').trim() || cat.name, p_kind: kind, p_n: kind === 'speak' ? words.length : n, p_due: ($('caDue') || {}).value || null, p_words: words });
+      const cut = kind === 'speak' ? cat.words.length > SP_MAX && `앞의 ${SP_MAX}개만` : cat.words.length > 500 && '앞의 500단어만';
+      toast(cut ? `과제를 냈어요. ${cut} 들어갔어요.` : '과제를 냈어요.'); CLV.tab = 'asg'; clDetail(CLV.id, true);
+    } catch (e) { el.disabled = false; say(kind === 'speak' && e && e.code === 'bad_input' ? SP_MISSING : clMsg(e)); }
+  };
+  ACTIONS['cl-ares'] = async el => {
+    const id = +el.dataset.id, a0 = CLV.data && CLV.data.assignments.find(x => x.id === id);
+    if (a0 && a0.kind === 'speak') return spResults(id);
+    openSheet('과제 결과', clLoading()); const tok = sheetTok;
+    let r; try { r = await Cloud.call('voca_assign_results', { p_assign: id }); } catch (e) { return tok === sheetTok && clFail(e, 'cl-back'); }
     if (tok !== sheetTok) return;
-    const t = SPT = { id, r, v: r.v, tab: 'board', open: null, cache: {}, busy: new Set(), fresh: new Set(), seen: new Map(), q: null, files: spfLoad(id), src: 'asg', book: '', bookS: false, text: '' };
-    (r.rows || []).forEach(x => { if (x.submitted) t.seen.set(x.uid, x.at); });
-    spTDraw();
-    t.timer = setInterval(() => spPoll(t), SP_POLL); // 10초마다 바뀐 게 있는지만 물어요
-  }
-  async function spPoll(t, force) {
-    if (SPT !== t || (t.polling && !force)) return;
-    if (!force && (document.visibilityState === 'hidden' || !$('sheetOv').classList.contains('open'))) return;
-    t.polling = true;
-    let r = null; try { r = await Cloud.call('voca_speak_results', { p_assign: t.id, p_since: force ? null : t.v }); } catch (e) {}
-    t.polling = false;
-    if (SPT !== t || !r) return;
-    if (r.same) { if (t.later) spTRender(); return; }
-    const neu = (r.rows || []).filter(x => x.submitted && t.seen.get(x.uid) !== x.at);
-    neu.forEach(x => { t.seen.set(x.uid, x.at); t.fresh.add(x.uid); });
-    if (neu.length && !force) toast(neu.length === 1 ? `${neu[0].name || '학생'} 학생이 제출했어요.` : `${neu.length}명이 새로 제출했어요.`);
-    t.r = r; t.v = r.v; spTRender();
-  }
-  // 점수를 쓰는 중이거나 녹음을 듣는 중이면 새로 그리기를 미뤄요(끊기지 않게)
-  function spTRender() {
-    const t = SPT; if (!t) return;
-    const a = document.activeElement;
-    if (spAudio || (a && a.closest && a.closest('#sheetBody') && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName))) { t.later = true; return; }
-    t.later = false; const sh = document.querySelector('.sheet'), pos = sh ? sh.scrollTop : 0;
-    spTDraw(); if (sh) sh.scrollTop = pos;
-  }
-  // 최종 점수: 선생님 전체 점수 > (문항마다 선생님, 없으면 AI) 평균
-  function spFin(x) {
-    const m = x.m, f = x.f;
-    if (m && m.submitted) {
-      if (m.mark && m.mark.score != null) return { v: m.mark.score, by: '선생님' };
-      if (m.ai_n || m.t_avg != null) return { v: m.score, by: m.t_avg != null ? (m.ai_n ? 'AI · 선생님' : '선생님') : 'AI' };
-      return { v: null, by: `앱 · ${m.n}문항`, e: '채점 전' };
-    }
-    if (f) { const v = f.ts != null ? f.ts : spAvg((f.res || []).map(y => y.score)); return { v, by: f.ts != null ? '선생님 · 파일' : 'AI · 파일' }; }
-    return { v: null, by: m && m.n ? `녹음 ${m.n}개` : '', e: '미제출' };
-  }
-  // 결과 목록 = 반 학생 + 받은 파일 결과. 앱으로 안 낸 학생은 학번이 같은 파일 결과를 붙여요
-  function spRows(t) {
-    const files = t.files.filter(f => f.st === 'done'), used = new Set(), out = [];
-    (t.r.rows || []).forEach(m => {
-      let f = null;
-      if (!m.submitted) { f = files.find(y => !used.has(y.id) && (m.sno ? y.sno === m.sno : y.nm && y.nm === m.name)); if (f) used.add(f.id); }
-      out.push({ k: 'u:' + m.uid, m, f, sno: m.sno || '', name: m.name || '' });
-    });
-    files.filter(f => !used.has(f.id)).forEach(f => out.push({ k: 'f:' + f.id, f, sno: f.sno || '', name: f.nm || '' }));
-    return out.sort(spBySno);
-  }
-  function spTDraw() {
-    const t = SPT; if (!t) return;
-    const a = t.r.assign, rows = t.r.rows || [], items = spItems(a), sub = rows.filter(x => x.submitted), q = t.q;
-    const todo = sub.filter(x => x.n > (x.ai_n || 0)).length, nf = t.files.filter(f => f.st === 'done').length;
+    const a = r.assign, done = r.rows.filter(x => x.score != null), left = r.rows.filter(x => x.score == null);
+    const avg = done.length ? Math.round(done.reduce((s, x) => s + x.score, 0) / done.length) : null;
+    const weak = clWeakTop(done.map(x => x.wrong), 10);
     $('sheetTitle').textContent = a.title;
-    const head = `<div class="cl-kv sp-kv"><span>발음 평가 · ${items.length}문항</span>${a.due ? `<span>${clDue(a.due)}</span>` : ''}<span>제출 <b>${sub.length}/${rows.length}</b></span>${nf ? `<span>파일 <b>${nf}</b></span>` : ''}<span class="sp-live"><i></i>10초마다 새로 고쳐요</span></div>
-      <div class="sp-acts">${q ? `<button class="btn btn-primary" data-act="sp-gstop">${q.stop ? '멈추는 중...' : `AI 채점 중 ${q.i}/${q.list.length} · 멈추기`}</button>`
-        : `<button class="btn btn-primary" data-act="sp-gall"${todo ? '' : ' disabled'}>${IC.sparkles} ${todo ? `전체 AI 채점 (${todo}명)` : sub.length ? '모두 AI 채점했어요' : '전체 AI 채점'}</button>`}<button class="btn btn-soft" data-act="sp-csv">${IC.download} CSV</button></div>
-      ${q ? `<div class="sp-prog" role="progressbar" aria-valuenow="${q.i}" aria-valuemax="${q.list.length}"><i style="width:${Math.round(q.i / q.list.length * 100)}%"></i></div>` : ''}
-      ${spEngHtml()}<p class="muted sp-engp" id="spEngP" aria-live="polite"></p>
-      <div class="seg sp-tabs"><button class="${t.tab === 'board' ? 'on' : ''}" data-act="sp-tab" data-t="board">제출 ${sub.length}</button><button class="${t.tab === 'list' ? 'on' : ''}" data-act="sp-tab" data-t="list">결과 목록</button><button class="${t.tab === 'file' ? 'on' : ''}" data-act="sp-tab" data-t="file">파일로 채점</button></div>`;
-    const body = t.tab === 'list' ? spListHtml(t, items) : t.tab === 'file' ? spFileHtml(t, items) : spBoardHtml(t, items, rows);
-    $('sheetBody').innerHTML = `<div class="form-stack cl sp sp-wide">${head}${body}
-      <div class="row cl-foot sp-foot2"><button class="btn btn-soft" data-act="cl-back">돌아가기</button><button class="btn btn-soft cl-danger" data-act="sp-delall">녹음 파일 지우기</button><button class="btn btn-soft cl-danger" data-act="cl-adel" data-id="${a.id}">과제 삭제</button></div></div>`;
-    t.fresh.clear();
-  }
-  function spBoardHtml(t, items, rows) {
-    const sub = rows.filter(x => x.submitted).sort(spBySno), left = rows.filter(x => !x.submitted).sort(spBySno);
-    return `${sub.length ? `<div class="sp-grid">${sub.map(x => spCardHtml(t, x, items)).join('')}</div>`
-        : `<div class="cl-load">${MASCOT('think')}<span>아직 제출한 학생이 없어요. 학생이 앱에서 녹음해 제출하면 여기에 바로 나타나요.</span></div>`}
-      ${left.length ? `<h4 class="syn-h">아직 안 낸 학생 ${left.length}명</h4><div class="cl-chips">${left.map(x => `<span>${esc(x.sno || '')} ${esc(x.name || '이름 없음')}${x.n ? ` <small>녹음 ${esc(x.n)}/${items.length}</small>` : ''}</span>`).join('')}</div>` : ''}
-      <p class="muted cl-p">카드의 ▶는 전체 듣기, 숫자는 문항 하나 듣기예요. AI 채점은 선생님만 볼 수 있고, 학생에게는 선생님이 매긴 점수만 보여요. 카카오톡으로 받은 녹음은 '파일로 채점'에 넣어요.</p>`;
-  }
-  function spCardHtml(t, x, items) {
-    const busy = t.busy.has(x.uid), all = x.n > 0 && x.ai_n >= x.n, ts = x.mark && x.mark.score != null ? x.mark.score : null, by = new Map((x.items || []).map(r => [r.idx, r]));
-    return `<div class="sp-bc${t.fresh.has(x.uid) ? ' arrive' : ''}" data-uid="${esc(x.uid)}">
-      <button class="sp-bc-h" data-act="sp-open" data-k="u:${esc(x.uid)}"><span class="sp-no">${esc(x.sno || '')}</span><b>${esc(x.name || '이름 없음')}</b>${ts != null ? `<em class="sp-bc-fin${spTone(ts)}"><small>선생님</small>${esc(ts)}</em>` : ''}</button>
-      <small class="sp-bc-t">${esc(spTime(x.at))} 제출 · ${esc(x.n)}/${items.length}문항</small>
-      <div class="sp-bc-p"><button class="sp-play" data-act="sp-pall" data-uid="${esc(x.uid)}" aria-label="${esc(x.name)} 전체 듣기">${IC.play}</button><div class="sp-bis">${items.map((_, i) => { const r = by.get(i); const v = r ? (r.t_score != null ? r.t_score : r.ai_score) : null; return `<button class="sp-bi${spTone(v)}" data-act="sp-tplay" data-uid="${esc(x.uid)}" data-i="${i}"${r && r.audio ? '' : ' disabled'} aria-label="${i + 1}번 듣기">${i + 1}</button>`; }).join('')}</div></div>
-      <div class="sp-bc-f"><span class="sp-bc-sc">${x.ai_n ? `<em class="sp-sc${spTone(x.ai_avg)}">AI ${esc(x.ai_avg)}${all ? '' : ` · ${esc(x.ai_n)}/${esc(x.n)}`}</em>${spAFHtml(spAFOf(x))}` : '<em class="sp-sc">AI 전</em>'}</span>
-        <button class="btn btn-sm ${all ? 'btn-soft' : 'btn-primary'}" data-act="sp-grade1" data-uid="${esc(x.uid)}"${busy || t.q ? ' disabled' : ''}>${busy ? '채점 중...' : all ? '다시 채점' : 'AI 채점'}</button></div></div>`;
-  }
-  function spListHtml(t, items) {
-    const list = spRows(t);
-    if (!list.length) return '<p class="muted cl-p">아직 반에 학생이 없어요.</p>';
-    return `<div class="sp-lt">${list.map(x => { const f = spFin(x), open = t.open === x.k; return `<button class="sp-lr${open ? ' on' : ''}${f.v == null ? ' dim' : ''}" data-act="sp-open" data-k="${esc(x.k)}" aria-expanded="${open}"><span class="sp-no">${esc(x.sno || '-')}</span><span class="sp-lr-n"><b>${esc(x.name || '이름 없음')}</b>${spAFHtml(x.m && x.m.submitted ? spAFOf(x.m) : x.f ? spAF(x.f.res) : null)}</span><small>${esc(f.by)}</small><em class="${spTone(f.v).trim()}">${f.v != null ? esc(f.v) + '점' : esc(f.e || '')}</em></button>${open ? spDetHtml(t, x, items) : ''}`; }).join('')}</div>
-      <p class="muted cl-p">최종 점수 = 선생님 점수, 없으면 AI 점수 평균(정확성 70% + 유창성 30%). 줄을 누르면 문항마다 점수 · AI가 들은 말 · 조언을 보고 점수를 고칠 수 있어요.</p>`;
-  }
-  // 일치도: 목표 문장에서 빠뜨린 단어(중국어는 글자)를 표시해요. 기기 AI는 채점할 때 정한 자리(miss),
-  // Gemini는 서버와 같은 방법(들은 말과 순서대로 비교, 영어는 글자 1/3까지 달라도 같은 단어)으로 다시 찾아요
-  const SP_HAN = /[\u3400-\u9fff\uf900-\ufaff]/;
-  const spToks = (t, loc) => { let x = String(t || '').toLowerCase().normalize('NFKC').replace(/[’‘`]/g, "'"); x = loc ? x.replace(/-/g, ' ').replace(/[^a-z' ]/g, ' ') : x.replace(/[^a-z0-9'\s-]/g, ' ').replace(/-/g, ' '); return x.split(/\s+/).map(w => w.replace(/^'+|'+$/g, '')).filter(Boolean); };
-  function spEdit(a, b) { const d = Array.from({ length: b.length + 1 }, (_, j) => j); for (let i = 1; i <= a.length; i++) { let p = d[0]; d[0] = i; for (let j = 1; j <= b.length; j++) { const t = d[j]; d[j] = Math.min(d[j] + 1, d[j - 1] + 1, p + (a[i - 1] === b[j - 1] ? 0 : 1)); p = t; } } return d[b.length]; }
-  function spMiss(text, d) {
-    if (Array.isArray(d.miss)) return new Set(d.miss.filter(Number.isInteger));
-    if (d.model === 'vocapro-local' || !d.heard || d.comp == null) return null;
-    const zh = SP_HAN.test(text), tw = zh ? [...String(text)].filter(c => SP_HAN.test(c)) : spToks(text), hw = zh ? [...String(d.heard)].filter(c => SP_HAN.test(c)) : spToks(d.heard);
-    const same = (x, y) => x === y || !zh && spEdit(x, y) <= Math.max(1, Math.floor(Math.max(x.length, y.length) / 3));
-    const L = Array.from({ length: tw.length + 1 }, () => new Array(hw.length + 1).fill(0));
-    for (let i = 1; i <= tw.length; i++) for (let j = 1; j <= hw.length; j++) L[i][j] = same(tw[i - 1], hw[j - 1]) ? L[i - 1][j - 1] + 1 : Math.max(L[i - 1][j], L[i][j - 1]);
-    const hit = new Set();
-    for (let i = tw.length, j = hw.length; i > 0 && j > 0;) { if (same(tw[i - 1], hw[j - 1]) && L[i][j] === L[i - 1][j - 1] + 1) { hit.add(i - 1); i--; j--; } else if (L[i - 1][j] >= L[i][j - 1]) i--; else j--; }
-    return new Set(tw.map((_, i) => i).filter(i => !hit.has(i)));
-  }
-  // 목표 문장을 그대로 보여 주고 빠뜨린 단어에 표시
-  function spSentHtml(text, miss, loc) {
-    if (!miss || !miss.size) return esc(text);
-    const mk = x => `<mark class="sp-miss" title="빠뜨린 말">${esc(x)}</mark>`;
-    let k = 0;
-    if (SP_HAN.test(text)) { const cs = [...String(text).normalize(loc ? 'NFKC' : 'NFC')]; return cs.map(c => SP_HAN.test(c) ? (miss.has(k++) ? mk(c) : esc(c)) : esc(c)).join(''); }
-    return String(text).split(/(\s+)/).map(ch => { if (!ch.trim()) return esc(ch); const n = spToks(ch, loc).length, m = Array.from({ length: n }, (_, j) => k + j).some(j => miss.has(j)); k += n; return m ? mk(ch) : esc(ch); }).join('');
-  }
-  // 문항 하나: 앱 녹음(ai_score, ai_detail) 또는 파일 결과(score, heard, tips)
-  const spDetItem = (it, i, r, play) => { const d = (r && r.ai_detail) || r || {}, sc = r ? (r.ai_score != null ? r.ai_score : r.score) : null, miss = r && d.acc != null ? spMiss(String(it[0]), d) : null; return `<div class="sp-ri">
-      <div class="sp-ri-top">${play || ''}<div class="sp-ri-t"><b lang="${spLang(it) === 'zh' ? 'zh-CN' : 'en'}">${i + 1}. ${spSentHtml(String(it[0]), miss, d.model === 'vocapro-local')}</b>${it[1] ? `<small>${esc(it[1])}</small>` : ''}</div>
-        <em class="sp-sc${spTone(sc)}">${sc != null ? 'AI ' + esc(sc) : r ? '채점 전' : '-'}</em></div>
-      ${d.acc != null ? `<div class="sp-sub"><span>정확성 <b>${esc(d.acc)}</b></span><span>유창성 <b>${esc(d.flu)}</b></span>${d.comp != null ? `<span class="sp-comp${d.comp < 100 ? ' part' : ''}">일치도 <b>${esc(d.comp)}%</b></span>` : ''}${miss && miss.size ? `<span class="sp-mlg">빠뜨린 말 ${miss.size}개 (줄 그어 표시)</span>` : ''}</div>` : ''}
-      ${d.heard ? `<p class="sp-heard">AI가 들은 말 <b>${esc(d.heard)}</b></p>` : ''}${d.tips ? `<p class="sp-tip">${esc(d.tips)}</p>` : ''}
-      ${Array.isArray(d.problems) && d.problems.length ? `<div class="sp-prob">${d.problems.map(y => `<span>${esc(y)}</span>`).join('')}</div>` : ''}`; };
-  const spMarkHtml = (sc, note, act, key) => `<div class="sp-mark"><b>선생님 최종 점수 · 한마디</b><small>${act === 'sp-msave' ? '학생에게 보여요. 넣으면 AI 점수 대신 이 점수가 최종 점수예요.' : '이 기기에만 저장해요.'}</small>
-      <div class="sp-tform"><input type="number" id="spMS" min="0" max="100" inputmode="numeric" placeholder="점수" value="${sc != null ? esc(sc) : ''}" aria-label="최종 점수"><input type="text" id="spMN" maxlength="300" placeholder="한마디 (예: 강세가 아주 좋아요)" value="${esc(note || '')}" aria-label="한마디"><button class="btn btn-sm btn-primary" data-act="${act}" ${key}>저장</button></div></div>`;
-  function spDetHtml(t, x, items) {
-    const m = x.m;
-    if (!(m && m.submitted) && x.f) return spFileDetHtml(x.f);
-    if (!m) return '';
-    if (!m.n) return '<div class="sp-det"><p class="muted cl-p">아직 녹음이 없어요. 카카오톡으로 받았다면 \'파일로 채점\'에 넣어 주세요.</p></div>';
-    const by = new Map((m.items || []).map(r => [r.idx, r])), all = m.ai_n >= m.n, u = esc(m.uid);
-    return `<div class="sp-det">
-      <div class="sp-det-h"><button class="sp-play" data-act="sp-pall" data-uid="${u}" aria-label="전체 듣기">${IC.play}</button><span>전체 듣기 <small>${m.submitted ? esc(spTime(m.at)) + ' 제출' : '아직 제출 전'} · 녹음 ${esc(m.n)}/${items.length}</small></span></div>
-      <div class="sp-list">${items.map((it, i) => { const r = by.get(i); return spDetItem(it, i, r, `<button class="sp-play" data-act="sp-tplay" data-uid="${u}" data-i="${i}" aria-label="${i + 1}번 녹음 듣기"${r && r.audio ? '' : ' disabled'}>${IC.play}</button>`)
-        + (r ? `<div class="sp-tform"><input type="number" id="spT${i}" min="0" max="100" inputmode="numeric" placeholder="점수" value="${r.t_score != null ? esc(r.t_score) : ''}" aria-label="${i + 1}번 선생님 점수"><input type="text" id="spN${i}" maxlength="200" placeholder="문항 메모 (학생에게 보여요)" value="${esc(r.t_note || '')}" aria-label="${i + 1}번 메모"><button class="btn btn-sm btn-soft" data-act="sp-tsave" data-uid="${u}" data-i="${i}">저장</button></div>` : '') + '</div>'; }).join('')}</div>
-      ${spMarkHtml(m.mark && m.mark.score, m.mark && m.mark.note, 'sp-msave', `data-uid="${u}"`)}
-      <div class="row"><button class="btn btn-soft" data-act="sp-grade1" data-uid="${u}"${t.busy.has(m.uid) || t.q ? ' disabled' : ''}>${IC.sparkles} ${t.busy.has(m.uid) ? '채점 중...' : all ? 'AI 다시 채점' : 'AI 채점'}</button><button class="btn btn-soft cl-danger" data-act="sp-del1" data-uid="${u}"${(m.items || []).some(r => r.audio) ? '' : ' disabled'}>녹음 파일 지우기</button></div></div>`;
-  }
-  function spFileDetHtml(f) {
-    const res = new Map((f.res || []).map(r => [r.idx, r]));
-    return `<div class="sp-det"><p class="muted cl-p sp-fsrc">파일 <b>${esc(f.file)}</b> · ${esc(spTime(f.at))} 채점${f.long ? ' · 앞 3분만' : ''} (파일은 저장하지 않아요)</p>
-      <div class="sp-list">${(f.q || []).map((txt, i) => spDetItem([txt, '', /[㐀-鿿]/.test(txt) ? 'zh' : 'en', (/[㐀-鿿]/.test(txt) ? txt.length > 6 : /\s/.test(txt.trim())) ? 's' : 'w'], i, res.get(i) || null, '') + '</div>').join('')}</div>
-      ${spMarkHtml(f.ts, f.tn, 'sp-fmsave', `data-f="${esc(f.id)}"`)}
-      <div class="row"><button class="btn btn-soft cl-danger" data-act="sp-fdel" data-f="${esc(f.id)}">이 결과 지우기</button></div></div>`;
-  }
-  ACTIONS['sp-tab'] = el => { if (!SPT) return; spStopAudio(); SPT.tab = el.dataset.t; spTDraw(); };
-  ACTIONS['sp-open'] = el => {
-    const t = SPT; if (!t) return; spStopAudio();
-    t.open = t.tab === 'list' && t.open === el.dataset.k ? null : el.dataset.k; t.tab = 'list'; spTDraw();
-    const r = document.querySelector(`.sp-lr[data-k="${CSS.escape(el.dataset.k)}"]`); if (r) r.scrollIntoView({ block: 'nearest' });
+    $('sheetBody').innerHTML = `<div class="form-stack cl">
+      <div class="cl-kv"><span>${CL_KIND[a.kind] || ''}</span><span>${clCount(a)}</span>${a.due ? `<span>${clDue(a.due)}</span>` : ''}<span>제출 <b>${done.length}/${r.rows.length}</b></span>${avg != null ? `<span>평균 <b>${avg}점</b></span>` : ''}</div>
+      ${weak.length ? `<h4 class="syn-h">많이 틀린 단어</h4><div class="cl-chips">${weak.map(x => `<span>${esc(x.w)} <b>${x.c}명</b></span>`).join('')}</div>` : ''}
+      ${done.length ? `<div class="cl-table"><div class="cl-tr cl-th"><span>이름</span><span>점수</span><span>정답</span><span>시간</span><span>횟수</span></div>${done.sort((x, y) => y.score - x.score).map(x => `<div class="cl-tr"><span><b>${esc(x.name || '이름 없음')}</b>${x.sno ? `<small>${esc(x.sno)}</small>` : ''}</span><span><b>${x.score}</b></span><span>${x.ok}/${x.n}</span><span>${x.sec >= 60 ? Math.floor(x.sec / 60) + '분' : x.sec + '초'}</span><span>${x.tries}회</span></div>`).join('')}</div>` : '<p class="muted cl-p">아직 제출한 학생이 없어요.</p>'}
+      ${left.length ? `<h4 class="syn-h">아직 안 한 학생 ${left.length}명</h4><div class="cl-chips">${left.map(x => `<span>${esc(x.name || '이름 없음')}${x.sno ? ` <small>${esc(x.sno)}</small>` : ''}</span>`).join('')}</div>` : ''}
+      <div class="row cl-foot"><button class="btn btn-soft" data-act="cl-back">돌아가기</button><button class="btn btn-soft cl-danger" data-act="cl-adel" data-id="${a.id}">과제 삭제</button></div></div>`;
   };
-  // 선생님: 녹음 받기 (다시 녹음하면 주소가 바뀌게 녹음 시각까지 붙여 기억해요)
-  async function spTUrl(t, uid, i) {
-    const m = (t.r.rows || []).find(x => x.uid === uid), r = m && (m.items || []).find(x => x.idx === i), k = uid + ':' + i + ':' + (r && r.at);
-    if (t.cache[k]) return t.cache[k];
-    const x = await Cloud.call('voca_speak_audio', { p_assign: t.id, p_uid: uid, p_idx: i });
-    return (t.cache[k] = spBlobUrl(spUnB64(x.b64), x.type || 'audio/mpeg'));
-  }
-  ACTIONS['sp-tplay'] = el => { const t = SPT; if (!t) return; if (el.classList.contains('on')) return spStopAudio(); spPlay([() => spTUrl(t, el.dataset.uid, +el.dataset.i)], el); };
-  ACTIONS['sp-pall'] = el => {
-    const t = SPT, uid = el.dataset.uid, m = t && (t.r.rows || []).find(x => x.uid === uid); if (!m) return;
-    if (el.classList.contains('on')) return spStopAudio();
-    const idx = (m.items || []).filter(r => r.audio).map(r => r.idx).sort((a, b) => a - b);
-    if (!idx.length) return toast('들을 녹음이 없어요.');
-    spPlay(idx.map(i => () => spTUrl(t, uid, i)), el);
+  ACTIONS['cl-adel'] = async el => {
+    if (!await ask('이 과제를 삭제할까요?\n학생들의 제출 결과도 함께 지워져요.', { ok: '삭제', danger: true })) return;
+    try { await Cloud.call('voca_assign_delete', { p_assign: +el.dataset.id }); CLV.tab = 'asg'; clDetail(CLV.id, true); } catch (e) { say(clMsg(e)); }
   };
-  async function spAiOne(t, uid, all, retry) {
-    t.busy.add(uid); spTRender();
-    if (spEngLocal()) { try { return await spLocalOne(t, uid, all); } finally { t.busy.delete(uid); } }
-    const body = { task: 'pron', assign: t.id, student: uid, all: !!all };
-    try { return retry ? await spAiTry(body, 120000, () => SPT === t && !(t.q && t.q.stop)) : await Cloud.ai(undefined, body, 120000); }
-    finally { t.busy.delete(uid); }
-  }
-  // 기기 AI: 학생 녹음을 하나씩 받아 이 컴퓨터에서 채점하고 점수만 저장해요(AI 횟수 안 써요)
-  async function spLocalOne(t, uid, all) {
-    const m = (t.r.rows || []).find(x => x.uid === uid), its = spItems(t.r.assign);
-    const recs = ((m && m.items) || []).filter(r => r.audio && its[r.idx] && its[r.idx][0] && (all || r.ai_score == null));
-    if (!recs.length) return;
-    const out = [];
-    for (const r of recs) {
-      if (SPT !== t) return;
-      const x = await Cloud.call('voca_speak_audio', { p_assign: t.id, p_uid: uid, p_idx: r.idx });
-      let d; try { d = await spDecode(spUnB64(x.b64).buffer); } catch (e) { continue; }
-      const it = its[r.idx], o = (await VPA.score(d.y, [{ text: String(it[0]).slice(0, 200), kind: it[3] === 's' ? 's' : 'w', idx: r.idx }], spLang(it))).items[0];
-      out.push({ idx: r.idx, score: o.score, detail: { heard: String(o.heard || '').slice(0, 300), tips: String(o.tips || '').slice(0, 600), problems: (o.problems || []).slice(0, 8), acc: o.acc, flu: o.flu, comp: o.comp, miss: (o.miss || []).slice(0, 60), model: 'vocapro-local' } });
-    }
-    if (!out.length) throw { msg: '녹음 파일을 읽지 못했어요.' };
-    if (SPT === t) await Cloud.call('voca_speak_set_local', { p_assign: t.id, p_uid: uid, p_items: out });
-  }
-  const spLocalMsg = e => e && e.msg ? e.msg : e && e.code === 'missing' ? SP_V12 : e && e.code === 'too_many' ? '한 시간 채점 한도(2,000문항)를 넘었어요. 잠시 후 다시 해 주세요.' : e && /음성 AI|브라우저/.test(e.message || '') ? e.message : spMsg(e);
-  ACTIONS['sp-grade1'] = async el => {
-    const t = SPT, uid = el.dataset.uid, x = t && (t.r.rows || []).find(y => y.uid === uid); if (!x || t.busy.has(uid) || t.q) return;
-    const all = x.n > 0 && x.ai_n >= x.n, loc = spEngLocal();
-    if (all && !await ask(`${x.name || '이 학생'} 학생의 녹음을 AI로 다시 채점할까요?\n선생님이 넣은 점수는 그대로 남아요.${loc ? ' 이 컴퓨터에서 채점해요(무료).' : ' AI 1회를 써요.'}`, { ok: '다시 채점' })) return;
-    const done = loc ? spVpaProg(t) : () => {};
-    try { await spAiOne(t, uid, all); if (SPT === t) toast(`${x.name || '학생'} 학생을 AI로 채점했어요.`); }
-    catch (e) { if (SPT === t) say('AI 채점을 하지 못했어요. ' + (loc ? spLocalMsg(e) : spAiMsg(e))); }
-    finally { done(); }
-    if (SPT === t) await spPoll(t, true);
-  };
-  // 전체 AI 채점: 채점 안 된 문항이 있는 제출 학생을 학번 순서로 4명씩 동시에 (학생마다 Gemini 1번 = AI 1회)
-  ACTIONS['sp-gall'] = async () => {
-    const t = SPT; if (!t || t.q) return;
-    const list = (t.r.rows || []).filter(x => x.submitted && x.n > (x.ai_n || 0)).sort(spBySno);
-    if (!list.length) return toast('채점할 녹음이 없어요.');
-    const loc = spEngLocal();
-    if (!await ask(loc ? `제출한 학생 ${list.length}명의 녹음을 기기 AI로 채점할까요?\n이 컴퓨터에서 채점해서 AI 횟수를 쓰지 않아요(무료). 처음 한 번은 음성 AI(약 ${vpaMB('en')}MB)를 받아요. 이 화면을 열어 두세요.`
-      : `제출한 학생 ${list.length}명의 녹음을 AI로 채점할까요?\n학생마다 AI 1회씩 모두 ${list.length}회를 써요(선생님 하루 200회까지). ${SP_PAR}명씩 동시에 채점해서 30명이면 3~5분쯤 걸려요. 이 화면을 열어 두세요.`, { ok: '채점하기' }) || SPT !== t || t.q) return;
-    const q = t.q = { list, i: 0, ok: 0, fail: 0, stop: false }; spTRender();
-    let polled = 0; const done = loc ? spVpaProg(t) : () => {};
-    await spPool(list, loc ? 2 : SP_PAR, async x => {
-      if (q.stop || SPT !== t) return;
-      try { await spAiOne(t, x.uid, false, true); q.ok++; }
-      catch (e) {
-        if (SPT !== t) return;
-        q.fail++;
-        if (loc) { if (!q.stop && (e && (e.msg || e.code === 'missing' || e.code === 'too_many' || /음성 AI|브라우저/.test(e.message || '')))) { q.stop = true; say('AI 채점을 멈췄어요. ' + spLocalMsg(e)); } }
-        else if (e && (e.status === 429 || e.status === 403 || e.status === 400 || e.status === 413 || e.code === 'missing') && !q.stop) { q.stop = true; say('AI 채점을 멈췄어요. ' + spAiMsg(e)); }
-      }
-      q.i++;
-      // 점수 새로 고침은 2초에 한 번만 (동시에 끝난 학생들을 한 번에)
-      if (SPT === t && Date.now() - polled > 2000) { polled = Date.now(); await spPoll(t, true); } else if (SPT === t) spTRender();
-    });
-    done();
-    if (SPT !== t) return;
-    await spPoll(t, true); if (SPT !== t) return;
-    t.q = null; spTRender();
-    toast(q.fail ? `${q.ok}명을 채점했어요. ${q.fail}명은 하지 못했어요. 다시 누르면 남은 학생만 채점해요.` : `${q.ok}명을 AI로 채점했어요.`);
-  };
-  ACTIONS['sp-gstop'] = () => { if (SPT && SPT.q && !SPT.q.stop) { SPT.q.stop = true; toast('지금 채점 중인 학생까지만 하고 멈춰요.'); spTRender(); } };
-  ACTIONS['sp-tsave'] = async el => {
-    const t = SPT; if (!t) return;
-    const i = +el.dataset.i, raw = (($('spT' + i) || {}).value || '').trim(), note = (($('spN' + i) || {}).value || '').trim();
-    const sc = raw === '' ? null : Math.round(+raw);
-    if (sc != null && !(sc >= 0 && sc <= 100)) return toast('점수는 0부터 100까지 적어 주세요.');
-    el.disabled = true;
-    try { await Cloud.call('voca_speak_teacher', { p_assign: t.id, p_uid: el.dataset.uid, p_idx: i, p_score: sc, p_note: note }); toast('문항 점수를 저장했어요.'); el.blur(); if (SPT === t) await spPoll(t, true); }
-    catch (e) { el.disabled = false; say(spMsg(e)); }
-  };
-  ACTIONS['sp-msave'] = async el => {
-    const t = SPT; if (!t) return;
-    const raw = (($('spMS') || {}).value || '').trim(), note = (($('spMN') || {}).value || '').trim(), sc = raw === '' ? null : Math.round(+raw);
-    if (sc != null && !(sc >= 0 && sc <= 100)) return toast('점수는 0부터 100까지 적어 주세요.');
-    el.disabled = true;
-    try { await Cloud.call('voca_speak_mark', { p_assign: t.id, p_uid: el.dataset.uid, p_score: sc, p_note: note }); toast(sc == null && !note ? '최종 점수를 지웠어요.' : '최종 점수를 저장했어요. 학생에게 보여요.'); el.blur(); if (SPT === t) await spPoll(t, true); }
-    catch (e) { el.disabled = false; say(spMsg(e)); }
-  };
-  ACTIONS['sp-del1'] = async el => {
-    const t = SPT, m = t && (t.r.rows || []).find(x => x.uid === el.dataset.uid); if (!m) return;
-    if (!await ask(`${m.name || '이 학생'} 학생의 녹음 파일을 지울까요?\n점수와 AI가 들은 말은 남아요. 지운 녹음은 되돌릴 수 없어요.`, { ok: '지우기', danger: true })) return;
-    try { const r = await Cloud.call('voca_speak_delete', { p_assign: t.id, p_uid: m.uid }); toast(`녹음 ${r.n}개를 지웠어요.`); if (SPT === t) await spPoll(t, true); } catch (e) { say(spMsg(e)); }
-  };
-  ACTIONS['sp-delall'] = async () => {
-    const t = SPT; if (!t) return;
-    if (!await ask(`'${t.r.assign.title}' 과제의 녹음 파일을 모두 지울까요?\n점수와 AI가 들은 말은 남아요. 지운 녹음은 되돌릴 수 없어요. (녹음은 60일이 지나면 자동으로도 지워져요)`, { ok: '모두 지우기', danger: true })) return;
-    try { const r = await Cloud.call('voca_speak_delete', { p_assign: t.id, p_uid: null }); toast(`녹음 ${r.n}개를 지웠어요.`); if (SPT === t) await spPoll(t, true); } catch (e) { say(spMsg(e)); }
-  };
-  // 이 과제 결과 엑셀(CSV): 한 줄에 학생 한 명, 학번 순서. 앱 제출과 받은 파일 결과를 함께
-  ACTIONS['sp-csv'] = () => {
-    const t = SPT; if (!t) return;
-    const a = t.r.assign, items = spItems(a);
-    const q = x => { const s = String(x == null ? '' : x); return /[",\n]/.test(s) || /^[=+\-@\t\r]/.test(s) ? `"${s.replace(/^([=+\-@\t\r])/, "'$1").replace(/"/g, '""')}"` : s; };
-    const cAvg = list => spAvg(list.filter(d => d && typeof d.comp === 'number').map(d => d.comp));
-    const head = ['학번', '이름', '출처', '제출 시각', '녹음', 'AI 평균', 'AI 정확성', 'AI 유창성', 'AI 일치도(%)', '선생님 점수', '최종 점수', '선생님 한마디'].concat(items.map((it, i) => `${i + 1}. ${String(it[0]).slice(0, 40)}`));
-    const rows = spRows(t).map(x => {
-      const m = x.m, f = x.f, fin = spFin(x);
-      if (m && m.submitted) { const by = new Map((m.items || []).map(r => [r.idx, r])); return [x.sno, x.name, '앱', spTime(m.at), `${m.n}/${items.length}`, m.ai_n ? m.ai_avg : '', ...(af => af ? [af.a, af.f] : ['', ''])(spAFOf(m)), cAvg((m.items || []).map(r => r.ai_detail)) ?? '', m.mark && m.mark.score != null ? m.mark.score : m.t_avg != null ? m.t_avg : '', fin.v != null ? fin.v : '', (m.mark && m.mark.note) || ''].concat(items.map((_, i) => { const r = by.get(i); return r ? (r.t_score != null ? r.t_score : r.ai_score != null ? r.ai_score : '') : ''; })); }
-      if (f) { const res = new Map((f.res || []).map(r => [r.idx, r])); return [x.sno, x.name, '파일 ' + f.file, spTime(f.at), '', spAvg((f.res || []).map(r => r.score)), ...(af => af ? [af.a, af.f] : ['', ''])(spAF(f.res)), cAvg(f.res || []) ?? '', f.ts != null ? f.ts : '', fin.v != null ? fin.v : '', f.tn || ''].concat(items.map((_, i) => res.has(i) ? res.get(i).score : '')); }
-      return [x.sno, x.name, '미제출', '', m && m.n ? `${m.n}/${items.length}` : '', '', '', '', '', '', '', ''].concat(items.map(() => ''));
-    });
-    download(`${spSafe(a.title)}_발음평가_${dayKey()}.csv`, '﻿' + [head].concat(rows).map(r => r.map(q).join(',')).join('\r\n'), 'text/csv;charset=utf-8');
-    toast('엑셀에서 열 수 있는 파일로 받았어요.');
-  };
-
-  /* ----- 선생님: 받은 녹음 파일 채점 (카카오톡 등). 브라우저에서 16kHz MP3로 바꿔 AI 함수로만 보내고 저장하지 않아요 ----- */
-  const SPF_EXT = /\.(m4a|mp3|wav|aac|ogg|oga|opus|webm|mp4|3gp|flac)$/i, SPF_MAX = 60;
-  const SPF_ACCEPT = 'audio/*,.m4a,.mp3,.wav,.aac,.ogg,.opus,.webm,.zip,application/zip';
-  const spfKey = id => `vocapro_spf:${currentUser}:${id}`;
-  const spfLoad = id => { const v = loadJson(spfKey(id)); return (Array.isArray(v) ? v : []).filter(f => f && f.id && Array.isArray(f.res)).map(f => Object.assign(f, { st: 'done' })); };
-  function spfSave(t) { try { LS.setItem(spfKey(t.id), JSON.stringify(t.files.filter(f => f.st === 'done').map(({ id, file, sno, nm, res, q, at, ts, tn, long }) => ({ id, file, sno, nm, res, q, at, ts, tn, long })))); } catch (e) {} }
-  // 파일 이름에서 학번(5자리)과 이름(한글 2~4자): 30211_김주원_발음.m4a, 30211 김주원.mp3, 김주원_30211.wav, 녹음30211김주원.m4a
-  const SPF_SKIP = /^(녹음|음성|파일|발음|평가|발음평가|수행|수행평가|과제|제출|영어|중국어|카카오톡|카톡|보이스|메모|음성메모|녹음본|녹음파일|새로운|사본|복사본|통화|최종|단어|문장|읽기|학년|학번|이름)$/;
-  function spfParse(fn) {
-    const b = String(fn || '').normalize('NFC').replace(/^.*[\\/]/, '').replace(/\.[^.]+$/, '');
-    const sno = (b.match(/(?:^|\D)(\d{5})(?!\d)/) || [])[1] || '';
-    const name = (b.replace(/\d+/g, ' ').match(/[가-힣]{2,4}/g) || []).find(w => !SPF_SKIP.test(w)) || '';
-    return { sno, name };
-  }
-  // zip 안 파일 이름: UTF-8 표시가 없으면(윈도우 기본 압축) 한국어 윈도우 글자(CP949)로 다시 읽어요
-  function spfZipName(n) {
-    if (!/[\u0080-ÿ]/.test(n) || /[^\u0000-ÿ]/.test(n)) return n;
-    const b = Uint8Array.from(n, c => c.charCodeAt(0));
-    try { return new TextDecoder('utf-8', { fatal: true }).decode(b); } catch (e) { try { return new TextDecoder('euc-kr').decode(b); } catch (x) { return n; } }
-  }
-  async function spfUnzip(file) {
-    const ff = await spLib('fflate.min.js', 'fflate'), u8 = new Uint8Array(await file.arrayBuffer());
-    const out = ff.unzipSync(u8, { filter: f => !/(^|\/)(__MACOSX|\.)/.test(f.name) && SPF_EXT.test(spfZipName(f.name)) && f.originalSize <= 60 << 20 });
-    return Object.keys(out).map(n => ({ file: spfZipName(n).replace(/^.*\//, ''), data: out[n] }));
-  }
-  let spfN = 0;
-  async function spfAdd(list) {
-    const t = SPT; if (!t || !list.length) return;
-    let add = [], skip = 0, bad = 0;
-    for (const fl of list) {
-      if (/\.zip$/i.test(fl.name) || /zip/.test(fl.type)) {
-        if (fl.size > 300 << 20) { skip++; continue; }
-        try { add = add.concat(await spfUnzip(fl)); } catch (e) { bad++; }
-      } else if (SPF_EXT.test(fl.name) || /^audio\//.test(fl.type)) { if (fl.size > 60 << 20) skip++; else add.push({ file: fl.name, data: fl }); }
-      else skip++;
-    }
-    if (SPT !== t) return;
-    const room = Math.max(0, SPF_MAX - t.files.filter(f => f.st !== 'done').length); if (add.length > room) { skip += add.length - room; add = add.slice(0, room); }
-    add.forEach(x => { const p = spfParse(x.file); t.files.push({ id: 'f' + Date.now().toString(36) + (++spfN), file: String(x.file).normalize('NFC'), data: x.data, sno: p.sno, nm: p.name, st: 'wait' }); });
-    t.tab = 'file'; spTDraw();
-    toast(add.length ? `파일 ${add.length}개를 넣었어요.${skip ? ` ${skip}개는 소리 파일이 아니거나 너무 커서 뺐어요.` : ''}` : bad ? 'zip 파일을 풀지 못했어요.' : '넣을 수 있는 소리 파일이 없어요. m4a · mp3 · wav · zip 파일을 넣어 주세요.');
-  }
-  // 채점할 문장: 과제 문항(기본) · 단어장 · 직접 입력
-  const spfLines = txt => String(txt || '').split(/\r?\n/).map(s => s.trim()).filter(Boolean).slice(0, SP_MAX).map(s => { const zh = /[㐀-鿿]/.test(s); return { text: s.slice(0, 200), lang: zh ? 'zh' : 'en', kind: (zh ? s.length > 6 : /\s/.test(s)) ? 's' : 'w' }; });
-  // 파일마다 따로 넣은 문장이 있으면 그 문장으로, 없으면 위에서 고른 문장으로 채점해요
-  const spfQOf = (t, f) => { const own = spfLines(f.txt); return own.length ? own : spfItems(t); };
-  function spfItems(t) {
-    const zh = s => /[㐀-鿿]/.test(s);
-    if (t.src === 'text') return spfLines(t.text);
-    if (t.src === 'book') { const c = findBook(t.book); return c ? c.words.slice(0, SP_MAX).map(w => t.bookS && w.example ? { text: w.example.slice(0, 200), lang: zh(w.example) ? 'zh' : 'en', kind: 's' } : { text: w.word.slice(0, 200), lang: isHanWord(w.word) ? 'zh' : 'en', kind: 'w' }) : []; }
-    return spItems(t.r.assign).filter(it => it[0]).map(it => ({ text: String(it[0]).slice(0, 200), lang: spLang(it), kind: it[3] === 's' ? 's' : 'w' }));
-  }
-  const spfSt = f => f.st === 'done' ? `<em class="sp-sc${spTone(f.ts != null ? f.ts : spAvg((f.res || []).map(r => r.score)))}">${esc(f.ts != null ? f.ts : spAvg((f.res || []).map(r => r.score)))}점</em>`
-    : f.st === 'err' ? `<small class="sp-ferr">${esc(f.msg || '실패')}</small>` : f.st === 'read' ? '<small>MP3로 바꾸는 중</small>' : f.st === 'grade' ? '<small class="sp-fgo">AI 채점 중</small>' : '<small>대기</small>';
-  // 채점 중 버튼: "채점 중 12/30"
-  function spfProg(t) { const b = document.querySelector('[data-act="spf-go"]'); if (b && t.frun) b.innerHTML = `${IC.sparkles} 채점 중 ${t.frun.i}/${t.frun.n}`; }
-  function spfSet(f, st) { f.st = st; const el = $('spfS' + f.id); if (el) el.innerHTML = spfSt(f); }
-  // 채점할 수 있는지: 대기 파일이 있고, 그 파일마다 채점할 문장이 있어야 해요
-  const spfCanGo = t => !t.frun && t.files.some(f => f.st === 'wait' || f.st === 'err') && t.files.filter(f => f.st === 'wait' || f.st === 'err').every(f => spfQOf(t, f).length);
-  function spfGoSync(t) { const b = document.querySelector('[data-act="spf-go"]'); if (b && !t.frun) b.disabled = !spfCanGo(t); }
-  const spfFtLabel = f => { const n = spfLines(f.txt).length; return n ? `문장 ${n}` : '문장'; };
-  function spFileHtml(t) {
-    const q = spfItems(t), w = t.files, wait = w.filter(f => f.st === 'wait' || f.st === 'err').length, books = categories.filter(c => c.words.length);
-    if (t.src === 'book' && !findBook(t.book) && books[0]) t.book = books[0].id;
-    return `<h4 class="syn-h">1. 학생이 읽은 문장 (채점 기준)</h4>
-      <div class="seg" id="spfSrc"><button class="${t.src === 'asg' ? 'on' : ''}" data-act="spf-src" data-v="asg">과제 문항</button><button class="${t.src === 'book' ? 'on' : ''}" data-act="spf-src" data-v="book">단어장</button><button class="${t.src === 'text' ? 'on' : ''}" data-act="spf-src" data-v="text">직접 입력</button></div>
-      ${t.src === 'book' ? (books.length ? `<div class="sp-frow"><select data-change="spf-book" aria-label="단어장">${books.map(c => `<option value="${esc(c.id)}"${c.id === t.book ? ' selected' : ''}>${esc(c.name)} (${c.words.length}개)</option>`).join('')}</select><div class="seg"><button class="${t.bookS ? '' : 'on'}" data-act="spf-bs" data-v="w">단어</button><button class="${t.bookS ? 'on' : ''}" data-act="spf-bs" data-v="s">예문</button></div></div>` : '<p class="muted cl-p">단어가 있는 단어장이 없어요.</p>') : ''}
-      ${t.src === 'text' ? `<textarea id="spfText" rows="5" maxlength="4000" data-input="spf-text" placeholder="학생이 읽은 순서대로 한 줄에 하나씩 (20줄까지)&#10;예) I eat an apple every day.">${esc(t.text)}</textarea>` : ''}
-      <p class="sp-fq" id="spfQ">${spfQHtml(q)}</p>
-      <h4 class="syn-h">2. 녹음 파일</h4>
-      <div class="sp-drop${w.length ? ' has' : ''}" id="spDrop" role="button" tabindex="0" data-act="spf-open"><i>${IC.upload}</i><span><b><span class="sp-pc">녹음 파일을 여기에 끌어 놓거나 눌러서 고르세요</span><span class="sp-touch">눌러서 녹음 파일을 고르세요</span></b>
-        <small>m4a · mp3 · wav · aac · ogg · webm · zip을 여러 개 한 번에 넣을 수 있어요. 카카오톡으로 받은 녹음도 돼요. 파일은 서버에 저장하지 않고 채점에만 써요.</small></span></div>
-      <input type="file" id="spfIn" multiple accept="${SPF_ACCEPT}" data-change="spf-pick" hidden>
-      ${w.length ? `<h4 class="syn-h">파일 ${w.length}개</h4><div class="sp-ft">${w.map(f => { const edit = f.st === 'wait' || f.st === 'err', open = edit && t.ftOpen === f.id; return `<div class="sp-fr" id="spf${esc(f.id)}"><span class="sp-fn" title="${esc(f.file)}">${esc(f.file)}</span>
-          <input type="text" inputmode="numeric" maxlength="10" placeholder="학번" value="${esc(f.sno || '')}" data-input="spf-sno" data-f="${esc(f.id)}" aria-label="학번"><input type="text" maxlength="20" placeholder="이름" value="${esc(f.nm || '')}" data-input="spf-nm" data-f="${esc(f.id)}" aria-label="이름">
-          ${edit ? `<button class="sp-ftb${spfLines(f.txt).length ? ' on' : ''}" data-act="spf-ft" data-f="${esc(f.id)}" aria-expanded="${open}" title="이 파일만 다른 문장으로 채점">${esc(spfFtLabel(f))}</button>` : '<span class="sp-ftb-x"></span>'}
-          <span class="sp-fs" id="spfS${esc(f.id)}">${spfSt(f)}</span><button class="icon-btn sp-fx" data-act="spf-x" data-f="${esc(f.id)}" aria-label="빼기">${IC.x}</button>
-          ${open ? `<textarea class="sp-ftx" rows="3" maxlength="4000" data-input="spf-ftxt" data-f="${esc(f.id)}" aria-label="이 파일의 문장" placeholder="이 학생이 읽은 문장 (한 줄에 하나씩). 비워 두면 1번 문장으로 채점해요.">${esc(f.txt || '')}</textarea>` : ''}</div>`; }).join('')}</div>
-        <button class="btn btn-primary btn-block" data-act="spf-go"${spfCanGo(t) ? '' : ' disabled'}>${IC.sparkles} ${t.frun ? `채점 중 ${t.frun.i}/${t.frun.n}` : wait ? `파일 ${wait}개 AI 채점` : '모두 채점했어요'}</button>
-        <p class="muted cl-p">점수 = 정확성 70% + 유창성 30%. 일치도는 문장에서 읽은 단어 비율이고, 빠뜨린 단어는 정확성에서 0점으로 쳐요. 학생마다 읽은 문장이 다르면 파일 줄의 '문장'을 눌러 따로 적어요.</p>
-        <p class="muted cl-p">파일 4개씩 동시에 채점해요(30명이면 3~5분). 파일 하나 = AI 1회(선생님 하루 200회까지), 한 파일 3분까지. 학번 · 이름을 못 찾은 파일은 칸에 적어 주세요. 결과는 '결과 목록'과 CSV에 앱 제출과 함께 나오고 이 기기에 저장돼요.</p>` : ''}`;
-  }
-  const spfQHtml = q => q.length ? `<b>${q.length}문항</b> ${q.slice(0, 6).map(x => esc(x.text)).join(' · ')}${q.length > 6 ? ' …' : ''}` : '채점할 문장을 넣어 주세요.';
-  ACTIONS['spf-open'] = () => { const i = $('spfIn'); if (i) i.click(); };
-  ON.change['spf-pick'] = el => { const fs = [...(el.files || [])]; el.value = ''; spfAdd(fs); };
-  ACTIONS['spf-src'] = el => { if (!SPT) return; SPT.src = el.dataset.v; spTDraw(); };
-  ACTIONS['spf-bs'] = el => { if (!SPT) return; SPT.bookS = el.dataset.v === 's'; spTDraw(); };
-  ON.change['spf-book'] = el => { if (!SPT) return; SPT.book = el.value; spTDraw(); };
-  ON.input['spf-text'] = el => { if (!SPT) return; SPT.text = el.value; const q = $('spfQ'); if (q) q.innerHTML = spfQHtml(spfItems(SPT)); spfGoSync(SPT); };
-  ACTIONS['spf-ft'] = el => { const t = SPT; if (!t) return; t.ftOpen = t.ftOpen === el.dataset.f ? null : el.dataset.f; spTDraw(); const x = document.querySelector('.sp-ftx'); if (x) x.focus(); };
-  ON.input['spf-ftxt'] = el => { const f = spfOf(el); if (!f) return; f.txt = el.value.slice(0, 4000); const b = el.closest('.sp-fr') && el.closest('.sp-fr').querySelector('.sp-ftb'); if (b) { b.textContent = spfFtLabel(f); b.classList.toggle('on', spfLines(f.txt).length > 0); } spfGoSync(SPT); };
-  const spfOf = el => SPT && SPT.files.find(f => f.id === el.dataset.f);
-  ON.input['spf-sno'] = el => { const f = spfOf(el); if (f) { f.sno = el.value.trim(); if (f.st === 'done') spfSave(SPT); } };
-  ON.input['spf-nm'] = el => { const f = spfOf(el); if (f) { f.nm = el.value.trim(); if (f.st === 'done') spfSave(SPT); } };
-  ACTIONS['spf-x'] = el => { const t = SPT, f = spfOf(el); if (!f || f.st === 'read' || f.st === 'grade') return; t.files = t.files.filter(x => x !== f); spfSave(t); spTDraw(); };
-  ACTIONS['sp-fdel'] = async el => {
-    const t = SPT, f = spfOf(el); if (!f) return;
-    if (!await ask(`'${f.file}' 채점 결과를 지울까요?`, { ok: '지우기', danger: true })) return;
-    t.files = t.files.filter(x => x !== f); t.open = null; spfSave(t); spTDraw();
-  };
-  ACTIONS['sp-fmsave'] = el => {
-    const t = SPT, f = spfOf(el); if (!f) return;
-    const raw = (($('spMS') || {}).value || '').trim(), sc = raw === '' ? null : Math.round(+raw);
-    if (sc != null && !(sc >= 0 && sc <= 100)) return toast('점수는 0부터 100까지 적어 주세요.');
-    f.ts = sc; f.tn = (($('spMN') || {}).value || '').trim().slice(0, 300); spfSave(t); el.blur(); toast('최종 점수를 저장했어요(이 기기).'); spTDraw();
-  };
-  ACTIONS['spf-go'] = async () => {
-    const t = SPT; if (!t || t.frun) return;
-    const list = t.files.filter(f => f.st === 'wait' || f.st === 'err'); if (!list.length) return;
-    // 파일마다 채점할 문장(따로 적은 문장이 있으면 그것)
-    const qs = new Map(list.map(f => [f, spfQOf(t, f)]));
-    if (list.some(f => !qs.get(f).length)) return toast('채점할 문장을 넣어 주세요.');
-    // 기기 AI는 파일 하나를 한 언어 모델로 들어요. 영어와 중국어가 섞인 파일이 있으면 이번에는 Gemini로
-    const mixed = list.some(f => new Set(qs.get(f).map(x => x.lang === 'zh' ? 'zh' : 'en')).size > 1), loc = spEngLocal() && !mixed;
-    if (spEngLocal() && !loc && !await ask('한 파일 안에 영어와 중국어 문장이 섞여 있어서 이번에는 Gemini(서버)로 채점해요. 계속할까요?', { ok: '채점하기' })) return;
-    if (list.length > 1 && (!await ask(loc ? `파일 ${list.length}개를 기기 AI로 채점할까요?\n이 컴퓨터에서 채점해서 AI 횟수를 쓰지 않아요(무료). 이 화면을 열어 두세요.` : `파일 ${list.length}개를 AI로 채점할까요?\n파일마다 AI 1회씩 모두 ${list.length}회를 써요(선생님 하루 200회까지). 이 화면을 열어 두세요.`, { ok: '채점하기' }) || SPT !== t || t.frun)) return;
-    t.frun = { n: list.length, i: 0, stop: false }; spTDraw();
-    const fr = t.frun, live = () => SPT === t && !fr.stop, done = loc ? spVpaProg(t) : () => {};
-    // Gemini: 파일 4개씩 동시에(MP3로 바꾸기와 AI 채점이 겹쳐 돌아가요). 기기 AI: 2개씩(읽기와 채점이 겹쳐요)
-    await spPool(list, loc ? 2 : SP_PAR, async f => {
-      if (!live()) return;
-      const q = qs.get(f), flang = q.some(x => x.lang === 'zh') ? 'zh' : 'en';
-      if (!f.data) { f.msg = '파일을 다시 넣어 주세요.'; spfSet(f, 'err'); fr.i++; return spfProg(t); }
-      try {
-        spfSet(f, 'read');
-        let d; try { const buf = f.data instanceof Uint8Array ? f.data.slice().buffer : await f.data.arrayBuffer(); d = await spDecode(buf); } catch (e) { throw { msg: '이 파일은 읽지 못했어요' }; }
-        const pcm = spTrim(d.y); if (!pcm) throw { msg: '소리가 거의 없어요' };
-        if (loc) {
-          if (!live()) { spfSet(f, 'wait'); return; }
-          spfSet(f, 'grade');
-          const r = await VPA.score(d.y, q.map((x, idx) => ({ text: x.text, kind: x.kind, idx })), flang);
-          Object.assign(f, { res: r.items.filter(x => x && typeof x === 'object'), q: q.map(x => x.text), at: Date.now(), long: d.sec > SP_FILE_SEC }); delete f.data;
-          spfSet(f, 'done'); spfSave(t); fr.i++; return spfProg(t);
-        }
-        let u8; try { u8 = await spMp3(pcm.y); } catch (e) { throw { msg: 'MP3로 바꾸지 못했어요' }; }
-        if (!live()) { spfSet(f, 'wait'); return; }
-        spfSet(f, 'grade');
-        const j = JSON.parse(await spAiTry({ task: 'pron', assign: t.id, file: spB64(u8), items: q }, 120000, live));
-        if (!Array.isArray(j.items) || !j.items.length) throw { msg: 'AI가 채점하지 못했어요' };
-        Object.assign(f, { res: j.items, q: q.map(x => x.text), at: Date.now(), long: d.sec > SP_FILE_SEC, kb: Math.round(u8.length / 1024) }); delete f.data;
-        spfSet(f, 'done'); spfSave(t);
-      } catch (e) {
-        if (SPT !== t) return;
-        f.msg = e && e.msg ? e.msg : loc ? spLocalMsg(e) : spAiMsg(e); spfSet(f, 'err');
-        if (loc && !e.msg && !fr.stop) { fr.stop = true; say('파일 채점을 멈췄어요. ' + spLocalMsg(e)); }
-        if (!loc && e && (e.status === 429 || e.status === 403 || e.status === 400 || e.status === 413 || e.code === 'missing') && !fr.stop) { fr.stop = true; say('파일 채점을 멈췄어요. ' + spAiMsg(e)); }
-      }
-      fr.i++; spfProg(t);
-    });
-    done();
-    list.forEach(f => { if (f.st === 'read' || f.st === 'grade') spfSet(f, 'wait'); });
-    if (SPT !== t) return;
-    t.frun = false; spTRender();
-  };
-  // 끌어 놓기: 보드가 열려 있으면 시트 어디에 놓아도 '파일로 채점'에 들어가요
-  const spDragOk = e => SPT && $('sheetOv').classList.contains('open') && e.dataTransfer && [...(e.dataTransfer.types || [])].includes('Files');
-  document.addEventListener('dragover', e => { if (!spDragOk(e)) return; e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; document.body.classList.add('sp-drag'); });
-  document.addEventListener('dragleave', e => { if (!e.relatedTarget) document.body.classList.remove('sp-drag'); });
-  document.addEventListener('drop', e => { if (!spDragOk(e)) return; e.preventDefault(); document.body.classList.remove('sp-drag'); spfAdd([...e.dataTransfer.files]); });
-
-  /* ----- 녹음 파일 채점 (누구나): 읽은 문장 + 녹음 파일 -> 이 기기 음성 AI로 채점. 파일 · 결과를 서버에 보내거나 저장하지 않아요 ----- */
-  let FSC = null, fscN = 0;
-  const fscLang = q => q.some(x => x.lang === 'zh') ? 'zh' : 'en';
-  const fscAvg = (f, k) => spAvg((f.res || []).filter(r => typeof r[k] === 'number').map(r => r[k]));
-  ACTIONS['fsc-open'] = () => { if (!FSC) FSC = { text: '', files: [], run: null, open: null }; openSheet('녹음 파일 채점', '<div class="form-stack cl" id="fscBox"></div>'); fscDraw(); };
-  function fscDraw() {
-    const box = $('fscBox'), t = FSC; if (!box || !t) return;
-    const q = spfLines(t.text), books = categories.filter(c => c.words.length), w = t.files, wait = w.filter(f => f.st === 'wait' || f.st === 'err').length, done = w.filter(f => f.st === 'done');
-    const mixed = new Set(q.map(x => x.lang)).size > 1;
-    box.innerHTML = `<p class="muted cl-p">읽은 문장과 녹음 파일을 넣으면 이 기기의 음성 AI로 채점해요. 파일과 결과는 서버로 보내거나 저장하지 않아요(인터넷은 처음 AI를 받을 때만 써요). 창을 닫거나 새로 고치면 결과가 사라지니 필요하면 CSV로 받아 두세요.</p>
-      <h4 class="syn-h">1. 읽은 문장 (채점 기준)</h4>
-      <textarea id="fscText" rows="5" maxlength="4000" data-input="fsc-text" placeholder="녹음에서 읽은 순서대로 한 줄에 하나씩 (20줄까지)&#10;예) I eat an apple every day.&#10;예) 我每天学习汉语。">${esc(t.text)}</textarea>
-      ${books.length ? `<div class="sp-frow"><select id="fscBook" aria-label="가져올 단어장">${books.map(c => `<option value="${esc(c.id)}"${c.id === t.book ? ' selected' : ''}>${esc(c.name)} (${c.words.length}개)</option>`).join('')}</select><div class="seg"><button data-act="fsc-book" data-s="w">단어 넣기</button><button data-act="fsc-book" data-s="s">예문 넣기</button></div></div>` : ''}
-      <p class="sp-fq" id="fscQ">${mixed ? '<b>영어와 중국어 문장은 따로 채점해 주세요.</b>' : spfQHtml(q)}</p>
-      <h4 class="syn-h">2. 녹음 파일</h4>
-      <div class="sp-drop${w.length ? ' has' : ''}" role="button" tabindex="0" data-act="fsc-pick"><i>${IC.upload}</i><span><b><span class="sp-pc">녹음 파일을 여기에 끌어 놓거나 눌러서 고르세요</span><span class="sp-touch">눌러서 녹음 파일을 고르세요</span></b>
-        <small>m4a · mp3 · wav · aac · ogg · webm · zip을 여러 개 한 번에 넣을 수 있어요. 한 파일 3분까지, 파일마다 위 문장을 모두 읽은 녹음이에요.</small></span></div>
-      <input type="file" id="fscIn" multiple accept="${SPF_ACCEPT}" data-change="fsc-files" hidden>
-      ${w.length ? `<div class="sp-ft">${w.map(f => `<div class="sp-fr fsc-fr"><span class="sp-fn" title="${esc(f.file)}">${esc(f.file)}</span><span class="sp-fs" id="fscS${esc(f.id)}">${fscSt(f)}</span><button class="icon-btn sp-fx" data-act="fsc-x" data-f="${esc(f.id)}" aria-label="빼기"${f.st === 'read' || f.st === 'grade' ? ' disabled' : ''}>${IC.x}</button></div>`).join('')}</div>
-        <button class="btn btn-primary btn-block" id="fscGo" data-act="fsc-go"${!t.run && wait && q.length && !mixed ? '' : ' disabled'}>${IC.sparkles} ${t.run ? `채점 중 ${t.run.i}/${t.run.n}` : wait ? `파일 ${wait}개 채점` : '모두 채점했어요'}</button>
-        <p class="muted cl-p" id="fscP"></p>` : ''}
-      ${done.length ? `<h4 class="syn-h">결과 ${done.length}개</h4><div class="sp-lt">${done.map(f => { const open = t.open === f.id, v = spAvg(f.res.map(r => r.score || 0)), a = fscAvg(f, 'acc'), fl = fscAvg(f, 'flu'), c = fscAvg(f, 'comp');
-          return `<button class="sp-lr${open ? ' on' : ''}" data-act="fsc-res" data-f="${esc(f.id)}" aria-expanded="${open}"><span class="sp-no">${esc(done.indexOf(f) + 1)}</span><span class="sp-lr-n"><b>${esc(f.file)}</b>${a != null ? `<i class="sp-af">정확성 ${esc(a)} · 유창성 ${esc(fl)}${c != null ? ` · 일치도 ${esc(c)}%` : ''}</i>` : ''}</span><small>${esc(f.q.length)}문항</small><em class="${spTone(v).trim()}">${esc(v)}점</em></button>
-            ${open ? `<div class="sp-det"><div class="sp-list">${f.q.map((txt, i) => spDetItem([txt, '', f.lang, (f.kinds || [])[i] || 's'], i, f.res.find(r => r.idx === i) || null, '') + '</div>').join('')}</div></div>` : ''}`; }).join('')}</div>
-        <div class="row"><button class="btn btn-soft" data-act="fsc-csv">CSV로 받기</button><button class="btn btn-soft cl-danger" data-act="fsc-clear">결과 모두 지우기</button></div>
-        <p class="muted cl-p">점수 = 정확성 70% + 유창성 30%. 일치도는 문장에서 읽은 단어 비율이고, 빠뜨린 단어는 정확성에서 0점으로 쳐요.</p>` : ''}`;
-  }
-  const fscSt = f => f.st === 'done' ? `<em class="sp-sc${spTone(spAvg(f.res.map(r => r.score || 0)))}">${esc(spAvg(f.res.map(r => r.score || 0)))}점</em>`
-    : f.st === 'err' ? `<small class="sp-ferr">${esc(f.msg || '실패')}</small>` : f.st === 'read' ? '<small>읽는 중</small>' : f.st === 'grade' ? '<small class="sp-fgo">채점 중</small>' : '<small>대기</small>';
-  function fscSet(f, st) { f.st = st; const el = $('fscS' + f.id); if (el) el.innerHTML = fscSt(f); }
-  ON.input['fsc-text'] = el => { if (!FSC) return; FSC.text = el.value; const q = spfLines(FSC.text), mixed = new Set(q.map(x => x.lang)).size > 1, b = $('fscQ'), g = $('fscGo'); if (b) b.innerHTML = mixed ? '<b>영어와 중국어 문장은 따로 채점해 주세요.</b>' : spfQHtml(q); if (g && !FSC.run) g.disabled = !(q.length && !mixed && FSC.files.some(f => f.st === 'wait' || f.st === 'err')); };
-  ACTIONS['fsc-book'] = el => {
-    const c = findBook(($('fscBook') || {}).value); if (!c || !FSC) return; FSC.book = c.id;
-    const sent = el.dataset.s === 's', lines = c.words.map(w => sent ? w.example : w.word).filter(Boolean).slice(0, SP_MAX);
-    if (!lines.length) return toast(sent ? '이 단어장에는 예문이 없어요.' : '단어가 없어요.');
-    FSC.text = lines.join('\n'); fscDraw(); toast(`${lines.length}줄을 넣었어요. 녹음에서 읽은 순서와 같아야 해요.`);
-  };
-  ACTIONS['fsc-pick'] = () => { const i = $('fscIn'); if (i) i.click(); };
-  ON.change['fsc-files'] = el => { const fs = [...(el.files || [])]; el.value = ''; fscAdd(fs); };
-  async function fscAdd(list) {
-    const t = FSC; if (!t || !list.length) return;
-    let add = [], skip = 0, bad = 0;
-    for (const fl of list) {
-      if (/\.zip$/i.test(fl.name) || /zip/.test(fl.type)) { if (fl.size > 300 << 20) { skip++; continue; } try { add = add.concat(await spfUnzip(fl)); } catch (e) { bad++; } }
-      else if (SPF_EXT.test(fl.name) || /^audio\//.test(fl.type)) { if (fl.size > 60 << 20) skip++; else add.push({ file: fl.name, data: fl }); }
-      else skip++;
-    }
-    const room = Math.max(0, SPF_MAX - t.files.filter(f => f.st !== 'done').length); if (add.length > room) { skip += add.length - room; add = add.slice(0, room); }
-    add.forEach(x => t.files.push({ id: 'q' + (++fscN), file: String(x.file).normalize('NFC'), data: x.data, st: 'wait' }));
-    fscDraw();
-    toast(add.length ? `파일 ${add.length}개를 넣었어요.${skip ? ` ${skip}개는 소리 파일이 아니거나 너무 커서 뺐어요.` : ''}` : bad ? 'zip 파일을 풀지 못했어요.' : '넣을 수 있는 소리 파일이 없어요. m4a · mp3 · wav · zip 파일을 넣어 주세요.');
-  }
-  ACTIONS['fsc-x'] = el => { const t = FSC; if (!t || t.run) return; t.files = t.files.filter(f => f.id !== el.dataset.f); fscDraw(); };
-  ACTIONS['fsc-res'] = el => { if (!FSC) return; FSC.open = FSC.open === el.dataset.f ? null : el.dataset.f; fscDraw(); };
-  ACTIONS['fsc-clear'] = async () => { if (!FSC || FSC.run || !await ask('채점 결과를 모두 지울까요?', { ok: '지우기', danger: true })) return; FSC.files = FSC.files.filter(f => f.st !== 'done'); FSC.open = null; fscDraw(); };
-  ACTIONS['fsc-go'] = async () => {
-    const t = FSC; if (!t || t.run) return;
-    const q = spfLines(t.text), list = t.files.filter(f => f.st === 'wait' || f.st === 'err');
-    if (!q.length) return toast('먼저 읽은 문장을 넣어 주세요.');
-    if (new Set(q.map(x => x.lang)).size > 1) return toast('영어와 중국어 문장은 따로 채점해 주세요.');
-    if (!list.length) return;
-    if (!VPA.ok()) return say('이 브라우저에서는 기기 음성 AI를 쓸 수 없어요. 최신 Chrome · Edge · Safari에서 열어 주세요.');
-    const lang = fscLang(q), run = t.run = { n: list.length, i: 0 }; fscDraw();
-    const tell = m => { const p = $('fscP'); if (p && FSC === t) p.textContent = m; };
-    const pg = p => tell(p < 100 ? `${lang === 'zh' ? '중국어 ' : ''}음성 AI 준비 중 ${p}% (처음 한 번만 약 ${vpaMB(lang)}MB, 와이파이를 권해요)` : '');
-    try { await VPA.init(pg, lang); } catch (e) { VPA.off(pg, lang); t.run = null; fscDraw(); return say((e && e.message) || '음성 AI를 받지 못했어요.'); }
-    VPA.off(pg, lang); tell('');
-    await spPool(list, 2, async f => {
-      try {
-        fscSet(f, 'read');
-        let d; try { const buf = f.data instanceof Uint8Array ? f.data.slice().buffer : await f.data.arrayBuffer(); d = await spDecode(buf); } catch (e) { throw { msg: '이 파일은 읽지 못했어요' }; }
-        if (!spTrim(d.y)) throw { msg: '소리가 거의 없어요' };
-        fscSet(f, 'grade');
-        const r = await VPA.score(d.y, q.map((x, idx) => ({ text: x.text, kind: x.kind, idx })), lang);
-        Object.assign(f, { res: r.items.filter(x => x && typeof x === 'object').map(x => Object.assign({}, x, { model: 'vocapro-local' })), q: q.map(x => x.text), kinds: q.map(x => x.kind), lang, long: d.sec > SP_FILE_SEC });
-        delete f.data; fscSet(f, 'done');
-      } catch (e) { f.msg = e && e.msg ? e.msg : (e && e.message) || '채점하지 못했어요'; fscSet(f, 'err'); }
-      run.i++; const g = $('fscGo'); if (g && FSC === t) g.innerHTML = `${IC.sparkles} 채점 중 ${run.i}/${run.n}`;
-    });
-    t.run = null; if (FSC === t) fscDraw();
-  };
-  ACTIONS['fsc-csv'] = () => {
-    const t = FSC; if (!t) return; const done = t.files.filter(f => f.st === 'done'); if (!done.length) return;
-    const q = x => { const s = String(x == null ? '' : x); return /[",\n]/.test(s) || /^[=+\-@\t\r]/.test(s) ? `"${s.replace(/^([=+\-@\t\r])/, "'$1").replace(/"/g, '""')}"` : s; };
-    const n = Math.max(...done.map(f => f.q.length)), head = ['파일', '점수', '정확성', '유창성', '일치도(%)'].concat(Array.from({ length: n }, (_, i) => `${i + 1}. ${String(done[0].q[i] || '').slice(0, 40)}`));
-    const rows = done.map(f => [f.file, spAvg(f.res.map(r => r.score || 0)), fscAvg(f, 'acc') ?? '', fscAvg(f, 'flu') ?? '', fscAvg(f, 'comp') ?? ''].concat(Array.from({ length: n }, (_, i) => { const r = f.res.find(x => x.idx === i); return r ? r.score : ''; })));
-    download(`녹음채점_${dayKey()}.csv`, '\ufeff' + [head].concat(rows).map(r => r.map(q).join(',')).join('\r\n'), 'text/csv;charset=utf-8');
-    toast('엑셀에서 열 수 있는 파일로 받았어요.');
-  };
-  // 녹음 파일 채점 화면이 열려 있으면 어디에 끌어 놓아도 들어가요
-  const fscDragOk = e => FSC && $('fscBox') && $('sheetOv').classList.contains('open') && e.dataTransfer && [...(e.dataTransfer.types || [])].includes('Files');
-  document.addEventListener('dragover', e => { if (!fscDragOk(e)) return; e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; });
-  document.addEventListener('drop', e => { if (!fscDragOk(e)) return; e.preventDefault(); fscAdd([...e.dataTransfer.files]); });
-
-  /* ----- 학생: 과제 풀기 · 결과 제출 ----- */
-  ACTIONS['cl-do'] = async el => {
-    const id = +el.dataset.id; el.disabled = true;
-    let a; try { a = await Cloud.call('voca_assign_get', { p_assign: id }); } catch (e) { el.disabled = false; return say(clMsg(e)); }
-    if (a.kind === 'speak') return spOpen(a);
-    const list = (Array.isArray(a.words) ? a.words : []).filter(x => Array.isArray(x) && x[0] && x[1]);
-    if (!list.length) { el.disabled = false; return say('과제에 단어가 없어요.'); }
-    const name = `${a.class} · ${a.title}`.slice(0, 60);
-    // 이름이 아니라 과제 번호로 찾아요(이름은 40자로 잘리고 같은 이름 단어장이 있을 수 있어요). 비었으면 다시 채워요
-    let cat = categories.find(c => c.asg === a.id);
-    if (!cat || !cat.words.length) {
-      el.textContent = '단어장 준비 중...';
-      await dictPreload(list.map(x => x[0]));
-      const isNew = !cat; if (isNew) cat = { id: 'c' + uid(), name, words: [], asg: a.id }; const seen = new Set();
-      for (const [w, m] of list) {
-        const k = String(w).toLowerCase(); if (seen.has(k)) continue; seen.add(k);
-        let full = null; try { full = await dictGet(w); } catch (e) {}
-        cat.words.push(sanitizeWord({ ...(full || {}), id: uid(), word: String(w), meaning: String(m) }));
-      }
-      if (isNew) categories.push(cat); syncStorage();
-    }
-    closeSheet();
-    if (allWords().length < 4) return say('시험과 뜻 고르기는 전체 단어가 4개 이상 있어야 해요.');
-    if (a.kind === 'test') startSession('test', { type: 'cat', id: cat.id }, Math.min(a.n || 20, cat.words.length));
-    else startSession('choice', { type: 'cat', id: cat.id }, 0);
-    if (S.active) S.assign = { id: a.id, title: a.title };
-  };
-  async function clSubmit(asg, ok, n, sec, wrong) {
-    const box = document.createElement('div'); box.className = 'cl-sub'; box.textContent = `'${asg.title}' 결과를 선생님에게 보내는 중...`;
-    const res = document.querySelector('#stBody .result'); if (res) res.insertBefore(box, res.firstChild);
-    try {
-      const r = await Cloud.call('voca_assign_submit', { p_assign: asg.id, p_ok: ok, p_n: Math.max(1, n), p_sec: sec, p_wrong: wrong.slice(0, 100) });
-      box.classList.add('ok'); box.textContent = `과제를 제출했어요. 이번 ${r.score}점${r.tries > 1 ? `, 최고 ${r.best}점(${r.tries}번째)` : ''}`;
-      const c = clCache(); if (r.tries === 1 && c.pending > 0) { c.pending--; try { LS.setItem(clKey(), JSON.stringify(c)); } catch (e) {} }
-      clReport(true);
-    } catch (e) { box.classList.add('bad'); box.textContent = '제출하지 못했어요. ' + clMsg(e) + ' 과제를 다시 풀면 다시 제출돼요.'; }
-  }
-
-  /* ----- 학생: 학습 요약 올리기 ----- */
-  let clLastReport = 0;
-  async function clReport(force) {
-    if (!clOk() || isTeacher() && !force) return;
-    if (!clCache().joined) return;
-    if (!force && Date.now() - clLastReport < 180000) return;
-    clLastReport = Date.now();
-    const c = counts(); let n7 = 0, ok7 = 0, last = '';
-    for (let i = 0; i < 7; i++) { const d = stats.days[dayKey(addDays(startOfDay(), -i))]; if (d) { n7 += d.n || 0; ok7 += d.ok || 0; } }
-    Object.keys(stats.days).forEach(k => { if ((stats.days[k].n || 0) > 0 && k > last) last = k; });
-    const weak = allWords().filter(x => x.w.miss > 0).sort((a, b) => b.w.miss - a.w.miss).slice(0, 10).map(x => [x.w.word.slice(0, 60), (x.w.meaning || '').slice(0, 40), x.w.miss]);
-    const tests = (stats.tests || []).slice(-5).reverse().map(t => [t.d, Math.round(t.ok / t.n * 100), String(t.src || '').slice(0, 40)]);
-    const p = { total: c.total, mastered: c.mastered, due: c.due, streak: streak(), today: (stats.days[dayKey()] || { n: 0 }).n, n7, acc7: n7 ? Math.round(ok7 / n7 * 100) : null, last, weak, tests, at: Date.now() };
-    try { await Cloud.call('voca_class_report', { p_progress: p }); } catch (e) {}
-  }
 
