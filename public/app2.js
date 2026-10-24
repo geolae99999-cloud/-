@@ -371,7 +371,7 @@
   ACTIONS['lang-set'] = el => setLang(el.dataset.l);
 
   let curTab = 'tabHome';
-  const TITLES = { tabBooks: '단어장', tabStudy: '학습', tabStats: '통계', tabSettings: '설정' };
+  const TITLES = { tabBooks: '단어장', tabTexts: '본문', tabStudy: '학습', tabStats: '통계', tabSettings: '설정' };
   // 위 제목: 길면 말줄임(…)이 되게 span 안에 넣어요
   function headText(t) { $('headTitle').innerHTML = `<span class="brand-t">${esc(t)}</span>`; }
   function go(id) {
@@ -392,6 +392,7 @@
     if (id === 'tabHome') renderHome();
     else if (id === 'tabBooks') renderBooks();
     else if (id === 'paneBook') renderBookDynamic();
+    else if (id === 'tabTexts') renderTexts();
     else if (id === 'tabStudy') renderStudy();
     else if (id === 'tabStats') renderStats();
     else if (id === 'tabSettings') loadSettingsUI();

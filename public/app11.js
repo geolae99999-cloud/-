@@ -4,26 +4,30 @@
   const RD_MAX = 4000, RD_SENT_MAX = 80;
   let RD = null; // { text, zh, sents: [{ t, toks, ko }], hideKo, seq }
   function rdEntryHtml() { return `<button class="mg-entry" data-act="rd-open"><span class="mg-ico">${IC.book}</span><span class="mg-txt"><b>본문 읽기 · 해석</b><small>본문을 넣으면 문장마다 해석, 단어를 누르면 뜻과 원어민 발음</small></span><span class="wq-tag">NEW</span><span class="mg-chev"></span></button>`; }
-  function rdClose() { const o = $('rdOv'); if (o) o.remove(); rdPopHide(); RD = null; }
+  function rdClose() { const o = $('rdOv'); if (o) o.remove(); rdPopHide(); RD = null; if (curTab === 'tabTexts') renderTexts(); }
   function rdShell(inner, title, back) {
     let ov = $('rdOv');
     if (!ov) { ov = document.createElement('div'); ov.className = 'rd-ov'; ov.id = 'rdOv'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-modal', 'true'); ov.setAttribute('aria-label', '본문 읽기'); document.body.appendChild(ov); }
-    ov.innerHTML = `<div class="rd-top">${back ? `<button class="rd-x" data-act="rd-list" aria-label="본문 목록">←</button>` : ''}<b class="rd-title">${esc(title || '본문 읽기')}</b><button class="rd-x" data-act="rd-close" aria-label="닫기">${IC.x}</button></div><div class="rd-body" id="rdBody">${inner}</div>`;
+    ov.innerHTML = `<div class="rd-top">${back ? `<button class="rd-x" data-act="rd-close" aria-label="본문 목록으로">←</button>` : ''}<b class="rd-title">${esc(title || '본문 읽기')}</b><button class="rd-x" data-act="rd-close" aria-label="닫기">${IC.x}</button></div><div class="rd-body" id="rdBody">${inner}</div>`;
     return ov;
   }
   const psgById = id => passages.find(x => x.id === id);
   const psgNextName = () => { let n = 0; passages.forEach(x => { const m = /^본문 (\d+)$/.exec(x.name); if (m) n = Math.max(n, +m[1]); }); return `본문 ${Math.max(n, passages.length) + 1}`; };
   const psgDate = t => { const d = new Date(t); return `${d.getMonth() + 1}월 ${d.getDate()}일`; };
-  // 본문 목록 (단어장처럼 본문 1, 본문 2 …)
-  function rdList() {
-    RD = null; rdPopHide();
+  // 본문 탭: 단어장처럼 본문 1, 본문 2 … 를 카드로 보여 줘요. 누르면 전체 화면으로 읽어요.
+  function textsListHtml() {
     const list = passages.slice().sort((a, b) => b.at - a.at);
-    rdShell(`<button class="btn btn-primary btn-block rd-new" data-act="rd-new">${IC.plus} 새 본문 넣기</button>
+    return `<button class="btn btn-primary btn-block rd-new" data-act="rd-new">${IC.plus} 새 본문 넣기</button>
       ${list.length ? `<div class="rd-lib">${list.map(x => `<div class="rd-item">
           <button class="rd-open-p" data-act="rd-p" data-id="${esc(x.id)}"><span class="rd-badge ${x.zh ? 'zh' : 'en'}">${x.zh ? '中' : 'EN'}</span><span class="rd-it"><b>${esc(x.name)}</b><small>${esc(x.text.replace(/\s+/g, ' ').slice(0, 70))}${x.text.length > 70 ? '…' : ''}</small></span><em>${psgDate(x.at)}</em></button>
           <button class="rd-more" data-act="rd-p-menu" data-id="${esc(x.id)}" aria-label="${esc(x.name)} 메뉴">⋯</button></div>`).join('')}</div>`
-        : `<p class="rd-empty">아직 저장한 본문이 없어요. 교과서 본문이나 기사를 붙여 넣으면 '본문 1'로 저장되고, 문장마다 해석이 나와요.</p>`}`, '본문 읽기');
+        : `<div class="rd-empty"><b>아직 저장한 본문이 없어요</b>교과서 본문이나 기사를 붙여 넣으면 '본문 1'로 저장돼요. 문장마다 해석이 나오고, 단어를 누르면 뜻과 원어민 발음을 들을 수 있어요.</div>`}`;
   }
+  function renderTexts() {
+    const el = $('tabTexts'); if (!el) return;
+    el.innerHTML = `<div class="texts-pane">${textsListHtml()}</div>`;
+  }
+  function rdList() { const o = $('rdOv'); if (o) o.remove(); rdPopHide(); RD = null; go('tabTexts'); }
   // 새 본문 · 본문 고치기
   function rdEditor(id) {
     const x = id ? psgById(id) : null;
@@ -35,7 +39,6 @@
     inp.addEventListener('input', cnt); cnt();
     setTimeout(() => inp.focus(), 60);
   }
-  const rdOpen = () => rdList();
   ACTIONS['rd-open'] = () => rdList();
   ACTIONS['rd-list'] = () => rdList();
   ACTIONS['rd-close'] = rdClose;
@@ -54,7 +57,7 @@
   // ⋯ 를 누르면 그 본문 아래에 이름 바꾸기 · 고치기 · 삭제 버튼이 열려요.
   ACTIONS['rd-p-menu'] = el => {
     const item = el.closest('.rd-item'), open = item.nextElementSibling && item.nextElementSibling.classList.contains('rd-acts');
-    document.querySelectorAll('#rdBody .rd-acts').forEach(x => x.remove());
+    document.querySelectorAll('.rd-acts').forEach(x => x.remove());
     if (open) return;
     const id = esc(el.dataset.id);
     item.insertAdjacentHTML('afterend', `<div class="rd-acts"><button class="btn btn-soft" data-act="rd-p-rename" data-id="${id}">이름 바꾸기</button><button class="btn btn-soft" data-act="rd-p-edit" data-id="${id}">본문 고치기</button><button class="btn btn-soft danger" data-act="rd-p-del" data-id="${id}">삭제</button></div>`);
@@ -127,8 +130,22 @@
     const sents = parts.map((t, i) => ({ t, toks: rdTokens(t, zh), ko: saved[i] ? saved[i] : null }));
     RD = { id: x.id, name: x.name, text, zh, sents, hideKo: false, seq: (RD && RD.seq || 0) + 1 };
     rdRender();
-    // 문장마다 번역해요(동시에 4개씩). 다 끝나기 전에도 끝난 문장부터 보여 줘요.
-    const seq = RD.seq; let next = 0;
+    const seq = RD.seq;
+    // 1) AI 가 본문 전체 문맥을 보고 문장마다 해석해요(40문장씩). 로그인한 서버 모드에서만.
+    if (sents.some(s => !s.ko) && cloudMode && window.Cloud && Cloud.ai && Cloud.user && Cloud.user()) {
+      const note = document.querySelector('#rdBody .rd-note'); if (note) note.dataset.t = note.textContent, note.textContent = 'AI가 앞뒤 문맥을 보고 해석하는 중이에요…';
+      for (let a = 0; a < sents.length; a += 40) {
+        const part = sents.slice(a, a + 40); if (part.every(s => s.ko)) continue;
+        try {
+          const j = parseJson(await Cloud.ai('', { task: 'passage', sents: part.map(s => s.t), lang: zh ? 'zh' : 'en' }, 45000));
+          if (!RD || RD.seq !== seq) return;
+          if (j && Array.isArray(j.items) && j.items.length === part.length) part.forEach((s, k) => { const t = String(j.items[k] || '').trim().replace(/^\d+[.)]\s*/, ''); if (t && HANGUL.test(t)) { s.ko = t; s.by = 'ai'; rdKoPaint(a + k); } });
+        } catch (e) { /* 아래 자동 번역으로 */ }
+      }
+      const n2 = document.querySelector('#rdBody .rd-note'); if (n2 && n2.dataset.t) n2.textContent = n2.dataset.t;
+    }
+    // 2) 남은 문장은 자동 번역으로 하나씩(동시에 4개씩). 다 끝나기 전에도 끝난 문장부터 보여 줘요.
+    let next = 0;
     const work = async () => {
       while (RD && RD.seq === seq && next < sents.length) {
         const i = next++, s = sents[i];

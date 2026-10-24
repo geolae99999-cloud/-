@@ -1352,7 +1352,9 @@
     .rd-acts { display: flex; gap: 8px; margin: -4px 0 4px; }
     .rd-acts .btn { flex: 1; font-size: .85rem; }
     .rd-ov ~ .dlg-ov, body:has(#rdOv) .dlg-ov { z-index: 700; }
-    .rd-empty { color: var(--muted); font-size: .9rem; line-height: 1.6; text-align: center; padding: 30px 10px; }
+    .rd-empty { color: var(--muted); font-size: .9rem; line-height: 1.6; text-align: center; padding: 30px 14px; background: var(--card, #fff); border-radius: 16px; }
+    .rd-empty b { display: block; color: var(--ink, inherit); font-size: 1rem; margin-bottom: 6px; }
+    .texts-pane { padding: 4px 0 24px; }
     .rd-name { width: 100%; box-sizing: border-box; margin-bottom: 10px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line, rgba(0, 0, 0, .1)); background: var(--card, #fff); color: inherit; font: inherit; font-weight: 700; }
     .rd-recent { display: grid; gap: 8px; }
     .rd-rec { text-align: left; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line, rgba(0, 0, 0, .08)); background: var(--card, #fff); color: inherit; font: inherit; font-size: .86rem; line-height: 1.5; cursor: pointer; }
