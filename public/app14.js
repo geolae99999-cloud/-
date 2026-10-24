@@ -123,7 +123,8 @@
     toefl: { name: '토플 · 텝스', desc: '유학 · 고급 시험 어휘', ico: 'trend', c: 'i-teal' },
     basic: { name: '기초부터 차근차근', desc: '처음 시작하는 영어 단어', ico: 'sprout', c: 'i-mint' }
   };
-  const MC_DAILY = [[5, '2분', '가볍게'], [10, '5분', '꾸준히'], [20, '10분', '보통'], [30, '15분', '열심히']];
+  // 하루 공부 시간(분). 단어 하나를 여러 단계로 익히는 데 약 1분이라 새 단어 수도 같아요.
+  const MC_DAILY = [[5, '가볍게, 쉬는 시간에'], [10, '꾸준히 (추천)'], [15, '보통'], [20, '열심히'], [30, '시험 준비처럼 집중해서']];
   const mcSpeak = () => SR ? 'speak' : 'dict';
   function mcSteps(goal) {
     if (goal === 'travel') return ['card', 'lchoice', mcSpeak()];
@@ -144,26 +145,38 @@
   }
   const mcCat = () => { const c = config.course; return c && categories.find(x => x.id === c.catId); };
   const mcLevel = () => { let s = null; try { s = JSON.parse(LS.getItem(ltKey()) || 'null'); } catch (e) {} return s && LT_LV[s.lv] ? s.lv : null; };
-  // 오늘 배울 새 단어를 코스 단어장에 담아요(하루에 한 번)
-  async function mcToday() {
-    const c = config.course; if (!c || isZh()) return null;
-    if (c.last === dayKey() && Array.isArray(c.ids) && c.ids.length) return c;
+  // 코스 묶음에서 아직 없는 단어를 n개 골라요(skip: 이번에 이미 보여 준 단어)
+  async function mcCandidates(n, skip) {
+    const c = config.course; if (!c) return [];
     const packs = mcPacks(c.goal, c.lv);
     if (packs.some(k => k.startsWith('es-'))) { try { await esLoad(); } catch (e) {} }
-    let cat = mcCat();
-    if (!cat) { cat = { id: 'c' + uid(), name: `맞춤 코스 · ${MC_GOALS[c.goal].name}`, words: [] }; categories.unshift(cat); c.catId = cat.id; }
     const own = ownedWords(), pick = [];
+    (skip || []).forEach(w => own.add(String(w).toLowerCase()));
     for (const k of packs) {
       let list = gradeWords(k, true);
       if (k === packs[0] && (k === 'life' || k === 'toeic') && c.lv >= 2) list = list.slice(Math.floor(list.length * 0.15 * (c.lv - 1)));
       for (const e of list) {
-        if (pick.length >= c.daily) break;
+        if (pick.length >= n) break;
         const lw = String(e.w || '').toLowerCase(); if (!lw || own.has(lw)) continue;
         own.add(lw); pick.push(e);
       }
-      if (pick.length >= c.daily) break;
+      if (pick.length >= n) break;
     }
-    const words = pick.map(e => sanitizeWord({ id: uid(), word: e.w, meaning: e.m, example: e.ex || '', exampleKo: e.exKo || '' }));
+    return pick;
+  }
+  function mcEnsureCat() {
+    const c = config.course; let cat = mcCat();
+    if (!cat) { cat = { id: 'c' + uid(), name: `맞춤 코스 · ${MC_GOALS[c.goal].name}`, words: [] }; categories.unshift(cat); c.catId = cat.id; }
+    return cat;
+  }
+  const mcWord = (e, box) => sanitizeWord({ id: uid(), word: e.w, meaning: e.m, example: e.ex || '', exampleKo: e.exKo || '', box: box || 0 });
+  // 오늘 배울 새 단어를 코스 단어장에 담아요(하루에 한 번). chosen: 아는 단어 체크에서 고른 '모르는 단어'
+  async function mcToday(chosen) {
+    const c = config.course; if (!c || isZh()) return null;
+    if (c.last === dayKey() && Array.isArray(c.ids) && c.ids.length) return c;
+    const cat = mcEnsureCat();
+    const pick = chosen || await mcCandidates(c.daily);
+    const words = pick.map(e => mcWord(e));
     cat.words.unshift(...words);
     c.ids = words.map(w => w.id); c.day = (c.day || 0) + 1; c.last = dayKey(); c.step = 0;
     syncStorage();
@@ -183,12 +196,16 @@
     const g = MC_GOALS[c.goal], steps = mcSteps(c.goal), today = c.last === dayKey(), step = today ? (c.step || 0) : 0, done = today && step >= steps.length;
     const n = today ? (c.ids || []).length : c.daily;
     return `<div class="h-course"><section class="card mc-card">
-      <div class="mc-head"><span class="mg-ico ${g.c}">${IC[g.ico]}</span><div class="mc-t"><small>맞춤 코스 · ${esc(LT_LV[c.lv].name)} · 하루 ${c.daily}개</small><b>${esc(g.name)} · Day ${today ? c.day : (c.day || 0) + 1}</b></div><button class="link-btn" data-act="mc-open">바꾸기</button></div>
+      <div class="mc-head"><span class="mg-ico ${g.c}">${IC[g.ico]}</span><div class="mc-t"><small>맞춤 코스 · ${esc(LT_LV[c.lv].name)} · 하루 ${c.daily}분</small><b>${esc(g.name)} · Day ${today ? c.day : (c.day || 0) + 1}</b></div><button class="link-btn" data-act="mc-open">바꾸기</button></div>
+      <div class="mc-time"><span>오늘 공부한 시간</span><b>${Math.min(todayMin(), 999)} / ${c.daily}분</b><div class="mc-tbar"><i style="width:${Math.min(100, Math.round(todayMin() / c.daily * 100))}%"></i></div></div>
       <ol class="mc-steps">${steps.map((m, i) => `<li class="${i < step || done ? 'done' : i === step ? 'now' : ''}"><i>${i < step || done ? IC.tick : i + 1}</i><span>${esc(mcStepName(m))}</span></li>`).join('')}</ol>
       ${done ? '<div class="mc-done">오늘 맞춤 학습을 다 했어요. 내일 새 단어가 열려요.</div>' : `<button class="btn btn-primary btn-block" data-act="mc-go">${step ? `${step + 1}단계 이어서 하기` : `오늘의 새 단어 ${n}개 시작`}</button>`}
     </section></div>`;
   }
   ACTIONS['mc-go'] = async () => {
+    const c0 = config.course; if (!c0) return;
+    // 그날 처음이면 아는 단어부터 걸러요
+    if (!(c0.last === dayKey() && Array.isArray(c0.ids) && c0.ids.length) && c0.check !== false) return kcOpen();
     const c = await mcToday(); if (!c) return;
     const steps = mcSteps(c.goal), step = c.step || 0, items = mcItems();
     if (!items.length) { toast('오늘 배울 새 단어가 없어요. 이 코스의 단어를 다 담았어요. 다른 목적이나 수준으로 바꿔 보세요.'); return; }
@@ -197,6 +214,63 @@
     startSession(steps[step], { type: 'cat', id: cat.id }, 0, items);
     if (S && S.active) S.course = step;
   };
+
+  /* ----- 아는 단어 체크: 오늘 후보 단어 중 이미 아는 단어를 눌러 빼요 ----- */
+  // 아는 단어는 코스 단어장에 '아는 단어'로 넣고 2주 뒤에 확인 복습으로 다시 나와요(박스 4).
+  let KC = null;
+  async function kcOpen() {
+    const c = config.course; if (!c || $('kcOv')) return;
+    const ov = document.createElement('div'); ov.className = 'ob mc-ov kc-ov'; ov.id = 'kcOv'; document.body.appendChild(ov);
+    ov.innerHTML = '<div class="ob-body"><p>오늘 단어를 고르는 중이에요</p></div>';
+    KC = { want: c.daily, unknown: [], known: [], seen: [], cur: [], round: 0 };
+    await kcRound();
+  }
+  async function kcRound() {
+    if (!KC) return;
+    const need = KC.want - KC.unknown.length;
+    const list = need > 0 ? await mcCandidates(Math.min(30, Math.max(8, need * 2)), KC.seen) : [];
+    if (!KC) return;
+    if (!list.length) return kcFinish();
+    KC.round++; KC.cur = list; KC.mark = new Set(); list.forEach(e => KC.seen.push(e.w));
+    kcDraw();
+  }
+  function kcDraw() {
+    const ov = $('kcOv'); if (!ov || !KC) return;
+    const left = KC.want - KC.unknown.length;
+    ov.innerHTML = `<div class="mc-top"><span></span><button class="ob-skip" data-kc="close">닫기</button></div>
+      <div class="ob-body mc-body"><h2>이미 아는 단어를 눌러 주세요</h2>
+      <p>아는 단어는 빼고, 모르는 단어 ${left}개로 오늘 공부를 만들어요.${KC.round > 1 ? ' (한 번 더 골라요)' : ''}</p>
+      <div class="kc-grid">${KC.cur.map((e, i) => `<button class="kc-w${KC.mark.has(i) ? ' on' : ''}" data-kc="t" data-i="${i}" aria-pressed="${KC.mark.has(i)}"><b>${esc(e.w)}</b><small>${KC.mark.has(i) ? '알아요' : esc(e.m)}</small></button>`).join('')}</div>
+      <p class="kc-tip">뜻까지 정확히 아는 단어만 눌러 주세요. 아는 단어도 2주 뒤에 한 번 확인해요.</p></div>
+      <div class="ob-foot"><button class="btn btn-primary btn-block" data-kc="ok">${KC.mark.size ? `아는 단어 ${KC.mark.size}개 빼고 시작` : '모두 처음 봐요, 시작'}</button>
+      <button class="btn btn-soft btn-block" data-kc="all" style="margin-top:8px;">다 아는 단어예요, 다른 단어 보기</button></div>`;
+  }
+  async function kcNext(allKnown) {
+    if (!KC) return;
+    KC.cur.forEach((e, i) => { if (allKnown || KC.mark.has(i)) KC.known.push(e); else if (KC.unknown.length < KC.want) KC.unknown.push(e); });
+    if (KC.unknown.length < KC.want) return kcRound();
+    kcFinish();
+  }
+  async function kcFinish() {
+    const st = KC; KC = null; const ov = $('kcOv'); if (ov) ov.remove();
+    if (!st) return;
+    const c = config.course; if (!c) return;
+    const cat = mcEnsureCat();
+    if (st.known.length) { const kw = st.known.map(e => mcWord(e, 4)); cat.words.push(...kw); dictFill(kw).then(n => { if (n) syncStorage(); }).catch(() => {}); }
+    c.knownN = (c.knownN || 0) + st.known.length;
+    if (!st.unknown.length) { syncStorage(); if (curTab === 'tabHome') renderHome(); return toast('이 코스의 새 단어를 다 알고 있어요. 수준을 올리거나 다른 목적으로 바꿔 보세요.'); }
+    await mcToday(st.unknown);
+    if (st.known.length) toast(`아는 단어 ${st.known.length}개는 빼고, 새 단어 ${st.unknown.length}개로 시작해요.`);
+    ACTIONS['mc-go']();
+  }
+  document.addEventListener('click', e => {
+    const b = e.target.closest && e.target.closest('#kcOv [data-kc]'); if (!b || !KC) return;
+    const a = b.dataset.kc;
+    if (a === 'close') { KC = null; const ov = $('kcOv'); if (ov) ov.remove(); return; }
+    if (a === 't') { const i = +b.dataset.i; KC.mark.has(i) ? KC.mark.delete(i) : KC.mark.add(i); return kcDraw(); }
+    if (a === 'ok') return kcNext(false);
+    if (a === 'all') return kcNext(true);
+  });
   // 학습을 끝내면 다음 단계로. finishSession 에서 불러요.
   function mcAdvance() {
     const c = config.course; if (!c || S.course == null || c.last !== dayKey()) return null;
@@ -211,7 +285,7 @@
   function mcOpen() {
     if ($('mcOv')) return;
     const c = config.course || {};
-    MC = { goal: c.goal || '', lv: c.lv != null ? c.lv : mcLevel(), daily: c.daily || 10, step: 0 };
+    MC = { goal: c.goal || '', lv: c.lv != null ? c.lv : mcLevel(), daily: c.daily || 10, step: 0, check: c.check !== false };
     const ov = document.createElement('div'); ov.className = 'ob mc-ov'; ov.id = 'mcOv'; document.body.appendChild(ov);
     mcDraw();
   }
@@ -232,8 +306,9 @@
       foot = `<button class="btn btn-primary btn-block" data-mc="next"${MC.lv != null ? '' : ' disabled'}>다음</button>`;
     } else {
       const g = MC_GOALS[MC.goal];
-      body = `<h2>하루에 얼마나 할까요?</h2><p>매일 새 단어를 이만큼 담고, ${esc(mcSteps(MC.goal).map(mcStepName).join(' → '))} 순서로 익혀요.</p>
-        <div class="mc-lv">${MC_DAILY.map(([n, t, l]) => `<button class="mc-opt row${MC.daily === n ? ' on' : ''}" data-mc="daily" data-v="${n}"><b>하루 ${n}개 · 약 ${t}</b><small>${l}</small></button>`).join('')}</div>
+      body = `<h2>하루에 몇 분 공부할까요?</h2><p>시간에 맞춰 새 단어를 담고, ${esc(mcSteps(MC.goal).map(mcStepName).join(' → '))} 순서로 익혀요.</p>
+        <div class="mc-lv">${MC_DAILY.map(([n, l]) => `<button class="mc-opt row${MC.daily === n ? ' on' : ''}" data-mc="daily" data-v="${n}"><b>하루 ${n}분 · 새 단어 약 ${n}개</b><small>${l}</small></button>`).join('')}</div>
+        <label class="switch-row mc-chk"><input type="checkbox" data-mc="check" ${MC.check !== false ? 'checked' : ''}><span><b>매일 아는 단어 체크</b><small>시작 전에 이미 아는 단어를 눌러 빼요</small></span></label>
         <div class="card mc-sum"><b>${esc(g.name)} · ${esc(LT_LV[MC.lv].name)}</b><small>복습은 잊어버리기 직전에 홈의 '오늘의 복습'으로 자동으로 다시 나와요.</small></div>`;
       foot = `<button class="btn btn-primary btn-block" data-mc="done">맞춤 코스 시작하기</button>`;
     }
@@ -242,7 +317,7 @@
   }
   function mcSave() {
     const old = config.course || {}, same = old.goal === MC.goal && old.lv === MC.lv;
-    config.course = { goal: MC.goal, lv: MC.lv, daily: MC.daily, catId: same ? old.catId : null, day: same ? old.day || 0 : 0, last: same ? old.last : '', ids: same ? old.ids || [] : [], step: same ? old.step || 0 : 0 };
+    config.course = { goal: MC.goal, lv: MC.lv, daily: MC.daily, catId: same ? old.catId : null, day: same ? old.day || 0 : 0, last: same ? old.last : '', ids: same ? old.ids || [] : [], step: same ? old.step || 0 : 0, check: MC.check !== false, knownN: same ? old.knownN || 0 : 0 };
     if (!same && old.last === dayKey()) config.course.last = '';
     config.goal = Math.max(config.goal || 0, MC.daily);
     syncStorage();
@@ -257,6 +332,7 @@
     if (a === 'goal') MC.goal = b.dataset.v;
     else if (a === 'lv') MC.lv = +b.dataset.v;
     else if (a === 'daily') MC.daily = +b.dataset.v;
+    else if (a === 'check') { MC.check = b.checked; return; }
     else if (a === 'next') MC.step = Math.min(2, MC.step + 1);
     else if (a === 'back') MC.step = Math.max(0, MC.step - 1);
     else if (a === 'done') return mcSave();
@@ -279,87 +355,3 @@
     return `<button class="mg-entry" data-act="level-test"><span class="mg-ico i-coral">${IC.sprout}</span><span class="mg-txt"><b>${esc(t)}</b><small>${sub}</small></span><span class="mg-chev"></span></button>`;
   }
 
-  /* =========================================================
-   * 4단계 집중 학습 (카드 → 뜻 고르기 → 따라 쓰기 → 시험)
-   * ======================================================= */
-  const FL_STEPS = ['카드 보기', '뜻 고르기', '따라 쓰기', '마무리 시험'];
-  let FL = null;
-  function flPick() {
-    let it = poolFor({ type: 'due' }); if (!it.length) it = poolFor({ type: 'new' }); if (!it.length) it = poolFor({ type: 'all' });
-    return shuffled(it.map(x => ({ w: x.w, catId: x.catId }))).slice(0, 8);
-  }
-  function flOpts(w, rev) {
-    const pool = allWords().map(x => rev ? x.w.word : x.w.meaning).concat(ltBank().flat().map(x => rev ? x[0] : x[1]));
-    const ans = rev ? w.word : w.meaning, seen = new Set([ans.toLowerCase()]), out = [];
-    shuffled(pool).forEach(o => { if (out.length < 3 && o && !seen.has(o.toLowerCase())) { seen.add(o.toLowerCase()); out.push(o); } });
-    return shuffled([ans, ...out]);
-  }
-  ACTIONS.flow = () => flOpen();
-  function flOpen(items) {
-    if ($('flOv')) return;
-    items = items || flPick();
-    if (!items.length) return toast('학습할 단어가 없어요. 먼저 단어를 추가해 보세요.');
-    FL = { items, step: 0, i: 0, res: {}, locked: false, miss: {} };
-    const ov = document.createElement('div'); ov.className = 'ob lt fl'; ov.id = 'flOv'; document.body.appendChild(ov);
-    flDraw();
-  }
-  function flTotal() { return FL.items.length * 4; }
-  function flDraw() {
-    const ov = $('flOv'); if (!ov || !FL) return;
-    if (FL.i >= FL.items.length) { FL.step++; FL.i = 0; if (FL.step >= 4) return flResult(); }
-    const it = FL.items[FL.i], w = it.w, st = FL.step;
-    const head = `<button class="ob-skip" data-fl="close">그만하기</button><div class="lt-bar"><i style="width:${Math.round((st * FL.items.length + FL.i) / flTotal() * 100)}%"></i></div><div class="muted fl-step"><b>${st + 1}/4 ${FL_STEPS[st]}</b> · ${FL.i + 1}/${FL.items.length}</div>`;
-    FL.locked = false; let body = '', foot = '';
-    if (st === 0) {
-      body = `<div class="fl-card"><button class="q-speak" data-act="speak" data-text="${esc(w.word)}" aria-label="발음 듣기">${IC.speaker}</button><div class="fl-word">${esc(w.word)}</div><div class="q-pron">${esc(pronText(w))}</div><div class="fl-mean">${esc(w.meaning)}</div>${w.example ? `<div class="fl-ex">${esc(w.example)}${exPyHtml(w)}${w.exampleKo ? `<span class="ex-ko">${esc(w.exampleKo)}</span>` : ''}</div>` : ''}</div>`;
-      foot = `<button class="btn btn-primary btn-block" data-fl="next">${FL.i === FL.items.length - 1 ? '뜻 고르기로' : '다음'}</button>`;
-      setTimeout(() => { try { playAudio(w.word); } catch (e) {} }, 150);
-    } else if (st === 1 || st === 3) {
-      const rev = st === 3, opts = flOpts(w, rev);
-      body = `<div class="ob-body lt-q"><div class="muted" style="font-weight:700;margin-bottom:8px;">${rev ? `알맞은 ${LN()} 단어는?` : '이 단어의 뜻은?'}</div><h2 style="font-size:2rem;">${esc(rev ? w.meaning : w.word)}</h2><div class="opts" style="width:100%;margin-top:22px;">${opts.map((o, k) => `<button class="opt" data-fl="opt" data-v="${esc(o)}"><span class="opt-n">${k + 1}</span><span>${esc(o)}</span></button>`).join('')}</div></div>`;
-      foot = `<button class="btn btn-soft btn-block" data-fl="opt" data-v="">잘 모르겠어요</button>`;
-    } else {
-      body = `<div class="ob-body lt-q"><div class="muted" style="font-weight:700;margin-bottom:8px;">뜻에 맞는 단어를 써 보세요</div><h2 style="font-size:2rem;">${esc(w.meaning)}</h2><div class="muted" style="margin:6px 0 18px;letter-spacing:.2em;">${isHanWord(w.word) ? `${'□'.repeat(w.word.length)}` : `${esc(w.word.charAt(0))}${'_'.repeat(Math.max(0, Math.min(w.word.length - 1, 24)))}`}</div><input type="text" id="flIn" class="fl-in" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="${isHanWord(w.word) ? '병음(예: xuexi) 또는 한자' : '영어 단어'}"><div id="flFb" class="fl-fb"></div></div>`;
-      foot = `<button class="btn btn-primary btn-block" id="flGo" data-fl="type">확인</button>`;
-      setTimeout(() => { const i = $('flIn'); if (i) i.focus(); }, 80);
-    }
-    ov.innerHTML = head + (st === 0 ? `<div class="ob-body">${body}</div>` : body) + `<div class="ob-foot">${foot}</div>`;
-  }
-  function flAdvance(ms) { const fl = FL; setTimeout(() => { if (FL === fl && fl) { FL.i++; flDraw(); } }, ms); }
-  function flAnswer(v) {
-    if (!FL || FL.locked) return; FL.locked = true;
-    const it = FL.items[FL.i], w = it.w, rev = FL.step === 3, ans = rev ? w.word : w.meaning, ok = v === ans;
-    if (FL.step === 3) FL.res[w.id] = ok; if (!ok) FL.miss[w.id] = true;
-    $('flOv').querySelectorAll('.opt').forEach(b => { if (b.dataset.v === ans) b.classList.add('correct'); else if (b.dataset.v === v) b.classList.add('wrong'); });
-    haptic(ok); flAdvance(ok ? 450 : 1000);
-  }
-  function flType() {
-    if (!FL) return; const it = FL.items[FL.i], w = it.w, inp = $('flIn'), fb = $('flFb'), btn = $('flGo'); if (!inp) return;
-    if (FL.locked) { FL.i++; return flDraw(); }
-    const v = inp.value.trim().toLowerCase(); if (!v) return toast('단어를 입력해 주세요.');
-    const ok = answerOk(v, w); if (!ok) FL.miss[w.id] = true;
-    FL.locked = true; inp.disabled = true; haptic(ok);
-    fb.innerHTML = ok ? `<b style="color:var(--blue)">정답이에요!${w.phonetic && isHanWord(w.word) ? ` ${esc(w.word)} ${esc(w.phonetic)}` : ''}</b>` : `<b style="color:var(--coral)">정답: ${esc(w.word)}${w.phonetic && isHanWord(w.word) ? ` (${esc(w.phonetic)})` : ''}</b>`;
-    btn.textContent = '다음';
-  }
-  function flResult() {
-    const ov = $('flOv'); if (!ov) return;
-    let good = 0; const wrongs = [];
-    FL.items.forEach(it => { const ok = !!FL.res[it.w.id]; grade(it.w, ok); recordStat(ok); if (ok) good++; else wrongs.push(it); });
-    syncStorage(); FL.wrongs = wrongs;
-    try { go(curTab); } catch (e) {}
-    ov.innerHTML = `<div class="ob-body"><div class="ob-art">${MASCOT(wrongs.length ? 'happy' : 'cheer')}</div><div class="muted" style="font-weight:700;">마무리 시험 결과</div><h2 style="font-size:2.4rem;">${good} / ${FL.items.length}</h2><p>${wrongs.length ? '틀린 단어는 내일 다시 복습해요.' : '모두 맞혔어요. 대단해요!'}</p>${wrongs.length ? `<div class="card" style="width:100%;margin-top:18px;text-align:left;">${wrongs.map(it => `<div class="wrong-item"><b>${esc(it.w.word)}</b><span>${esc(it.w.meaning)}</span></div>`).join('')}</div>` : ''}</div><div class="ob-foot">${wrongs.length ? '<button class="btn btn-primary btn-block" data-fl="again">틀린 것만 다시</button><button class="btn btn-soft btn-block" data-fl="close" style="margin-top:8px;">마치기</button>' : '<button class="btn btn-primary btn-block" data-fl="close">마치기</button>'}</div>`;
-    if (good === FL.items.length) { try { confetti(); } catch (e) {} }
-  }
-  document.addEventListener('click', e => {
-    const b = e.target.closest && e.target.closest('#flOv [data-fl]'); if (!b) return;
-    const a = b.dataset.fl;
-    if (a === 'close') { const ov = $('flOv'); if (ov) ov.remove(); FL = null; }
-    else if (a === 'next') { FL.i++; flDraw(); }
-    else if (a === 'opt') flAnswer(b.dataset.v);
-    else if (a === 'type') flType();
-    else if (a === 'again') { const w = FL && FL.wrongs; const ov = $('flOv'); if (ov) ov.remove(); FL = null; if (w && w.length) flOpen(w); }
-  });
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && FL && FL.step === 2 && e.target && e.target.id === 'flIn') { e.preventDefault(); flType(); }
-  });

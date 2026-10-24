@@ -720,6 +720,16 @@
     .mc-steps li i { width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-style: normal; font-size: .75rem; background: var(--surface); }
     .mc-steps li i svg { width: 13px; height: 13px; }
     .mc-steps li.now { color: var(--ink); box-shadow: inset 0 0 0 2px var(--blue); } .mc-steps li.done { color: var(--mint); } .mc-steps li.done i { background: var(--mint-soft); }
+    .mc-time { display: grid; grid-template-columns: 1fr auto; gap: 6px 10px; align-items: center; font-size: .85rem; color: var(--muted); }
+    .mc-time b { color: var(--ink); font-size: .9rem; } .mc-tbar { grid-column: 1 / -1; height: 6px; border-radius: 6px; background: var(--surface-2); overflow: hidden; }
+    .mc-tbar i { display: block; height: 100%; background: var(--mint); border-radius: 6px; }
+    .kc-grid { width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 18px; }
+    .kc-w { border: 2px solid transparent; background: var(--surface); border-radius: 16px; padding: 12px; min-height: 64px; display: flex; flex-direction: column; align-items: flex-start; gap: 3px; text-align: left; font: inherit; color: inherit; cursor: pointer; }
+    .kc-w b { font-size: 1.02rem; word-break: break-word; } .kc-w small { color: var(--muted); font-size: .78rem; line-height: 1.4; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+    .kc-w.on { border-color: var(--mint); background: var(--mint-soft); } .kc-w.on small { color: var(--mint); font-weight: 700; }
+    .kc-tip { font-size: .8rem !important; margin-top: 14px !important; }
+    .kc-ov .ob-foot { position: sticky; bottom: calc(-22px - env(safe-area-inset-bottom, 0px)); background: var(--bg); padding: 12px 0 calc(4px + env(safe-area-inset-bottom, 0px)); box-shadow: 0 -10px 16px -12px rgba(0, 27, 55, .18); }
+    .mc-chk { width: 100%; margin-top: 14px; text-align: left; } .mc-chk span { display: flex; flex-direction: column; gap: 2px; } .mc-chk small { color: var(--muted); font-size: .8rem; }
     .mc-done { font-weight: 700; color: var(--mint); text-align: center; padding: 6px 0; }
     .mc-top { display: flex; justify-content: space-between; } .mc-top .ob-skip { position: static; }
     .mc-body { justify-content: flex-start; padding-top: 18px; }
@@ -3613,6 +3623,7 @@ window.VOCA_CLOUD = {
           const d = s.days[k] || {};
           days[k] = { n: Math.max(0, Math.floor(+d.n) || 0), ok: Math.max(0, Math.floor(+d.ok) || 0) };
           if (+d.m > 0) days[k].m = Math.floor(+d.m); // 그날 새로 마스터한 단어 수(주간 리포트)
+          if (+d.sec > 0) days[k].sec = Math.min(86400, Math.floor(+d.sec)); // 그날 공부한 시간(초)
         }
       }
     }
@@ -3712,9 +3723,10 @@ window.VOCA_CLOUD = {
   // 맞춤 코스 설정 정리 (저장 · 백업 · 서버 동기화에 써요)
   function cleanCourse(c) {
     if (!c || typeof c !== 'object' || !['travel', 'talk', 'school', 'toeic', 'toefl', 'basic'].includes(c.goal)) return null;
-    const lv = Math.max(0, Math.min(4, Math.floor(+c.lv || 0))), daily = [5, 10, 20, 30].includes(+c.daily) ? +c.daily : 10;
+    const lv = Math.max(0, Math.min(4, Math.floor(+c.lv || 0))), daily = [5, 10, 15, 20, 30].includes(+c.daily) ? +c.daily : 10;
     return { goal: c.goal, lv, daily, catId: typeof c.catId === 'string' ? c.catId.slice(0, 40) : null, day: Math.max(0, Math.min(9999, Math.floor(+c.day || 0))),
-      last: typeof c.last === 'string' ? c.last.slice(0, 12) : '', ids: Array.isArray(c.ids) ? c.ids.filter(x => typeof x === 'string').slice(0, 40) : [], step: Math.max(0, Math.min(9, Math.floor(+c.step || 0))) };
+      last: typeof c.last === 'string' ? c.last.slice(0, 12) : '', ids: Array.isArray(c.ids) ? c.ids.filter(x => typeof x === 'string').slice(0, 40) : [], step: Math.max(0, Math.min(9, Math.floor(+c.step || 0))),
+      check: c.check !== false, knownN: Math.max(0, Math.floor(+c.knownN || 0)) };
   }
   function syncStorage() {
     if (!currentUser) return;
@@ -3801,8 +3813,18 @@ window.VOCA_CLOUD = {
     const when = last === dayKey(addDays(startOfDay(), -1)) ? '어제' : `${+last.slice(5, 7)}월 ${+last.slice(8, 10)}일`;
     toast(`보호권이 ${when}${when === '어제' ? '를' : '을'} 지켜 줬어요. ${si.n}일 연속 그대로예요!`);
   }
+  // 공부한 시간: 문제 하나에 쓴 시간을 더해요(오래 자리를 비운 시간은 1분까지만)
+  function addStudyTime() {
+    if (!S || !S.active) return;
+    const now = Date.now(), from = S.tq || S.t0 || now; S.tq = now;
+    const sec = Math.min(60, Math.max(0, (now - from) / 1000)); if (!sec) return;
+    const k = dayKey(); if (!stats.days[k]) stats.days[k] = { n: 0, ok: 0 };
+    stats.days[k].sec = Math.min(86400, (stats.days[k].sec || 0) + sec);
+  }
+  const todayMin = () => Math.floor(((stats.days[dayKey()] || {}).sec || 0) / 60);
   function recordStat(ok) {
     const k = dayKey();
+    addStudyTime();
     if (!stats.days[k]) stats.days[k] = { n: 0, ok: 0 };
     stats.days[k].n++;
     if (ok) stats.days[k].ok++;
@@ -8718,7 +8740,8 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     toefl: { name: '토플 · 텝스', desc: '유학 · 고급 시험 어휘', ico: 'trend', c: 'i-teal' },
     basic: { name: '기초부터 차근차근', desc: '처음 시작하는 영어 단어', ico: 'sprout', c: 'i-mint' }
   };
-  const MC_DAILY = [[5, '2분', '가볍게'], [10, '5분', '꾸준히'], [20, '10분', '보통'], [30, '15분', '열심히']];
+  // 하루 공부 시간(분). 단어 하나를 여러 단계로 익히는 데 약 1분이라 새 단어 수도 같아요.
+  const MC_DAILY = [[5, '가볍게, 쉬는 시간에'], [10, '꾸준히 (추천)'], [15, '보통'], [20, '열심히'], [30, '시험 준비처럼 집중해서']];
   const mcSpeak = () => SR ? 'speak' : 'dict';
   function mcSteps(goal) {
     if (goal === 'travel') return ['card', 'lchoice', mcSpeak()];
@@ -8739,26 +8762,38 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
   }
   const mcCat = () => { const c = config.course; return c && categories.find(x => x.id === c.catId); };
   const mcLevel = () => { let s = null; try { s = JSON.parse(LS.getItem(ltKey()) || 'null'); } catch (e) {} return s && LT_LV[s.lv] ? s.lv : null; };
-  // 오늘 배울 새 단어를 코스 단어장에 담아요(하루에 한 번)
-  async function mcToday() {
-    const c = config.course; if (!c || isZh()) return null;
-    if (c.last === dayKey() && Array.isArray(c.ids) && c.ids.length) return c;
+  // 코스 묶음에서 아직 없는 단어를 n개 골라요(skip: 이번에 이미 보여 준 단어)
+  async function mcCandidates(n, skip) {
+    const c = config.course; if (!c) return [];
     const packs = mcPacks(c.goal, c.lv);
     if (packs.some(k => k.startsWith('es-'))) { try { await esLoad(); } catch (e) {} }
-    let cat = mcCat();
-    if (!cat) { cat = { id: 'c' + uid(), name: `맞춤 코스 · ${MC_GOALS[c.goal].name}`, words: [] }; categories.unshift(cat); c.catId = cat.id; }
     const own = ownedWords(), pick = [];
+    (skip || []).forEach(w => own.add(String(w).toLowerCase()));
     for (const k of packs) {
       let list = gradeWords(k, true);
       if (k === packs[0] && (k === 'life' || k === 'toeic') && c.lv >= 2) list = list.slice(Math.floor(list.length * 0.15 * (c.lv - 1)));
       for (const e of list) {
-        if (pick.length >= c.daily) break;
+        if (pick.length >= n) break;
         const lw = String(e.w || '').toLowerCase(); if (!lw || own.has(lw)) continue;
         own.add(lw); pick.push(e);
       }
-      if (pick.length >= c.daily) break;
+      if (pick.length >= n) break;
     }
-    const words = pick.map(e => sanitizeWord({ id: uid(), word: e.w, meaning: e.m, example: e.ex || '', exampleKo: e.exKo || '' }));
+    return pick;
+  }
+  function mcEnsureCat() {
+    const c = config.course; let cat = mcCat();
+    if (!cat) { cat = { id: 'c' + uid(), name: `맞춤 코스 · ${MC_GOALS[c.goal].name}`, words: [] }; categories.unshift(cat); c.catId = cat.id; }
+    return cat;
+  }
+  const mcWord = (e, box) => sanitizeWord({ id: uid(), word: e.w, meaning: e.m, example: e.ex || '', exampleKo: e.exKo || '', box: box || 0 });
+  // 오늘 배울 새 단어를 코스 단어장에 담아요(하루에 한 번). chosen: 아는 단어 체크에서 고른 '모르는 단어'
+  async function mcToday(chosen) {
+    const c = config.course; if (!c || isZh()) return null;
+    if (c.last === dayKey() && Array.isArray(c.ids) && c.ids.length) return c;
+    const cat = mcEnsureCat();
+    const pick = chosen || await mcCandidates(c.daily);
+    const words = pick.map(e => mcWord(e));
     cat.words.unshift(...words);
     c.ids = words.map(w => w.id); c.day = (c.day || 0) + 1; c.last = dayKey(); c.step = 0;
     syncStorage();
@@ -8778,12 +8813,16 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     const g = MC_GOALS[c.goal], steps = mcSteps(c.goal), today = c.last === dayKey(), step = today ? (c.step || 0) : 0, done = today && step >= steps.length;
     const n = today ? (c.ids || []).length : c.daily;
     return `<div class="h-course"><section class="card mc-card">
-      <div class="mc-head"><span class="mg-ico ${g.c}">${IC[g.ico]}</span><div class="mc-t"><small>맞춤 코스 · ${esc(LT_LV[c.lv].name)} · 하루 ${c.daily}개</small><b>${esc(g.name)} · Day ${today ? c.day : (c.day || 0) + 1}</b></div><button class="link-btn" data-act="mc-open">바꾸기</button></div>
+      <div class="mc-head"><span class="mg-ico ${g.c}">${IC[g.ico]}</span><div class="mc-t"><small>맞춤 코스 · ${esc(LT_LV[c.lv].name)} · 하루 ${c.daily}분</small><b>${esc(g.name)} · Day ${today ? c.day : (c.day || 0) + 1}</b></div><button class="link-btn" data-act="mc-open">바꾸기</button></div>
+      <div class="mc-time"><span>오늘 공부한 시간</span><b>${Math.min(todayMin(), 999)} / ${c.daily}분</b><div class="mc-tbar"><i style="width:${Math.min(100, Math.round(todayMin() / c.daily * 100))}%"></i></div></div>
       <ol class="mc-steps">${steps.map((m, i) => `<li class="${i < step || done ? 'done' : i === step ? 'now' : ''}"><i>${i < step || done ? IC.tick : i + 1}</i><span>${esc(mcStepName(m))}</span></li>`).join('')}</ol>
       ${done ? '<div class="mc-done">오늘 맞춤 학습을 다 했어요. 내일 새 단어가 열려요.</div>' : `<button class="btn btn-primary btn-block" data-act="mc-go">${step ? `${step + 1}단계 이어서 하기` : `오늘의 새 단어 ${n}개 시작`}</button>`}
     </section></div>`;
   }
   ACTIONS['mc-go'] = async () => {
+    const c0 = config.course; if (!c0) return;
+    // 그날 처음이면 아는 단어부터 걸러요
+    if (!(c0.last === dayKey() && Array.isArray(c0.ids) && c0.ids.length) && c0.check !== false) return kcOpen();
     const c = await mcToday(); if (!c) return;
     const steps = mcSteps(c.goal), step = c.step || 0, items = mcItems();
     if (!items.length) { toast('오늘 배울 새 단어가 없어요. 이 코스의 단어를 다 담았어요. 다른 목적이나 수준으로 바꿔 보세요.'); return; }
@@ -8792,6 +8831,63 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     startSession(steps[step], { type: 'cat', id: cat.id }, 0, items);
     if (S && S.active) S.course = step;
   };
+
+  /* ----- 아는 단어 체크: 오늘 후보 단어 중 이미 아는 단어를 눌러 빼요 ----- */
+  // 아는 단어는 코스 단어장에 '아는 단어'로 넣고 2주 뒤에 확인 복습으로 다시 나와요(박스 4).
+  let KC = null;
+  async function kcOpen() {
+    const c = config.course; if (!c || $('kcOv')) return;
+    const ov = document.createElement('div'); ov.className = 'ob mc-ov kc-ov'; ov.id = 'kcOv'; document.body.appendChild(ov);
+    ov.innerHTML = '<div class="ob-body"><p>오늘 단어를 고르는 중이에요</p></div>';
+    KC = { want: c.daily, unknown: [], known: [], seen: [], cur: [], round: 0 };
+    await kcRound();
+  }
+  async function kcRound() {
+    if (!KC) return;
+    const need = KC.want - KC.unknown.length;
+    const list = need > 0 ? await mcCandidates(Math.min(30, Math.max(8, need * 2)), KC.seen) : [];
+    if (!KC) return;
+    if (!list.length) return kcFinish();
+    KC.round++; KC.cur = list; KC.mark = new Set(); list.forEach(e => KC.seen.push(e.w));
+    kcDraw();
+  }
+  function kcDraw() {
+    const ov = $('kcOv'); if (!ov || !KC) return;
+    const left = KC.want - KC.unknown.length;
+    ov.innerHTML = `<div class="mc-top"><span></span><button class="ob-skip" data-kc="close">닫기</button></div>
+      <div class="ob-body mc-body"><h2>이미 아는 단어를 눌러 주세요</h2>
+      <p>아는 단어는 빼고, 모르는 단어 ${left}개로 오늘 공부를 만들어요.${KC.round > 1 ? ' (한 번 더 골라요)' : ''}</p>
+      <div class="kc-grid">${KC.cur.map((e, i) => `<button class="kc-w${KC.mark.has(i) ? ' on' : ''}" data-kc="t" data-i="${i}" aria-pressed="${KC.mark.has(i)}"><b>${esc(e.w)}</b><small>${KC.mark.has(i) ? '알아요' : esc(e.m)}</small></button>`).join('')}</div>
+      <p class="kc-tip">뜻까지 정확히 아는 단어만 눌러 주세요. 아는 단어도 2주 뒤에 한 번 확인해요.</p></div>
+      <div class="ob-foot"><button class="btn btn-primary btn-block" data-kc="ok">${KC.mark.size ? `아는 단어 ${KC.mark.size}개 빼고 시작` : '모두 처음 봐요, 시작'}</button>
+      <button class="btn btn-soft btn-block" data-kc="all" style="margin-top:8px;">다 아는 단어예요, 다른 단어 보기</button></div>`;
+  }
+  async function kcNext(allKnown) {
+    if (!KC) return;
+    KC.cur.forEach((e, i) => { if (allKnown || KC.mark.has(i)) KC.known.push(e); else if (KC.unknown.length < KC.want) KC.unknown.push(e); });
+    if (KC.unknown.length < KC.want) return kcRound();
+    kcFinish();
+  }
+  async function kcFinish() {
+    const st = KC; KC = null; const ov = $('kcOv'); if (ov) ov.remove();
+    if (!st) return;
+    const c = config.course; if (!c) return;
+    const cat = mcEnsureCat();
+    if (st.known.length) { const kw = st.known.map(e => mcWord(e, 4)); cat.words.push(...kw); dictFill(kw).then(n => { if (n) syncStorage(); }).catch(() => {}); }
+    c.knownN = (c.knownN || 0) + st.known.length;
+    if (!st.unknown.length) { syncStorage(); if (curTab === 'tabHome') renderHome(); return toast('이 코스의 새 단어를 다 알고 있어요. 수준을 올리거나 다른 목적으로 바꿔 보세요.'); }
+    await mcToday(st.unknown);
+    if (st.known.length) toast(`아는 단어 ${st.known.length}개는 빼고, 새 단어 ${st.unknown.length}개로 시작해요.`);
+    ACTIONS['mc-go']();
+  }
+  document.addEventListener('click', e => {
+    const b = e.target.closest && e.target.closest('#kcOv [data-kc]'); if (!b || !KC) return;
+    const a = b.dataset.kc;
+    if (a === 'close') { KC = null; const ov = $('kcOv'); if (ov) ov.remove(); return; }
+    if (a === 't') { const i = +b.dataset.i; KC.mark.has(i) ? KC.mark.delete(i) : KC.mark.add(i); return kcDraw(); }
+    if (a === 'ok') return kcNext(false);
+    if (a === 'all') return kcNext(true);
+  });
   // 학습을 끝내면 다음 단계로. finishSession 에서 불러요.
   function mcAdvance() {
     const c = config.course; if (!c || S.course == null || c.last !== dayKey()) return null;
@@ -8806,7 +8902,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
   function mcOpen() {
     if ($('mcOv')) return;
     const c = config.course || {};
-    MC = { goal: c.goal || '', lv: c.lv != null ? c.lv : mcLevel(), daily: c.daily || 10, step: 0 };
+    MC = { goal: c.goal || '', lv: c.lv != null ? c.lv : mcLevel(), daily: c.daily || 10, step: 0, check: c.check !== false };
     const ov = document.createElement('div'); ov.className = 'ob mc-ov'; ov.id = 'mcOv'; document.body.appendChild(ov);
     mcDraw();
   }
@@ -8827,8 +8923,9 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
       foot = `<button class="btn btn-primary btn-block" data-mc="next"${MC.lv != null ? '' : ' disabled'}>다음</button>`;
     } else {
       const g = MC_GOALS[MC.goal];
-      body = `<h2>하루에 얼마나 할까요?</h2><p>매일 새 단어를 이만큼 담고, ${esc(mcSteps(MC.goal).map(mcStepName).join(' → '))} 순서로 익혀요.</p>
-        <div class="mc-lv">${MC_DAILY.map(([n, t, l]) => `<button class="mc-opt row${MC.daily === n ? ' on' : ''}" data-mc="daily" data-v="${n}"><b>하루 ${n}개 · 약 ${t}</b><small>${l}</small></button>`).join('')}</div>
+      body = `<h2>하루에 몇 분 공부할까요?</h2><p>시간에 맞춰 새 단어를 담고, ${esc(mcSteps(MC.goal).map(mcStepName).join(' → '))} 순서로 익혀요.</p>
+        <div class="mc-lv">${MC_DAILY.map(([n, l]) => `<button class="mc-opt row${MC.daily === n ? ' on' : ''}" data-mc="daily" data-v="${n}"><b>하루 ${n}분 · 새 단어 약 ${n}개</b><small>${l}</small></button>`).join('')}</div>
+        <label class="switch-row mc-chk"><input type="checkbox" data-mc="check" ${MC.check !== false ? 'checked' : ''}><span><b>매일 아는 단어 체크</b><small>시작 전에 이미 아는 단어를 눌러 빼요</small></span></label>
         <div class="card mc-sum"><b>${esc(g.name)} · ${esc(LT_LV[MC.lv].name)}</b><small>복습은 잊어버리기 직전에 홈의 '오늘의 복습'으로 자동으로 다시 나와요.</small></div>`;
       foot = `<button class="btn btn-primary btn-block" data-mc="done">맞춤 코스 시작하기</button>`;
     }
@@ -8837,7 +8934,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
   }
   function mcSave() {
     const old = config.course || {}, same = old.goal === MC.goal && old.lv === MC.lv;
-    config.course = { goal: MC.goal, lv: MC.lv, daily: MC.daily, catId: same ? old.catId : null, day: same ? old.day || 0 : 0, last: same ? old.last : '', ids: same ? old.ids || [] : [], step: same ? old.step || 0 : 0 };
+    config.course = { goal: MC.goal, lv: MC.lv, daily: MC.daily, catId: same ? old.catId : null, day: same ? old.day || 0 : 0, last: same ? old.last : '', ids: same ? old.ids || [] : [], step: same ? old.step || 0 : 0, check: MC.check !== false, knownN: same ? old.knownN || 0 : 0 };
     if (!same && old.last === dayKey()) config.course.last = '';
     config.goal = Math.max(config.goal || 0, MC.daily);
     syncStorage();
@@ -8852,6 +8949,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     if (a === 'goal') MC.goal = b.dataset.v;
     else if (a === 'lv') MC.lv = +b.dataset.v;
     else if (a === 'daily') MC.daily = +b.dataset.v;
+    else if (a === 'check') { MC.check = b.checked; return; }
     else if (a === 'next') MC.step = Math.min(2, MC.step + 1);
     else if (a === 'back') MC.step = Math.max(0, MC.step - 1);
     else if (a === 'done') return mcSave();

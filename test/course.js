@@ -30,11 +30,22 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); 
     await p.waitForSelector('#mcOv .mc-lv');
     ok(await p.$('#mcOv [data-mc="lv"].on'), width + ' 수준은 테스트 결과로 골라져 있어요');
     await p.click('#mcOv [data-mc="lv"][data-v="1"]'); await p.click('#mcOv [data-mc="next"]');
-    // 3단계 하루 학습량
+    // 3단계 하루 몇 분
     await p.click('#mcOv [data-mc="daily"][data-v="5"]');
-    ok(/귀로 익히기/.test(await p.textContent('#mcOv')), width + ' 여행 영어는 듣기 위주 순서 안내');
+    const t3 = await p.textContent('#mcOv');
+    ok(/귀로 익히기/.test(t3) && /몇 분/.test(t3) && /하루 5분/.test(t3), width + ' 하루 몇 분 고르기 · 여행 영어는 듣기 위주 순서 안내');
+    ok(await p.$eval('#mcOv [data-mc="check"]', e => e.checked), width + ' 아는 단어 체크 기본으로 켜짐');
     await p.click('#mcOv [data-mc="done"]');
+    // 아는 단어 체크: 후보 중 2개를 아는 단어로 빼요
+    await p.waitForSelector('#kcOv .kc-w');
+    const cand = await p.$$eval('#kcOv .kc-w b', a => a.map(x => x.textContent));
+    ok(cand.length >= 8, width + ' 아는 단어 체크 후보 ' + cand.length + '개');
+    await p.click('#kcOv .kc-w[data-i="0"]'); await p.click('#kcOv .kc-w[data-i="1"]');
+    ok(/아는 단어 2개 빼고/.test(await p.textContent('#kcOv [data-kc="ok"]')), width + ' 고른 수가 버튼에 보여요');
+    await p.click('#kcOv [data-kc="ok"]');
     await p.waitForFunction(() => S && S.active && S.mode === 'card');
+    const kn = await p.evaluate(k => { const cat = categories.find(c => c.id === config.course.catId); return { known: cat.words.filter(w => k.includes(w.word)).map(w => w.box), inQ: S.queue.some(x => k.includes(x.w.word)) }; }, cand.slice(0, 2));
+    ok(kn.known.length === 2 && kn.known.every(b => b === 4) && !kn.inQ, width + ' 아는 단어는 오늘 학습에서 빼고 2주 뒤 확인(박스 4) ' + JSON.stringify(kn));
     const st = await p.evaluate(() => ({ n: S.queue.length, course: config.course, cat: (categories.find(c => c.id === config.course.catId) || {}).name, life: gradeWords('life', true).slice(0, 40).map(e => e.w.toLowerCase()), q: S.queue.map(x => x.w.word.toLowerCase()) }));
     ok(st.n === 5 && st.course.day === 1 && st.course.ids.length === 5 && /여행 영어/.test(st.cat), width + ' 오늘 새 단어 5개를 코스 단어장에 담고 카드부터 ' + JSON.stringify({ n: st.n, day: st.course.day, cat: st.cat }));
     ok(st.q.every(w => st.life.includes(w)), width + ' 여행 영어 단어(생활 · 여행)에서 골라요 ' + st.q.join(','));
@@ -50,16 +61,21 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); 
     // 홈 카드: Day 1, 2단계 진행 중
     await p.evaluate(() => go('tabHome')); await p.waitForSelector('.mc-card');
     const home = await p.evaluate(() => ({ t: document.querySelector('.mc-card').innerText, done: document.querySelectorAll('.mc-steps li.done').length, now: document.querySelectorAll('.mc-steps li.now').length, vis: document.querySelector('.mc-card').getBoundingClientRect().width > 200 }));
+    ok(/오늘 공부한 시간/.test(home.t) && /\/ 5분/.test(home.t), width + ' 홈 카드에 오늘 공부 시간 / 목표 분 ' + (home.t.match(/\d+ \/ 5분/) || [''])[0]);
+    ok((await p.evaluate(() => (stats.days[dayKey()] || {}).sec || 0)) > 0, width + ' 공부 시간이 기록돼요');
     ok(/Day 1/.test(home.t) && home.done === 1 && home.now === 1 && /2단계 이어서/.test(home.t) && home.vis, width + ' 홈 카드에 진행 상황 ' + JSON.stringify(home).slice(0, 160));
     // 다음 날이 되면 새 단어 5개가 더 담겨요(Day 2), 어제 단어와 겹치지 않아요
     const y = await p.evaluate(async () => { const old = config.course.ids.slice(); config.course.last = '2000-01-01'; await mcToday(); return { day: config.course.day, n: config.course.ids.length, overlap: config.course.ids.some(i => old.includes(i)), step: config.course.step, total: categories.find(c => c.id === config.course.catId).words.length }; });
-    ok(y.day === 2 && y.n === 5 && !y.overlap && y.step === 0 && y.total === 10, width + ' 다음 날 새 단어 5개 (Day 2) ' + JSON.stringify(y));
+    ok(y.day === 2 && y.n === 5 && !y.overlap && y.step === 0 && y.total === 12, width + ' 다음 날 새 단어 5개 (Day 2) ' + JSON.stringify(y));
     // 저장 후 다시 불러와도 코스가 남아요
     await p.reload(); await p.waitForSelector('.mc-card');
     ok(/Day 2/.test(await p.textContent('.mc-card')) || /Day/.test(await p.textContent('.mc-card')), width + ' 새로고침해도 코스 유지');
     // 대화 목적으로 바꾸면 말하기 문장 묶음에서 담아요
     await p.click('.mc-card [data-act="mc-open"]'); await p.waitForSelector('#mcOv');
     await p.click('#mcOv [data-mc="goal"][data-v="talk"]'); await p.click('#mcOv [data-mc="next"]'); await p.click('#mcOv [data-mc="next"]'); await p.click('#mcOv [data-mc="done"]');
+    await p.waitForSelector('#kcOv .kc-w'); await p.click('#kcOv [data-kc="all"]'); // 다 안다고 하면 다른 단어를 더 보여 줘요
+    await p.waitForSelector('#kcOv .kc-w'); ok(/한 번 더/.test(await p.textContent('#kcOv')), width + ' 다 알면 새 후보를 한 번 더');
+    await p.click('#kcOv [data-kc="ok"]');
     await p.waitForFunction(() => S && S.active);
     const t = await p.evaluate(() => ({ goal: config.course.goal, ex: S.queue.filter(x => x.w.example).length, n: S.queue.length, cat: categories.find(c => c.id === config.course.catId).name }));
     ok(t.goal === 'talk' && t.n === 5 && t.ex >= 3 && /외국인과 대화/.test(t.cat), width + ' 외국인과 대화: 예문 있는 문장 묶음 단어 ' + JSON.stringify(t));

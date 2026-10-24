@@ -1,4 +1,88 @@
   /* =========================================================
+   * 4단계 집중 학습 (카드 → 뜻 고르기 → 따라 쓰기 → 시험)
+   * ======================================================= */
+  const FL_STEPS = ['카드 보기', '뜻 고르기', '따라 쓰기', '마무리 시험'];
+  let FL = null;
+  function flPick() {
+    let it = poolFor({ type: 'due' }); if (!it.length) it = poolFor({ type: 'new' }); if (!it.length) it = poolFor({ type: 'all' });
+    return shuffled(it.map(x => ({ w: x.w, catId: x.catId }))).slice(0, 8);
+  }
+  function flOpts(w, rev) {
+    const pool = allWords().map(x => rev ? x.w.word : x.w.meaning).concat(ltBank().flat().map(x => rev ? x[0] : x[1]));
+    const ans = rev ? w.word : w.meaning, seen = new Set([ans.toLowerCase()]), out = [];
+    shuffled(pool).forEach(o => { if (out.length < 3 && o && !seen.has(o.toLowerCase())) { seen.add(o.toLowerCase()); out.push(o); } });
+    return shuffled([ans, ...out]);
+  }
+  ACTIONS.flow = () => flOpen();
+  function flOpen(items) {
+    if ($('flOv')) return;
+    items = items || flPick();
+    if (!items.length) return toast('학습할 단어가 없어요. 먼저 단어를 추가해 보세요.');
+    FL = { items, step: 0, i: 0, res: {}, locked: false, miss: {} };
+    const ov = document.createElement('div'); ov.className = 'ob lt fl'; ov.id = 'flOv'; document.body.appendChild(ov);
+    flDraw();
+  }
+  function flTotal() { return FL.items.length * 4; }
+  function flDraw() {
+    const ov = $('flOv'); if (!ov || !FL) return;
+    if (FL.i >= FL.items.length) { FL.step++; FL.i = 0; if (FL.step >= 4) return flResult(); }
+    const it = FL.items[FL.i], w = it.w, st = FL.step;
+    const head = `<button class="ob-skip" data-fl="close">그만하기</button><div class="lt-bar"><i style="width:${Math.round((st * FL.items.length + FL.i) / flTotal() * 100)}%"></i></div><div class="muted fl-step"><b>${st + 1}/4 ${FL_STEPS[st]}</b> · ${FL.i + 1}/${FL.items.length}</div>`;
+    FL.locked = false; let body = '', foot = '';
+    if (st === 0) {
+      body = `<div class="fl-card"><button class="q-speak" data-act="speak" data-text="${esc(w.word)}" aria-label="발음 듣기">${IC.speaker}</button><div class="fl-word">${esc(w.word)}</div><div class="q-pron">${esc(pronText(w))}</div><div class="fl-mean">${esc(w.meaning)}</div>${w.example ? `<div class="fl-ex">${esc(w.example)}${exPyHtml(w)}${w.exampleKo ? `<span class="ex-ko">${esc(w.exampleKo)}</span>` : ''}</div>` : ''}</div>`;
+      foot = `<button class="btn btn-primary btn-block" data-fl="next">${FL.i === FL.items.length - 1 ? '뜻 고르기로' : '다음'}</button>`;
+      setTimeout(() => { try { playAudio(w.word); } catch (e) {} }, 150);
+    } else if (st === 1 || st === 3) {
+      const rev = st === 3, opts = flOpts(w, rev);
+      body = `<div class="ob-body lt-q"><div class="muted" style="font-weight:700;margin-bottom:8px;">${rev ? `알맞은 ${LN()} 단어는?` : '이 단어의 뜻은?'}</div><h2 style="font-size:2rem;">${esc(rev ? w.meaning : w.word)}</h2><div class="opts" style="width:100%;margin-top:22px;">${opts.map((o, k) => `<button class="opt" data-fl="opt" data-v="${esc(o)}"><span class="opt-n">${k + 1}</span><span>${esc(o)}</span></button>`).join('')}</div></div>`;
+      foot = `<button class="btn btn-soft btn-block" data-fl="opt" data-v="">잘 모르겠어요</button>`;
+    } else {
+      body = `<div class="ob-body lt-q"><div class="muted" style="font-weight:700;margin-bottom:8px;">뜻에 맞는 단어를 써 보세요</div><h2 style="font-size:2rem;">${esc(w.meaning)}</h2><div class="muted" style="margin:6px 0 18px;letter-spacing:.2em;">${isHanWord(w.word) ? `${'□'.repeat(w.word.length)}` : `${esc(w.word.charAt(0))}${'_'.repeat(Math.max(0, Math.min(w.word.length - 1, 24)))}`}</div><input type="text" id="flIn" class="fl-in" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="${isHanWord(w.word) ? '병음(예: xuexi) 또는 한자' : '영어 단어'}"><div id="flFb" class="fl-fb"></div></div>`;
+      foot = `<button class="btn btn-primary btn-block" id="flGo" data-fl="type">확인</button>`;
+      setTimeout(() => { const i = $('flIn'); if (i) i.focus(); }, 80);
+    }
+    ov.innerHTML = head + (st === 0 ? `<div class="ob-body">${body}</div>` : body) + `<div class="ob-foot">${foot}</div>`;
+  }
+  function flAdvance(ms) { const fl = FL; setTimeout(() => { if (FL === fl && fl) { FL.i++; flDraw(); } }, ms); }
+  function flAnswer(v) {
+    if (!FL || FL.locked) return; FL.locked = true;
+    const it = FL.items[FL.i], w = it.w, rev = FL.step === 3, ans = rev ? w.word : w.meaning, ok = v === ans;
+    if (FL.step === 3) FL.res[w.id] = ok; if (!ok) FL.miss[w.id] = true;
+    $('flOv').querySelectorAll('.opt').forEach(b => { if (b.dataset.v === ans) b.classList.add('correct'); else if (b.dataset.v === v) b.classList.add('wrong'); });
+    haptic(ok); flAdvance(ok ? 450 : 1000);
+  }
+  function flType() {
+    if (!FL) return; const it = FL.items[FL.i], w = it.w, inp = $('flIn'), fb = $('flFb'), btn = $('flGo'); if (!inp) return;
+    if (FL.locked) { FL.i++; return flDraw(); }
+    const v = inp.value.trim().toLowerCase(); if (!v) return toast('단어를 입력해 주세요.');
+    const ok = answerOk(v, w); if (!ok) FL.miss[w.id] = true;
+    FL.locked = true; inp.disabled = true; haptic(ok);
+    fb.innerHTML = ok ? `<b style="color:var(--blue)">정답이에요!${w.phonetic && isHanWord(w.word) ? ` ${esc(w.word)} ${esc(w.phonetic)}` : ''}</b>` : `<b style="color:var(--coral)">정답: ${esc(w.word)}${w.phonetic && isHanWord(w.word) ? ` (${esc(w.phonetic)})` : ''}</b>`;
+    btn.textContent = '다음';
+  }
+  function flResult() {
+    const ov = $('flOv'); if (!ov) return;
+    let good = 0; const wrongs = [];
+    FL.items.forEach(it => { const ok = !!FL.res[it.w.id]; grade(it.w, ok); recordStat(ok); if (ok) good++; else wrongs.push(it); });
+    syncStorage(); FL.wrongs = wrongs;
+    try { go(curTab); } catch (e) {}
+    ov.innerHTML = `<div class="ob-body"><div class="ob-art">${MASCOT(wrongs.length ? 'happy' : 'cheer')}</div><div class="muted" style="font-weight:700;">마무리 시험 결과</div><h2 style="font-size:2.4rem;">${good} / ${FL.items.length}</h2><p>${wrongs.length ? '틀린 단어는 내일 다시 복습해요.' : '모두 맞혔어요. 대단해요!'}</p>${wrongs.length ? `<div class="card" style="width:100%;margin-top:18px;text-align:left;">${wrongs.map(it => `<div class="wrong-item"><b>${esc(it.w.word)}</b><span>${esc(it.w.meaning)}</span></div>`).join('')}</div>` : ''}</div><div class="ob-foot">${wrongs.length ? '<button class="btn btn-primary btn-block" data-fl="again">틀린 것만 다시</button><button class="btn btn-soft btn-block" data-fl="close" style="margin-top:8px;">마치기</button>' : '<button class="btn btn-primary btn-block" data-fl="close">마치기</button>'}</div>`;
+    if (good === FL.items.length) { try { confetti(); } catch (e) {} }
+  }
+  document.addEventListener('click', e => {
+    const b = e.target.closest && e.target.closest('#flOv [data-fl]'); if (!b) return;
+    const a = b.dataset.fl;
+    if (a === 'close') { const ov = $('flOv'); if (ov) ov.remove(); FL = null; }
+    else if (a === 'next') { FL.i++; flDraw(); }
+    else if (a === 'opt') flAnswer(b.dataset.v);
+    else if (a === 'type') flType();
+    else if (a === 'again') { const w = FL && FL.wrongs; const ov = $('flOv'); if (ov) ov.remove(); FL = null; if (w && w.length) flOpen(w); }
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && FL && FL.step === 2 && e.target && e.target.id === 'flIn') { e.preventDefault(); flType(); }
+  });
+  /* =========================================================
    * 학년별 추천 단어 데이터 (초등)
    * ======================================================= */
   const GW_E = {

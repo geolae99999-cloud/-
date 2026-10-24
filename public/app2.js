@@ -75,6 +75,7 @@
           const d = s.days[k] || {};
           days[k] = { n: Math.max(0, Math.floor(+d.n) || 0), ok: Math.max(0, Math.floor(+d.ok) || 0) };
           if (+d.m > 0) days[k].m = Math.floor(+d.m); // 그날 새로 마스터한 단어 수(주간 리포트)
+          if (+d.sec > 0) days[k].sec = Math.min(86400, Math.floor(+d.sec)); // 그날 공부한 시간(초)
         }
       }
     }
@@ -174,9 +175,10 @@
   // 맞춤 코스 설정 정리 (저장 · 백업 · 서버 동기화에 써요)
   function cleanCourse(c) {
     if (!c || typeof c !== 'object' || !['travel', 'talk', 'school', 'toeic', 'toefl', 'basic'].includes(c.goal)) return null;
-    const lv = Math.max(0, Math.min(4, Math.floor(+c.lv || 0))), daily = [5, 10, 20, 30].includes(+c.daily) ? +c.daily : 10;
+    const lv = Math.max(0, Math.min(4, Math.floor(+c.lv || 0))), daily = [5, 10, 15, 20, 30].includes(+c.daily) ? +c.daily : 10;
     return { goal: c.goal, lv, daily, catId: typeof c.catId === 'string' ? c.catId.slice(0, 40) : null, day: Math.max(0, Math.min(9999, Math.floor(+c.day || 0))),
-      last: typeof c.last === 'string' ? c.last.slice(0, 12) : '', ids: Array.isArray(c.ids) ? c.ids.filter(x => typeof x === 'string').slice(0, 40) : [], step: Math.max(0, Math.min(9, Math.floor(+c.step || 0))) };
+      last: typeof c.last === 'string' ? c.last.slice(0, 12) : '', ids: Array.isArray(c.ids) ? c.ids.filter(x => typeof x === 'string').slice(0, 40) : [], step: Math.max(0, Math.min(9, Math.floor(+c.step || 0))),
+      check: c.check !== false, knownN: Math.max(0, Math.floor(+c.knownN || 0)) };
   }
   function syncStorage() {
     if (!currentUser) return;
@@ -263,8 +265,18 @@
     const when = last === dayKey(addDays(startOfDay(), -1)) ? '어제' : `${+last.slice(5, 7)}월 ${+last.slice(8, 10)}일`;
     toast(`보호권이 ${when}${when === '어제' ? '를' : '을'} 지켜 줬어요. ${si.n}일 연속 그대로예요!`);
   }
+  // 공부한 시간: 문제 하나에 쓴 시간을 더해요(오래 자리를 비운 시간은 1분까지만)
+  function addStudyTime() {
+    if (!S || !S.active) return;
+    const now = Date.now(), from = S.tq || S.t0 || now; S.tq = now;
+    const sec = Math.min(60, Math.max(0, (now - from) / 1000)); if (!sec) return;
+    const k = dayKey(); if (!stats.days[k]) stats.days[k] = { n: 0, ok: 0 };
+    stats.days[k].sec = Math.min(86400, (stats.days[k].sec || 0) + sec);
+  }
+  const todayMin = () => Math.floor(((stats.days[dayKey()] || {}).sec || 0) / 60);
   function recordStat(ok) {
     const k = dayKey();
+    addStudyTime();
     if (!stats.days[k]) stats.days[k] = { n: 0, ok: 0 };
     stats.days[k].n++;
     if (ok) stats.days[k].ok++;
