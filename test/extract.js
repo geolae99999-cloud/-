@@ -98,6 +98,7 @@ const ZH = '我们今天去图书馆学习汉语。这个城市的环境非常�
   const p = await page({ width: 390, height: 844 }, 'M', 8811);
   await signupLocal(p, 'gx1');
   await p.evaluate(() => { categories.push({ id: 'cHave', name: '내 단어', words: [sanitizeWord({ word: 'species', meaning: '종' }), sanitizeWord({ word: 'river', meaning: '강' })] }); syncStorage(); renderHome(); });
+  if (await p.$('#homeToolList.tl-fold')) { await p.click('[data-act="tools-toggle"]'); await p.waitForTimeout(200); } // 학습 도구 더 보기(접혀 있으면 펼쳐요)
   ok(await p.isVisible('.tool-list [data-act="gx-open"]'), '홈 학습 도구에 "글·사진에서 단어 뽑기"');
   await p.click('.tool-list [data-act="gx-open"]'); await p.waitForSelector('#gxIn');
   await p.fill('#gxIn', ART);
@@ -195,7 +196,7 @@ const ZH = '我们今天去图书馆学习汉语。这个城市的环境非常�
   await dark(p, false); await p.evaluate(() => closeSheet());
   const pc = await page({ width: 1280, height: 860 }, 'PC', 8811);
   await signupLocal(pc, 'gx2');
-  await pc.click('[data-act="gx-open"] >> nth=0'); await pc.waitForSelector('#gxIn'); await pc.fill('#gxIn', ART); await pc.click('#gxRun'); await pc.waitForSelector('.gx-row');
+  await pc.evaluate(() => ACTIONS['gx-open']({ dataset: {} })); await pc.waitForSelector('#gxIn'); await pc.fill('#gxIn', ART); await pc.click('#gxRun'); await pc.waitForSelector('.gx-row');
   await save(pc, 'list-pc', '후보목록-PC.png');
   ok(await pc.evaluate(() => document.documentElement.scrollWidth <= innerWidth && document.querySelector('.sheet').scrollWidth <= document.querySelector('.sheet').clientWidth), 'PC: 가로로 넘치지 않아요');
   ok(await p.evaluate(() => document.querySelector('.sheet').scrollWidth <= document.querySelector('.sheet').clientWidth + 1), '휴대폰: 시트가 가로로 넘치지 않아요');
@@ -234,13 +235,14 @@ const ZH = '我们今天去图书馆学习汉语。这个城市的环境非常�
       const res = await edge(new Request('https://x.supabase.co/functions/v1/ai' + (u.includes('?') ? '?' + u.split('?')[1] : ''), { method: 'POST', headers: { origin: 'http://localhost:8812', 'content-type': 'application/json' }, body: raw }));
       return r.fulfill({ status: res.status, contentType: 'application/json', body: await res.text() });
     }
-    if (u.endsWith('/voca_signup')) return j({ token: 'tok', id: 7, username: body.p_user });
+    if (u.endsWith('/voca_signup') || u.endsWith('/voca_signup_email')) return j({ token: 'tok', id: 7, username: body.p_user });
     if (u.endsWith('/voca_load')) return j(null);
     if (u.endsWith('/voca_me')) return j({ id: 7, username: 'kim' });
     return j({ ok: true });
   });
   await q.goto('http://localhost:8812/'); await q.waitForSelector('.auth-box #auId'); await q.evaluate(() => { DEFAULT_CFG.provider = 'gemini'; }); // 이 시험은 서버 · 키 AI 경로를 봐요(기본은 기기 AI)
   await q.click('[data-m="signup"]'); await q.click('[data-act="auth-age"][data-k="0"]'); await q.fill('#auId', 'kim'); await q.fill('#auPw', 'pass1234'); await q.fill('#auPw2', 'pass1234');
+  if (await q.$('#auEmail')) { await q.fill('#auEmail', 'kim@example.com'); await q.fill('#auCode', '123456'); } // 서버 계정 가입은 이메일 인증코드가 필요해요
   await q.click('#auNext'); await q.waitForSelector('#auGrade', { state: 'attached' }); await q.evaluate(g => { document.getElementById('auGrade').value = g; }, 'h1'); await q.fill('#auName', '김지우'); await q.fill('#auSchool', '한빛고등학교'); await q.fill('#auSno', '10315'); await q.check('#auTerms'); await q.fill('#capIn', await q.evaluate('capText')); await q.click('#auGo');
   await q.waitForSelector('#obOv'); await q.click('[data-ob="skip"]'); await q.click('[data-lt="close"]').catch(() => {}); await q.waitForTimeout(1500);
   await q.evaluate(() => { const o = document.getElementById('recOv'); if (o) o.remove(); });

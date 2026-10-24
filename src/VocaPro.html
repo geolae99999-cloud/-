@@ -2514,7 +2514,7 @@
     .gx-row.easy .gx-w { color: var(--ink-2); }
     .gx-more, .gx-empty { margin: 0; padding: 22px 8px; text-align: center; font-size: 14px; color: var(--muted); word-break: keep-all; }
     .gx-easy { margin: 6px 0 0; padding: 14px 2px 4px; border-top: 1px solid var(--line); }
-    .gx-foot { position: sticky; bottom: calc(-22px - env(safe-area-inset-bottom, 0px)); z-index: 3; margin: 14px -20px calc(-22px - env(safe-area-inset-bottom, 0px)); padding: 12px 20px calc(14px + env(safe-area-inset-bottom, 0px)); background: var(--surface); }
+    .gx-foot { position: sticky; bottom: calc(-22px - env(safe-area-inset-bottom, 0px)); z-index: 3; margin: 14px calc(-1 * var(--gut, 20px)) calc(-22px - env(safe-area-inset-bottom, 0px)); padding: 12px var(--gut, 20px) calc(14px + env(safe-area-inset-bottom, 0px)); background: var(--surface); }
     .gx-to { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 0 0 10px; font-size: 13px; font-weight: 600; color: var(--muted); min-width: 0; }
     .gx-to span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
     .gx-to button { flex: none; border: none; background: none; padding: 2px 0; color: var(--blue); font: inherit; font-weight: 700; cursor: pointer; }
@@ -8278,10 +8278,15 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
   document.addEventListener('keydown', e => { if (e.key === 'Escape') ACTIONS['about-video-close'](); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.querySelector('.vid-ov')) { e.stopImmediatePropagation(); ACTIONS['about-video-close'](); } }, true);
   function showAuth() {
-    authMode = cloudMode ? 'login' : (Object.keys(getUsers()).length ? 'login' : 'signup');
-    authStep = 1;
+    // 이미 로그인 화면이 떠 있으면(서버 확인이 늦게 끝나 다시 불린 경우) 입력한 내용과 단계를 그대로 둬요
+    const shown = $('authScreen').style.display === 'flex' && $('authBox') && $('authBox').innerHTML;
+    if (shown) saveAuDraft();
+    else { authMode = cloudMode ? 'login' : (Object.keys(getUsers()).length ? 'login' : 'signup'); authStep = 1; }
+    const act = shown && document.activeElement && document.activeElement.id;
     renderAuth();
     $('authScreen').style.display = 'flex';
+    if (act) { const f = $(act); if (f) f.focus(); return; }
+    if (shown) return;
     setTimeout(() => { const f = $('auId'); if (f) f.focus(); }, 100);
   }
   // 이름, 학교, 학번이 비어 있는 계정은 로그인하면 먼저 입력받아요

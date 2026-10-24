@@ -2489,7 +2489,7 @@
     .gx-row.easy .gx-w { color: var(--ink-2); }
     .gx-more, .gx-empty { margin: 0; padding: 22px 8px; text-align: center; font-size: 14px; color: var(--muted); word-break: keep-all; }
     .gx-easy { margin: 6px 0 0; padding: 14px 2px 4px; border-top: 1px solid var(--line); }
-    .gx-foot { position: sticky; bottom: calc(-22px - env(safe-area-inset-bottom, 0px)); z-index: 3; margin: 14px -20px calc(-22px - env(safe-area-inset-bottom, 0px)); padding: 12px 20px calc(14px + env(safe-area-inset-bottom, 0px)); background: var(--surface); }
+    .gx-foot { position: sticky; bottom: calc(-22px - env(safe-area-inset-bottom, 0px)); z-index: 3; margin: 14px calc(-1 * var(--gut, 20px)) calc(-22px - env(safe-area-inset-bottom, 0px)); padding: 12px var(--gut, 20px) calc(14px + env(safe-area-inset-bottom, 0px)); background: var(--surface); }
     .gx-to { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 0 0 10px; font-size: 13px; font-weight: 600; color: var(--muted); min-width: 0; }
     .gx-to span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
     .gx-to button { flex: none; border: none; background: none; padding: 2px 0; color: var(--blue); font: inherit; font-weight: 700; cursor: pointer; }

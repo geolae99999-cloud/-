@@ -473,10 +473,15 @@
   document.addEventListener('keydown', e => { if (e.key === 'Escape') ACTIONS['about-video-close'](); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.querySelector('.vid-ov')) { e.stopImmediatePropagation(); ACTIONS['about-video-close'](); } }, true);
   function showAuth() {
-    authMode = cloudMode ? 'login' : (Object.keys(getUsers()).length ? 'login' : 'signup');
-    authStep = 1;
+    // 이미 로그인 화면이 떠 있으면(서버 확인이 늦게 끝나 다시 불린 경우) 입력한 내용과 단계를 그대로 둬요
+    const shown = $('authScreen').style.display === 'flex' && $('authBox') && $('authBox').innerHTML;
+    if (shown) saveAuDraft();
+    else { authMode = cloudMode ? 'login' : (Object.keys(getUsers()).length ? 'login' : 'signup'); authStep = 1; }
+    const act = shown && document.activeElement && document.activeElement.id;
     renderAuth();
     $('authScreen').style.display = 'flex';
+    if (act) { const f = $(act); if (f) f.focus(); return; }
+    if (shown) return;
     setTimeout(() => { const f = $('auId'); if (f) f.focus(); }, 100);
   }
   // 이름, 학교, 학번이 비어 있는 계정은 로그인하면 먼저 입력받아요

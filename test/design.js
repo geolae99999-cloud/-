@@ -70,8 +70,8 @@ async function setup(b, vp, tag) {
     await p.waitForTimeout(500); await shot('13-result');
     await p.click('[data-act="exit-session"] >> nth=-1'); await p.waitForTimeout(300);
     await p.click('.nav-item[data-t="tabBooks"]'); await p.waitForTimeout(200);
-    await p.evaluate(() => { localStorage.setItem('vocapro_tools_open', '1'); go('tabHome'); }).then(() => p.click('#homeToolList [data-act="match"]')).catch(() => {});
-    await p.evaluate(() => go('tabHome')); await p.evaluate(() => { localStorage.setItem('vocapro_tools_open', '1'); go('tabHome'); }).then(() => p.click('#homeToolList [data-act="match"]')); await p.waitForTimeout(400); await shot('14-match');
+    await p.evaluate(() => ACTIONS.match()).catch(() => {});
+    await p.evaluate(() => go('tabHome')); await p.evaluate(() => ACTIONS.match()); await p.waitForTimeout(400); await shot('14-match');
     await p.click('[data-mg="x"]');
     await p.evaluate(() => { categories.push({ id: 'cEmpty', name: '빈 단어장', words: [] }); syncStorage(); openBook('cEmpty'); }); await p.waitForTimeout(300); await shot('15-empty-book');
     await p.click('.nav-item[data-t="tabStats"]'); await p.waitForTimeout(250); await shot('16-stats');
@@ -120,7 +120,7 @@ async function setup(b, vp, tag) {
     const cardIdx = await p.evaluate(() => S.idx);
     await p.evaluate(() => exitSession(true));
     // 짝 맞추기, 다크
-    await p.evaluate(() => { localStorage.setItem('vocapro_tools_open', '1'); go('tabHome'); }).then(() => p.click('#homeToolList [data-act="match"]')); await p.waitForTimeout(400); await shot('14-match');
+    await p.evaluate(() => ACTIONS.match()); await p.waitForTimeout(400); await shot('14-match');
     await p.keyboard.press('Escape'); await p.waitForTimeout(200);
     const mgClosed = !(await p.$('#mgOv'));
     await p.click('[data-act="theme"]'); await p.waitForTimeout(300); await shot('15-dark-home');
