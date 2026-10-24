@@ -15,7 +15,7 @@ const members = [{ uid: '2', name: '이지우', sno: '20315', progress: { last: 
   await p.route('https://psmmrwhmpezyeehjivav.supabase.co/**', async r => {
     const fn = r.request().url().split('/').pop(), body = JSON.parse(r.request().postData() || '{}');
     const j = x => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(x) });
-    if (fn === 'voca_signup') return j({ token: 't1', id: 1, username: body.p_user });
+    if (fn === 'voca_signup' || fn === 'voca_signup_email') return j({ token: 't1', id: 1, username: body.p_user });
     if (fn === 'voca_me') return j({ id: 1, username: 'kimteacher' });
     if (fn === 'voca_load') return j(null);
     if (fn === 'voca_class_mine') return j({ owned: [{ id: 7, name: '2학년 3반', code: 'ABC234', members: 3, assignments: 1 }], joined: [] });
@@ -26,6 +26,7 @@ const members = [{ uid: '2', name: '이지우', sno: '20315', progress: { last: 
   const shot = n => p.screenshot({ path: path.join(shots, n + '.png') });
   await p.goto('http://localhost:8783/'); await p.waitForSelector('.auth-box #auId');
   await p.click('[data-m="signup"]'); await p.click('[data-act="auth-age"][data-k="0"]').catch(() => {}); await p.fill('#auId', 'kimteacher'); await p.fill('#auPw', 'pass1234'); await p.fill('#auPw2', 'pass1234');
+  if (await p.$('#auEmail')) { await p.fill('#auEmail', 'kim@example.com'); await p.fill('#auCode', '123456'); } // 서버 계정 가입은 이메일 인증코드가 필요해요
   await p.click('#auNext'); await p.waitForSelector('#auGrade', { state: 'attached' }); await p.evaluate(g => { document.getElementById('auGrade').value = g; }, 'teacher'); await p.fill('#auName', '김선생'); await p.fill('#auSchool', '봉담중학교'); await p.check('#auTerms'); await p.fill('#capIn', await p.evaluate('capText')); await p.click('#auGo');
   await p.waitForSelector('#obOv'); await p.click('[data-ob="skip"]'); await p.waitForTimeout(1000);
   await p.evaluate(() => recSheet('mid')); await p.waitForTimeout(300); await p.click('[data-act="rec-left-add"]').catch(() => {}); await p.waitForFunction(() => categories.some(c => c.words.length > 100), null, { timeout: 15000 }).catch(() => {}); await p.waitForTimeout(300); await p.keyboard.press('Escape');
