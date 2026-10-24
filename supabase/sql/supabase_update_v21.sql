@@ -94,6 +94,7 @@ end $$;
 revoke all on function public.voca_ref_code(text) from public;
 revoke all on function public.voca_ref_claim(text, text) from public;
 revoke all on function public.voca_ref_status(text) from public;
+revoke all on function public.voca_ref_cleanup() from public, anon, authenticated;
 grant execute on function public.voca_ref_code(text) to anon, authenticated;
 grant execute on function public.voca_ref_claim(text, text) to anon, authenticated;
 grant execute on function public.voca_ref_status(text) to anon, authenticated;
