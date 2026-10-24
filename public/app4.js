@@ -577,7 +577,10 @@
         const ch = chunks[ci++]; if (!ch) return;
         try {
           const m = await callAi(buildBatchPrompt(ch.map(e => e.word)), normalizeBatch, { task: 'batch', words: ch.map(e => e.word), lang: aiLang(ch[0].word) });
-          for (const e of ch) { let r = m[e.word.toLowerCase()]; if (r) { r = await polish(e.word, r); res.set(e.word.toLowerCase(), r); aicSet(e.word, r); } }
+          const got = [];
+          for (const e of ch) { let r = m[e.word.toLowerCase()]; if (r) { r = await polish(e.word, r); got.push({ word: e.word, r }); } }
+          await pronFill(got);
+          got.forEach(g => { res.set(g.word.toLowerCase(), g.r); aicSet(g.word, g.r); });
         } catch (err) { if ([401, 403, 429].includes(err.status) || /AI를 쓸 수 없|한도|준비되지/.test(err.message)) stopped = err.message.split('\n')[0]; }
         done += ch.length; upd();
       }
@@ -702,9 +705,12 @@
       const ch = need.slice(i, i + 6);
       try {
         const m = await callAi(buildBatchPrompt(ch.map(w => w.word)), normalizeBatch, { task: 'batch', words: ch.map(w => w.word), lang: aiLang(ch[0].word) });
+        const got = [];
+        for (const w of ch) { const r0 = m[w.word.toLowerCase()]; if (r0) got.push({ word: w.word, r: await polish(w.word, r0) }); }
+        await pronFill(got);
         for (const w of ch) {
-          let r = m[w.word.toLowerCase()]; if (!r) { fail++; continue; }
-          r = await polish(w.word, r); aicSet(w.word, r);
+          const g = got.find(x => x.word === w.word), r = g && g.r; if (!r) { fail++; continue; }
+          aicSet(w.word, r);
           ['meaning', 'phonetic', 'koreanPron', 'example', 'exampleKo', 'synonyms'].forEach(k => { if (!w[k] && r[k]) w[k] = r[k]; });
           done++;
         }

@@ -1,4 +1,4 @@
-// supabase/functions/ai/index.ts  (v14)
+// supabase/functions/ai/index.ts  (v15: 발음기호 · 한글 발음 필수, 비면 IPA에서 한글 발음 만들기, 발음 빠진 캐시는 다시 만들기)
 // 배포: supabase functions deploy ai --no-verify-jwt --project-ref psmmrwhmpezyeehjivav
 // 비밀키: supabase secrets set GEMINI_API_KEY=... AI_DAILY_LIMIT=40 AI_GLOBAL_LIMIT=3000
 //   선택: AI_PRON_LIMIT=200 (선생님 한 명의 하루 발음 채점 횟수. 일반 AI 한도와 따로 세요)
@@ -92,7 +92,7 @@ const WORD_PROPS = {
 const WORD_SCHEMA = { type: "OBJECT", properties: WORD_PROPS, required: ["meaning", "phonetic", "koreanPron", "example", "exampleKo", "synonyms"] };
 const BATCH_SCHEMA = {
   type: "OBJECT",
-  properties: { items: { type: "ARRAY", items: { type: "OBJECT", properties: { word: S("STRING"), ...WORD_PROPS }, required: ["word", "meaning"] } } },
+  properties: { items: { type: "ARRAY", items: { type: "OBJECT", properties: { word: S("STRING"), ...WORD_PROPS }, required: ["word", "meaning", "phonetic", "koreanPron", "example", "exampleKo"] } } },
   required: ["items"],
 };
 const PY_RE = /^[A-Za-z\u00C0-\u024F\u0300-\u036F0-5' ]{1,40}$/;
@@ -161,10 +161,135 @@ function mp3Ok(b64: string): boolean {
   return p + fl + 2 <= b.length && b[p + fl] === 255 && (b[p + fl + 1] & 254) === 242;
 }
 
-const ENTRY = `"meaning":"핵심 한국어 뜻 (품사 포함, 예: 형 일관된)","phonetic":"/IPA/","koreanPron":"한글 발음","example":"short natural English sentence (under 12 words)","exampleKo":"그 예문의 자연스러운 한국어 해석","synonyms":"synonym1, synonym2"`;
+const ENTRY = `"meaning":"핵심 한국어 뜻 (품사 포함, 예: 형 일관된)","phonetic":"/American IPA/ (always fill)","koreanPron":"한글로만 쓴 발음, 단어마다 띄어 씀 (always fill, 예: 퍼서비어, 크라이 아웃)","example":"short natural English sentence (under 12 words)","exampleKo":"그 예문의 자연스러운 한국어 해석","synonyms":"synonym1, synonym2"`;
 
 const ENTRY_ZH = `"meaning":"핵심 한국어 뜻 (예: 공부하다, 배우다)","phonetic":"pinyin with tone marks, e.g. xuéxí","koreanPron":"한글 발음 (예: 쉬에시)","example":"short natural sentence in simplified Chinese that contains the word","exampleKo":"그 예문의 자연스러운 한국어 해석","synonyms":"中文近义词1, 近义词2 (없으면 빈칸)"`;
 const LANG_NAME: Record<string, string> = { en: "English", ko: "Korean", zh: "Simplified Chinese" };
+
+// 발음기호(IPA) -> 한글 발음 (앱 tools/ipa2ko.js 와 같아요). AI가 한글 발음을 빼먹거나 엉뚱하게 줄 때 채워요.
+// deno-lint-ignore-file no-explicit-any
+// deno-lint-ignore no-explicit-any
+function ipaToKo(ipa: string): string {
+  const L: Record<string, number> = { 'ㄱ': 0, 'ㄲ': 1, 'ㄴ': 2, 'ㄷ': 3, 'ㄸ': 4, 'ㄹ': 5, 'ㅁ': 6, 'ㅂ': 7, 'ㅃ': 8, 'ㅅ': 9, 'ㅆ': 10, 'ㅇ': 11, 'ㅈ': 12, 'ㅉ': 13, 'ㅊ': 14, 'ㅋ': 15, 'ㅌ': 16, 'ㅍ': 17, 'ㅎ': 18 };
+  const VV: Record<string, number> = { 'ㅏ': 0, 'ㅐ': 1, 'ㅑ': 2, 'ㅒ': 3, 'ㅓ': 4, 'ㅔ': 5, 'ㅕ': 6, 'ㅖ': 7, 'ㅗ': 8, 'ㅘ': 9, 'ㅙ': 10, 'ㅚ': 11, 'ㅛ': 12, 'ㅜ': 13, 'ㅝ': 14, 'ㅞ': 15, 'ㅟ': 16, 'ㅠ': 17, 'ㅡ': 18, 'ㅢ': 19, 'ㅣ': 20 };
+  const T: Record<string, number> = { '': 0, 'ㄱ': 1, 'ㄴ': 4, 'ㄹ': 8, 'ㅁ': 16, 'ㅂ': 17, 'ㅅ': 19, 'ㅇ': 21 };
+  const syl = (l: string, v: string, t?: string) => String.fromCharCode(0xAC00 + (L[l] * 21 + VV[v]) * 28 + T[t || '']);
+  // 모음 소리(긴 것부터 맞춰요) -> 한글 모음 줄(두 글자면 두 음절)
+  const VOW: [string, string][] = [['aɪə', 'ㅏㅣㅓ'], ['aʊə', 'ㅏㅜㅓ'], ['eɪ', 'ㅔㅣ'], ['aɪ', 'ㅏㅣ'], ['aʊ', 'ㅏㅜ'], ['ɔɪ', 'ㅗㅣ'], ['oʊ', 'ㅗ'], ['əʊ', 'ㅗ'], ['ɪə', 'ㅣㅓ'], ['eə', 'ㅔㅓ'], ['ɛə', 'ㅔㅓ'], ['ʊə', 'ㅜㅓ'],
+    ['iː', 'ㅣ'], ['uː', 'ㅜ'], ['ɑː', 'ㅏ'], ['ɔː', 'ㅗ'], ['ɜː', 'ㅓ'], ['i', 'ㅣ'], ['ɪ', 'ㅣ'], ['e', 'ㅔ'], ['ɛ', 'ㅔ'], ['æ', 'ㅐ'], ['ɑ', 'ㅏ'], ['a', 'ㅏ'], ['ɒ', 'ㅗ'], ['ɔ', 'ㅗ'], ['o', 'ㅗ'],
+    ['ʊ', 'ㅜ'], ['u', 'ㅜ'], ['ʌ', 'ㅓ'], ['ə', 'ㅓ'], ['ɜ', 'ㅓ'], ['ɝ', 'ㅓ'], ['ɚ', 'ㅓ'], ['ɐ', 'ㅓ'], ['ᵻ', 'ㅣ'], ['ɨ', 'ㅣ'], ['y', 'ㅣ']];
+  const CON: [string, string][] = [['tʃ', 'ch'], ['dʒ', 'j'], ['ʧ', 'ch'], ['ʤ', 'j'], ['p', 'p'], ['b', 'b'], ['t', 't'], ['d', 'd'], ['k', 'k'], ['g', 'g'], ['ɡ', 'g'], ['f', 'f'], ['v', 'v'], ['θ', 'th'], ['ð', 'dh'], ['s', 's'], ['z', 'z'],
+    ['ʃ', 'sh'], ['ʒ', 'zh'], ['h', 'h'], ['m', 'm'], ['n', 'n'], ['ŋ', 'ng'], ['l', 'l'], ['ɫ', 'l'], ['r', 'r'], ['ɹ', 'r'], ['ɾ', 'd'], ['w', 'w'], ['j', 'y'], ['x', 'h'], ['ʔ', '']];
+  // 초성 자음
+  const ON: Record<string, string> = { p: 'ㅍ', b: 'ㅂ', t: 'ㅌ', d: 'ㄷ', k: 'ㅋ', g: 'ㄱ', f: 'ㅍ', v: 'ㅂ', th: 'ㅅ', dh: 'ㄷ', s: 'ㅅ', z: 'ㅈ', sh: 'ㅅ', zh: 'ㅈ', ch: 'ㅊ', j: 'ㅈ', h: 'ㅎ', m: 'ㅁ', n: 'ㄴ', l: 'ㄹ', r: 'ㄹ', ng: 'ㅇ' };
+  // 받침으로 못 쓰는 자음은 '으'를 붙인 음절로(브, 드, 스 ...). sh, ch, j, zh 는 '시, 치, 지, 지'
+  const SOLO: Record<string, string> = { p: '프', b: '브', t: '트', d: '드', k: '크', g: '그', f: '프', v: '브', th: '스', dh: '드', s: '스', z: '즈', sh: '시', zh: '지', ch: '치', j: '지', h: '흐', r: '', l: '', m: '', n: '', ng: '' };
+  const words = String(ipa || '').replace(/[\/\[\]ˈˌ'`.‿͡()]/g, '').replace(/ː/g, 'ː').toLowerCase().split(/[\s,]+/).filter(Boolean);
+  const out: string[] = [];
+  for (const w of words) {
+    // 1) 소리 단위로 나누기
+    type Sg = { v?: string; c?: string; src?: string; short?: boolean };
+    const seg: Sg[] = []; let i = 0;
+    while (i < w.length) {
+      let hit: { v?: string; c?: string; len: number } | null = null;
+      for (const [k, v] of VOW) if (w.startsWith(k, i)) { hit = { v, len: k.length }; break; }
+      if (hit) { const src = w.substr(i, hit.len); i += hit.len; const long = w[i] === 'ː'; if (long) i++; seg.push({ v: hit.v!, src, short: !long && /^([ɪɛæʌʊəɒ]|aʊ)$/.test(src) }); continue; }
+      for (const [k, c] of CON) if (w.startsWith(k, i)) { hit = { c, len: k.length }; break; }
+      if (hit) { if (hit.c) seg.push({ c: hit.c }); i += hit.len; continue; }
+      i++; // 모르는 기호는 건너뛰어요
+    }
+    // 2) 모음 뒤 r(퍼서비어의 'r')은 소리 내지 않아요(모음 앞 r만 ㄹ)
+    const s2: Sg[] = [];
+    seg.forEach((x, k) => {
+      if (x.c === 'r' && k > 0 && seg[k - 1].v && !(seg[k + 1] && seg[k + 1].v)) {
+        const pv = seg[k - 1];
+        if (/^(ɪ|ɛ|e|ʊ|aɪ|aʊ|i|u)$/.test(pv.src ?? '') && !/ㅓ$/.test(pv.v ?? '')) s2[s2.length - 1] = { ...pv, v: pv.v + 'ㅓ', short: false };
+        else s2[s2.length - 1] = { ...pv, short: false };
+        return;
+      }
+      s2.push(x);
+    });
+    // 3) 음절 만들기
+    let res = ''; let k = 0;
+    const lastIdx = () => res.length - 1;
+    const addCoda = (t: string) => { const ch = res.charCodeAt(lastIdx()) - 0xAC00; if (ch < 0 || ch % 28) return false; res = res.slice(0, -1) + String.fromCharCode(0xAC00 + ch + T[t]); return true; };
+    const prevShort = (k0: number) => k0 > 0 && s2[k0 - 1].v && s2[k0 - 1].short;
+    const vowelSyl = (on: string, vs: string, glide?: string) => {
+      // vs: 한글 모음 줄. 첫 모음에 초성, 나머지는 'ㅇ'
+      let v0 = vs[0];
+      if (glide === 'w') v0 = ({ 'ㅏ': 'ㅘ', 'ㅐ': 'ㅙ', 'ㅓ': 'ㅝ', 'ㅔ': 'ㅞ', 'ㅣ': 'ㅟ', 'ㅗ': 'ㅝ', 'ㅜ': 'ㅜ' } as Record<string, string>)[v0] || v0;
+      if (glide === 'y') v0 = ({ 'ㅏ': 'ㅑ', 'ㅐ': 'ㅒ', 'ㅓ': 'ㅕ', 'ㅔ': 'ㅖ', 'ㅗ': 'ㅛ', 'ㅜ': 'ㅠ', 'ㅣ': 'ㅣ' } as Record<string, string>)[v0] || v0;
+      res += syl(on || 'ㅇ', v0);
+      for (let q = 1; q < vs.length; q++) res += syl('ㅇ', vs[q]);
+    };
+    while (k < s2.length) {
+      const x = s2[k], nx = s2[k + 1], nn = s2[k + 2];
+      if (x.v) { vowelSyl('ㅇ', x.v); k++; continue; }
+      const c = x.c ?? '';
+      if (c === 'w' || c === 'y') {
+        if (nx && nx.v) { vowelSyl('ㅇ', nx.v, c); k += 2; } else { res += c === 'w' ? '우' : '이'; k++; }
+        continue;
+      }
+      // 자음 + (w|y) + 모음: 퀸(kwin), 과, 화, 큐(kju). 그 밖의 자음 + w 는 '스워'처럼 나눠요
+      if (nx && (nx.c === 'y' || (nx.c === 'w' && ['k', 'g', 'h'].includes(c))) && nn && nn.v) {
+        if (c === 'l' && res && addCoda('ㄹ')) {}
+        vowelSyl(ON[c] || 'ㅇ', nn.v, nx.c); k += 3; continue;
+      }
+      // 자음 + l + 모음: 블러, 클래스, 플레이 (앞 음절에 ㄹ 받침)
+      if (nx && nx.c === 'l' && nn && nn.v && (c === 'p' || c === 'k') && prevShort(k) && res && addCoda({ p: 'ㅂ', k: 'ㄱ' }[c])) { k++; continue; } // 블랙리스트
+      if (nx && nx.c === 'l' && nn && nn.v && SOLO[c] && c !== 'sh' && c !== 'ch' && c !== 'j' && c !== 'zh') {
+        res += SOLO[c]; addCoda('ㄹ'); vowelSyl('ㄹ', nn.v); k += 3; continue;
+      }
+      // 끝의 '자음 + ə + l/m/n': 애플, 리듬, 퍼슨 ('으' 모음)
+      if (nx && nx.v && nx.src === 'ə' && nn && ['l', 'm', 'n'].includes(nn.c ?? '') && !s2[k + 3] && SOLO[c] && !['sh', 'ch', 'j', 'zh'].includes(c)) {
+        res += SOLO[c]; addCoda(({ l: 'ㄹ', m: 'ㅁ', n: 'ㄴ' } as Record<string, string>)[nn.c ?? '']); k += 3; continue;
+      }
+      if (nx && nx.v) {
+        // sh + 모음: 샤 · 셔 · 쇼 · 슈 · 시
+        if (c === 'sh' || c === 'zh') { vowelSyl(c === 'sh' ? 'ㅅ' : 'ㅈ', nx.v, nx.v[0] === 'ㅣ' ? '' : 'y'); k += 2; continue; }
+        // 모음 사이 l은 ㄹㄹ(컬러, 헬로)
+        if (c === 'l' && res && k > 0 && s2[k - 1].v) addCoda('ㄹ');
+        vowelSyl(ON[c] || 'ㅇ', nx.v); k += 2; continue;
+      }
+      // 받침 또는 '으' 음절
+      const atEnd = !nx;
+      if (res && (c === 'm' || c === 'n' || c === 'ng' || c === 'l') && addCoda({ m: 'ㅁ', n: 'ㄴ', ng: 'ㅇ', l: 'ㄹ' }[c])) { k++; continue; }
+      if (res && (c === 'p' || c === 'k' || c === 't') && prevShort(k) && (atEnd || !['l', 'r', 'w', 'y'].includes(nx.c ?? '')) && addCoda(({ p: 'ㅂ', k: 'ㄱ', t: 'ㅅ' } as Record<string, string>)[c])) { k++; continue; }
+      if (res && (c === 'b' || c === 'g') && (atEnd || !['l', 'r', 'w', 'y'].includes(nx.c ?? '')) && prevShort(k) && addCoda(({ b: 'ㅂ', g: 'ㄱ' } as Record<string, string>)[c])) { k++; continue; }
+      if (c === 'l' || c === 'r') { res += c === 'l' ? '을' : '르'; k++; continue; }
+      if (c === 'm' || c === 'n' || c === 'ng') { res += { m: '음', n: '은', ng: '응' }[c]; k++; continue; }
+      res += SOLO[c] || ''; k++;
+    }
+    if (res) out.push(res);
+  }
+  return out.join(' ');
+}
+const koLen = (t: unknown) => String(t ?? "").replace(/[^가-힣]/g, "").length;
+// 영어 단어 결과의 발음 다듬기: 발음기호를 /.../ 로, 한글 발음은 한글만 · 없거나 길이가 크게 다르면 IPA에서 만들어요
+function fixEntry(o: Record<string, unknown>): Record<string, unknown> {
+  if (!o || typeof o !== "object") return o;
+  let ph = String(o.phonetic ?? "").replace(/[\[\]]/g, "").trim();
+  if (/[가-힣]/.test(ph)) ph = "";
+  if (ph && !/^\/.*\/$/.test(ph)) ph = "/" + ph.replace(/^\/+|\/+$/g, "") + "/";
+  let ko = String(o.koreanPron ?? "").replace(/[\[\]()（）]/g, " ").replace(/[^가-힣\s-]/g, " ").replace(/\s+/g, " ").trim();
+  if (ph) {
+    const made = ipaToKo(ph), a = koLen(ko), b = koLen(made), groups = (t: string) => t.split(" ").filter(Boolean).length;
+    // 없거나, 길이가 크게 다르거나, 단어 수보다 덩어리가 많으면(크라이 아웃 투 섹) 발음기호로 만든 것을 써요
+    if (made && (!a || Math.abs(a - b) > Math.max(2, Math.round(b * 0.4)) || groups(ko) > groups(made))) ko = made;
+  }
+  return { ...o, phonetic: ph, koreanPron: ko };
+}
+function fixPron(text: string, task: unknown, zh: boolean): string {
+  if (zh || (task !== "word" && task !== "batch" && task !== "ctx")) return text;
+  try {
+    const j = JSON.parse(text);
+    if (task === "word") return JSON.stringify(fixEntry(j));
+    if (Array.isArray(j?.items)) return JSON.stringify({ ...j, items: j.items.map((x: Record<string, unknown>) => fixEntry(x)) });
+  } catch (_e) { /* 그대로 */ }
+  return text;
+}
+// 캐시에 둘 만한 영어 단어 결과: 뜻 · 발음기호 · 한글 발음이 다 있어야 해요
+const pronOk = (o: Record<string, unknown> | undefined) => !!o && String(o.phonetic ?? "").trim().length > 0 && /[가-힣]/.test(String(o.koreanPron ?? ""));
 
 // 앱이 보낸 task 로 프롬프트를 만들어요. 잘못된 요청이면 null.
 function build(body: Record<string, unknown>): { prompt: string; schema: unknown } | null {
@@ -434,6 +559,8 @@ const { data, error } = await sb.from("voca_ai_cache").select("k,v").in("k", ck.
 if (error || !data) return null;
 const m = new Map((data as { k: string; v: unknown }[]).map((r) => [r.k, r.v]));
 if (!ck.keys.every((k) => m.has(k))) return null;
+// 발음이 빠진 영어 단어 결과는 다시 만들어요(예전 캐시)
+if ((ck.task === "word" || ck.task === "batch") && ck.keys[0].startsWith("w:en:") && !ck.keys.every((k) => pronOk(m.get(k) as Record<string, unknown>))) return null;
 if (ck.task === "batch") return JSON.stringify({ items: ck.words!.map((w, i) => ({ ...(m.get(ck.keys[i]) as Record<string, unknown>), word: w })) });
 return JSON.stringify(m.get(ck.keys[0]));
 } catch (_e) {
@@ -446,7 +573,8 @@ async function cacheSave(sb: SB, ck: CacheKeys | null, text: string) {
 if (!ck) return;
 try {
 const j = JSON.parse(text);
-const good = (o: Record<string, unknown>) => !!o && typeof o === "object" && typeof o.meaning === "string" && o.meaning.trim().length > 0;
+const en = ck.keys[0]?.startsWith("w:en:");
+const good = (o: Record<string, unknown>) => !!o && typeof o === "object" && typeof o.meaning === "string" && o.meaning.trim().length > 0 && (!en || pronOk(o));
 const rows: { k: string; v: unknown }[] = [];
 if (ck.task === "word" && good(j)) rows.push({ k: ck.keys[0], v: j });
 if (ck.task === "batch" && Array.isArray(j?.items)) {
@@ -512,7 +640,7 @@ Deno.serve(async (req) => {
     const [{ data: me, error }, hit] = await Promise.all([sb.rpc("voca_me", { p_token: token }), cacheGet(sb, ck)]);
     if (error || !me || me.err || !me.id) return out({ error: "로그인이 필요해요." }, 401);
     // 캐시에 있으면 AI 를 부르지 않고 바로 돌려줘요(하루 한도에서도 빼지 않아요)
-    if (hit) return out({ text: hit, model: "cache" });
+    if (hit) return out({ text: fixPron(hit, body?.task, body?.lang === "zh"), model: "cache" });
 
     // 발음 채점: 과제를 낸 반 선생님인지 먼저 보고, 채점할 녹음을 꺼내요 (없으면 AI 사용량을 쓰지 않아요)
     let items: PronItem[] = [], who = String(me.id);
@@ -586,7 +714,7 @@ Deno.serve(async (req) => {
         if (left < 1500) break;
         let r = await cfAi(cfAcct, cfTok, model, job!.prompt, job!.schema, Math.min(ctx ? 20000 : 9000, left), ctx ? 4000 : 1500);
         if (r.status === 400 && cfEnd - Date.now() > 1500) r = await cfAi(cfAcct, cfTok, model, job!.prompt, job!.schema, Math.min(ctx ? 20000 : 9000, cfEnd - Date.now()), ctx ? 4000 : 1500, false);
-        if (r.status === 200) { later(cacheSave(sb, ck, r.text)); return out({ text: r.text, model }); }
+        if (r.status === 200) { const t = fixPron(r.text, body?.task, body?.lang === "zh"); later(cacheSave(sb, ck, t)); return out({ text: t, model }); }
         last = r.status;
         if (r.status === 401 || r.status === 403) break; // 토큰 문제는 다른 모델도 똑같아요
       }
@@ -603,7 +731,7 @@ Deno.serve(async (req) => {
           if (typeof t !== "string") { last = 502; continue; }
           return out({ text: JSON.stringify({ t: t.slice(0, 20000) }), model });
         }
-        if (!pron) { later(cacheSave(sb, ck, r.text)); return out({ text: r.text, model }); }
+        if (!pron) { const t = fixPron(r.text, body?.task, body?.lang === "zh"); later(cacheSave(sb, ck, t)); return out({ text: t, model }); }
         const res = pronParse(r.text, items, model);
         if (!res.length) { last = 502; continue; } // 형식이 틀렸으면 다음 모델로
         // 받은 파일은 저장하지 않고 결과만 돌려줘요
