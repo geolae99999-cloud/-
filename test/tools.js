@@ -26,7 +26,7 @@ const members = [{ uid: '2', name: '이지우', sno: '20315', progress: { last: 
   const shot = n => p.screenshot({ path: path.join(shots, n + '.png') });
   await p.goto('http://localhost:8783/'); await p.waitForSelector('.auth-box #auId');
   await p.click('[data-m="signup"]'); await p.click('[data-act="auth-age"][data-k="0"]').catch(() => {}); await p.fill('#auId', 'kimteacher'); await p.fill('#auPw', 'pass1234'); await p.fill('#auPw2', 'pass1234');
-  await p.selectOption('#auGrade', 'teacher'); await p.fill('#auName', '김선생'); await p.fill('#auSchool', '봉담중학교'); await p.check('#auTerms'); await p.fill('#capIn', await p.evaluate('capText')); await p.click('#auGo');
+  await p.click('#auNext'); await p.waitForSelector('#auGrade', { state: 'attached' }); await p.evaluate(g => { document.getElementById('auGrade').value = g; }, 'teacher'); await p.fill('#auName', '김선생'); await p.fill('#auSchool', '봉담중학교'); await p.check('#auTerms'); await p.fill('#capIn', await p.evaluate('capText')); await p.click('#auGo');
   await p.waitForSelector('#obOv'); await p.click('[data-ob="skip"]'); await p.waitForTimeout(1000);
   await p.evaluate(() => recSheet('mid')); await p.waitForTimeout(300); await p.click('[data-act="rec-left-add"]').catch(() => {}); await p.waitForFunction(() => categories.some(c => c.words.length > 100), null, { timeout: 15000 }).catch(() => {}); await p.waitForTimeout(300); await p.keyboard.press('Escape');
   await p.evaluate(() => renderHome()); await p.waitForTimeout(200); await shot('01-home');

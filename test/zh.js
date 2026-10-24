@@ -18,7 +18,7 @@ const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); if (!c) fails++
   await p.goto('http://localhost:8771/'); await p.waitForSelector('#authScreen .auth-box'); await p.evaluate(() => { DEFAULT_CFG.provider = 'gemini'; }); // 이 시험은 서버 · 키 AI 경로를 봐요(기본은 기기 AI)
   await p.click('[data-act="auth-mode"][data-m="signup"]');
   await p.fill('#auId', 'zhtest'); await p.fill('#auPw', 'pass1234'); await p.fill('#auPw2', 'pass1234');
-  await p.selectOption('#auGrade', 'm2'); await p.fill('#auName', '김주원'); await p.fill('#auSchool', '한빛중학교'); await p.fill('#auSno', '20315'); await p.check('#auTerms');
+  await p.click('#auNext'); await p.waitForSelector('#auGrade', { state: 'attached' }); await p.evaluate(g => { document.getElementById('auGrade').value = g; }, 'm2'); await p.fill('#auName', '김주원'); await p.fill('#auSchool', '한빛중학교'); await p.fill('#auSno', '20315'); await p.check('#auTerms');
   await p.fill('#capIn', await p.evaluate('capText')); await p.click('#auGo');
   await p.waitForSelector('#obOv'); await p.click('[data-ob="skip"]');
   await p.waitForSelector('#ltOv'); await p.click('[data-lt="close"]');

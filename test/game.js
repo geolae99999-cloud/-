@@ -31,7 +31,7 @@ async function mock(p) {
 async function signup(p, port, id, role, name, sno) {
   await p.goto(`http://localhost:${port}/`); await p.waitForSelector('.auth-box #auId');
   await p.click('[data-m="signup"]').catch(() => {}); await p.click('[data-act="auth-age"][data-k="0"]', { timeout: 1500 }).catch(() => {}); await p.fill('#auId', id); await p.fill('#auPw', 'pass1234'); await p.fill('#auPw2', 'pass1234');
-  await p.selectOption('#auGrade', role); await p.fill('#auName', name); await p.fill('#auSchool', '한빛중학교'); if (sno) await p.fill('#auSno', sno);
+  await p.click('#auNext'); await p.waitForSelector('#auGrade', { state: 'attached' }); await p.evaluate(g => { document.getElementById('auGrade').value = g; }, role); await p.fill('#auName', name); await p.fill('#auSchool', '한빛중학교'); if (sno) await p.fill('#auSno', sno);
   await p.check('#auTerms'); await p.fill('#capIn', await p.evaluate('capText')); await p.click('#auGo');
   await p.waitForSelector('#obOv'); await p.click('[data-ob="skip"]'); await p.waitForTimeout(500);
   await p.click('[data-lt="close"]').catch(() => {}); await p.waitForTimeout(800);

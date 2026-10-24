@@ -15,7 +15,7 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); 
   await p.evaluate(async () => { const s = 'oldsalt'; const h = await hashPw('pass1234', s, 'f'); const u = getUsers(); u.olduser = { name: 'olduser', s, m: 'f', h, t: 1 }; saveUsers(u); });
   await p.click('[data-act="auth-mode"][data-m="signup"]');
   await p.fill('#auId', 'tester'); await p.fill('#auPw', 'pass1234'); await p.fill('#auPw2', 'pass1234');
-  await p.selectOption('#auGrade', 'm2'); await p.fill('#auName', '김지우'); await p.fill('#auSchool', '한빛중학교'); await p.fill('#auSno', '20315'); await p.check('#auTerms');
+  await p.click('#auNext'); await p.waitForSelector('#auGrade', { state: 'attached' }); await p.evaluate(g => { document.getElementById('auGrade').value = g; }, 'm2'); await p.fill('#auName', '김지우'); await p.fill('#auSchool', '한빛중학교'); await p.fill('#auSno', '20315'); await p.check('#auTerms');
   await p.fill('#capIn', await p.evaluate('capText')); await p.click('#auGo');
   await p.waitForSelector('#obOv'); await p.click('[data-ob="skip"]');
   await p.waitForSelector('#ltOv'); await p.click('[data-lt="close"]');

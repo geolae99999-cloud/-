@@ -12,13 +12,13 @@ const srv = http.createServer((q, r) => { let f = path.join(root, q.url.split('?
   await p.goto('http://localhost:8768/'); await p.waitForSelector('.auth-box #auId');
   await p.click('[data-m="signup"]');
   await p.fill('#auId', 'kim'); await p.fill('#auPw', 'pass1234'); await p.fill('#auPw2', 'pass1234');
-  await p.selectOption('#auGrade', 'e3'); await p.fill('#auName', '김지우'); await p.fill('#auSchool', '한빛중학교'); await p.fill('#auSno', '20315'); await p.check('#auTerms'); await p.fill('#capIn', await p.evaluate('capText')); await p.click('#auGo');
+  await p.click('#auNext'); await p.waitForSelector('#auGrade', { state: 'attached' }); await p.evaluate(g => { document.getElementById('auGrade').value = g; }, 'e3'); await p.fill('#auName', '김지우'); await p.fill('#auSchool', '한빛중학교'); await p.fill('#auSno', '20315'); await p.check('#auTerms'); await p.fill('#capIn', await p.evaluate('capText')); await p.click('#auGo');
   console.log('no age ->', await p.textContent('#auMsg'));
   await p.screenshot({ path: path.join(shots, 'kid-1-age.png') });
   await p.click('[data-act="auth-age"][data-k="1"]');
   console.log('kid note:', await p.textContent('.kid-note'), '| cloudMode', await p.evaluate('cloudMode'));
   await p.fill('#auId', 'minsu'); await p.fill('#auPw', '1234'); await p.fill('#auPw2', '1234');
-  await p.selectOption('#auGrade', 'e3'); await p.fill('#auName', '김지우'); await p.fill('#auSchool', '한빛중학교'); await p.fill('#auSno', '20315'); await p.check('#auTerms'); await p.fill('#capIn', await p.evaluate('capText'));
+  await p.click('#auNext'); await p.waitForSelector('#auGrade', { state: 'attached' }); await p.evaluate(g => { document.getElementById('auGrade').value = g; }, 'e3'); await p.fill('#auName', '김지우'); await p.fill('#auSchool', '한빛중학교'); await p.fill('#auSno', '20315'); await p.check('#auTerms'); await p.fill('#capIn', await p.evaluate('capText'));
   await p.screenshot({ path: path.join(shots, 'kid-2-signup.png') });
   await p.click('#auGo');
   await p.waitForSelector('#obOv'); await p.click('[data-ob="skip"]'); await p.click('[data-lt="close"]').catch(() => {});

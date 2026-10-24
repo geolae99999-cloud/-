@@ -88,7 +88,7 @@ const ZH = '我们今天去图书馆学习汉语。这个城市的环境非常�
     await p.goto('http://localhost:8811/'); await p.waitForSelector('#authScreen .auth-box'); await p.evaluate(() => { DEFAULT_CFG.provider = 'gemini'; }); // 이 시험은 서버 · 키 AI 경로를 봐요(기본은 기기 AI)
     await p.click('[data-act="auth-mode"][data-m="signup"]');
     await p.fill('#auId', id); await p.fill('#auPw', 'pass1234'); await p.fill('#auPw2', 'pass1234');
-    await p.selectOption('#auGrade', 'm2'); await p.fill('#auName', '김주원'); await p.fill('#auSchool', '한빛중학교'); await p.fill('#auSno', '20315'); await p.check('#auTerms');
+    await p.click('#auNext'); await p.waitForSelector('#auGrade', { state: 'attached' }); await p.evaluate(g => { document.getElementById('auGrade').value = g; }, 'm2'); await p.fill('#auName', '김주원'); await p.fill('#auSchool', '한빛중학교'); await p.fill('#auSno', '20315'); await p.check('#auTerms');
     await p.fill('#capIn', await p.evaluate('capText')); await p.click('#auGo');
     await p.waitForSelector('#obOv'); await p.click('[data-ob="skip"]'); await p.waitForTimeout(1300);
     await p.evaluate(() => ['recOv', 'ltOv'].forEach(id => { const r = document.getElementById(id); if (r) r.remove(); }));
@@ -241,7 +241,7 @@ const ZH = '我们今天去图书馆学习汉语。这个城市的环境非常�
   });
   await q.goto('http://localhost:8812/'); await q.waitForSelector('.auth-box #auId'); await q.evaluate(() => { DEFAULT_CFG.provider = 'gemini'; }); // 이 시험은 서버 · 키 AI 경로를 봐요(기본은 기기 AI)
   await q.click('[data-m="signup"]'); await q.click('[data-act="auth-age"][data-k="0"]'); await q.fill('#auId', 'kim'); await q.fill('#auPw', 'pass1234'); await q.fill('#auPw2', 'pass1234');
-  await q.selectOption('#auGrade', 'h1'); await q.fill('#auName', '김지우'); await q.fill('#auSchool', '한빛고등학교'); await q.fill('#auSno', '10315'); await q.check('#auTerms'); await q.fill('#capIn', await q.evaluate('capText')); await q.click('#auGo');
+  await q.click('#auNext'); await q.waitForSelector('#auGrade', { state: 'attached' }); await q.evaluate(g => { document.getElementById('auGrade').value = g; }, 'h1'); await q.fill('#auName', '김지우'); await q.fill('#auSchool', '한빛고등학교'); await q.fill('#auSno', '10315'); await q.check('#auTerms'); await q.fill('#capIn', await q.evaluate('capText')); await q.click('#auGo');
   await q.waitForSelector('#obOv'); await q.click('[data-ob="skip"]'); await q.click('[data-lt="close"]').catch(() => {}); await q.waitForTimeout(1500);
   await q.evaluate(() => { const o = document.getElementById('recOv'); if (o) o.remove(); });
   await q.evaluate(() => ACTIONS['gx-open']({ dataset: {} })); await q.waitForSelector('#gxIn');

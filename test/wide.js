@@ -18,7 +18,7 @@ const srv = http.createServer((q, r) => { let f = path.join(root, decodeURICompo
     await p.goto('http://localhost:8771/'); await p.waitForSelector('#authScreen .auth-box'); await p.waitForTimeout(300); await shot('00-login');
     await p.click('[data-act="auth-mode"][data-m="signup"]'); await p.waitForTimeout(300);
     await p.fill('#auId', 'jiwoo'); await p.fill('#auPw', 'pass1234'); await p.fill('#auPw2', 'pass1234');
-    await p.selectOption('#auGrade', 'm1'); await p.fill('#auName', '김지우'); await p.fill('#auSchool', '한빛중학교'); await p.fill('#auSno', '20315'); await p.check('#auTerms'); await p.fill('#capIn', await p.evaluate('capText')); await p.click('#auGo');
+    await p.click('#auNext'); await p.waitForSelector('#auGrade', { state: 'attached' }); await p.evaluate(g => { document.getElementById('auGrade').value = g; }, 'm1'); await p.fill('#auName', '김지우'); await p.fill('#auSchool', '한빛중학교'); await p.fill('#auSno', '20315'); await p.check('#auTerms'); await p.fill('#capIn', await p.evaluate('capText')); await p.click('#auGo');
     await p.waitForSelector('#obOv'); await p.click('[data-ob="skip"]'); await p.waitForSelector('#ltOv'); await p.click('[data-lt="close"]');
     await p.waitForSelector('#recOv.show'); await p.click('[data-act="rec-add"]'); await p.waitForTimeout(300); await p.click('#recOv [data-act="rec-close"]'); await p.waitForTimeout(300);
     await p.evaluate(() => { const d = new Date(); for (let i = 1; i <= 3; i++) { const t = new Date(d); t.setDate(d.getDate() - i); stats.days[dayKey(t.getTime())] = { n: 12, ok: 10 }; } stats.days[dayKey()] = { n: 8, ok: 7 }; categories.push({ id: 'c2', name: 'Day 1', words: [] }, { id: 'c3', name: '수능 필수', words: [] }); syncStorage(); go('tabHome'); });

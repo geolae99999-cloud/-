@@ -29,7 +29,7 @@ const srv = http.createServer((q, r) => { let f = path.join(root, decodeURICompo
   await p.click('[data-act="auth-mode"][data-m="signup"]');
   await shot('01-signup');
   await p.fill('#auId', 'tester'); await p.fill('#auPw', 'pass1234'); await p.fill('#auPw2', 'pass1234');
-  await p.selectOption('#auGrade', 'e3'); await p.fill('#auName', '김지우'); await p.fill('#auSchool', '한빛중학교'); await p.fill('#auSno', '20315');
+  await p.click('#auNext'); await p.waitForSelector('#auGrade', { state: 'attached' }); await p.evaluate(g => { document.getElementById('auGrade').value = g; }, 'e3'); await p.fill('#auName', '김지우'); await p.fill('#auSchool', '한빛중학교'); await p.fill('#auSno', '20315');
   await p.check('#auTerms');
   await p.fill('#capIn', await p.evaluate('capText'));
   await p.click('#auGo');

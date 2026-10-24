@@ -20,7 +20,7 @@ const srv = http.createServer((q, r) => { let f = path.join(root, decodeURICompo
     await p.click('[data-act="auth-mode"][data-m="signup"]'); await p.waitForTimeout(300);
     res[tag + ' options'] = await p.$$eval('#auGrade optgroup', a => a.map(g => g.label + ':' + g.children.length));
     await p.fill('#auId', 'kimteacher'); await p.fill('#auPw', 'pass1234'); await p.fill('#auPw2', 'pass1234');
-    await p.selectOption('#auGrade', 'teacher'); await p.fill('#auName', '김지우'); await p.fill('#auSchool', '한빛중학교'); res[tag + ' sno hidden'] = await p.evaluate(() => getComputedStyle(document.getElementById('auSno')).display === 'none'); await p.check('#auTerms'); await p.fill('#capIn', await p.evaluate('capText'));
+    await p.click('#auNext'); await p.waitForSelector('#auGrade', { state: 'attached' }); await p.evaluate(g => { document.getElementById('auGrade').value = g; }, 'teacher'); await p.fill('#auName', '김지우'); await p.fill('#auSchool', '한빛중학교'); res[tag + ' sno hidden'] = await p.evaluate(() => getComputedStyle(document.getElementById('auSno')).display === 'none'); await p.check('#auTerms'); await p.fill('#capIn', await p.evaluate('capText'));
     await shot('00-signup'); await p.click('#auGo');
     await p.waitForSelector('#obOv'); await p.click('[data-ob="skip"]'); await p.waitForTimeout(1200);
     res[tag + ' no lt/rec'] = await p.evaluate(() => !document.getElementById('ltOv') && !document.querySelector('#recOv.show'));

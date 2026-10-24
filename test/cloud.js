@@ -20,7 +20,7 @@ const srv = http.createServer((q, r) => { let f = path.join(root, q.url.split('?
   });
   await p.goto('http://localhost:8767/'); await p.waitForSelector('.auth-box #auId'); await p.evaluate(() => { DEFAULT_CFG.provider = 'gemini'; }); // 이 시험은 서버 · 키 AI 경로를 봐요(기본은 기기 AI)
   await p.click('[data-m="signup"]'); await p.click('[data-act="auth-age"][data-k="0"]'); await p.fill('#auId', 'kim'); await p.fill('#auPw', 'pass1234'); await p.fill('#auPw2', 'pass1234');
-  await p.selectOption('#auGrade', 'h1'); await p.fill('#auName', '김지우'); await p.fill('#auSchool', '한빛중학교'); await p.fill('#auSno', '20315'); await p.check('#auTerms'); await p.fill('#capIn', await p.evaluate('capText')); await p.click('#auGo');
+  await p.click('#auNext'); await p.waitForSelector('#auGrade', { state: 'attached' }); await p.evaluate(g => { document.getElementById('auGrade').value = g; }, 'h1'); await p.fill('#auName', '김지우'); await p.fill('#auSchool', '한빛중학교'); await p.fill('#auSno', '20315'); await p.check('#auTerms'); await p.fill('#capIn', await p.evaluate('capText')); await p.click('#auGo');
   await p.waitForSelector('#obOv'); await p.click('[data-ob="skip"]'); await p.click('[data-lt="close"]');
   await p.waitForTimeout(2200);
   console.log('saved grade:', saved && JSON.parse(saved.p_data).cfg.grade, JSON.stringify(saved && JSON.parse(saved.p_data).cfg.profile));

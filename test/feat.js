@@ -16,7 +16,7 @@ const srv = http.createServer((q, r) => { let f = path.join(root, decodeURICompo
     await p.goto('http://localhost:8774/'); await p.waitForSelector('#authScreen .auth-box');
     await p.click('[data-act="auth-mode"][data-m="signup"]'); await p.waitForTimeout(300);
     await p.fill('#auId', 'jiwoo'); await p.fill('#auPw', 'pass1234'); await p.fill('#auPw2', 'pass1234');
-    await p.selectOption('#auGrade', 'm2'); await p.fill('#auName', '김지우'); await p.fill('#auSchool', '한빛중학교'); await p.fill('#auSno', '20315'); await p.check('#auTerms'); await p.fill('#capIn', await p.evaluate('capText')); await p.click('#auGo');
+    await p.click('#auNext'); await p.waitForSelector('#auGrade', { state: 'attached' }); await p.evaluate(g => { document.getElementById('auGrade').value = g; }, 'm2'); await p.fill('#auName', '김지우'); await p.fill('#auSchool', '한빛중학교'); await p.fill('#auSno', '20315'); await p.check('#auTerms'); await p.fill('#capIn', await p.evaluate('capText')); await p.click('#auGo');
     await p.waitForSelector('#obOv'); await p.click('[data-ob="skip"]'); await p.waitForSelector('#ltOv'); await p.click('[data-lt="close"]');
     await p.waitForSelector('#recOv.show'); await p.click('[data-act="rec-add"]'); await p.waitForTimeout(400); await p.click('#recOv [data-act="rec-close"]'); await p.waitForTimeout(500);
     res[tag + ' hello'] = await p.evaluate(() => document.querySelector('.hello-name').textContent + ' | ' + (document.querySelector('.hello-school') || {}).textContent);
@@ -56,7 +56,7 @@ const srv = http.createServer((q, r) => { let f = path.join(root, decodeURICompo
       await q.goto(shareUrl); await q.waitForSelector('#authScreen .auth-box');
       await q.click('[data-act="auth-mode"][data-m="signup"]'); await q.waitForTimeout(300);
       await q.fill('#auId', 'minsu'); await q.fill('#auPw', 'pass1234'); await q.fill('#auPw2', 'pass1234');
-      await q.selectOption('#auGrade', 'm2'); await q.fill('#auName', '김지우'); await q.fill('#auSchool', '한빛중학교'); await q.fill('#auSno', '20315'); await q.check('#auTerms'); await q.fill('#capIn', await q.evaluate('capText')); await q.click('#auGo');
+      await q.click('#auNext'); await q.waitForSelector('#auGrade', { state: 'attached' }); await q.evaluate(g => { document.getElementById('auGrade').value = g; }, 'm2'); await q.fill('#auName', '김지우'); await q.fill('#auSchool', '한빛중학교'); await q.fill('#auSno', '20315'); await q.check('#auTerms'); await q.fill('#capIn', await q.evaluate('capText')); await q.click('#auGo');
       await q.waitForSelector('#obOv'); await q.click('[data-ob="skip"]'); await q.waitForSelector('#ltOv'); await q.click('[data-lt="close"]');
       await q.waitForSelector('#recOv.show'); await q.click('#recOv [data-act="rec-close"]');
       await q.waitForSelector('[data-act="share-take"]', { timeout: 8000 }); await q.screenshot({ path: path.join(shots, `${tag}-15-share-in.png`) });
