@@ -213,6 +213,7 @@
     if (s) out.push(s); return out;
   }
   const TTS_MEM = new Map(), TTS_PEND = new Map();
+  let ttsDevBad = false; // 이 기기 목소리가 소리를 못 낸 적이 있으면 원어민 소리를 끝까지 기다려요
   // 원어민 목소리는 마침표 없이 짧은 숙어(cry out to)를 받으면 끝에 없는 소리(섹)를 붙일 때가 있어요. 여러 단어인데 문장부호가 없으면 마침표를 붙여요.
   const ttsText = (text, lang) => { const t = String(text).replace(/\s+/g, ' ').trim(); return lang === 'en' && /\s/.test(t) && !/[.!?,;:]$/.test(t) ? t + '.' : t; };
   // 다음 카드 소리를 미리 받아 둬요(카드가 뜨자마자 바로 읽게)
@@ -243,13 +244,14 @@
     return url;
   }
   // 성공하면 true, 다른 소리로 바뀌어 멈췄으면 'cancel', 실패하면 false
-  function olSpeak(text, L2, rate) {
+  function olSpeak(text, L2, rate, patient) {
     const lang = vFam(L2) === 'zh' ? 'zh' : 'en', tok = ++olToken, parts = olChunks(text);
     return new Promise(async res => {
       let nextUrl = neuralUrl(parts[0], lang);
       // 처음 만드는 소리는 서버에서 몇 초 걸려요. 0.7초 안에 안 오면 기기 목소리로 바로 읽고, 원어민 소리는 뒤에서 받아 다음부터 써요.
-      const first = TTS_MEM.has(lang + '|' + ttsText(parts[0], lang)) ? await nextUrl : await Promise.race([nextUrl, new Promise(r => setTimeout(() => r('slow'), 700))]);
-      if (first === 'slow') return res(tok === olToken ? false : 'cancel');
+      const wait = patient || ttsDevBad ? 0 : 1500;
+      const first = !wait || TTS_MEM.has(lang + '|' + ttsText(parts[0], lang)) ? await nextUrl : await Promise.race([nextUrl, new Promise(r => setTimeout(() => r('slow'), wait))]);
+      if (first === 'slow') return res(tok === olToken ? 'slow' : 'cancel');
       for (let i = 0; i < parts.length; i++) {
         const url = await nextUrl;
         if (tok !== olToken) return res('cancel');
@@ -276,8 +278,9 @@
       if (!o.keep) { try { window.speechSynthesis.cancel(); } catch (e) {} }
       const L2 = lang || 'en-US', fam = vFam(L2), rate = o.rate || ttsRateFor(L2), list = voicesOf(fam);
       // 영어 · 중국어는 원어민 목소리(서버)를 먼저 써요. 설정에서 기기 목소리를 직접 골랐으면 그 목소리로 읽어요.
+      let slow = false;
       if ((fam === 'en' || fam === 'zh') && !o.voice && !(config.voice && config.voice[fam]) && neuralOk()) {
-        const r = await olSpeak(text, L2, rate); if (r) return res();
+        const r = await olSpeak(text, L2, rate); if (r === 'slow') slow = true; else if (r) return res();
       }
       if (fam === 'zh' && loadVoices().length && !list.length) ttsNoVoice('zh', o.ask);
       const first = o.voice || voiceFor(L2, o.ref), cand = [first].concat(list.filter(v => v !== first).sort((x, y) => (+!!y.localService) - (+!!x.localService)), [null]).filter((v, i, a) => a.indexOf(v) === i).slice(0, 3);
@@ -289,7 +292,15 @@
         let over = false, started = false; const t0 = Date.now();
         u.onstart = () => { started = true; };
         const tm = setTimeout(() => end(true), (6000 + text.length * 160) / Math.min(1, rate));
-        const end = ok => { if (over) return; over = true; clearTimeout(tm); if (ok || k + 1 >= cand.length) { if (!ok && fam !== 'ko') ttsNoVoice(fam, o.ask); return res(); } attempt(k + 1); };
+        const end = ok => {
+          if (over) return; over = true; clearTimeout(tm);
+          if (ok) return res();
+          if (k + 1 < cand.length) return attempt(k + 1);
+          // 기기 목소리가 모두 실패했어요: 원어민 소리를 기다렸다가 읽어요
+          if (fam !== 'ko') ttsDevBad = true;
+          if (slow) return olSpeak(text, L2, rate, true).then(r => { if (!r && fam !== 'ko') ttsNoVoice(fam, o.ask); res(); });
+          if (fam !== 'ko') ttsNoVoice(fam, o.ask); res();
+        };
         u.onend = () => end(started || Date.now() - t0 > 300);
         u.onerror = e => end(!!(e && /interrupted|canceled/.test(e.error || '')));
         try { window.speechSynthesis.speak(u); } catch (e) { end(false); }

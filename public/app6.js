@@ -34,6 +34,7 @@
     $('stCount').textContent = `${S.idx + 1}/${S.queue.length}`;
     const item = S.queue[S.idx];
     for (let i = 1; i <= 2; i++) { const nx = S.queue[S.idx + i]; if (nx && nx.w) ttsPrefetch(nx.w.word); }
+    if (item && item.w) setTimeout(() => fillPronLater(item.w), 0);
     const md = S.mode === 'test' || S.mode === 'mix' ? (item.t || 'choice') : S.mode;
     if (md === 'card') renderCard(item);
     else if (md === 'choice') renderChoice(item, false);
@@ -112,12 +113,13 @@
       </div>`;
     bindSwipe();
     playAudio(w.word);
-    fillPronLater(w);
   }
   // 예전에 저장한 숙어처럼 발음이 비어 있는 단어는 사전으로 채워서 카드에 바로 보여 줘요
   async function fillPronLater(w) {
-    if (!w || (w.phonetic && w.koreanPron) || isHanWord(w.word)) return;
+    if (!w || !w.word || (w.phonetic && w.koreanPron) || isHanWord(w.word)) return;
     let d = null; try { d = await dictGet(w.word); } catch (e) {}
+    // 사전에 없거나 변화형(went, gave up)이라 발음이 비면 AI로 발음만 받아요(한 번 받으면 기기에 기억)
+    if ((!d || !d.phonetic || !d.koreanPron) && aiReady()) { try { const a = await aiWord(w.word, false); d = { ...(d || {}), phonetic: (d && d.phonetic) || a.phonetic, koreanPron: (d && d.koreanPron) || a.koreanPron }; } catch (e) {} }
     if (!d) return;
     let hit = false; ['phonetic', 'koreanPron'].forEach(k => { if (!w[k] && d[k]) { w[k] = d[k]; hit = true; } });
     if (!hit) return;

@@ -244,6 +244,7 @@
     const box = $('wordCardStream');
     if (!box) return;
     const list = visibleWords();
+    pronSweep(list);
     if (!list.length) {
       const cat = curCat();
       box.innerHTML = (cat && cat.words.length === 0)
@@ -660,6 +661,15 @@
   ACTIONS['csv-import'] = () => { closeSheet(); $('csvFile').click(); };
   let fillBusy = false;
   // 비어 있는 칸만 내장 사전으로 채우고, 채운 단어 수를 돌려줘요.
+  // 단어장을 열 때 발음이 빈 영어 단어(예전에 저장한 숙어 등)를 내장 사전으로 조용히 채워요
+  let pronSweepBusy = false; const pronSwept = new Set();
+  async function pronSweep(list) {
+    if (pronSweepBusy) return;
+    const ws = list.filter(w => w && w.word && !isHanWord(w.word) && (!w.phonetic || !w.koreanPron) && !pronSwept.has(w.id)).slice(0, 80);
+    if (!ws.length) return;
+    pronSweepBusy = true; ws.forEach(w => pronSwept.add(w.id));
+    try { const n = await dictFill(ws); if (n) { syncStorage(); setTimeout(() => { if (curTab === 'paneBook') renderWordList(); }, 0); } } catch (e) {} finally { pronSweepBusy = false; }
+  }
   async function dictFill(words) {
     await dictPreload(words.map(w => w.word));
     let n = 0;
@@ -673,7 +683,7 @@
   }
   ACTIONS['book-fill'] = async () => {
     const cat = curCat(); if (!cat || fillBusy) return;
-    const empty = w => !w.meaning || !w.phonetic || !w.example;
+    const empty = w => !w.meaning || !w.phonetic || (!w.koreanPron && !isHanWord(w.word)) || !w.example;
     if (!cat.words.some(empty)) { closeSheet(); return toast('비어 있는 칸이 없어요.'); }
     closeSheet(); fillBusy = true;
     const fromDict = await dictFill(cat.words.filter(empty));
