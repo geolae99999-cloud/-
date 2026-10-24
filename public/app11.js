@@ -3,7 +3,7 @@
    * ======================================================= */
   const RD_MAX = 4000, RD_SENT_MAX = 80;
   let RD = null; // { text, zh, sents: [{ t, toks, ko }], hideKo, seq }
-  function rdEntryHtml() { return `<button class="mg-entry" data-act="rd-open"><span class="mg-ico">${IC.book}</span><span class="mg-txt"><b>본문 읽기 · 해석</b><small>글을 붙여 넣으면 문장마다 해석, 단어를 누르면 뜻과 발음</small></span><span class="mg-chev"></span></button>`; }
+  function rdEntryHtml() { return `<button class="mg-entry" data-act="rd-open"><span class="mg-ico">${IC.book}</span><span class="mg-txt"><b>본문 읽기 · 해석</b><small>본문을 넣으면 문장마다 해석, 단어를 누르면 뜻과 원어민 발음</small></span><span class="wq-tag">NEW</span><span class="mg-chev"></span></button>`; }
   function rdClose() { const o = $('rdOv'); if (o) o.remove(); rdPopHide(); RD = null; }
   function rdShell(inner, title, back) {
     let ov = $('rdOv');
