@@ -6385,7 +6385,14 @@ window.VOCA_CLOUD = {
   const TTS_MEM = new Map(), TTS_PEND = new Map();
   let ttsDevBad = false; // 이 기기 목소리가 소리를 못 낸 적이 있으면 원어민 소리를 끝까지 기다려요
   // 원어민 목소리는 마침표 없이 짧은 숙어(cry out to)를 받으면 끝에 없는 소리(섹)를 붙일 때가 있어요. 여러 단어인데 문장부호가 없으면 마침표를 붙여요.
-  const ttsText = (text, lang) => { const t = String(text).replace(/\s+/g, ' ').trim(); return lang === 'en' && /\s/.test(t) && !/[.!?,;:]$/.test(t) ? t + '.' : t; };
+  // 한 단어(his)도 마찬가지예요(히스하우처럼 뒤에 소리가 붙어요). 영어는 끝에 문장부호가 없으면 마침표를 붙여요. 주소가 바뀌니 예전에 잘못 만든 소리 대신 새로 만들어져요.
+  const ttsText = (text, lang) => { const t = String(text).replace(/\s+/g, ' ').trim(); return lang === 'en' && /[a-z0-9]$/i.test(t) ? t + '.' : t; };
+  // 짧은 단어 소리가 글자 수에 비해 너무 길면(뒤에 없는 소리가 붙음) 버리고 기기 목소리로 읽어요
+  const ttsTooLong = (text, lang, dur, rate) => {
+    const t = String(text).trim(); if (lang !== 'en' || !isFinite(dur) || !dur || t.split(/\s+/).length > 3) return false;
+    return dur / Math.max(.5, rate || 1) > (0.6 + 0.1 * t.replace(/[^a-z]/gi, '').length) / Math.max(.5, rate || 1) + 0.3;
+  };
+  const TTS_BAD = new Set();
   // 다음 카드 소리를 미리 받아 둬요(카드가 뜨자마자 바로 읽게)
   function ttsPrefetch(text) {
     try {
@@ -6428,10 +6435,12 @@ window.VOCA_CLOUD = {
         if (!url) return res(i > 0 ? true : false);
         if (i + 1 < parts.length) nextUrl = neuralUrl(parts[i + 1], lang); // 다음 조각을 미리 받아요
         const ok = await new Promise(done => {
+          if (TTS_BAD.has(url) && !ttsDevBad) return done(false);
           const a = new Audio(url); olAudio = a;
           a.playbackRate = Math.min(2, Math.max(.5, rate || 1)); try { a.preservesPitch = true; } catch (e) {}
           let fin = false; const end = v => { if (fin) return; fin = true; clearTimeout(tm); done(v); };
           const tm = setTimeout(() => end(false), 30000);
+          if (parts.length === 1 && !ttsDevBad) a.onloadedmetadata = () => { if (ttsTooLong(parts[0], lang, a.duration, a.playbackRate)) { TTS_BAD.add(url); try { a.pause(); } catch (e) {} end(false); } };
           a.onended = () => end(true); a.onerror = () => end(false); a.onpause = () => { if (tok !== olToken) end(true); };
           a.play().catch(() => end(false));
         });
