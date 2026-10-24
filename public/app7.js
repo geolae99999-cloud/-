@@ -158,7 +158,13 @@
         ${rkBox}
         ${g.wrong.length ? `<h4 class="syn-h">틀린 단어</h4><div class="wq-wrong">${g.wrong.slice(0, 12).map(w => `<span><b class="${g.lang === 'zh' ? 'zh' : 'en'}">${esc(w.w)}</b><small>${esc(w.m)}</small></span>`).join('')}</div>` : ''}
       </div></div>
+      <button class="link-btn res-share" data-wq="share">${IC.users} 점수 자랑하기</button>
       <div class="row wq-btns"><button class="btn btn-soft" data-wq="rank">${IC.podium} 랭킹</button><button class="btn btn-primary" data-wq="go">${IC.repeat} 다시 하기</button></div>`;
+  }
+  function wqShareText() {
+    const g = WQ; if (!g) return '';
+    const s = g.sent && g.sent !== 'wait' && !g.sent.err ? g.sent : null;
+    return `VocaPro 단어 맞추기 대결 ${wqLvName(g.lang, g.lv)}에서 ${g.score.toLocaleString()}점 받았어${s ? ` (이번 주 ${(+s.rank).toLocaleString()}위)` : ''}! 60초 안에 나보다 많이 맞힐 수 있어?`;
   }
 
   /* ----- 랭킹 화면 ----- */
@@ -185,7 +191,7 @@
   function wqBoard(d, r) {
     const list = (d && Array.isArray(d.list) ? d.list : []).map(x => ({ name: String(x.name || '익명'), v: +x.score || 0, ok: +x.ok || 0, combo: +x.combo || 0, me: !!x.me }));
     if (d && d.noclass) return `<div class="cl-load">${MASCOT('think')}<span>참여한 반이 없어요. 홈의 '우리 반'에서 선생님께 받은 코드로 참여하면 반 친구들과 겨룰 수 있어요.</span></div>`;
-    const me = d && d.me, myLine = me ? `<div class="wq-me"><span>내 순위</span><b>${(+me.rank || 0).toLocaleString()}위</b><em>${(+me.score || 0).toLocaleString()}점</em><button class="link-btn" data-wq="rename">이름: ${esc(wqName())}</button></div>`
+    const me = d && d.me, myLine = me ? `<div class="wq-me"><span>내 순위</span><b>${(+me.rank || 0).toLocaleString()}위</b><em>${(+me.score || 0).toLocaleString()}점</em><button class="link-btn" data-wq="rename">이름: ${esc(wqName())}</button><button class="link-btn" data-wq="share-rank" data-r="${(+me.rank || 0).toLocaleString()}" aria-label="내 순위 공유">공유</button></div>`
       : `<div class="wq-me"><span>${r.per === 'week' ? '이번 주' : '아직'} 기록이 없어요</span><button class="link-btn" data-wq="rename">이름: ${esc(wqName())}</button></div>`;
     if (!list.length) return myLine + `<div class="cl-load">${MASCOT('happy')}<span>${r.per === 'week' ? '이번 주' : ''} 첫 1등이 되어 보세요!</span></div>`;
     const top = [list[1], list[0], list[2]], medal = ['#9aa5b1', '#f5a524', '#c8783a'];
@@ -224,6 +230,8 @@
     if (a === 'rk-per') { g.rk.per = b.dataset.v; return wqRank(); }
     if (a === 'rk-scope') { g.rk.scope = b.dataset.v; return wqRank(); }
     if (a === 'rename') return wqRename();
+    if (a === 'share') return shareOut(wqShareText(), 'VocaPro 단어 대결');
+    if (a === 'share-rank') return shareOut(`VocaPro ${wqLvName(g.lang, g.lv)} 랭킹 ${b.dataset.r}위! 나랑 겨뤄 볼래?`, 'VocaPro 랭킹');
   }
   ACTIONS.wordquiz = wqOpen;
   function wqEntryHtml() {
@@ -648,6 +656,7 @@
         <div class="score">${S.ok} / ${first}</div>
         <div class="result-stats"><div><b>${pct}%</b><span>${label}</span></div><div class="st-streak"><b>${st}일</b><span>연속 학습</span></div><div class="${goalHit ? 'hit' : ''}"><b>${todayN}/${goal}</b><span>${goalHit ? '목표 달성!' : '오늘 목표'}</span></div></div>
         ${wrongs.length ? `<div class="card result-box"><div class="res-wrong-head"><b style="font-size:.95rem;">틀린 단어 ${wrongs.length}개</b><small>오답노트에 담았어요</small></div>${wrongs.map(it => `<div class="wrong-item"><b>${esc(it.w.word)}</b><span>${esc(it.w.meaning)}</span><button class="w-speak" data-act="speak" data-text="${esc(it.w.word)}" aria-label="발음 듣기">${IC.speaker}</button></div>`).join('')}</div>` : '<div class="card result-box" style="text-align:center;">틀린 단어가 없어요. 대단해요!</div>'}
+        <button class="link-btn res-share" data-act="share-result" data-text="${esc(`VocaPro에서 영어 단어 ${first}개를 공부했어요. 정답률 ${pct}%${st > 1 ? `, ${st}일 연속 공부 중` : ''}! 같이 할래?`)}">${IC.users} 결과 공유하기</button>
         <div class="row" style="margin-top:6px;">
           ${wrongs.length ? '<button class="btn btn-soft" data-act="retry-wrong">틀린 것만 다시</button>' : '<button class="btn btn-soft" data-act="again">한 번 더</button>'}
           ${mRes && mRes.next != null

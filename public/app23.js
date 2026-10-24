@@ -267,3 +267,48 @@
     el.disabled = false; el.textContent = old;
   };
 
+  /* =========================================================
+   * 단어장 공유 (링크 하나로 반 친구, 선생님과 나눠요)
+   * ======================================================= */
+  const b64u = u8 => { let s = ''; for (let i = 0; i < u8.length; i += 8192) s += String.fromCharCode.apply(null, u8.subarray(i, i + 8192)); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
+  const unb64u = t => { const s = atob(t.replace(/-/g, '+').replace(/_/g, '/')); const u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return u; };
+  async function zipBytes(u8, inflate) {
+    const cs = inflate ? new DecompressionStream('deflate-raw') : new CompressionStream('deflate-raw');
+    return new Uint8Array(await new Response(new Blob([u8]).stream().pipeThrough(cs)).arrayBuffer());
+  }
+  async function shareEncode(cat) {
+    const raw = new TextEncoder().encode(JSON.stringify({ n: cat.name, w: cat.words.map(w => [w.word, w.meaning]) }));
+    if (typeof CompressionStream === 'function') { try { return 'z' + b64u(await zipBytes(raw)); } catch (e) {} }
+    return 'j' + b64u(raw);
+  }
+  // 받은 공유 링크 풀기: 링크는 1MB, 푼 내용은 4MB까지만(작게 압축한 거대한 링크로 기기를 멈추게 하는 것 막기)
+  const SHARE_MAX = 4 << 20;
+  async function shareInflate(u8) {
+    const rd = new Blob([u8]).stream().pipeThrough(new DecompressionStream('deflate-raw')).getReader(), out = []; let n = 0;
+    for (;;) { const { done, value } = await rd.read(); if (done) break; n += value.length; if (n > SHARE_MAX) { rd.cancel().catch(() => {}); throw new Error('too_big'); } out.push(value); }
+    const r = new Uint8Array(n); let o = 0; out.forEach(v => { r.set(v, o); o += v.length; }); return r;
+  }
+  async function shareDecode(code) {
+    const t = String(code || ''); if (t.length > 1 << 20) throw new Error('too_big');
+    const body = unb64u(t.slice(1));
+    const raw = t[0] === 'z' ? await shareInflate(body) : body;
+    const o = JSON.parse(new TextDecoder().decode(raw));
+    const words = (Array.isArray(o.w) ? o.w : []).filter(a => Array.isArray(a) && a[0]).slice(0, 2000).map(a => [String(a[0]).slice(0, 80), String(a[1] == null ? '' : a[1]).slice(0, 200)]); // 뜻이 빈 단어도 남겨요
+    if (!words.length) throw new Error('empty');
+    return { name: String(o.n || '공유받은 단어장').slice(0, 40), words };
+  }
+  ACTIONS['book-share'] = async () => {
+    const cat = curCat(); if (!cat) return;
+    if (!cat.words.length) return toast('단어를 먼저 담아 주세요.');
+    const url = location.origin + location.pathname + '#s=' + await shareEncode(cat);
+    openSheet('단어장 공유', `<div class="form-stack">
+      <div class="share-card"><span class="mg-ico i-mint">${IC.book}</span><div><b>${esc(cat.name)}</b><small>단어 ${cat.words.length}개 · 받는 사람도 VocaPro에서 바로 공부할 수 있어요</small></div></div>
+      <input id="shareUrl" readonly value="${esc(url)}" data-act="select-all">
+      <div class="row"><button class="btn btn-soft" data-act="share-copy">링크 복사</button>${navigator.share ? '<button class="btn btn-primary" data-act="share-send">보내기</button>' : ''}</div>
+      <p class="muted" style="font-size:.78rem;line-height:1.6;margin:0;">링크 안에 단어와 뜻이 들어 있어요. 서버에 따로 저장되지 않고, 학습 기록은 함께 보내지 않아요.${url.length > 8000 ? ' 단어가 많아서 링크가 길어요. 메신저에 따라 잘릴 수 있으니 CSV 내보내기도 함께 써 보세요.' : ''}${cat.words.length > 2000 ? ` <b>공유 링크로는 앞의 2000개만 받을 수 있어요(나머지 ${cat.words.length - 2000}개는 CSV로 보내 주세요).</b>` : ''}</p></div>`);
+  };
+  ACTIONS['share-copy'] = async () => { const i = $('shareUrl'); if (!i) return; try { await navigator.clipboard.writeText(i.value); toast('링크를 복사했어요.'); } catch (e) { i.select(); toast('링크를 길게 눌러 복사해 주세요.'); } };
+  ACTIONS['share-send'] = async () => { const i = $('shareUrl'), cat = curCat(); if (!i) return; try { await navigator.share({ title: 'VocaPro 단어장', text: `${cat ? cat.name : '단어장'} (VocaPro)`, url: i.value }); } catch (e) {} };
+
+  // 공유 링크로 들어오면: 로그인 뒤에 담을지 물어봐요
+

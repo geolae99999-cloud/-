@@ -1,5 +1,5 @@
 /* VocaPro 서비스 워커: 네트워크 우선 + 오프라인 폴백 + 알림 클릭 */
-const CACHE = 'vocapro-c57f69e40b';
+const CACHE = 'vocapro-e18273b5dd';
 const CORE = ["./", "style.css", "config.js", "cloud.js", "app1.js", "app2.js", "app3.js", "app4.js", "app5.js", "app6.js", "app7.js", "app8.js", "app9.js", "app10.js", "app11.js", "app12.js", "app13.js", "app14.js", "app15.js", "app16.js", "app17.js", "app18.js", "app19.js", "app20.js", "app21.js", "app22.js", "app23.js", "app24.js", "app25.js", "app26.js", "app27.js", "app28.js", "app29.js", "manifest.webmanifest", "icon-192.png", "icon-512.png", "icon-maskable-512.png"];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => Promise.all(CORE.map(u => c.add(new Request(u, { cache: 'reload' })).catch(() => {})))).then(() => self.skipWaiting()));

@@ -82,6 +82,9 @@
     const tests = Array.isArray(s && s.tests) ? s.tests.filter(t => t && +t.d > 0 && +t.n > 0).slice(-30).map(t => ({ d: +t.d, n: Math.floor(+t.n), ok: Math.max(0, Math.floor(+t.ok) || 0), sec: Math.max(0, Math.floor(+t.sec) || 0), src: String(t.src || '').slice(0, 40) })) : [];
     const o = { days };
     if (tests.length) o.tests = tests;
+    // 친구 초대 등으로 받은 보호권: [{ d: 날짜, n: 장수 }]
+    const bonus = Array.isArray(s && s.bonus) ? s.bonus.filter(b => b && /^\d{4}-\d{2}-\d{2}$/.test(b.d) && +b.n > 0).slice(-50).map(b => ({ d: b.d, n: Math.min(5, Math.floor(+b.n)) })) : [];
+    if (bonus.length) o.bonus = bonus;
     if (s && /^\d{4}-\d{2}-\d{2}$/.test(s.frzSeen)) o.frzSeen = s.frzSeen; // 보호권 알림을 이미 보여 준 날
     return o;
   }
@@ -126,7 +129,7 @@
       cfg.course = cleanCourse(saved.course);
       cfg.lang = saved.lang === 'zh' ? 'zh' : 'en';
       cfg.grade = GRADE_NAMES[saved.grade] ? saved.grade : '';
-      cfg.role = saved.role === 'teacher' ? 'teacher' : '';
+      cfg.role = saved.role === 'teacher' || saved.role === 'general' ? saved.role : '';
       cfg.profile = cleanProfile(saved.profile);
       if (saved.gameName) cfg.gameName = String(saved.gameName).replace(/[\u0000-\u001f<>]/g, '').slice(0, 12);
       for (const p of Object.keys(cfg.keys)) {
@@ -241,15 +244,19 @@
   const dKeyOf = n => new Date(n * DAY).toISOString().slice(0, 10);
   function streakInfo() {
     const keys = Object.keys(stats.days).filter(k => stats.days[k].n > 0).sort(), prot = [];
+    const bon = (stats.bonus || []).slice().sort((a, b) => a.d < b.d ? -1 : 1); let bi = 0;
     let cur = 0, best = 0, frz = 0, prev = null;
+    const addBonus = upto => { while (bi < bon.length && bon[bi].d <= upto) { frz = Math.min(FRZ_MAX + 3, frz + bon[bi].n); bi++; } };
     keys.forEach(k => {
+      addBonus(k);
       const t = dNum(k), g = prev === null ? 0 : t - prev;
       if (g === 1) cur++;
       else if (g === 2 && frz > 0) { frz--; prot.push(dKeyOf(t - 1)); cur++; }
       else cur = 1;
-      if (cur % FRZ_EVERY === 0) frz = Math.min(FRZ_MAX, frz + 1);
+      if (cur % FRZ_EVERY === 0) frz = Math.max(frz, Math.min(FRZ_MAX, frz + 1));
       best = Math.max(best, cur); prev = t;
     });
+    addBonus(dayKey());
     const g = prev === null ? 99 : dNum(dayKey()) - prev;
     let n = g <= 1 ? cur : 0;
     if (g === 2 && frz > 0) { frz--; prot.push(dKeyOf(prev + 1)); n = cur; } // 어제를 빠졌어요: 오늘 하면 이어져요

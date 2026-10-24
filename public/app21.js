@@ -14,8 +14,9 @@
   const listName = k => GRADE_NAMES[k] ? `${GRADE_NAMES[k]} 추천` : ZS_NAMES[k] ? `${k[0] === 'e' ? '영어' : '중국어'} 말하기 · ${ZS_NAMES[k]}` : (PACK_NAMES[k] || ZH_PACK_NAMES[k] || '');
   const gradeFull = k => { const n = GRADE_NAMES[k] || ''; return n ? ({ 초: '초등학교 ', 중: '중학교 ', 고: '고등학교 ' })[n[0]] + n.slice(1) + '학년' : ''; };
   const gradeOptions = sel => GRADES.map(([k]) => `<option value="${k}"${k === sel ? ' selected' : ''}>${gradeFull(k)}</option>`).join('');
-  const roleOptions = sel => [['초등학생', 'e'], ['중학생', 'm'], ['고등학생', 'h']].map(([lb, p]) => `<optgroup label="${lb}">${GRADES.filter(([k]) => k[0] === p).map(([k]) => `<option value="${k}"${k === sel ? ' selected' : ''}>${gradeFull(k)}</option>`).join('')}</optgroup>`).join('') + `<optgroup label="선생님"><option value="teacher"${sel === 'teacher' ? ' selected' : ''}>선생님 (교사)</option></optgroup>`;
+  const roleOptions = sel => [['초등학생', 'e'], ['중학생', 'm'], ['고등학생', 'h']].map(([lb, p]) => `<optgroup label="${lb}">${GRADES.filter(([k]) => k[0] === p).map(([k]) => `<option value="${k}"${k === sel ? ' selected' : ''}>${gradeFull(k)}</option>`).join('')}</optgroup>`).join('') + `<optgroup label="선생님"><option value="teacher"${sel === 'teacher' ? ' selected' : ''}>선생님 (교사)</option></optgroup><optgroup label="일반"><option value="general"${sel === 'general' ? ' selected' : ''}>일반 (학교 다니지 않아요)</option></optgroup>`;
   const isTeacher = () => config.role === 'teacher';
+  const isGeneral = () => config.role === 'general'; // 학생 · 선생님이 아닌 일반 사용자(학교 · 학번 없이)
   const myName = () => (config.profile && config.profile.name) || currentLabel || currentUser || '';
   const schoolLine = () => { const p = config.profile || {}; return [p.school, !isTeacher() && p.sno ? '학번 ' + p.sno : ''].filter(Boolean).join(' · '); };
   let gwCache = {};
@@ -49,6 +50,7 @@
   }
   function setGrade(v) {
     if (v === 'teacher') { config.role = 'teacher'; config.grade = ''; syncStorage(); toast('선생님 화면으로 바꿨어요. 홈에 수업 도구가 생겨요.'); if (curTab === 'tabHome') renderHome(); return; }
+    if (v === 'general') { config.role = 'general'; config.grade = ''; syncStorage(); toast('일반 사용자로 바꿨어요. 목적에 맞춘 코스를 추천해 드려요.'); if (curTab === 'tabHome') renderHome(); return; }
     config.role = ''; config.grade = GRADE_NAMES[v] ? v : ''; syncStorage();
     if (config.grade) toast(`${gradeFull(config.grade)} 단어를 추천해 드릴게요.`);
     if (curTab === 'tabHome') renderHome();
@@ -62,7 +64,7 @@
   function ownedFor(k) { if (!ZS_NAMES[k]) return ownedWords(); const c = categories.find(x => x.name === recBookName(k)); return new Set(c ? c.words.map(w => w.word) : []); }
   const recLeft = k => { const o = ownedWords(); return gradeWords(k).filter(e => !o.has(e.w.toLowerCase())); };
   function recMaybeShow() {
-    if (recShown || !currentUser || isTeacher() || $('pfOv')) return;
+    if (recShown || !currentUser || isTeacher() || isGeneral() || $('pfOv')) return;
     let hid = ''; try { hid = LS.getItem(recHideKey()) || ''; } catch (e) {}
     if (hid === dayKey()) return;
     recShown = true;

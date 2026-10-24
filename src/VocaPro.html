@@ -15,7 +15,7 @@
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="VocaPro">
   <meta property="og:title" content="VocaPro - 단어, 끝까지 외우다">
-  <meta property="og:description" content="학교 수업용 AI 영어 단어장. 뜻·발음·예문 자동 완성, 10가지 학습, 우리 반 과제까지.">
+  <meta property="og:description" content="학생부터 일반인까지, 수준과 목적에 맞춘 AI 영어 단어장. 뜻·발음·예문 자동 완성, 여행·회화·시험 맞춤 코스, 우리 반 과제까지.">
   <meta property="og:url" content="https://vocapro.kro.kr/">
   <meta property="og:image" content="https://vocapro.kro.kr/media/og.jpg">
   <meta property="og:image:width" content="1200">
@@ -2717,6 +2717,9 @@
     .au-step-bars i { height: 4px; border-radius: 99px; background: var(--surface-3); display: block; }
     .au-step-bars i.on { background: var(--blue); }
     .au-s2-title { font-size: 20px; font-weight: 800; color: var(--ink); letter-spacing: -.03em; }
+    .res-share { display: inline-flex; align-items: center; gap: 6px; margin: 4px auto 0; font-weight: 700; color: var(--blue); }
+    .res-share .ic, .res-share svg { width: 16px; height: 16px; }
+    .gen-note { font-size: .85rem; line-height: 1.6; margin: 0; }
     .au-s2-sub { font-size: 13.5px; color: var(--muted); margin: 2px 0 12px; font-weight: 600; }
     .grade-grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
     .grade-grid3 button {
@@ -3630,6 +3633,9 @@ window.VOCA_CLOUD = {
     const tests = Array.isArray(s && s.tests) ? s.tests.filter(t => t && +t.d > 0 && +t.n > 0).slice(-30).map(t => ({ d: +t.d, n: Math.floor(+t.n), ok: Math.max(0, Math.floor(+t.ok) || 0), sec: Math.max(0, Math.floor(+t.sec) || 0), src: String(t.src || '').slice(0, 40) })) : [];
     const o = { days };
     if (tests.length) o.tests = tests;
+    // 친구 초대 등으로 받은 보호권: [{ d: 날짜, n: 장수 }]
+    const bonus = Array.isArray(s && s.bonus) ? s.bonus.filter(b => b && /^\d{4}-\d{2}-\d{2}$/.test(b.d) && +b.n > 0).slice(-50).map(b => ({ d: b.d, n: Math.min(5, Math.floor(+b.n)) })) : [];
+    if (bonus.length) o.bonus = bonus;
     if (s && /^\d{4}-\d{2}-\d{2}$/.test(s.frzSeen)) o.frzSeen = s.frzSeen; // 보호권 알림을 이미 보여 준 날
     return o;
   }
@@ -3674,7 +3680,7 @@ window.VOCA_CLOUD = {
       cfg.course = cleanCourse(saved.course);
       cfg.lang = saved.lang === 'zh' ? 'zh' : 'en';
       cfg.grade = GRADE_NAMES[saved.grade] ? saved.grade : '';
-      cfg.role = saved.role === 'teacher' ? 'teacher' : '';
+      cfg.role = saved.role === 'teacher' || saved.role === 'general' ? saved.role : '';
       cfg.profile = cleanProfile(saved.profile);
       if (saved.gameName) cfg.gameName = String(saved.gameName).replace(/[\u0000-\u001f<>]/g, '').slice(0, 12);
       for (const p of Object.keys(cfg.keys)) {
@@ -3789,15 +3795,19 @@ window.VOCA_CLOUD = {
   const dKeyOf = n => new Date(n * DAY).toISOString().slice(0, 10);
   function streakInfo() {
     const keys = Object.keys(stats.days).filter(k => stats.days[k].n > 0).sort(), prot = [];
+    const bon = (stats.bonus || []).slice().sort((a, b) => a.d < b.d ? -1 : 1); let bi = 0;
     let cur = 0, best = 0, frz = 0, prev = null;
+    const addBonus = upto => { while (bi < bon.length && bon[bi].d <= upto) { frz = Math.min(FRZ_MAX + 3, frz + bon[bi].n); bi++; } };
     keys.forEach(k => {
+      addBonus(k);
       const t = dNum(k), g = prev === null ? 0 : t - prev;
       if (g === 1) cur++;
       else if (g === 2 && frz > 0) { frz--; prot.push(dKeyOf(t - 1)); cur++; }
       else cur = 1;
-      if (cur % FRZ_EVERY === 0) frz = Math.min(FRZ_MAX, frz + 1);
+      if (cur % FRZ_EVERY === 0) frz = Math.max(frz, Math.min(FRZ_MAX, frz + 1));
       best = Math.max(best, cur); prev = t;
     });
+    addBonus(dayKey());
     const g = prev === null ? 99 : dNum(dayKey()) - prev;
     let n = g <= 1 ? cur : 0;
     if (g === 2 && frz > 0) { frz--; prot.push(dKeyOf(prev + 1)); n = cur; } // 어제를 빠졌어요: 오늘 하면 이어져요
@@ -4006,7 +4016,7 @@ window.VOCA_CLOUD = {
     $('tabHome').innerHTML = `
       <div class="home-grid">
       <div class="h-hello"><div class="hello"><div class="hello-who">${MASCOT(today.n >= goal ? 'cheer' : 'happy')}<div><div class="hello-sub">${hello}</div><div class="hello-name">${esc(myName())}${isTeacher() ? ' 선생님' : '님'}</div>${schoolLine() ? `<div class="hello-school">${esc(schoolLine())}</div>` : ''}</div></div>
-        ${isZh() && !isTeacher() ? '<button class="grade-chip" data-act="pack-open">HSK 단어</button>' : `<button class="grade-chip" data-act="grade-pick">${isTeacher() ? '선생님' : gname ? esc(gname) : '학년 설정'}</button>`}</div></div>
+        ${isZh() && !isTeacher() ? '<button class="grade-chip" data-act="pack-open">HSK 단어</button>' : isGeneral() ? `<button class="grade-chip" data-act="mc-open">${config.course && MC_GOALS[config.course.goal] ? esc(MC_GOALS[config.course.goal].name) : '공부 목적'}</button>` : `<button class="grade-chip" data-act="grade-pick">${isTeacher() ? '선생님' : gname ? esc(gname) : '학년 설정'}</button>`}</div></div>
       <div class="h-hero"><section class="hero">
         <div class="hero-top">
           <div>
@@ -4038,7 +4048,7 @@ window.VOCA_CLOUD = {
       ${shelfHtml()}
 
       <div class="h-tools">${isTeacher() ? teachToolsHtml() : ''}<div class="section-title"><span>학습 도구</span></div>
-      <div class="tool-list${LS.getItem('vocapro_tools_open') === '1' ? '' : ' tl-fold'}" id="homeToolList">${rdEntryHtml()}${isTeacher() ? '' : classEntryHtml()}${todayHtml()}${flowEntryHtml()}${wqEntryHtml()}<button class="mg-entry" data-act="fsc-open"><span class="mg-ico i-coral">${IC.mic}</span><span class="mg-txt"><b>녹음 파일 채점</b><small>문장을 넣고 녹음 파일로 정확성 · 유창성 점수, 저장 안 함</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="gx-open"><span class="mg-ico i-mint">${IC.scan}</span><span class="mg-txt"><b>글·사진에서 단어 뽑기</b><small>기사, 유튜브 자막, 유인물 사진 속 모르는 단어만</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="match"><span class="mg-ico i-grape">${IC.cards}</span><span class="mg-txt"><b>짝 맞추기</b><small>${LN()}와 뜻을 빠르게 연결해요</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="rain"><span class="mg-ico i-teal">${IC.play}</span><span class="mg-txt"><b>단어 비</b><small>떨어지는 뜻이 닿기 전에 단어를 골라요</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="exam-open"><span class="mg-ico i-coral">${IC.trophy}</span><span class="mg-txt"><b>실전 시험</b><small>섞인 문제를 풀고 점수와 등급을 받아요</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="dict-open"><span class="mg-ico i-teal">${IC.search}</span><span class="mg-txt"><b>${LN()}사전</b><small>${isZh() ? '한자, 병음, 한글 뜻으로 바로 찾아요' : '뜻, 예문, 비슷한 단어를 바로 찾아요'}</small></span><span class="mg-chev"></span></button>${recEntryHtml()}${packEntryHtml()}${ltEntryHtml()}</div>
+      <div class="tool-list${LS.getItem('vocapro_tools_open') === '1' ? '' : ' tl-fold'}" id="homeToolList">${inviteEntryHtml()}${rdEntryHtml()}${isTeacher() ? '' : classEntryHtml()}${todayHtml()}${flowEntryHtml()}${wqEntryHtml()}<button class="mg-entry" data-act="fsc-open"><span class="mg-ico i-coral">${IC.mic}</span><span class="mg-txt"><b>녹음 파일 채점</b><small>문장을 넣고 녹음 파일로 정확성 · 유창성 점수, 저장 안 함</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="gx-open"><span class="mg-ico i-mint">${IC.scan}</span><span class="mg-txt"><b>글·사진에서 단어 뽑기</b><small>기사, 유튜브 자막, 유인물 사진 속 모르는 단어만</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="match"><span class="mg-ico i-grape">${IC.cards}</span><span class="mg-txt"><b>짝 맞추기</b><small>${LN()}와 뜻을 빠르게 연결해요</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="rain"><span class="mg-ico i-teal">${IC.play}</span><span class="mg-txt"><b>단어 비</b><small>떨어지는 뜻이 닿기 전에 단어를 골라요</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="exam-open"><span class="mg-ico i-coral">${IC.trophy}</span><span class="mg-txt"><b>실전 시험</b><small>섞인 문제를 풀고 점수와 등급을 받아요</small></span><span class="mg-chev"></span></button><button class="mg-entry" data-act="dict-open"><span class="mg-ico i-teal">${IC.search}</span><span class="mg-txt"><b>${LN()}사전</b><small>${isZh() ? '한자, 병음, 한글 뜻으로 바로 찾아요' : '뜻, 예문, 비슷한 단어를 바로 찾아요'}</small></span><span class="mg-chev"></span></button>${recEntryHtml()}${packEntryHtml()}${ltEntryHtml()}</div>
       <button class="tl-more-btn${LS.getItem('vocapro_tools_open') === '1' ? ' open' : ''}" data-act="tools-toggle"><span>${LS.getItem('vocapro_tools_open') === '1' ? '접기' : '학습 도구 더 보기'}</span><i></i></button></div>
 
       <div class="h-books"><div class="section-title"><span>내 단어장</span><button data-act="tab" data-t="tabBooks">전체 보기</button></div>
@@ -5528,7 +5538,13 @@ window.VOCA_CLOUD = {
         ${rkBox}
         ${g.wrong.length ? `<h4 class="syn-h">틀린 단어</h4><div class="wq-wrong">${g.wrong.slice(0, 12).map(w => `<span><b class="${g.lang === 'zh' ? 'zh' : 'en'}">${esc(w.w)}</b><small>${esc(w.m)}</small></span>`).join('')}</div>` : ''}
       </div></div>
+      <button class="link-btn res-share" data-wq="share">${IC.users} 점수 자랑하기</button>
       <div class="row wq-btns"><button class="btn btn-soft" data-wq="rank">${IC.podium} 랭킹</button><button class="btn btn-primary" data-wq="go">${IC.repeat} 다시 하기</button></div>`;
+  }
+  function wqShareText() {
+    const g = WQ; if (!g) return '';
+    const s = g.sent && g.sent !== 'wait' && !g.sent.err ? g.sent : null;
+    return `VocaPro 단어 맞추기 대결 ${wqLvName(g.lang, g.lv)}에서 ${g.score.toLocaleString()}점 받았어${s ? ` (이번 주 ${(+s.rank).toLocaleString()}위)` : ''}! 60초 안에 나보다 많이 맞힐 수 있어?`;
   }
 
   /* ----- 랭킹 화면 ----- */
@@ -5555,7 +5571,7 @@ window.VOCA_CLOUD = {
   function wqBoard(d, r) {
     const list = (d && Array.isArray(d.list) ? d.list : []).map(x => ({ name: String(x.name || '익명'), v: +x.score || 0, ok: +x.ok || 0, combo: +x.combo || 0, me: !!x.me }));
     if (d && d.noclass) return `<div class="cl-load">${MASCOT('think')}<span>참여한 반이 없어요. 홈의 '우리 반'에서 선생님께 받은 코드로 참여하면 반 친구들과 겨룰 수 있어요.</span></div>`;
-    const me = d && d.me, myLine = me ? `<div class="wq-me"><span>내 순위</span><b>${(+me.rank || 0).toLocaleString()}위</b><em>${(+me.score || 0).toLocaleString()}점</em><button class="link-btn" data-wq="rename">이름: ${esc(wqName())}</button></div>`
+    const me = d && d.me, myLine = me ? `<div class="wq-me"><span>내 순위</span><b>${(+me.rank || 0).toLocaleString()}위</b><em>${(+me.score || 0).toLocaleString()}점</em><button class="link-btn" data-wq="rename">이름: ${esc(wqName())}</button><button class="link-btn" data-wq="share-rank" data-r="${(+me.rank || 0).toLocaleString()}" aria-label="내 순위 공유">공유</button></div>`
       : `<div class="wq-me"><span>${r.per === 'week' ? '이번 주' : '아직'} 기록이 없어요</span><button class="link-btn" data-wq="rename">이름: ${esc(wqName())}</button></div>`;
     if (!list.length) return myLine + `<div class="cl-load">${MASCOT('happy')}<span>${r.per === 'week' ? '이번 주' : ''} 첫 1등이 되어 보세요!</span></div>`;
     const top = [list[1], list[0], list[2]], medal = ['#9aa5b1', '#f5a524', '#c8783a'];
@@ -5594,6 +5610,8 @@ window.VOCA_CLOUD = {
     if (a === 'rk-per') { g.rk.per = b.dataset.v; return wqRank(); }
     if (a === 'rk-scope') { g.rk.scope = b.dataset.v; return wqRank(); }
     if (a === 'rename') return wqRename();
+    if (a === 'share') return shareOut(wqShareText(), 'VocaPro 단어 대결');
+    if (a === 'share-rank') return shareOut(`VocaPro ${wqLvName(g.lang, g.lv)} 랭킹 ${b.dataset.r}위! 나랑 겨뤄 볼래?`, 'VocaPro 랭킹');
   }
   ACTIONS.wordquiz = wqOpen;
   function wqEntryHtml() {
@@ -6018,6 +6036,7 @@ window.VOCA_CLOUD = {
         <div class="score">${S.ok} / ${first}</div>
         <div class="result-stats"><div><b>${pct}%</b><span>${label}</span></div><div class="st-streak"><b>${st}일</b><span>연속 학습</span></div><div class="${goalHit ? 'hit' : ''}"><b>${todayN}/${goal}</b><span>${goalHit ? '목표 달성!' : '오늘 목표'}</span></div></div>
         ${wrongs.length ? `<div class="card result-box"><div class="res-wrong-head"><b style="font-size:.95rem;">틀린 단어 ${wrongs.length}개</b><small>오답노트에 담았어요</small></div>${wrongs.map(it => `<div class="wrong-item"><b>${esc(it.w.word)}</b><span>${esc(it.w.meaning)}</span><button class="w-speak" data-act="speak" data-text="${esc(it.w.word)}" aria-label="발음 듣기">${IC.speaker}</button></div>`).join('')}</div>` : '<div class="card result-box" style="text-align:center;">틀린 단어가 없어요. 대단해요!</div>'}
+        <button class="link-btn res-share" data-act="share-result" data-text="${esc(`VocaPro에서 영어 단어 ${first}개를 공부했어요. 정답률 ${pct}%${st > 1 ? `, ${st}일 연속 공부 중` : ''}! 같이 할래?`)}">${IC.users} 결과 공유하기</button>
         <div class="row" style="margin-top:6px;">
           ${wrongs.length ? '<button class="btn btn-soft" data-act="retry-wrong">틀린 것만 다시</button>' : '<button class="btn btn-soft" data-act="again">한 번 더</button>'}
           ${mRes && mRes.next != null
@@ -7153,7 +7172,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     acctEmailLoad();
     const bw = $('btnWipe'); if (bw) bw.style.display = cloudMode ? '' : 'none';
     const an = $('acctName'); if (an) an.textContent = '현재 계정: ' + (currentLabel || currentUser || '');
-    { const p = config.profile || cleanProfile(); $('pfName').value = p.name; $('pfSchool').value = p.school; $('pfSno').value = p.sno; $('pfSno').style.display = isTeacher() ? 'none' : ''; }
+    { const p = config.profile || cleanProfile(); $('pfName').value = p.name; $('pfSchool').value = p.school; $('pfSno').value = p.sno; $('pfSno').style.display = isTeacher() || isGeneral() ? 'none' : ''; $('pfSchool').placeholder = isGeneral() ? '학교 (선택)' : '학교'; }
     document.querySelectorAll('#cfgLang button').forEach(b => b.classList.toggle('on', b.dataset.l === LANG));
     $('cfgProvider').value = config.provider;
     ttsUI();
@@ -7162,7 +7181,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     if (!('vibrate' in navigator)) $('hapticSub').textContent = '이 기기(브라우저)는 진동을 지원하지 않아서 켜 둬도 울리지 않아요.';
     if ($('cfgKpron')) $('cfgKpron').checked = kpronOn();
     if ($('kpronSub')) $('kpronSub').textContent = isZh() ? '단어 옆에 [쉐쉐]처럼 한글로 발음을 보여 줘요 (중국어)' : '단어 옆에 [클라이머]처럼 한글로 발음을 보여 줘요 (영어)';
-    $('cfgGrade').innerHTML = `<option value="">선택 안 함</option>${roleOptions(isTeacher() ? 'teacher' : config.grade)}`;
+    $('cfgGrade').innerHTML = `<option value="">선택 안 함</option>${roleOptions(isTeacher() ? 'teacher' : isGeneral() ? 'general' : config.grade)}`;
     onProviderChange(config.provider, true);
     $('cfgStatus').className = 'cfg-status';
   }
@@ -7836,7 +7855,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     if (v('auSchoolKind') !== null) auDraft.skind = v('auSchoolKind');
     if (v('auGrade') !== null) {
       const g = v('auGrade');
-      if (g === 'teacher') auDraft.role = 'teacher';
+      if (g === 'teacher' || g === 'general') auDraft.role = g;
       else if (g) { auDraft.role = 'student'; auDraft.grade = g; }
     }
     if (v('auName') !== null) auDraft.name = v('auName');
@@ -7853,17 +7872,19 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
   }
 
   function roleSchoolBlockHtml(pfx, st) {
-    const isT = st.role === 'teacher';
-    const gVal = isT ? 'teacher' : (st.grade || '');
+    const isT = st.role === 'teacher', isG = st.role === 'general';
+    const gVal = isT ? 'teacher' : isG ? 'general' : (st.grade || '');
     const gId = pfx === 'au' ? 'auGrade' : 'pqRole';
     const list = gradesForKind(st.skind);
     return `
       <div class="seg role-sw" id="${pfx}RoleSw">
-        <button type="button" class="${isT ? '' : 'on'}" data-act="role-pick" data-pfx="${pfx}" data-r="student">학생</button>
+        <button type="button" class="${isT || isG ? '' : 'on'}" data-act="role-pick" data-pfx="${pfx}" data-r="student">학생</button>
         <button type="button" class="${isT ? 'on' : ''}" data-act="role-pick" data-pfx="${pfx}" data-r="teacher">선생님</button>
+        <button type="button" class="${isG ? 'on' : ''}" data-act="role-pick" data-pfx="${pfx}" data-r="general">일반</button>
       </div>
       <input type="hidden" id="${gId}" value="${esc(gVal)}">
-      <div class="sch-wrap" id="${pfx}SchWrap">
+      <p class="muted gen-note" id="${pfx}GenNote"${isG ? '' : ' hidden'}>학교 없이 혼자 영어를 공부해요. 여행 · 회화 · 토익처럼 목적에 맞춘 코스를 추천해 드려요.</p>
+      <div class="sch-wrap" id="${pfx}SchWrap"${isG ? ' hidden' : ''}>
         <span class="sch-lbl" id="${pfx}SchLbl">${isT ? '근무하는 학교' : '학교'}</span>
         <div class="sch-in-box">
           ${IC.search}
@@ -7874,12 +7895,12 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
         <input type="hidden" id="${pfx}SchoolKind" value="${esc(st.skind || '')}">
         <div class="sch-dd" id="${pfx}SchDd" hidden></div>
       </div>
-      <div class="grade-grid3 au-hide" id="${pfx}GradeBox"${isT ? ' hidden' : ''}>
+      <div class="grade-grid3 au-hide" id="${pfx}GradeBox"${isT || isG ? ' hidden' : ''}>
         ${list.map(([k, n]) => `<button type="button" class="${st.grade === k ? 'on' : ''}" data-act="grade-btn-pick" data-pfx="${pfx}" data-g="${k}">${n}</button>`).join('')}
       </div>
-      <div class="au-row2${isT ? ' one' : ''}" id="${pfx}NameRow">
-        <input type="text" id="${pfx}Name" value="${esc(st.name || '')}" placeholder="이름" autocomplete="name" maxlength="20" aria-label="이름">
-        <input type="text" id="${pfx}Sno" class="au-hide" value="${esc(isT ? '' : (st.sno || ''))}" placeholder="학번 (예: 20315)" inputmode="numeric" maxlength="12" aria-label="학번"${isT ? ' hidden' : ''}>
+      <div class="au-row2${isT || isG ? ' one' : ''}" id="${pfx}NameRow">
+        <input type="text" id="${pfx}Name" value="${esc(st.name || '')}" placeholder="${isG ? '이름 또는 별명' : '이름'}" autocomplete="name" maxlength="20" aria-label="이름">
+        <input type="text" id="${pfx}Sno" class="au-hide" value="${esc(isT || isG ? '' : (st.sno || ''))}" placeholder="학번 (예: 20315)" inputmode="numeric" maxlength="12" aria-label="학번"${isT || isG ? ' hidden' : ''}>
       </div>`;
   }
 
@@ -7894,23 +7915,29 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
   }
 
   ACTIONS['role-pick'] = el => {
-    const pfx = el.dataset.pfx, isT = el.dataset.r === 'teacher';
+    const pfx = el.dataset.pfx, isT = el.dataset.r === 'teacher', isG = el.dataset.r === 'general';
     const gId = pfx === 'au' ? 'auGrade' : 'pqRole';
     const sw = $(pfx + 'RoleSw');
     if (sw) sw.querySelectorAll('button').forEach(b => b.classList.toggle('on', b === el));
-    const gBox = $(pfx + 'GradeBox'), sn = $(pfx + 'Sno'), row = $(pfx + 'NameRow'), lbl = $(pfx + 'SchLbl'), gIn = $(gId);
-    if (gBox) gBox.hidden = isT;
-    if (sn) { sn.hidden = isT; if (isT) sn.value = ''; }
-    if (row) row.classList.toggle('one', isT);
+    const gBox = $(pfx + 'GradeBox'), sn = $(pfx + 'Sno'), row = $(pfx + 'NameRow'), lbl = $(pfx + 'SchLbl'), gIn = $(gId), sw2 = $(pfx + 'SchWrap'), gn = $(pfx + 'GenNote'), nm = $(pfx + 'Name');
+    if (gBox) gBox.hidden = isT || isG;
+    if (sw2) sw2.hidden = isG;
+    if (gn) gn.hidden = !isG;
+    if (nm) nm.placeholder = isG ? '이름 또는 별명' : '이름';
+    if (sn) { sn.hidden = isT || isG; if (isT || isG) sn.value = ''; }
+    if (row) row.classList.toggle('one', isT || isG);
     if (lbl) lbl.textContent = isT ? '근무하는 학교' : '학교';
+    const s2t = document.querySelector('.au-s2-title'), s2s = document.querySelector('.au-s2-sub');
+    if (pfx === 'au' && s2t) { s2t.textContent = isG ? '나에 대해 알려 주세요' : '어느 학교에 다니나요?'; if (s2s) s2s.textContent = isG ? '이름은 랭킹과 인사에만 쓰여요' : '우리 반 과제와 랭킹에 쓰여요'; }
     if (gIn) {
       if (isT) gIn.value = 'teacher';
+      else if (isG) gIn.value = 'general';
       else {
         const onBtn = gBox && gBox.querySelector('button.on');
         gIn.value = onBtn ? onBtn.dataset.g : '';
       }
     }
-    if (pfx === 'au') auDraft.role = isT ? 'teacher' : 'student';
+    if (pfx === 'au') auDraft.role = isT ? 'teacher' : isG ? 'general' : 'student';
   };
 
   ACTIONS['grade-btn-pick'] = el => {
@@ -8078,8 +8105,8 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
       ${s2 ? `<div class="au-s2-head">
         <button type="button" class="au-back-btn" data-act="auth-back">← 회원가입 2 / 2</button>
         <div class="au-step-bars"><i class="on"></i><i class="on"></i></div>
-        <div class="au-s2-title">어느 학교에 다니나요?</div>
-        <div class="au-s2-sub">우리 반 과제와 랭킹에 쓰여요</div>
+        <div class="au-s2-title">${auDraft.role === 'general' ? '나에 대해 알려 주세요' : '어느 학교에 다니나요?'}</div>
+        <div class="au-s2-sub">${auDraft.role === 'general' ? '이름은 랭킹과 인사에만 쓰여요' : '우리 반 과제와 랭킹에 쓰여요'}</div>
       </div>` : `<div class="auth-hero">${MASCOT('happy')}</div>
       <div class="page-title" style="text-align:center;margin-bottom:6px;"><b>Voca</b>Pro</div>
       <p class="muted" style="text-align:center;margin:0 0 18px;">${su ? '새 계정을 만들어요 · 1 / 2' : '로그인하고 이어서 외워요'}</p>
@@ -8171,7 +8198,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
         <span class="lp-ln l1" aria-hidden="true">${lpChars('단어,', 0)}</span>
         <span class="lp-ln l2" aria-hidden="true"><em class="lp-hl">${lpChars('끝까지', 3)}</em> ${lpChars('외우다', 7)}</span>
       </h1>
-      <p class="lp-sub lp-fade lp-d1">단어만 넣으면 뜻·발음·예문이 채워지고, 잊을 때쯤 다시 복습시켜 줘요. 학교 수업용 영어·중국어 단어장이에요.</p>
+      <p class="lp-sub lp-fade lp-d1">단어만 넣으면 뜻·발음·예문이 채워지고, 잊을 때쯤 다시 복습시켜 줘요. 학교 수업은 물론, 여행 · 회화 · 토익처럼 내 목적에 맞춰 공부하는 영어·중국어 단어장이에요.</p>
       <div class="lp-ctas lp-fade lp-d2">
         <button type="button" class="btn btn-primary" data-act="lp-start">무료로 시작하기 →</button>
         <a class="btn btn-soft" href="#lpVidBox">▶ 30초 영상</a>
@@ -8252,15 +8279,15 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     setTimeout(() => { const f = $('auId'); if (f) f.focus(); }, 100);
   }
   // 이름, 학교, 학번이 비어 있는 계정은 로그인하면 먼저 입력받아요
-  const profileMissing = () => { const p = config.profile || {}; return !p.name || !p.school || (!isTeacher() && !p.sno); };
+  const profileMissing = () => { const p = config.profile || {}; return isGeneral() ? !p.name : (!p.name || !p.school || (!isTeacher() && !p.sno)); };
   function profileCheck() {
     if (!currentUser || !profileMissing() || $('pfOv')) return;
-    const p = config.profile || cleanProfile(), role = isTeacher() ? 'teacher' : 'student';
+    const p = config.profile || cleanProfile(), role = isTeacher() ? 'teacher' : isGeneral() ? 'general' : 'student';
     const ov = document.createElement('div'); ov.id = 'pfOv'; ov.className = 'dlg-ov pf-ov';
     ov.innerHTML = `<div class="dlg pf-dlg" role="dialog" aria-modal="true" aria-labelledby="pfT">
       <div class="pf-art">${MASCOT('happy')}</div>
       <h3 id="pfT">내 정보를 알려 주세요</h3>
-      <p class="muted">학교에서 함께 쓰려면 이름, 학교, 학번이 필요해요. 내 앱 안에서만 쓰고 다른 사람에게 보여주지 않아요.</p>
+      <p class="muted">학교에서 함께 쓰려면 이름, 학교, 학번이 필요해요. 학교에 다니지 않으면 '일반'을 골라 이름만 적어도 돼요. 내 앱 안에서만 쓰고 다른 사람에게 보여주지 않아요.</p>
       <div class="form-stack">
         ${roleSchoolBlockHtml('pq', { role, grade: config.grade || '', school: p.school || '', scode: p.scode || '', skind: '', name: p.name || '', sno: p.sno || '' })}
         <div id="pqMsg" class="pf-msg"></div>
@@ -8269,24 +8296,24 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     document.body.appendChild(ov);
     setTimeout(() => { const i = ov.querySelector('#pqSchool:placeholder-shown, #pqName'); if (i) i.focus(); }, 80);
   }
-  function pqRoleChange() { const t = ($('pqRole') || {}).value === 'teacher', sn = $('pqSno'); if (sn) { sn.hidden = t; if (t) sn.value = ''; } }
+  function pqRoleChange() { const v = ($('pqRole') || {}).value, t = v === 'teacher' || v === 'general', sn = $('pqSno'); if (sn) { sn.hidden = t; if (t) sn.value = ''; } }
   ACTIONS['pq-save'] = () => {
-    const role = ($('pqRole') || {}).value || '', nm = ($('pqName') || {}).value.trim(), sc = ($('pqSchool') || {}).value.trim(), scode = (($('pqSchoolCode') || {}).value || '').trim(), sn = role === 'teacher' ? '' : ($('pqSno') || {}).value.trim();
+    const role = ($('pqRole') || {}).value || '', gen = role === 'general', nm = ($('pqName') || {}).value.trim(), sc = gen ? '' : ($('pqSchool') || {}).value.trim(), scode = gen ? '' : (($('pqSchoolCode') || {}).value || '').trim(), sn = role === 'teacher' || gen ? '' : ($('pqSno') || {}).value.trim();
     const msg = t => { $('pqMsg').textContent = t; };
-    if (!GRADE_NAMES[role] && role !== 'teacher') return msg('학년이나 선생님을 골라 주세요.');
-    if (!sc) return msg('학교 이름을 입력해 주세요.');
-    if (!nm) return msg('이름을 입력해 주세요.');
-    if (role !== 'teacher' && !sn) return msg('학번을 입력해 주세요. (예: 2학년 3반 15번이면 20315)');
+    if (!GRADE_NAMES[role] && role !== 'teacher' && !gen) return msg('학년이나 선생님을 골라 주세요. 학교에 다니지 않으면 \'일반\'을 골라 주세요.');
+    if (!sc && !gen) return msg('학교 이름을 입력해 주세요.');
+    if (!nm) return msg(gen ? '이름이나 별명을 입력해 주세요.' : '이름을 입력해 주세요.');
+    if (role !== 'teacher' && !gen && !sn) return msg('학번을 입력해 주세요. (예: 2학년 3반 15번이면 20315)');
     if (sn && !/^[0-9A-Za-z-]{1,12}$/.test(sn)) return msg('학번은 숫자로 입력해 주세요.');
-    if (role === 'teacher') { config.role = 'teacher'; config.grade = ''; } else { config.role = ''; config.grade = role; }
+    if (role === 'teacher' || gen) { config.role = role; config.grade = ''; } else { config.role = ''; config.grade = role; }
     config.profile = cleanProfile({ name: nm, school: sc, sno: sn, scode }); syncStorage();
     $('pfOv').remove(); toast('내 정보를 저장했어요.'); go(curTab); showOnboarding(); recShown = false; recMaybeShow(); shareCheck();
   };
   ACTIONS['pf-save'] = () => {
-    const nm = $('pfName').value.trim(), sc = $('pfSchool').value.trim(), sn = isTeacher() ? '' : $('pfSno').value.trim();
+    const gen = isGeneral(), nm = $('pfName').value.trim(), sc = $('pfSchool').value.trim(), sn = isTeacher() || gen ? '' : $('pfSno').value.trim();
     if (!nm) return toast('이름을 입력해 주세요.');
-    if (!sc) return toast('학교 이름을 입력해 주세요.');
-    if (!isTeacher() && !sn) return toast('학번을 입력해 주세요.');
+    if (!sc && !gen) return toast('학교 이름을 입력해 주세요.');
+    if (!isTeacher() && !gen && !sn) return toast('학번을 입력해 주세요.');
     if (sn && !/^[0-9A-Za-z-]{1,12}$/.test(sn)) return toast('학번은 숫자로 입력해 주세요.');
     const prev = config.profile || {};
     config.profile = cleanProfile({ name: nm, school: sc, sno: sn, scode: prev.school === sc ? prev.scode : '' }); syncStorage(); toast('내 정보를 저장했어요.');
@@ -8403,13 +8430,13 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     if (authMode === 'signup') {
       const gr = $('auGrade') && $('auGrade').value;
       const sc = ($('auSchool') || {}).value.trim(), scode = (($('auSchoolCode') || {}).value || '').trim();
-      const nm = ($('auName') || {}).value.trim(), sn = gr === 'teacher' ? '' : ($('auSno') || {}).value.trim();
-      if (!sc) return fail('학교 이름을 입력해 주세요.');
-      if (!GRADE_NAMES[gr] && gr !== 'teacher') return fail('학년이나 선생님을 골라 주세요. 학년에 맞는 단어를 추천해 드려요.');
-      if (!nm) return fail('이름을 입력해 주세요.');
-      if (gr !== 'teacher' && !sn) return fail('학번을 입력해 주세요. (예: 2학년 3반 15번이면 20315)');
+      const gen = gr === 'general', nm = ($('auName') || {}).value.trim(), sn = gr === 'teacher' || gen ? '' : ($('auSno') || {}).value.trim();
+      if (!sc && !gen) return fail('학교 이름을 입력해 주세요.');
+      if (!GRADE_NAMES[gr] && gr !== 'teacher' && !gen) return fail('학년이나 선생님을 골라 주세요. 학교에 다니지 않으면 \'일반\'을 골라 주세요.');
+      if (!nm) return fail(gen ? '이름이나 별명을 입력해 주세요.' : '이름을 입력해 주세요.');
+      if (gr !== 'teacher' && !gen && !sn) return fail('학번을 입력해 주세요. (예: 2학년 3반 15번이면 20315)');
       if (sn && !/^[0-9A-Za-z-]{1,12}$/.test(sn)) return fail('학번은 숫자로 입력해 주세요. (예: 20315)');
-      pendingGrade = gr; pendingProfile = cleanProfile({ name: nm, school: sc, sno: sn, scode });
+      pendingGrade = gr; pendingProfile = cleanProfile(gen ? { name: nm } : { name: nm, school: sc, sno: sn, scode });
     } else { pendingGrade = ''; pendingProfile = null; }
     if (cloudMode) {
       const email = $('auId').value.trim(), pw0 = $('auPw').value, keep0 = $('auKeep').checked, su0 = authMode === 'signup';
@@ -8491,9 +8518,9 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     let applied = false;
     cloudStale = !!(cloudMode && stale); cloudBaseTs = +LS.getItem(KEY_DATA + ':ts') || 0;
     if (remote && remote.updated > (+LS.getItem(KEY_DATA + ':ts') || 0)) { try { applyRemote(remote); applied = true; } catch (e) { toast('서버 데이터를 읽지 못했어요.'); } }
-    if (pendingGrade) { if (pendingGrade === 'teacher') { config.role = 'teacher'; config.grade = ''; } else { config.role = ''; config.grade = pendingGrade; } pendingGrade = ''; applied = false; }
+    if (pendingGrade) { if (pendingGrade === 'teacher' || pendingGrade === 'general') { config.role = pendingGrade; config.grade = ''; } else { config.role = ''; config.grade = pendingGrade; } pendingGrade = ''; applied = false; }
     if (pendingProfile) { config.profile = pendingProfile; pendingProfile = null; applied = false; }
-    recShown = false; applyTheme(); if (!applied) syncStorage(); go('tabHome'); if (profileMissing()) profileCheck(); else showOnboarding(); rmCheck(); setTimeout(shareCheck, 700);
+    recShown = false; applyTheme(); if (!applied) syncStorage(); let isNew0 = false; try { isNew0 = sessionStorage.getItem('vocapro_just_signed_up') === '1'; } catch (e) {} setTimeout(() => refSync(isNew0), 400); go('tabHome'); if (profileMissing()) profileCheck(); else showOnboarding(); rmCheck(); setTimeout(shareCheck, 700);
   }
   ACTIONS.logout = async () => {
     if (cloudTimer) await cloudPush();
@@ -8571,7 +8598,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
       if (d.cfg.course !== undefined) config.course = cleanCourse(d.cfg.course);
       if (PROVIDERS[d.cfg.provider] && d.cfg.aiv === 2) config.provider = d.cfg.provider;
       if (GRADE_NAMES[d.cfg.grade]) config.grade = d.cfg.grade;
-      if (d.cfg.role !== undefined) config.role = d.cfg.role === 'teacher' ? 'teacher' : '';
+      if (d.cfg.role !== undefined) config.role = d.cfg.role === 'teacher' || d.cfg.role === 'general' ? d.cfg.role : '';
       if (d.cfg.profile) config.profile = cleanProfile(d.cfg.profile);
       if (d.cfg.gameName) config.gameName = String(d.cfg.gameName).replace(/[\u0000-\u001f<>]/g, '').slice(0, 12);
     }
@@ -9497,8 +9524,9 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
   const listName = k => GRADE_NAMES[k] ? `${GRADE_NAMES[k]} 추천` : ZS_NAMES[k] ? `${k[0] === 'e' ? '영어' : '중국어'} 말하기 · ${ZS_NAMES[k]}` : (PACK_NAMES[k] || ZH_PACK_NAMES[k] || '');
   const gradeFull = k => { const n = GRADE_NAMES[k] || ''; return n ? ({ 초: '초등학교 ', 중: '중학교 ', 고: '고등학교 ' })[n[0]] + n.slice(1) + '학년' : ''; };
   const gradeOptions = sel => GRADES.map(([k]) => `<option value="${k}"${k === sel ? ' selected' : ''}>${gradeFull(k)}</option>`).join('');
-  const roleOptions = sel => [['초등학생', 'e'], ['중학생', 'm'], ['고등학생', 'h']].map(([lb, p]) => `<optgroup label="${lb}">${GRADES.filter(([k]) => k[0] === p).map(([k]) => `<option value="${k}"${k === sel ? ' selected' : ''}>${gradeFull(k)}</option>`).join('')}</optgroup>`).join('') + `<optgroup label="선생님"><option value="teacher"${sel === 'teacher' ? ' selected' : ''}>선생님 (교사)</option></optgroup>`;
+  const roleOptions = sel => [['초등학생', 'e'], ['중학생', 'm'], ['고등학생', 'h']].map(([lb, p]) => `<optgroup label="${lb}">${GRADES.filter(([k]) => k[0] === p).map(([k]) => `<option value="${k}"${k === sel ? ' selected' : ''}>${gradeFull(k)}</option>`).join('')}</optgroup>`).join('') + `<optgroup label="선생님"><option value="teacher"${sel === 'teacher' ? ' selected' : ''}>선생님 (교사)</option></optgroup><optgroup label="일반"><option value="general"${sel === 'general' ? ' selected' : ''}>일반 (학교 다니지 않아요)</option></optgroup>`;
   const isTeacher = () => config.role === 'teacher';
+  const isGeneral = () => config.role === 'general'; // 학생 · 선생님이 아닌 일반 사용자(학교 · 학번 없이)
   const myName = () => (config.profile && config.profile.name) || currentLabel || currentUser || '';
   const schoolLine = () => { const p = config.profile || {}; return [p.school, !isTeacher() && p.sno ? '학번 ' + p.sno : ''].filter(Boolean).join(' · '); };
   let gwCache = {};
@@ -9532,6 +9560,7 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
   }
   function setGrade(v) {
     if (v === 'teacher') { config.role = 'teacher'; config.grade = ''; syncStorage(); toast('선생님 화면으로 바꿨어요. 홈에 수업 도구가 생겨요.'); if (curTab === 'tabHome') renderHome(); return; }
+    if (v === 'general') { config.role = 'general'; config.grade = ''; syncStorage(); toast('일반 사용자로 바꿨어요. 목적에 맞춘 코스를 추천해 드려요.'); if (curTab === 'tabHome') renderHome(); return; }
     config.role = ''; config.grade = GRADE_NAMES[v] ? v : ''; syncStorage();
     if (config.grade) toast(`${gradeFull(config.grade)} 단어를 추천해 드릴게요.`);
     if (curTab === 'tabHome') renderHome();
@@ -9545,7 +9574,7 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
   function ownedFor(k) { if (!ZS_NAMES[k]) return ownedWords(); const c = categories.find(x => x.name === recBookName(k)); return new Set(c ? c.words.map(w => w.word) : []); }
   const recLeft = k => { const o = ownedWords(); return gradeWords(k).filter(e => !o.has(e.w.toLowerCase())); };
   function recMaybeShow() {
-    if (recShown || !currentUser || isTeacher() || $('pfOv')) return;
+    if (recShown || !currentUser || isTeacher() || isGeneral() || $('pfOv')) return;
     let hid = ''; try { hid = LS.getItem(recHideKey()) || ''; } catch (e) {}
     if (hid === dayKey()) return;
     recShown = true;
@@ -10260,6 +10289,72 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
   ACTIONS['share-send'] = async () => { const i = $('shareUrl'), cat = curCat(); if (!i) return; try { await navigator.share({ title: 'VocaPro 단어장', text: `${cat ? cat.name : '단어장'} (VocaPro)`, url: i.value }); } catch (e) {} };
 
   // 공유 링크로 들어오면: 로그인 뒤에 담을지 물어봐요
+
+  /* =========================================================
+   * 공유 · 친구 초대
+   * 결과 · 대결 점수 · 랭킹을 카톡 · 인스타 등으로 보내요(휴대폰 공유 창, 없으면 복사).
+   * 서버 계정이면 링크에 내 초대 코드(?ref=)가 붙고, 그 링크로 친구가 새로 가입하면 둘 다 연속 보호권 1장 (supabase_update_v21.sql)
+   * ======================================================= */
+  const REF_IN = 'vocapro_ref_in';
+  let refOk = false; // 서버에 초대 기능(v21)이 있고 서버 계정으로 로그인했을 때만 보상을 약속해요
+  (function refCapture() {
+    try {
+      const q = new URLSearchParams(location.search), r = (q.get('ref') || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12);
+      if (!r) return;
+      LS.setItem(REF_IN, JSON.stringify({ c: r, at: Date.now() }));
+      q.delete('ref'); history.replaceState(null, '', location.pathname + (q.toString() ? '?' + q : '') + location.hash);
+    } catch (e) {}
+  })();
+  const siteUrl = () => /^https?:/.test(location.origin) ? location.origin + '/' : 'https://vocapro.kro.kr/';
+  let refCodeP = null;
+  function refCode() {
+    if (!clOk()) return Promise.resolve('');
+    if (config.refCode) return Promise.resolve(config.refCode);
+    if (!refCodeP) refCodeP = Cloud.call('voca_ref_code', {}).then(r => { if (r && r.code) { config.refCode = String(r.code).slice(0, 12); syncStorage(); return config.refCode; } return ''; }).catch(() => '').finally(() => { refCodeP = null; });
+    return refCodeP;
+  }
+  async function shareLink() { const c = await refCode(); return siteUrl() + (c ? '?ref=' + encodeURIComponent(c) : ''); }
+  async function shareOut(text, title) {
+    const url = await shareLink();
+    if (navigator.share) { try { await navigator.share({ title: title || 'VocaPro', text, url }); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
+    const all = `${text}\n${url}`;
+    try { await navigator.clipboard.writeText(all); toast('공유할 글과 링크를 복사했어요. 카톡이나 인스타에 붙여 넣어 주세요.'); }
+    catch (e) { say('아래 글을 길게 눌러 복사해 주세요.\n\n' + all); }
+  }
+  function addBonusFrz(n, why) {
+    if (!(n > 0)) return;
+    stats.bonus = (stats.bonus || []).concat([{ d: dayKey(), n: Math.min(5, n) }]).slice(-50);
+    syncStorage();
+    toast(why);
+    if (curTab === 'tabHome' && !S.active) { try { renderHome(); } catch (e) {} }
+  }
+  // 로그인 직후: 초대 링크로 새로 가입했으면 보상 받기, 내가 초대한 친구가 가입했으면 보상 받기
+  async function refSync(isNew) {
+    if (!clOk()) return;
+    let inv = null; try { inv = JSON.parse(LS.getItem(REF_IN) || 'null'); } catch (e) {}
+    if (inv && inv.c) {
+      if (isNew && Date.now() - (+inv.at || 0) < 30 * DAY) {
+        try {
+          const r = await Cloud.call('voca_ref_claim', { p_code: inv.c });
+          if (r && r.ok) setTimeout(() => addBonusFrz(1, '친구 초대로 가입했어요. 연속 학습 보호권 1장을 받았어요.'), 1500);
+          try { LS.removeItem(REF_IN); } catch (e) {}
+        } catch (e) { if (e && e.code !== 'offline') { try { LS.removeItem(REF_IN); } catch (x) {} } }
+      } else { try { LS.removeItem(REF_IN); } catch (e) {} }
+    }
+    try {
+      const st = await Cloud.call('voca_ref_status', {});
+      if (st && st.code) config.refCode = String(st.code).slice(0, 12);
+      if (st && !st.err) { config.refTotal = Math.max(0, +st.total || 0); refOk = true; }
+      if (st && +st.fresh > 0) setTimeout(() => addBonusFrz(+st.fresh, `초대한 친구 ${+st.fresh}명이 가입했어요. 보호권 ${Math.min(5, +st.fresh)}장을 받았어요.`), 2500);
+    } catch (e) {}
+  }
+  function inviteEntryHtml() {
+    if (isTeacher()) return '';
+    const n = config.refTotal || 0;
+    return `<button class="mg-entry" data-act="invite"><span class="mg-ico i-sun">${IC.users}</span><span class="mg-txt"><b>${clOk() && refOk ? '친구 초대하고 보호권 받기' : '친구 초대하기'}</b><small>${clOk() && refOk ? (n ? `지금까지 ${n}명 초대 · ` : '') + '친구가 가입하면 둘 다 연속 보호권 1장' : '링크를 보내 함께 공부해요'}</small></span><span class="mg-chev"></span></button>`;
+  }
+  ACTIONS.invite = async () => { const c = refOk ? await refCode() : ''; shareOut(c ? '나랑 VocaPro로 영어 단어 같이 외우자! 내 링크로 가입하면 우리 둘 다 연속 학습 보호권을 받아.' : '나랑 VocaPro로 영어 단어 같이 외우자! 수준이랑 목적에 맞춰서 매일 조금씩 공부할 수 있어.', 'VocaPro 초대'); };
+  ACTIONS['share-result'] = el => shareOut(el.dataset.text || 'VocaPro로 영어 단어 공부 중!', 'VocaPro');
   const SHARE_KEY = 'vocapro_share_in';
   (function shareCapture() {
     try {

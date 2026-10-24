@@ -1,47 +1,68 @@
   /* =========================================================
-   * 단어장 공유 (링크 하나로 반 친구, 선생님과 나눠요)
+   * 공유 · 친구 초대
+   * 결과 · 대결 점수 · 랭킹을 카톡 · 인스타 등으로 보내요(휴대폰 공유 창, 없으면 복사).
+   * 서버 계정이면 링크에 내 초대 코드(?ref=)가 붙고, 그 링크로 친구가 새로 가입하면 둘 다 연속 보호권 1장 (supabase_update_v21.sql)
    * ======================================================= */
-  const b64u = u8 => { let s = ''; for (let i = 0; i < u8.length; i += 8192) s += String.fromCharCode.apply(null, u8.subarray(i, i + 8192)); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
-  const unb64u = t => { const s = atob(t.replace(/-/g, '+').replace(/_/g, '/')); const u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return u; };
-  async function zipBytes(u8, inflate) {
-    const cs = inflate ? new DecompressionStream('deflate-raw') : new CompressionStream('deflate-raw');
-    return new Uint8Array(await new Response(new Blob([u8]).stream().pipeThrough(cs)).arrayBuffer());
+  const REF_IN = 'vocapro_ref_in';
+  let refOk = false; // 서버에 초대 기능(v21)이 있고 서버 계정으로 로그인했을 때만 보상을 약속해요
+  (function refCapture() {
+    try {
+      const q = new URLSearchParams(location.search), r = (q.get('ref') || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12);
+      if (!r) return;
+      LS.setItem(REF_IN, JSON.stringify({ c: r, at: Date.now() }));
+      q.delete('ref'); history.replaceState(null, '', location.pathname + (q.toString() ? '?' + q : '') + location.hash);
+    } catch (e) {}
+  })();
+  const siteUrl = () => /^https?:/.test(location.origin) ? location.origin + '/' : 'https://vocapro.kro.kr/';
+  let refCodeP = null;
+  function refCode() {
+    if (!clOk()) return Promise.resolve('');
+    if (config.refCode) return Promise.resolve(config.refCode);
+    if (!refCodeP) refCodeP = Cloud.call('voca_ref_code', {}).then(r => { if (r && r.code) { config.refCode = String(r.code).slice(0, 12); syncStorage(); return config.refCode; } return ''; }).catch(() => '').finally(() => { refCodeP = null; });
+    return refCodeP;
   }
-  async function shareEncode(cat) {
-    const raw = new TextEncoder().encode(JSON.stringify({ n: cat.name, w: cat.words.map(w => [w.word, w.meaning]) }));
-    if (typeof CompressionStream === 'function') { try { return 'z' + b64u(await zipBytes(raw)); } catch (e) {} }
-    return 'j' + b64u(raw);
+  async function shareLink() { const c = await refCode(); return siteUrl() + (c ? '?ref=' + encodeURIComponent(c) : ''); }
+  async function shareOut(text, title) {
+    const url = await shareLink();
+    if (navigator.share) { try { await navigator.share({ title: title || 'VocaPro', text, url }); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
+    const all = `${text}\n${url}`;
+    try { await navigator.clipboard.writeText(all); toast('공유할 글과 링크를 복사했어요. 카톡이나 인스타에 붙여 넣어 주세요.'); }
+    catch (e) { say('아래 글을 길게 눌러 복사해 주세요.\n\n' + all); }
   }
-  // 받은 공유 링크 풀기: 링크는 1MB, 푼 내용은 4MB까지만(작게 압축한 거대한 링크로 기기를 멈추게 하는 것 막기)
-  const SHARE_MAX = 4 << 20;
-  async function shareInflate(u8) {
-    const rd = new Blob([u8]).stream().pipeThrough(new DecompressionStream('deflate-raw')).getReader(), out = []; let n = 0;
-    for (;;) { const { done, value } = await rd.read(); if (done) break; n += value.length; if (n > SHARE_MAX) { rd.cancel().catch(() => {}); throw new Error('too_big'); } out.push(value); }
-    const r = new Uint8Array(n); let o = 0; out.forEach(v => { r.set(v, o); o += v.length; }); return r;
+  function addBonusFrz(n, why) {
+    if (!(n > 0)) return;
+    stats.bonus = (stats.bonus || []).concat([{ d: dayKey(), n: Math.min(5, n) }]).slice(-50);
+    syncStorage();
+    toast(why);
+    if (curTab === 'tabHome' && !S.active) { try { renderHome(); } catch (e) {} }
   }
-  async function shareDecode(code) {
-    const t = String(code || ''); if (t.length > 1 << 20) throw new Error('too_big');
-    const body = unb64u(t.slice(1));
-    const raw = t[0] === 'z' ? await shareInflate(body) : body;
-    const o = JSON.parse(new TextDecoder().decode(raw));
-    const words = (Array.isArray(o.w) ? o.w : []).filter(a => Array.isArray(a) && a[0]).slice(0, 2000).map(a => [String(a[0]).slice(0, 80), String(a[1] == null ? '' : a[1]).slice(0, 200)]); // 뜻이 빈 단어도 남겨요
-    if (!words.length) throw new Error('empty');
-    return { name: String(o.n || '공유받은 단어장').slice(0, 40), words };
+  // 로그인 직후: 초대 링크로 새로 가입했으면 보상 받기, 내가 초대한 친구가 가입했으면 보상 받기
+  async function refSync(isNew) {
+    if (!clOk()) return;
+    let inv = null; try { inv = JSON.parse(LS.getItem(REF_IN) || 'null'); } catch (e) {}
+    if (inv && inv.c) {
+      if (isNew && Date.now() - (+inv.at || 0) < 30 * DAY) {
+        try {
+          const r = await Cloud.call('voca_ref_claim', { p_code: inv.c });
+          if (r && r.ok) setTimeout(() => addBonusFrz(1, '친구 초대로 가입했어요. 연속 학습 보호권 1장을 받았어요.'), 1500);
+          try { LS.removeItem(REF_IN); } catch (e) {}
+        } catch (e) { if (e && e.code !== 'offline') { try { LS.removeItem(REF_IN); } catch (x) {} } }
+      } else { try { LS.removeItem(REF_IN); } catch (e) {} }
+    }
+    try {
+      const st = await Cloud.call('voca_ref_status', {});
+      if (st && st.code) config.refCode = String(st.code).slice(0, 12);
+      if (st && !st.err) { config.refTotal = Math.max(0, +st.total || 0); refOk = true; }
+      if (st && +st.fresh > 0) setTimeout(() => addBonusFrz(+st.fresh, `초대한 친구 ${+st.fresh}명이 가입했어요. 보호권 ${Math.min(5, +st.fresh)}장을 받았어요.`), 2500);
+    } catch (e) {}
   }
-  ACTIONS['book-share'] = async () => {
-    const cat = curCat(); if (!cat) return;
-    if (!cat.words.length) return toast('단어를 먼저 담아 주세요.');
-    const url = location.origin + location.pathname + '#s=' + await shareEncode(cat);
-    openSheet('단어장 공유', `<div class="form-stack">
-      <div class="share-card"><span class="mg-ico i-mint">${IC.book}</span><div><b>${esc(cat.name)}</b><small>단어 ${cat.words.length}개 · 받는 사람도 VocaPro에서 바로 공부할 수 있어요</small></div></div>
-      <input id="shareUrl" readonly value="${esc(url)}" data-act="select-all">
-      <div class="row"><button class="btn btn-soft" data-act="share-copy">링크 복사</button>${navigator.share ? '<button class="btn btn-primary" data-act="share-send">보내기</button>' : ''}</div>
-      <p class="muted" style="font-size:.78rem;line-height:1.6;margin:0;">링크 안에 단어와 뜻이 들어 있어요. 서버에 따로 저장되지 않고, 학습 기록은 함께 보내지 않아요.${url.length > 8000 ? ' 단어가 많아서 링크가 길어요. 메신저에 따라 잘릴 수 있으니 CSV 내보내기도 함께 써 보세요.' : ''}${cat.words.length > 2000 ? ` <b>공유 링크로는 앞의 2000개만 받을 수 있어요(나머지 ${cat.words.length - 2000}개는 CSV로 보내 주세요).</b>` : ''}</p></div>`);
-  };
-  ACTIONS['share-copy'] = async () => { const i = $('shareUrl'); if (!i) return; try { await navigator.clipboard.writeText(i.value); toast('링크를 복사했어요.'); } catch (e) { i.select(); toast('링크를 길게 눌러 복사해 주세요.'); } };
-  ACTIONS['share-send'] = async () => { const i = $('shareUrl'), cat = curCat(); if (!i) return; try { await navigator.share({ title: 'VocaPro 단어장', text: `${cat ? cat.name : '단어장'} (VocaPro)`, url: i.value }); } catch (e) {} };
-
-  // 공유 링크로 들어오면: 로그인 뒤에 담을지 물어봐요
+  function inviteEntryHtml() {
+    if (isTeacher()) return '';
+    const n = config.refTotal || 0;
+    return `<button class="mg-entry" data-act="invite"><span class="mg-ico i-sun">${IC.users}</span><span class="mg-txt"><b>${clOk() && refOk ? '친구 초대하고 보호권 받기' : '친구 초대하기'}</b><small>${clOk() && refOk ? (n ? `지금까지 ${n}명 초대 · ` : '') + '친구가 가입하면 둘 다 연속 보호권 1장' : '링크를 보내 함께 공부해요'}</small></span><span class="mg-chev"></span></button>`;
+  }
+  ACTIONS.invite = async () => { const c = refOk ? await refCode() : ''; shareOut(c ? '나랑 VocaPro로 영어 단어 같이 외우자! 내 링크로 가입하면 우리 둘 다 연속 학습 보호권을 받아.' : '나랑 VocaPro로 영어 단어 같이 외우자! 수준이랑 목적에 맞춰서 매일 조금씩 공부할 수 있어.', 'VocaPro 초대'); };
+  ACTIONS['share-result'] = el => shareOut(el.dataset.text || 'VocaPro로 영어 단어 공부 중!', 'VocaPro');
   const SHARE_KEY = 'vocapro_share_in';
   (function shareCapture() {
     try {

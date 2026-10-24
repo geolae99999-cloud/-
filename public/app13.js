@@ -55,7 +55,7 @@
     if (v('auSchoolKind') !== null) auDraft.skind = v('auSchoolKind');
     if (v('auGrade') !== null) {
       const g = v('auGrade');
-      if (g === 'teacher') auDraft.role = 'teacher';
+      if (g === 'teacher' || g === 'general') auDraft.role = g;
       else if (g) { auDraft.role = 'student'; auDraft.grade = g; }
     }
     if (v('auName') !== null) auDraft.name = v('auName');
@@ -72,17 +72,19 @@
   }
 
   function roleSchoolBlockHtml(pfx, st) {
-    const isT = st.role === 'teacher';
-    const gVal = isT ? 'teacher' : (st.grade || '');
+    const isT = st.role === 'teacher', isG = st.role === 'general';
+    const gVal = isT ? 'teacher' : isG ? 'general' : (st.grade || '');
     const gId = pfx === 'au' ? 'auGrade' : 'pqRole';
     const list = gradesForKind(st.skind);
     return `
       <div class="seg role-sw" id="${pfx}RoleSw">
-        <button type="button" class="${isT ? '' : 'on'}" data-act="role-pick" data-pfx="${pfx}" data-r="student">학생</button>
+        <button type="button" class="${isT || isG ? '' : 'on'}" data-act="role-pick" data-pfx="${pfx}" data-r="student">학생</button>
         <button type="button" class="${isT ? 'on' : ''}" data-act="role-pick" data-pfx="${pfx}" data-r="teacher">선생님</button>
+        <button type="button" class="${isG ? 'on' : ''}" data-act="role-pick" data-pfx="${pfx}" data-r="general">일반</button>
       </div>
       <input type="hidden" id="${gId}" value="${esc(gVal)}">
-      <div class="sch-wrap" id="${pfx}SchWrap">
+      <p class="muted gen-note" id="${pfx}GenNote"${isG ? '' : ' hidden'}>학교 없이 혼자 영어를 공부해요. 여행 · 회화 · 토익처럼 목적에 맞춘 코스를 추천해 드려요.</p>
+      <div class="sch-wrap" id="${pfx}SchWrap"${isG ? ' hidden' : ''}>
         <span class="sch-lbl" id="${pfx}SchLbl">${isT ? '근무하는 학교' : '학교'}</span>
         <div class="sch-in-box">
           ${IC.search}
@@ -93,12 +95,12 @@
         <input type="hidden" id="${pfx}SchoolKind" value="${esc(st.skind || '')}">
         <div class="sch-dd" id="${pfx}SchDd" hidden></div>
       </div>
-      <div class="grade-grid3 au-hide" id="${pfx}GradeBox"${isT ? ' hidden' : ''}>
+      <div class="grade-grid3 au-hide" id="${pfx}GradeBox"${isT || isG ? ' hidden' : ''}>
         ${list.map(([k, n]) => `<button type="button" class="${st.grade === k ? 'on' : ''}" data-act="grade-btn-pick" data-pfx="${pfx}" data-g="${k}">${n}</button>`).join('')}
       </div>
-      <div class="au-row2${isT ? ' one' : ''}" id="${pfx}NameRow">
-        <input type="text" id="${pfx}Name" value="${esc(st.name || '')}" placeholder="이름" autocomplete="name" maxlength="20" aria-label="이름">
-        <input type="text" id="${pfx}Sno" class="au-hide" value="${esc(isT ? '' : (st.sno || ''))}" placeholder="학번 (예: 20315)" inputmode="numeric" maxlength="12" aria-label="학번"${isT ? ' hidden' : ''}>
+      <div class="au-row2${isT || isG ? ' one' : ''}" id="${pfx}NameRow">
+        <input type="text" id="${pfx}Name" value="${esc(st.name || '')}" placeholder="${isG ? '이름 또는 별명' : '이름'}" autocomplete="name" maxlength="20" aria-label="이름">
+        <input type="text" id="${pfx}Sno" class="au-hide" value="${esc(isT || isG ? '' : (st.sno || ''))}" placeholder="학번 (예: 20315)" inputmode="numeric" maxlength="12" aria-label="학번"${isT || isG ? ' hidden' : ''}>
       </div>`;
   }
 
@@ -113,23 +115,29 @@
   }
 
   ACTIONS['role-pick'] = el => {
-    const pfx = el.dataset.pfx, isT = el.dataset.r === 'teacher';
+    const pfx = el.dataset.pfx, isT = el.dataset.r === 'teacher', isG = el.dataset.r === 'general';
     const gId = pfx === 'au' ? 'auGrade' : 'pqRole';
     const sw = $(pfx + 'RoleSw');
     if (sw) sw.querySelectorAll('button').forEach(b => b.classList.toggle('on', b === el));
-    const gBox = $(pfx + 'GradeBox'), sn = $(pfx + 'Sno'), row = $(pfx + 'NameRow'), lbl = $(pfx + 'SchLbl'), gIn = $(gId);
-    if (gBox) gBox.hidden = isT;
-    if (sn) { sn.hidden = isT; if (isT) sn.value = ''; }
-    if (row) row.classList.toggle('one', isT);
+    const gBox = $(pfx + 'GradeBox'), sn = $(pfx + 'Sno'), row = $(pfx + 'NameRow'), lbl = $(pfx + 'SchLbl'), gIn = $(gId), sw2 = $(pfx + 'SchWrap'), gn = $(pfx + 'GenNote'), nm = $(pfx + 'Name');
+    if (gBox) gBox.hidden = isT || isG;
+    if (sw2) sw2.hidden = isG;
+    if (gn) gn.hidden = !isG;
+    if (nm) nm.placeholder = isG ? '이름 또는 별명' : '이름';
+    if (sn) { sn.hidden = isT || isG; if (isT || isG) sn.value = ''; }
+    if (row) row.classList.toggle('one', isT || isG);
     if (lbl) lbl.textContent = isT ? '근무하는 학교' : '학교';
+    const s2t = document.querySelector('.au-s2-title'), s2s = document.querySelector('.au-s2-sub');
+    if (pfx === 'au' && s2t) { s2t.textContent = isG ? '나에 대해 알려 주세요' : '어느 학교에 다니나요?'; if (s2s) s2s.textContent = isG ? '이름은 랭킹과 인사에만 쓰여요' : '우리 반 과제와 랭킹에 쓰여요'; }
     if (gIn) {
       if (isT) gIn.value = 'teacher';
+      else if (isG) gIn.value = 'general';
       else {
         const onBtn = gBox && gBox.querySelector('button.on');
         gIn.value = onBtn ? onBtn.dataset.g : '';
       }
     }
-    if (pfx === 'au') auDraft.role = isT ? 'teacher' : 'student';
+    if (pfx === 'au') auDraft.role = isT ? 'teacher' : isG ? 'general' : 'student';
   };
 
   ACTIONS['grade-btn-pick'] = el => {
@@ -297,8 +305,8 @@
       ${s2 ? `<div class="au-s2-head">
         <button type="button" class="au-back-btn" data-act="auth-back">← 회원가입 2 / 2</button>
         <div class="au-step-bars"><i class="on"></i><i class="on"></i></div>
-        <div class="au-s2-title">어느 학교에 다니나요?</div>
-        <div class="au-s2-sub">우리 반 과제와 랭킹에 쓰여요</div>
+        <div class="au-s2-title">${auDraft.role === 'general' ? '나에 대해 알려 주세요' : '어느 학교에 다니나요?'}</div>
+        <div class="au-s2-sub">${auDraft.role === 'general' ? '이름은 랭킹과 인사에만 쓰여요' : '우리 반 과제와 랭킹에 쓰여요'}</div>
       </div>` : `<div class="auth-hero">${MASCOT('happy')}</div>
       <div class="page-title" style="text-align:center;margin-bottom:6px;"><b>Voca</b>Pro</div>
       <p class="muted" style="text-align:center;margin:0 0 18px;">${su ? '새 계정을 만들어요 · 1 / 2' : '로그인하고 이어서 외워요'}</p>
@@ -390,7 +398,7 @@
         <span class="lp-ln l1" aria-hidden="true">${lpChars('단어,', 0)}</span>
         <span class="lp-ln l2" aria-hidden="true"><em class="lp-hl">${lpChars('끝까지', 3)}</em> ${lpChars('외우다', 7)}</span>
       </h1>
-      <p class="lp-sub lp-fade lp-d1">단어만 넣으면 뜻·발음·예문이 채워지고, 잊을 때쯤 다시 복습시켜 줘요. 학교 수업용 영어·중국어 단어장이에요.</p>
+      <p class="lp-sub lp-fade lp-d1">단어만 넣으면 뜻·발음·예문이 채워지고, 잊을 때쯤 다시 복습시켜 줘요. 학교 수업은 물론, 여행 · 회화 · 토익처럼 내 목적에 맞춰 공부하는 영어·중국어 단어장이에요.</p>
       <div class="lp-ctas lp-fade lp-d2">
         <button type="button" class="btn btn-primary" data-act="lp-start">무료로 시작하기 →</button>
         <a class="btn btn-soft" href="#lpVidBox">▶ 30초 영상</a>
@@ -471,15 +479,15 @@
     setTimeout(() => { const f = $('auId'); if (f) f.focus(); }, 100);
   }
   // 이름, 학교, 학번이 비어 있는 계정은 로그인하면 먼저 입력받아요
-  const profileMissing = () => { const p = config.profile || {}; return !p.name || !p.school || (!isTeacher() && !p.sno); };
+  const profileMissing = () => { const p = config.profile || {}; return isGeneral() ? !p.name : (!p.name || !p.school || (!isTeacher() && !p.sno)); };
   function profileCheck() {
     if (!currentUser || !profileMissing() || $('pfOv')) return;
-    const p = config.profile || cleanProfile(), role = isTeacher() ? 'teacher' : 'student';
+    const p = config.profile || cleanProfile(), role = isTeacher() ? 'teacher' : isGeneral() ? 'general' : 'student';
     const ov = document.createElement('div'); ov.id = 'pfOv'; ov.className = 'dlg-ov pf-ov';
     ov.innerHTML = `<div class="dlg pf-dlg" role="dialog" aria-modal="true" aria-labelledby="pfT">
       <div class="pf-art">${MASCOT('happy')}</div>
       <h3 id="pfT">내 정보를 알려 주세요</h3>
-      <p class="muted">학교에서 함께 쓰려면 이름, 학교, 학번이 필요해요. 내 앱 안에서만 쓰고 다른 사람에게 보여주지 않아요.</p>
+      <p class="muted">학교에서 함께 쓰려면 이름, 학교, 학번이 필요해요. 학교에 다니지 않으면 '일반'을 골라 이름만 적어도 돼요. 내 앱 안에서만 쓰고 다른 사람에게 보여주지 않아요.</p>
       <div class="form-stack">
         ${roleSchoolBlockHtml('pq', { role, grade: config.grade || '', school: p.school || '', scode: p.scode || '', skind: '', name: p.name || '', sno: p.sno || '' })}
         <div id="pqMsg" class="pf-msg"></div>
@@ -488,24 +496,24 @@
     document.body.appendChild(ov);
     setTimeout(() => { const i = ov.querySelector('#pqSchool:placeholder-shown, #pqName'); if (i) i.focus(); }, 80);
   }
-  function pqRoleChange() { const t = ($('pqRole') || {}).value === 'teacher', sn = $('pqSno'); if (sn) { sn.hidden = t; if (t) sn.value = ''; } }
+  function pqRoleChange() { const v = ($('pqRole') || {}).value, t = v === 'teacher' || v === 'general', sn = $('pqSno'); if (sn) { sn.hidden = t; if (t) sn.value = ''; } }
   ACTIONS['pq-save'] = () => {
-    const role = ($('pqRole') || {}).value || '', nm = ($('pqName') || {}).value.trim(), sc = ($('pqSchool') || {}).value.trim(), scode = (($('pqSchoolCode') || {}).value || '').trim(), sn = role === 'teacher' ? '' : ($('pqSno') || {}).value.trim();
+    const role = ($('pqRole') || {}).value || '', gen = role === 'general', nm = ($('pqName') || {}).value.trim(), sc = gen ? '' : ($('pqSchool') || {}).value.trim(), scode = gen ? '' : (($('pqSchoolCode') || {}).value || '').trim(), sn = role === 'teacher' || gen ? '' : ($('pqSno') || {}).value.trim();
     const msg = t => { $('pqMsg').textContent = t; };
-    if (!GRADE_NAMES[role] && role !== 'teacher') return msg('학년이나 선생님을 골라 주세요.');
-    if (!sc) return msg('학교 이름을 입력해 주세요.');
-    if (!nm) return msg('이름을 입력해 주세요.');
-    if (role !== 'teacher' && !sn) return msg('학번을 입력해 주세요. (예: 2학년 3반 15번이면 20315)');
+    if (!GRADE_NAMES[role] && role !== 'teacher' && !gen) return msg('학년이나 선생님을 골라 주세요. 학교에 다니지 않으면 \'일반\'을 골라 주세요.');
+    if (!sc && !gen) return msg('학교 이름을 입력해 주세요.');
+    if (!nm) return msg(gen ? '이름이나 별명을 입력해 주세요.' : '이름을 입력해 주세요.');
+    if (role !== 'teacher' && !gen && !sn) return msg('학번을 입력해 주세요. (예: 2학년 3반 15번이면 20315)');
     if (sn && !/^[0-9A-Za-z-]{1,12}$/.test(sn)) return msg('학번은 숫자로 입력해 주세요.');
-    if (role === 'teacher') { config.role = 'teacher'; config.grade = ''; } else { config.role = ''; config.grade = role; }
+    if (role === 'teacher' || gen) { config.role = role; config.grade = ''; } else { config.role = ''; config.grade = role; }
     config.profile = cleanProfile({ name: nm, school: sc, sno: sn, scode }); syncStorage();
     $('pfOv').remove(); toast('내 정보를 저장했어요.'); go(curTab); showOnboarding(); recShown = false; recMaybeShow(); shareCheck();
   };
   ACTIONS['pf-save'] = () => {
-    const nm = $('pfName').value.trim(), sc = $('pfSchool').value.trim(), sn = isTeacher() ? '' : $('pfSno').value.trim();
+    const gen = isGeneral(), nm = $('pfName').value.trim(), sc = $('pfSchool').value.trim(), sn = isTeacher() || gen ? '' : $('pfSno').value.trim();
     if (!nm) return toast('이름을 입력해 주세요.');
-    if (!sc) return toast('학교 이름을 입력해 주세요.');
-    if (!isTeacher() && !sn) return toast('학번을 입력해 주세요.');
+    if (!sc && !gen) return toast('학교 이름을 입력해 주세요.');
+    if (!isTeacher() && !gen && !sn) return toast('학번을 입력해 주세요.');
     if (sn && !/^[0-9A-Za-z-]{1,12}$/.test(sn)) return toast('학번은 숫자로 입력해 주세요.');
     const prev = config.profile || {};
     config.profile = cleanProfile({ name: nm, school: sc, sno: sn, scode: prev.school === sc ? prev.scode : '' }); syncStorage(); toast('내 정보를 저장했어요.');
@@ -622,13 +630,13 @@
     if (authMode === 'signup') {
       const gr = $('auGrade') && $('auGrade').value;
       const sc = ($('auSchool') || {}).value.trim(), scode = (($('auSchoolCode') || {}).value || '').trim();
-      const nm = ($('auName') || {}).value.trim(), sn = gr === 'teacher' ? '' : ($('auSno') || {}).value.trim();
-      if (!sc) return fail('학교 이름을 입력해 주세요.');
-      if (!GRADE_NAMES[gr] && gr !== 'teacher') return fail('학년이나 선생님을 골라 주세요. 학년에 맞는 단어를 추천해 드려요.');
-      if (!nm) return fail('이름을 입력해 주세요.');
-      if (gr !== 'teacher' && !sn) return fail('학번을 입력해 주세요. (예: 2학년 3반 15번이면 20315)');
+      const gen = gr === 'general', nm = ($('auName') || {}).value.trim(), sn = gr === 'teacher' || gen ? '' : ($('auSno') || {}).value.trim();
+      if (!sc && !gen) return fail('학교 이름을 입력해 주세요.');
+      if (!GRADE_NAMES[gr] && gr !== 'teacher' && !gen) return fail('학년이나 선생님을 골라 주세요. 학교에 다니지 않으면 \'일반\'을 골라 주세요.');
+      if (!nm) return fail(gen ? '이름이나 별명을 입력해 주세요.' : '이름을 입력해 주세요.');
+      if (gr !== 'teacher' && !gen && !sn) return fail('학번을 입력해 주세요. (예: 2학년 3반 15번이면 20315)');
       if (sn && !/^[0-9A-Za-z-]{1,12}$/.test(sn)) return fail('학번은 숫자로 입력해 주세요. (예: 20315)');
-      pendingGrade = gr; pendingProfile = cleanProfile({ name: nm, school: sc, sno: sn, scode });
+      pendingGrade = gr; pendingProfile = cleanProfile(gen ? { name: nm } : { name: nm, school: sc, sno: sn, scode });
     } else { pendingGrade = ''; pendingProfile = null; }
     if (cloudMode) {
       const email = $('auId').value.trim(), pw0 = $('auPw').value, keep0 = $('auKeep').checked, su0 = authMode === 'signup';
@@ -710,9 +718,9 @@
     let applied = false;
     cloudStale = !!(cloudMode && stale); cloudBaseTs = +LS.getItem(KEY_DATA + ':ts') || 0;
     if (remote && remote.updated > (+LS.getItem(KEY_DATA + ':ts') || 0)) { try { applyRemote(remote); applied = true; } catch (e) { toast('서버 데이터를 읽지 못했어요.'); } }
-    if (pendingGrade) { if (pendingGrade === 'teacher') { config.role = 'teacher'; config.grade = ''; } else { config.role = ''; config.grade = pendingGrade; } pendingGrade = ''; applied = false; }
+    if (pendingGrade) { if (pendingGrade === 'teacher' || pendingGrade === 'general') { config.role = pendingGrade; config.grade = ''; } else { config.role = ''; config.grade = pendingGrade; } pendingGrade = ''; applied = false; }
     if (pendingProfile) { config.profile = pendingProfile; pendingProfile = null; applied = false; }
-    recShown = false; applyTheme(); if (!applied) syncStorage(); go('tabHome'); if (profileMissing()) profileCheck(); else showOnboarding(); rmCheck(); setTimeout(shareCheck, 700);
+    recShown = false; applyTheme(); if (!applied) syncStorage(); let isNew0 = false; try { isNew0 = sessionStorage.getItem('vocapro_just_signed_up') === '1'; } catch (e) {} setTimeout(() => refSync(isNew0), 400); go('tabHome'); if (profileMissing()) profileCheck(); else showOnboarding(); rmCheck(); setTimeout(shareCheck, 700);
   }
   ACTIONS.logout = async () => {
     if (cloudTimer) await cloudPush();
@@ -790,7 +798,7 @@
       if (d.cfg.course !== undefined) config.course = cleanCourse(d.cfg.course);
       if (PROVIDERS[d.cfg.provider] && d.cfg.aiv === 2) config.provider = d.cfg.provider;
       if (GRADE_NAMES[d.cfg.grade]) config.grade = d.cfg.grade;
-      if (d.cfg.role !== undefined) config.role = d.cfg.role === 'teacher' ? 'teacher' : '';
+      if (d.cfg.role !== undefined) config.role = d.cfg.role === 'teacher' || d.cfg.role === 'general' ? d.cfg.role : '';
       if (d.cfg.profile) config.profile = cleanProfile(d.cfg.profile);
       if (d.cfg.gameName) config.gameName = String(d.cfg.gameName).replace(/[\u0000-\u001f<>]/g, '').slice(0, 12);
     }

@@ -2692,6 +2692,9 @@
     .au-step-bars i { height: 4px; border-radius: 99px; background: var(--surface-3); display: block; }
     .au-step-bars i.on { background: var(--blue); }
     .au-s2-title { font-size: 20px; font-weight: 800; color: var(--ink); letter-spacing: -.03em; }
+    .res-share { display: inline-flex; align-items: center; gap: 6px; margin: 4px auto 0; font-weight: 700; color: var(--blue); }
+    .res-share .ic, .res-share svg { width: 16px; height: 16px; }
+    .gen-note { font-size: .85rem; line-height: 1.6; margin: 0; }
     .au-s2-sub { font-size: 13.5px; color: var(--muted); margin: 2px 0 12px; font-weight: 600; }
     .grade-grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
     .grade-grid3 button {

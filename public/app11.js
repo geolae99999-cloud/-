@@ -19,7 +19,7 @@
     acctEmailLoad();
     const bw = $('btnWipe'); if (bw) bw.style.display = cloudMode ? '' : 'none';
     const an = $('acctName'); if (an) an.textContent = '현재 계정: ' + (currentLabel || currentUser || '');
-    { const p = config.profile || cleanProfile(); $('pfName').value = p.name; $('pfSchool').value = p.school; $('pfSno').value = p.sno; $('pfSno').style.display = isTeacher() ? 'none' : ''; }
+    { const p = config.profile || cleanProfile(); $('pfName').value = p.name; $('pfSchool').value = p.school; $('pfSno').value = p.sno; $('pfSno').style.display = isTeacher() || isGeneral() ? 'none' : ''; $('pfSchool').placeholder = isGeneral() ? '학교 (선택)' : '학교'; }
     document.querySelectorAll('#cfgLang button').forEach(b => b.classList.toggle('on', b.dataset.l === LANG));
     $('cfgProvider').value = config.provider;
     ttsUI();
@@ -28,7 +28,7 @@
     if (!('vibrate' in navigator)) $('hapticSub').textContent = '이 기기(브라우저)는 진동을 지원하지 않아서 켜 둬도 울리지 않아요.';
     if ($('cfgKpron')) $('cfgKpron').checked = kpronOn();
     if ($('kpronSub')) $('kpronSub').textContent = isZh() ? '단어 옆에 [쉐쉐]처럼 한글로 발음을 보여 줘요 (중국어)' : '단어 옆에 [클라이머]처럼 한글로 발음을 보여 줘요 (영어)';
-    $('cfgGrade').innerHTML = `<option value="">선택 안 함</option>${roleOptions(isTeacher() ? 'teacher' : config.grade)}`;
+    $('cfgGrade').innerHTML = `<option value="">선택 안 함</option>${roleOptions(isTeacher() ? 'teacher' : isGeneral() ? 'general' : config.grade)}`;
     onProviderChange(config.provider, true);
     $('cfgStatus').className = 'cfg-status';
   }
