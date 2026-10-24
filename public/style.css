@@ -685,8 +685,27 @@
     .ob-dots { display: flex; gap: 7px; justify-content: center; margin-bottom: 22px; }
     .ob-dots i { width: 7px; height: 7px; border-radius: 9px; background: var(--line); transition: width .25s, background .25s; }
     .ob-dots i.on { width: 24px; background: var(--ink); }
-    .lt .lt-bar { height: 6px; border-radius: 6px; background: var(--surface-2); overflow: hidden; margin: 4px 0 0; }
-    .lt .lt-bar i { display: block; height: 100%; background: var(--blue); border-radius: 6px; transition: width .3s; }
+    .h-course { min-width: 0; }
+    .mc-start { width: 100%; display: flex; align-items: center; gap: 14px; text-align: left; border: 0; cursor: pointer; font: inherit; color: inherit; margin-top: 14px; }
+    .mc-start .mc-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; } .mc-start small { color: var(--muted); line-height: 1.5; }
+    .mc-card { margin-top: 14px; display: flex; flex-direction: column; gap: 14px; }
+    .mc-head { display: flex; align-items: center; gap: 12px; } .mc-head .mc-t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; } .mc-head small { color: var(--muted); font-size: .8rem; } .mc-head b { font-size: 1.05rem; }
+    .mc-steps { list-style: none; margin: 0; padding: 0; display: flex; gap: 6px; flex-wrap: wrap; }
+    .mc-steps li { display: flex; align-items: center; gap: 6px; padding: 6px 10px 6px 6px; border-radius: 99px; background: var(--surface-2); font-size: .82rem; font-weight: 700; color: var(--muted); }
+    .mc-steps li i { width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-style: normal; font-size: .75rem; background: var(--surface); }
+    .mc-steps li i svg { width: 13px; height: 13px; }
+    .mc-steps li.now { color: var(--ink); box-shadow: inset 0 0 0 2px var(--blue); } .mc-steps li.done { color: var(--mint); } .mc-steps li.done i { background: var(--mint-soft); }
+    .mc-done { font-weight: 700; color: var(--mint); text-align: center; padding: 6px 0; }
+    .mc-top { display: flex; justify-content: space-between; } .mc-top .ob-skip { position: static; }
+    .mc-body { justify-content: flex-start; padding-top: 18px; }
+    .mc-grid { width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 20px; }
+    .mc-lv { width: 100%; display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+    .mc-opt { border: 2px solid transparent; background: var(--surface); border-radius: 18px; padding: 14px; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; text-align: left; font: inherit; color: inherit; cursor: pointer; min-height: 44px; }
+    .mc-opt small { color: var(--muted); font-size: .8rem; line-height: 1.45; } .mc-opt.row { gap: 2px; }
+    .mc-opt.on { border-color: var(--blue); background: var(--blue-soft); }
+    .mc-lt { margin-top: 16px; } .mc-sum { width: 100%; margin-top: 14px; text-align: left; display: flex; flex-direction: column; gap: 4px; } .mc-sum small { color: var(--muted); }
+    .mc-ov .lt-bar, .lt .lt-bar { height: 6px; border-radius: 6px; background: var(--surface-2); overflow: hidden; margin: 4px 0 0; }
+    .mc-ov .lt-bar i, .lt .lt-bar i { display: block; height: 100%; background: var(--blue); border-radius: 6px; transition: width .3s; }
     .lt .lt-q { justify-content: flex-start; padding-top: 6vh; }
     .lt .opts { display: flex; flex-direction: column; gap: 8px; }
     .lt .opt { width: 100%; }
@@ -1040,11 +1059,11 @@
       .nav-card small { font-size: .78rem; color: var(--ink-2); font-weight: 600; }
 
       .home-grid { display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr); column-gap: 22px; align-items: start;
-        grid-template-areas: "hello hello" "hero streak" "quick quick" "shelf shelf" "tools books"; }
+        grid-template-areas: "hello hello" "hero streak" "course course" "quick quick" "shelf shelf" "tools books"; }
       .h-quick .tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); }
       .h-streak .wotd { margin-top: 14px; }
       .h-hello { grid-area: hello; } .h-hero { grid-area: hero; align-self: stretch; } .h-streak { grid-area: streak; }
-      .h-quick { grid-area: quick; } .h-shelf { grid-area: shelf; min-width: 0; } .h-tools { grid-area: tools; } .h-books { grid-area: books; }
+      .h-course { grid-area: course; } .h-quick { grid-area: quick; } .h-shelf { grid-area: shelf; min-width: 0; } .h-tools { grid-area: tools; } .h-books { grid-area: books; }
       .h-hero .hero { height: 100%; display: flex; flex-direction: column; padding: 28px 26px 24px; }
       .h-hero .hero-num { font-size: 4rem; }
       .h-hero .hero-btn { margin-top: auto; }
@@ -1152,7 +1171,7 @@
     /* 넓은 PC (1600px 이상): 화면 전체를 3단으로 써요 */
     @media (min-width: 1600px) {
       .home-grid { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) minmax(0, 1fr); column-gap: 26px;
-        grid-template-areas: "hello hello hello" "hero streak books" "quick quick books" "shelf shelf books" "tools tools books"; }
+        grid-template-areas: "hello hello hello" "hero streak books" "course course books" "quick quick books" "shelf shelf books" "tools tools books"; }
       .h-books { align-self: start; }
       .h-books .section-title:first-child, .h-books > .section-title { margin-top: 0; }
       .h-tools .tool-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 14px; }

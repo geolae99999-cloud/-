@@ -49,6 +49,7 @@
         <button class="btn hero-btn btn-block" ${cta.attrs}>${cta.btn}</button>
       </section></div>
 
+      ${mcHomeHtml()}
       <div class="h-streak"><div class="card streak-card">
         <div class="streak-fire ${st > 0 ? '' : 'off'}">${st > 0 ? IC.flame : IC.sprout}${si.frz ? `<span class="frz-badge" title="연속 학습 보호권 ${si.frz}장" aria-label="보호권 ${si.frz}장">${IC.shield}<b>${si.frz}</b></span>` : ''}</div>
         <div class="streak-txt"><div class="streak-n">${st}일 연속</div><div class="muted">${st > 0 && today.n === 0 && prot.has(dayKey(addDays(startOfDay(), -1))) ? '어제 보호됨' : si.frz ? `보호권 ${si.frz}장` : st > 0 ? `보호권까지 ${FRZ_EVERY - st % FRZ_EVERY}일` : '오늘 시작해요'}</div></div>

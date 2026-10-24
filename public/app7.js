@@ -631,6 +631,7 @@
     const first = S.ok + S.no;
     const pct = first ? Math.round(S.ok / first * 100) : 0;
     const gRes = finishGuideAdvance(first, pct);
+    const mRes = S.course != null ? mcAdvance() : null;
     const mood = pct >= 90 ? 'cheer' : pct >= 70 ? 'happy' : 'think';
     const title = pct >= 90 ? '완벽해요!' : pct >= 70 ? '아주 잘했어요' : pct >= 40 ? '조금만 더 하면 돼요' : '괜찮아요, 다시 해봐요';
     const st = streak();
@@ -649,7 +650,10 @@
         ${wrongs.length ? `<div class="card result-box"><div class="res-wrong-head"><b style="font-size:.95rem;">틀린 단어 ${wrongs.length}개</b><small>오답노트에 담았어요</small></div>${wrongs.map(it => `<div class="wrong-item"><b>${esc(it.w.word)}</b><span>${esc(it.w.meaning)}</span><button class="w-speak" data-act="speak" data-text="${esc(it.w.word)}" aria-label="발음 듣기">${IC.speaker}</button></div>`).join('')}</div>` : '<div class="card result-box" style="text-align:center;">틀린 단어가 없어요. 대단해요!</div>'}
         <div class="row" style="margin-top:6px;">
           ${wrongs.length ? '<button class="btn btn-soft" data-act="retry-wrong">틀린 것만 다시</button>' : '<button class="btn btn-soft" data-act="again">한 번 더</button>'}
-          ${gRes.nextStep != null
+          ${mRes && mRes.next != null
+            ? `<button class="btn btn-primary" data-act="mc-next">다음: ${esc(mRes.name)}</button>`
+            : mRes ? '<button class="btn btn-primary" data-act="exit-session">오늘 맞춤 학습 끝</button>'
+            : gRes.nextStep != null
             ? `<button class="btn btn-primary" data-act="guide-next-step" data-step="${gRes.nextStep}" data-key="${esc(gRes.key)}">다음 단계 하기</button>`
             : '<button class="btn btn-primary" data-act="exit-session">마치기</button>'}
         </div>

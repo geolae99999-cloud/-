@@ -770,7 +770,7 @@
       cloudStale = false;
       if (r && r.updated > cloudBaseTs) { applyRemote(r); if (!(S && S.active)) go(curTab); toast('서버에 더 새로운 저장본이 있어 그걸 불러왔어요.'); return; }
     }
-    const json = JSON.stringify({ ...dataBlob(), cfg: { ...ttsCfgOut(), goal: config.goal, darkMode: config.darkMode, provider: config.provider, aiv: 2, grade: config.grade, role: config.role || '', profile: config.profile || cleanProfile(), gameName: config.gameName || '', haptic: config.haptic !== false, kpronEn: config.kpronEn !== false, kpronZh: config.kpronZh !== false, studyCount: config.studyCount, guide: cleanGuide(config.guide) } });
+    const json = JSON.stringify({ ...dataBlob(), cfg: { ...ttsCfgOut(), goal: config.goal, darkMode: config.darkMode, provider: config.provider, aiv: 2, grade: config.grade, role: config.role || '', profile: config.profile || cleanProfile(), gameName: config.gameName || '', haptic: config.haptic !== false, kpronEn: config.kpronEn !== false, kpronZh: config.kpronZh !== false, studyCount: config.studyCount, guide: cleanGuide(config.guide), course: cleanCourse(config.course) } });
     if (json.length > 900000) toast('데이터가 서버 저장 한도(약 1MB)에 가까워요. 단어장을 줄이거나 백업해 두세요.');
     const up = +LS.getItem(KEY_DATA + ':ts') || Date.now(), key = KEY_DATA;
     // 페이지를 떠날 때는 keepalive로 최대한 보내요(본문 64KB 제한이 있어 작을 때만)
@@ -787,6 +787,7 @@
       if (typeof d.cfg.kpronZh === 'boolean') config.kpronZh = d.cfg.kpronZh;
       if (Number.isFinite(+d.cfg.studyCount)) { config.studyCount = Math.max(0, Math.min(500, Math.floor(+d.cfg.studyCount))); studyPrefs.count = config.studyCount; }
       if (d.cfg.guide && typeof d.cfg.guide === 'object') config.guide = cleanGuide(d.cfg.guide);
+      if (d.cfg.course !== undefined) config.course = cleanCourse(d.cfg.course);
       if (PROVIDERS[d.cfg.provider] && d.cfg.aiv === 2) config.provider = d.cfg.provider;
       if (GRADE_NAMES[d.cfg.grade]) config.grade = d.cfg.grade;
       if (d.cfg.role !== undefined) config.role = d.cfg.role === 'teacher' ? 'teacher' : '';

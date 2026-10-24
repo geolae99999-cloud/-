@@ -76,8 +76,9 @@
       <div class="muted" style="font-weight:700;">내 수준은</div><h2 style="font-size:2.4rem;">${info.name}</h2>
       <p>${info.desc}<br>12문제 중 <b>${total}</b>문제를 맞혔어요.</p>
       <div class="card" style="width:100%;margin-top:22px;text-align:left;"><b>추천 하루 목표 ${info.goal}개</b><div class="muted" style="font-size:.85rem;margin-top:4px;">'${info.name} 시작 단어' 단어장 ${ltBank()[Math.min(r, 3)].length}개도 만들어 드려요.</div></div></div>
-      <div class="ob-foot"><button class="btn btn-primary btn-block" data-lt="apply">추천대로 시작하기</button>
-      <button class="btn btn-soft btn-block" data-lt="goal" style="margin-top:8px;">목표만 적용하기</button></div>`;
+      <div class="ob-foot">${isZh() ? '' : `<button class="btn btn-primary btn-block" data-lt="course">${mcAfterLt ? '이 수준으로 맞춤 코스 만들기' : '목적에 맞춘 코스 만들기 (여행 · 대화 · 시험)'}</button>`}
+      ${mcAfterLt ? '' : `<button class="btn ${isZh() ? 'btn-primary' : 'btn-soft'} btn-block" data-lt="apply" style="margin-top:8px;">추천대로 시작하기</button>
+      <button class="btn btn-soft btn-block" data-lt="goal" style="margin-top:8px;">목표만 적용하기</button>`}</div>`;
   }
   function ltApply(withBook) {
     if (!LT || LT.r === undefined) return;
@@ -101,12 +102,175 @@
   document.addEventListener('click', e => {
     const b = e.target.closest && e.target.closest('#ltOv [data-lt]'); if (!b) return;
     const a = b.dataset.lt;
-    if (a === 'close') { const ov = $('ltOv'); if (ov) ov.remove(); LT = null; }
+    if (a === 'close') { const ov = $('ltOv'); if (ov) ov.remove(); LT = null; if (mcAfterLt) { const st = mcAfterLt; mcAfterLt = null; MC = { ...st, step: 1 }; const o = document.createElement('div'); o.className = 'ob mc-ov'; o.id = 'mcOv'; document.body.appendChild(o); mcDraw(); } }
     else if (a === 'start') ltDraw();
     else if (a === 'opt') ltAnswer(b.dataset.v);
     else if (a === 'apply') ltApply(true);
     else if (a === 'goal') ltApply(false);
+    else if (a === 'course' && LT && LT.r !== undefined) mcFromLt(LT.r);
   });
+
+  /* =========================================================
+   * 맞춤 코스: 목적(여행 · 대화 · 학교 시험 · 토익 · 토플 · 기초) + 수준 + 하루 학습량
+   * 매일 새 단어를 코스 단어장에 담고, 목적에 맞는 순서로 학습해요(대화 · 여행은 듣기 · 말하기, 시험은 퀴즈 · 쓰기).
+   * 저장: config.course = { goal, lv, daily, catId, day, last, ids, step }
+   * ======================================================= */
+  const MC_GOALS = {
+    travel: { name: '여행 영어', desc: '공항 · 호텔 · 식당에서 바로 쓰는 말', ico: 'sun', c: 'i-sun' },
+    talk: { name: '외국인과 대화', desc: '자연스럽게 말하고 알아듣기', ico: 'users', c: 'i-grape' },
+    school: { name: '내신 · 수능', desc: '학교 시험과 수능 필수 단어', ico: 'book', c: 'i-mint' },
+    toeic: { name: '토익', desc: '토익 빈출 단어로 점수 올리기', ico: 'trophy', c: 'i-coral' },
+    toefl: { name: '토플 · 텝스', desc: '유학 · 고급 시험 어휘', ico: 'trend', c: 'i-teal' },
+    basic: { name: '기초부터 차근차근', desc: '처음 시작하는 영어 단어', ico: 'sprout', c: 'i-mint' }
+  };
+  const MC_DAILY = [[5, '2분', '가볍게'], [10, '5분', '꾸준히'], [20, '10분', '보통'], [30, '15분', '열심히']];
+  const mcSpeak = () => SR ? 'speak' : 'dict';
+  function mcSteps(goal) {
+    if (goal === 'travel') return ['card', 'lchoice', mcSpeak()];
+    if (goal === 'talk') return ['card', 'lchoice', 'sentence', mcSpeak()];
+    if (goal === 'toeic' || goal === 'toefl') return ['card', 'choice', 'rchoice', 'spell'];
+    if (goal === 'basic') return ['card', 'choice', 'lchoice'];
+    return ['card', 'choice', 'spell'];
+  }
+  const mcStepName = m => (GUIDE.find(g => g[0] === m) || [])[1] || (MODES[m] || {}).name || m;
+  function mcPacks(goal, lv) {
+    const es = 'es-' + Math.min(4, Math.max(1, lv));
+    if (goal === 'travel') return ['life', 'es-' + Math.min(2, Math.max(1, lv))];
+    if (goal === 'talk') return lv >= 3 ? [es, 'idiom', 'life'] : [es, 'life', 'idiom'];
+    if (goal === 'school') return [['basic', 'mid'], ['mid', 'high'], ['high', 'csat'], ['csat', 'idiom'], ['csat', 'toefl']][Math.min(4, lv)];
+    if (goal === 'toeic') return lv <= 1 ? ['mid', 'toeic'] : ['toeic', 'idiom'];
+    if (goal === 'toefl') return lv <= 2 ? ['high', 'toefl'] : ['toefl', 'csat'];
+    return lv <= 1 ? ['basic', 'mid'] : ['mid', 'high'];
+  }
+  const mcCat = () => { const c = config.course; return c && categories.find(x => x.id === c.catId); };
+  const mcLevel = () => { let s = null; try { s = JSON.parse(LS.getItem(ltKey()) || 'null'); } catch (e) {} return s && LT_LV[s.lv] ? s.lv : null; };
+  // 오늘 배울 새 단어를 코스 단어장에 담아요(하루에 한 번)
+  async function mcToday() {
+    const c = config.course; if (!c || isZh()) return null;
+    if (c.last === dayKey() && Array.isArray(c.ids) && c.ids.length) return c;
+    const packs = mcPacks(c.goal, c.lv);
+    if (packs.some(k => k.startsWith('es-'))) { try { await esLoad(); } catch (e) {} }
+    let cat = mcCat();
+    if (!cat) { cat = { id: 'c' + uid(), name: `맞춤 코스 · ${MC_GOALS[c.goal].name}`, words: [] }; categories.unshift(cat); c.catId = cat.id; }
+    const own = ownedWords(), pick = [];
+    for (const k of packs) {
+      let list = gradeWords(k, true);
+      if (k === packs[0] && (k === 'life' || k === 'toeic') && c.lv >= 2) list = list.slice(Math.floor(list.length * 0.15 * (c.lv - 1)));
+      for (const e of list) {
+        if (pick.length >= c.daily) break;
+        const lw = String(e.w || '').toLowerCase(); if (!lw || own.has(lw)) continue;
+        own.add(lw); pick.push(e);
+      }
+      if (pick.length >= c.daily) break;
+    }
+    const words = pick.map(e => sanitizeWord({ id: uid(), word: e.w, meaning: e.m, example: e.ex || '', exampleKo: e.exKo || '' }));
+    cat.words.unshift(...words);
+    c.ids = words.map(w => w.id); c.day = (c.day || 0) + 1; c.last = dayKey(); c.step = 0;
+    syncStorage();
+    dictFill(words).then(n => { if (n) syncStorage(); }).catch(() => {});
+    return c;
+  }
+  function mcItems() {
+    const c = config.course, cat = mcCat(); if (!c || !cat) return [];
+    const ids = new Set(c.ids || []);
+    return cat.words.filter(w => ids.has(w.id)).map(w => ({ w, catId: cat.id }));
+  }
+  function mcHomeHtml() {
+    if (isZh() || isTeacher()) return '';
+    const c = config.course;
+    if (!c || !MC_GOALS[c.goal]) return `<div class="h-course"><button class="mc-start card" data-act="mc-open">
+      <span class="mg-ico i-grape">${IC.sparkles}</span><span class="mc-txt"><b>나에게 맞는 영어 공부</b><small>수준과 목적(여행 · 대화 · 시험)을 고르면 매일 맞춤 학습을 만들어 드려요</small></span><span class="mg-chev"></span></button></div>`;
+    const g = MC_GOALS[c.goal], steps = mcSteps(c.goal), today = c.last === dayKey(), step = today ? (c.step || 0) : 0, done = today && step >= steps.length;
+    const n = today ? (c.ids || []).length : c.daily;
+    return `<div class="h-course"><section class="card mc-card">
+      <div class="mc-head"><span class="mg-ico ${g.c}">${IC[g.ico]}</span><div class="mc-t"><small>맞춤 코스 · ${esc(LT_LV[c.lv].name)} · 하루 ${c.daily}개</small><b>${esc(g.name)} · Day ${today ? c.day : (c.day || 0) + 1}</b></div><button class="link-btn" data-act="mc-open">바꾸기</button></div>
+      <ol class="mc-steps">${steps.map((m, i) => `<li class="${i < step || done ? 'done' : i === step ? 'now' : ''}"><i>${i < step || done ? IC.tick : i + 1}</i><span>${esc(mcStepName(m))}</span></li>`).join('')}</ol>
+      ${done ? '<div class="mc-done">오늘 맞춤 학습을 다 했어요. 내일 새 단어가 열려요.</div>' : `<button class="btn btn-primary btn-block" data-act="mc-go">${step ? `${step + 1}단계 이어서 하기` : `오늘의 새 단어 ${n}개 시작`}</button>`}
+    </section></div>`;
+  }
+  ACTIONS['mc-go'] = async () => {
+    const c = await mcToday(); if (!c) return;
+    const steps = mcSteps(c.goal), step = c.step || 0, items = mcItems();
+    if (!items.length) { toast('오늘 배울 새 단어가 없어요. 이 코스의 단어를 다 담았어요. 다른 목적이나 수준으로 바꿔 보세요.'); return; }
+    if (step >= steps.length) return;
+    const cat = mcCat();
+    startSession(steps[step], { type: 'cat', id: cat.id }, 0, items);
+    if (S && S.active) S.course = step;
+  };
+  // 학습을 끝내면 다음 단계로. finishSession 에서 불러요.
+  function mcAdvance() {
+    const c = config.course; if (!c || S.course == null || c.last !== dayKey()) return null;
+    const steps = mcSteps(c.goal);
+    if ((c.step || 0) === S.course) { c.step = S.course + 1; syncStorage(); }
+    return { next: c.step < steps.length ? c.step : null, name: c.step < steps.length ? mcStepName(steps[c.step]) : '' };
+  }
+  ACTIONS['mc-next'] = async () => { try { await exitSession(true); } catch (e) {} ACTIONS['mc-go'](); };
+
+  /* ----- 맞춤 코스 만들기 화면 ----- */
+  let MC = null;
+  function mcOpen() {
+    if ($('mcOv')) return;
+    const c = config.course || {};
+    MC = { goal: c.goal || '', lv: c.lv != null ? c.lv : mcLevel(), daily: c.daily || 10, step: 0 };
+    const ov = document.createElement('div'); ov.className = 'ob mc-ov'; ov.id = 'mcOv'; document.body.appendChild(ov);
+    mcDraw();
+  }
+  ACTIONS['mc-open'] = () => mcOpen();
+  function mcBar() { return `<div class="lt-bar"><i style="width:${Math.round((MC.step + 1) / 3 * 100)}%"></i></div>`; }
+  function mcDraw() {
+    const ov = $('mcOv'); if (!ov || !MC) return;
+    let body = '', foot = '';
+    if (MC.step === 0) {
+      body = `<h2>영어를 왜 공부하나요?</h2><p>목적에 맞는 단어와 학습 방법을 골라 드려요.</p>
+        <div class="mc-grid">${Object.entries(MC_GOALS).map(([k, g]) => `<button class="mc-opt${MC.goal === k ? ' on' : ''}" data-mc="goal" data-v="${k}"><span class="mg-ico ${g.c}">${IC[g.ico]}</span><b>${esc(g.name)}</b><small>${esc(g.desc)}</small></button>`).join('')}</div>`;
+      foot = `<button class="btn btn-primary btn-block" data-mc="next"${MC.goal ? '' : ' disabled'}>다음</button>`;
+    } else if (MC.step === 1) {
+      const saved = mcLevel();
+      body = `<h2>지금 내 영어 수준은?</h2><p>${saved != null ? `레벨 테스트 결과는 <b>${esc(LT_LV[saved].name)}</b>이에요.` : '모르면 12문제 레벨 테스트로 알아봐요 (2분).'}</p>
+        <button class="btn btn-soft btn-block mc-lt" data-mc="lt">${saved != null ? '레벨 테스트 다시 하기' : '레벨 테스트로 알아보기'}</button>
+        <div class="mc-lv">${LT_LV.map((l, i) => `<button class="mc-opt row${MC.lv === i ? ' on' : ''}" data-mc="lv" data-v="${i}"><b>${esc(l.name)}</b><small>${esc(l.desc)}</small></button>`).join('')}</div>`;
+      foot = `<button class="btn btn-primary btn-block" data-mc="next"${MC.lv != null ? '' : ' disabled'}>다음</button>`;
+    } else {
+      const g = MC_GOALS[MC.goal];
+      body = `<h2>하루에 얼마나 할까요?</h2><p>매일 새 단어를 이만큼 담고, ${esc(mcSteps(MC.goal).map(mcStepName).join(' → '))} 순서로 익혀요.</p>
+        <div class="mc-lv">${MC_DAILY.map(([n, t, l]) => `<button class="mc-opt row${MC.daily === n ? ' on' : ''}" data-mc="daily" data-v="${n}"><b>하루 ${n}개 · 약 ${t}</b><small>${l}</small></button>`).join('')}</div>
+        <div class="card mc-sum"><b>${esc(g.name)} · ${esc(LT_LV[MC.lv].name)}</b><small>복습은 잊어버리기 직전에 홈의 '오늘의 복습'으로 자동으로 다시 나와요.</small></div>`;
+      foot = `<button class="btn btn-primary btn-block" data-mc="done">맞춤 코스 시작하기</button>`;
+    }
+    ov.innerHTML = `<div class="mc-top">${MC.step ? '<button class="ob-skip mc-back" data-mc="back">← 이전</button>' : ''}<button class="ob-skip" data-mc="close">닫기</button></div>${mcBar()}
+      <div class="ob-body mc-body">${body}</div><div class="ob-foot">${foot}</div>`;
+  }
+  function mcSave() {
+    const old = config.course || {}, same = old.goal === MC.goal && old.lv === MC.lv;
+    config.course = { goal: MC.goal, lv: MC.lv, daily: MC.daily, catId: same ? old.catId : null, day: same ? old.day || 0 : 0, last: same ? old.last : '', ids: same ? old.ids || [] : [], step: same ? old.step || 0 : 0 };
+    if (!same && old.last === dayKey()) config.course.last = '';
+    config.goal = Math.max(config.goal || 0, MC.daily);
+    syncStorage();
+    const ov = $('mcOv'); if (ov) ov.remove(); MC = null;
+    if (curTab === 'tabHome') renderHome();
+    ACTIONS['mc-go']();
+  }
+  document.addEventListener('click', e => {
+    const b = e.target.closest && e.target.closest('#mcOv [data-mc]'); if (!b || !MC || b.disabled) return;
+    const a = b.dataset.mc;
+    if (a === 'close') { const ov = $('mcOv'); if (ov) ov.remove(); MC = null; return; }
+    if (a === 'goal') MC.goal = b.dataset.v;
+    else if (a === 'lv') MC.lv = +b.dataset.v;
+    else if (a === 'daily') MC.daily = +b.dataset.v;
+    else if (a === 'next') MC.step = Math.min(2, MC.step + 1);
+    else if (a === 'back') MC.step = Math.max(0, MC.step - 1);
+    else if (a === 'done') return mcSave();
+    else if (a === 'lt') { const ov = $('mcOv'); if (ov) ov.remove(); mcAfterLt = { ...MC }; MC = null; ltOpen(false); setTimeout(() => { const o = $('ltOv'); if (o) ltDraw(); }, 0); return; }
+    mcDraw();
+  });
+  // 레벨 테스트를 코스 화면에서 열었으면 결과로 수준을 정하고 코스 화면으로 돌아와요
+  let mcAfterLt = null;
+  function mcFromLt(r) {
+    const st = mcAfterLt || { goal: '', daily: 10 }; mcAfterLt = null;
+    const ov0 = $('ltOv'); if (ov0) ov0.remove(); LT = null;
+    MC = { goal: st.goal, lv: r, daily: st.daily || 10, step: st.goal ? 2 : 0 };
+    const ov = document.createElement('div'); ov.className = 'ob mc-ov'; ov.id = 'mcOv'; document.body.appendChild(ov); mcDraw();
+  }
   ACTIONS['level-test'] = () => ltOpen(false);
   function ltEntryHtml() {
     let s = null; try { s = JSON.parse(LS.getItem(ltKey()) || 'null'); } catch (e) {}
@@ -199,15 +363,3 @@
   document.addEventListener('keydown', e => {
     if (e.key === 'Enter' && FL && FL.step === 2 && e.target && e.target.id === 'flIn') { e.preventDefault(); flType(); }
   });
-  /* =========================================================
-   * 학년별 추천 단어 데이터 (초등)
-   * ======================================================= */
-  const GW_E = {
-    e1: "hello:안녕(만날 때)|bye:잘 가|yes:네, 응|no:아니요|mom:엄마|dad:아빠|baby:아기|boy:소년|girl:소녀|one:하나, 1|two:둘, 2|three:셋, 3|four:넷, 4|five:다섯, 5|six:여섯, 6|seven:일곱, 7|eight:여덟, 8|nine:아홉, 9|ten:열, 10|red:빨간색|blue:파란색|yellow:노란색|green:초록색|pink:분홍색|black:검은색|white:흰색|brown:갈색|cat:고양이|dog:개|pig:돼지|cow:소|duck:오리|bird:새|fish:물고기|lion:사자|tiger:호랑이|bear:곰|monkey:원숭이|rabbit:토끼|horse:말|frog:개구리|ant:개미|bee:벌|apple:사과|banana:바나나|egg:달걀|milk:우유|water:물|juice:주스|bread:빵|cake:케이크|candy:사탕|pizza:피자|grape:포도|orange:오렌지|lemon:레몬|rice:밥, 쌀|eye:눈|ear:귀|nose:코|mouth:입|hand:손|foot:발|head:머리|arm:팔|leg:다리|face:얼굴|sun:해, 태양|moon:달|star:별|tree:나무|flower:꽃|ball:공|doll:인형|toy:장난감|book:책|pen:펜|bag:가방|hat:모자|box:상자|car:자동차|bus:버스|big:큰|small:작은|happy:행복한|sad:슬픈|hot:뜨거운, 더운|cold:차가운, 추운|go:가다|run:달리다|walk:걷다|jump:뛰다|swim:수영하다|sing:노래하다|dance:춤추다|eat:먹다|drink:마시다|sleep:자다|sit:앉다|stand:서다",
-    e2: "come:오다|look:보다|like:좋아하다|love:사랑하다|play:놀다|friend:친구|teacher:선생님|school:학교|house:집|room:방|bed:침대|door:문|window:창문|desk:책상|chair:의자|table:탁자|pencil:연필|cup:컵|shoe:신발|sock:양말|cap:야구 모자|bike:자전거|ship:배|brother:형, 오빠, 남동생|sister:언니, 누나, 여동생|family:가족|grandma:할머니|grandpa:할아버지|name:이름|chicken:닭|sheep:양|goat:염소|mouse:쥐|snake:뱀|turtle:거북|whale:고래|elephant:코끼리|giraffe:기린|zebra:얼룩말|butterfly:나비|melon:멜론|peach:복숭아|corn:옥수수|carrot:당근|potato:감자|tomato:토마토|onion:양파|strawberry:딸기|watermelon:수박|cookie:쿠키|sandwich:샌드위치|soup:수프|salad:샐러드|breakfast:아침 식사|lunch:점심 식사|dinner:저녁 식사|rain:비|snow:눈(내리는 눈)|sunny:맑은|cloudy:흐린|rainy:비 오는|windy:바람 부는|spring:봄|summer:여름|fall:가을; 떨어지다|winter:겨울|morning:아침|night:밤|today:오늘|tall:키가 큰|short:짧은, 키가 작은|long:긴|fast:빠른|slow:느린|old:늙은, 오래된|young:어린, 젊은|new:새로운|good:좋은|bad:나쁜|pretty:예쁜|cute:귀여운|hungry:배고픈|tired:피곤한|read:읽다|write:쓰다|draw:그리다|open:열다|close:닫다|listen:듣다|help:돕다|cook:요리하다; 요리사|wash:씻다|fly:날다|ride:타다|park:공원|zoo:동물원|farm:농장|kitchen:부엌|bathroom:욕실|garden:정원",
-    e3: "mother:어머니|father:아버지|man:남자|woman:여자|student:학생|classroom:교실|home:집, 가정|bedroom:침실|sofa:소파|lamp:전등|clock:시계(벽시계)|spoon:숟가락|fork:포크|plate:접시|color:색깔|purple:보라색|gray:회색|shape:모양|circle:원|square:정사각형|triangle:삼각형|number:숫자|eleven:열하나, 11|twelve:열둘, 12|twenty:스물, 20|hundred:백, 100|hair:머리카락|finger:손가락|tooth:이, 치아|body:몸|sky:하늘|cloud:구름|wind:바람|warm:따뜻한|cool:시원한; 멋진|weather:날씨|sick:아픈|fine:괜찮은|thirsty:목마른|coat:외투|shirt:셔츠|pants:바지|skirt:치마|dress:원피스|jacket:재킷|glasses:안경|gloves:장갑|umbrella:우산|eraser:지우개|ruler:자|scissors:가위|glue:풀|notebook:공책|paper:종이|picture:그림, 사진|song:노래|music:음악|art:미술|math:수학|science:과학|English:영어|Korean:한국어; 한국의|week:주, 일주일|Monday:월요일|Tuesday:화요일|Wednesday:수요일|Thursday:목요일|Friday:금요일|Saturday:토요일|Sunday:일요일|weekend:주말|time:시간|hour:시간(60분)|minute:분|have:가지다|want:원하다|make:만들다|know:알다|see:보다|hear:듣다, 들리다|say:말하다|talk:이야기하다|ask:묻다, 부탁하다|give:주다|take:가져가다, 잡다|put:놓다|find:찾다|buy:사다|here:여기|there:거기|under:~아래에|behind:~뒤에|near:가까운|far:먼|left:왼쪽|right:오른쪽; 옳은|river:강|sea:바다|mountain:산|train:기차",
-    e4: "airplane:비행기|taxi:택시|subway:지하철|boat:배, 보트|road:도로|street:거리|bridge:다리(건너는 다리)|city:도시|town:마을|shop:가게|store:가게|hospital:병원|library:도서관|restaurant:식당|bakery:빵집|market:시장|bank:은행|museum:박물관|station:역|airport:공항|doctor:의사|nurse:간호사|farmer:농부|police officer:경찰관|soccer:축구|baseball:야구|basketball:농구|tennis:테니스|game:게임, 경기|team:팀|player:선수|win:이기다|lose:지다, 잃어버리다|hobby:취미|movie:영화|camera:카메라|piano:피아노|guitar:기타|violin:바이올린|drum:북, 드럼|camping:캠핑|fishing:낚시|hiking:등산|birthday:생일|party:파티|gift:선물|present:선물; 현재의|holiday:휴일|vacation:방학, 휴가|trip:여행|travel:여행하다|visit:방문하다|invite:초대하다|meet:만나다|wait:기다리다|start:시작하다|finish:끝내다|stop:멈추다|learn:배우다|study:공부하다|teach:가르치다|think:생각하다|feel:느끼다|need:필요하다|homework:숙제|test:시험|question:질문|answer:대답; 대답하다|word:단어|letter:글자, 편지|story:이야기|money:돈|coin:동전|price:가격|cheap:값싼|expensive:비싼|easy:쉬운|difficult:어려운|busy:바쁜|free:자유로운, 무료의|kind:친절한; 종류|funny:재미있는|smart:똑똑한|brave:용감한|lazy:게으른|quiet:조용한|loud:시끄러운|strong:강한|weak:약한|heavy:무거운|light:가벼운; 빛|dark:어두운|bright:밝은|dirty:더러운|clean:깨끗한; 청소하다|wet:젖은|dry:마른|beautiful:아름다운|wonderful:멋진|great:훌륭한",
-    e5: "day:날, 낮|afternoon:오후|evening:저녁|first:첫 번째의|second:두 번째의; 초|third:세 번째의|tea:차|food:음식|snack:간식|fruit:과일|vegetable:채소|meat:고기|sugar:설탕|salt:소금|cheese:치즈|butter:버터|noodle:국수|sweet:달콤한|salty:짠|spicy:매운|sour:신|delicious:맛있는|neck:목|shoulder:어깨|knee:무릎|back:등; 뒤로|stomach:배, 위|heart:심장, 마음|headache:두통|stomachache:복통|fever:열|cough:기침|medicine:약|dentist:치과의사|hurt:다치게 하다, 아프다|rest:휴식; 쉬다|computer:컴퓨터|phone:전화기|television:텔레비전|beach:해변|island:섬|forest:숲|lake:호수|ocean:대양|nature:자연|animal:동물|insect:곤충|plant:식물; 심다|map:지도|place:장소|way:길, 방법|corner:모퉁이|post office:우체국|north:북쪽|south:남쪽|east:동쪽|west:서쪽|job:직업, 일|work:일하다; 일|singer:가수|pilot:조종사|artist:예술가|writer:작가|scientist:과학자|firefighter:소방관|engineer:기술자|dream:꿈; 꿈꾸다|future:미래|tell:말해 주다|speak:말하다|call:부르다, 전화하다|live:살다|stay:머무르다|leave:떠나다|wake:깨다|drive:운전하다|sell:팔다|use:사용하다|always:항상|usually:보통|often:자주|sometimes:가끔|never:결코 ~ 않다|early:이른; 일찍|late:늦은; 늦게|cry:울다|laugh:웃다|smile:미소; 미소 짓다|angry:화난|afraid:두려워하는|excited:신이 난|bored:지루해하는|surprised:놀란|enjoy:즐기다|worry:걱정하다|remember:기억하다|forget:잊다|try:시도하다|hope:바라다|healthy:건강한",
-    e6: "month:달, 월|year:해, 연도|January:1월|February:2월|March:3월|April:4월|May:5월|June:6월|July:7월|August:8월|September:9월|October:10월|November:11월|December:12월|season:계절|tomorrow:내일|yesterday:어제|tonight:오늘 밤|soon:곧|later:나중에|ago:~전에|already:이미|still:아직, 여전히|grade:학년, 성적|subject:과목|lesson:수업, 교훈|classmate:반 친구|uniform:교복, 제복|middle school:중학교|elementary:초등의|cousin:사촌|uncle:삼촌|aunt:이모, 고모|son:아들|daughter:딸|parent:부모|neighbor:이웃|guest:손님|king:왕|queen:여왕|prince:왕자|princess:공주|castle:성|village:마을|building:건물|floor:층, 바닥|wall:벽|stairs:계단|elevator:엘리베이터|key:열쇠|country:나라|world:세계|earth:지구|culture:문화|history:역사|language:언어|festival:축제|contest:대회|prize:상|club:동아리|member:회원|leader:지도자|rule:규칙|safe:안전한|danger:위험|accident:사고|trash:쓰레기|recycle:재활용하다|save:구하다, 아끼다|health:건강|exercise:운동; 운동하다|choose:고르다|decide:결정하다|agree:동의하다|believe:믿다|understand:이해하다|explain:설명하다|bring:가져오다|send:보내다|carry:나르다|build:짓다|fix:고치다|change:바꾸다; 변화|become:~이 되다|nervous:긴장한|proud:자랑스러운|lonely:외로운|honest:정직한|careful:조심하는|enough:충분한|almost:거의|between:~사이에|through:~을 통해|across:건너편에|along:~을 따라|maybe:아마도|probably:아마|instead:대신에|tradition:전통|temperature:온도"
-  };
-

@@ -710,8 +710,27 @@
     .ob-dots { display: flex; gap: 7px; justify-content: center; margin-bottom: 22px; }
     .ob-dots i { width: 7px; height: 7px; border-radius: 9px; background: var(--line); transition: width .25s, background .25s; }
     .ob-dots i.on { width: 24px; background: var(--ink); }
-    .lt .lt-bar { height: 6px; border-radius: 6px; background: var(--surface-2); overflow: hidden; margin: 4px 0 0; }
-    .lt .lt-bar i { display: block; height: 100%; background: var(--blue); border-radius: 6px; transition: width .3s; }
+    .h-course { min-width: 0; }
+    .mc-start { width: 100%; display: flex; align-items: center; gap: 14px; text-align: left; border: 0; cursor: pointer; font: inherit; color: inherit; margin-top: 14px; }
+    .mc-start .mc-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; } .mc-start small { color: var(--muted); line-height: 1.5; }
+    .mc-card { margin-top: 14px; display: flex; flex-direction: column; gap: 14px; }
+    .mc-head { display: flex; align-items: center; gap: 12px; } .mc-head .mc-t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; } .mc-head small { color: var(--muted); font-size: .8rem; } .mc-head b { font-size: 1.05rem; }
+    .mc-steps { list-style: none; margin: 0; padding: 0; display: flex; gap: 6px; flex-wrap: wrap; }
+    .mc-steps li { display: flex; align-items: center; gap: 6px; padding: 6px 10px 6px 6px; border-radius: 99px; background: var(--surface-2); font-size: .82rem; font-weight: 700; color: var(--muted); }
+    .mc-steps li i { width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-style: normal; font-size: .75rem; background: var(--surface); }
+    .mc-steps li i svg { width: 13px; height: 13px; }
+    .mc-steps li.now { color: var(--ink); box-shadow: inset 0 0 0 2px var(--blue); } .mc-steps li.done { color: var(--mint); } .mc-steps li.done i { background: var(--mint-soft); }
+    .mc-done { font-weight: 700; color: var(--mint); text-align: center; padding: 6px 0; }
+    .mc-top { display: flex; justify-content: space-between; } .mc-top .ob-skip { position: static; }
+    .mc-body { justify-content: flex-start; padding-top: 18px; }
+    .mc-grid { width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 20px; }
+    .mc-lv { width: 100%; display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+    .mc-opt { border: 2px solid transparent; background: var(--surface); border-radius: 18px; padding: 14px; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; text-align: left; font: inherit; color: inherit; cursor: pointer; min-height: 44px; }
+    .mc-opt small { color: var(--muted); font-size: .8rem; line-height: 1.45; } .mc-opt.row { gap: 2px; }
+    .mc-opt.on { border-color: var(--blue); background: var(--blue-soft); }
+    .mc-lt { margin-top: 16px; } .mc-sum { width: 100%; margin-top: 14px; text-align: left; display: flex; flex-direction: column; gap: 4px; } .mc-sum small { color: var(--muted); }
+    .mc-ov .lt-bar, .lt .lt-bar { height: 6px; border-radius: 6px; background: var(--surface-2); overflow: hidden; margin: 4px 0 0; }
+    .mc-ov .lt-bar i, .lt .lt-bar i { display: block; height: 100%; background: var(--blue); border-radius: 6px; transition: width .3s; }
     .lt .lt-q { justify-content: flex-start; padding-top: 6vh; }
     .lt .opts { display: flex; flex-direction: column; gap: 8px; }
     .lt .opt { width: 100%; }
@@ -1065,11 +1084,11 @@
       .nav-card small { font-size: .78rem; color: var(--ink-2); font-weight: 600; }
 
       .home-grid { display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr); column-gap: 22px; align-items: start;
-        grid-template-areas: "hello hello" "hero streak" "quick quick" "shelf shelf" "tools books"; }
+        grid-template-areas: "hello hello" "hero streak" "course course" "quick quick" "shelf shelf" "tools books"; }
       .h-quick .tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); }
       .h-streak .wotd { margin-top: 14px; }
       .h-hello { grid-area: hello; } .h-hero { grid-area: hero; align-self: stretch; } .h-streak { grid-area: streak; }
-      .h-quick { grid-area: quick; } .h-shelf { grid-area: shelf; min-width: 0; } .h-tools { grid-area: tools; } .h-books { grid-area: books; }
+      .h-course { grid-area: course; } .h-quick { grid-area: quick; } .h-shelf { grid-area: shelf; min-width: 0; } .h-tools { grid-area: tools; } .h-books { grid-area: books; }
       .h-hero .hero { height: 100%; display: flex; flex-direction: column; padding: 28px 26px 24px; }
       .h-hero .hero-num { font-size: 4rem; }
       .h-hero .hero-btn { margin-top: auto; }
@@ -1177,7 +1196,7 @@
     /* 넓은 PC (1600px 이상): 화면 전체를 3단으로 써요 */
     @media (min-width: 1600px) {
       .home-grid { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) minmax(0, 1fr); column-gap: 26px;
-        grid-template-areas: "hello hello hello" "hero streak books" "quick quick books" "shelf shelf books" "tools tools books"; }
+        grid-template-areas: "hello hello hello" "hero streak books" "course course books" "quick quick books" "shelf shelf books" "tools tools books"; }
       .h-books { align-self: start; }
       .h-books .section-title:first-child, .h-books > .section-title { margin-top: 0; }
       .h-tools .tool-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 14px; }
@@ -3641,6 +3660,7 @@ window.VOCA_CLOUD = {
       if (typeof saved.kpronZh === 'boolean') cfg.kpronZh = saved.kpronZh;
       if (Number.isFinite(+saved.studyCount)) cfg.studyCount = Math.max(0, Math.min(500, Math.floor(+saved.studyCount)));
       if (saved.guide && typeof saved.guide === 'object') cfg.guide = cleanGuide(saved.guide);
+      cfg.course = cleanCourse(saved.course);
       cfg.lang = saved.lang === 'zh' ? 'zh' : 'en';
       cfg.grade = GRADE_NAMES[saved.grade] ? saved.grade : '';
       cfg.role = saved.role === 'teacher' ? 'teacher' : '';
@@ -3689,6 +3709,13 @@ window.VOCA_CLOUD = {
     passages = sanitizePassages(d && d.passages);
   }
 
+  // 맞춤 코스 설정 정리 (저장 · 백업 · 서버 동기화에 써요)
+  function cleanCourse(c) {
+    if (!c || typeof c !== 'object' || !['travel', 'talk', 'school', 'toeic', 'toefl', 'basic'].includes(c.goal)) return null;
+    const lv = Math.max(0, Math.min(4, Math.floor(+c.lv || 0))), daily = [5, 10, 20, 30].includes(+c.daily) ? +c.daily : 10;
+    return { goal: c.goal, lv, daily, catId: typeof c.catId === 'string' ? c.catId.slice(0, 40) : null, day: Math.max(0, Math.min(9999, Math.floor(+c.day || 0))),
+      last: typeof c.last === 'string' ? c.last.slice(0, 12) : '', ids: Array.isArray(c.ids) ? c.ids.filter(x => typeof x === 'string').slice(0, 40) : [], step: Math.max(0, Math.min(9, Math.floor(+c.step || 0))) };
+  }
   function syncStorage() {
     if (!currentUser) return;
     try {
@@ -3971,6 +3998,7 @@ window.VOCA_CLOUD = {
         <button class="btn hero-btn btn-block" ${cta.attrs}>${cta.btn}</button>
       </section></div>
 
+      ${mcHomeHtml()}
       <div class="h-streak"><div class="card streak-card">
         <div class="streak-fire ${st > 0 ? '' : 'off'}">${st > 0 ? IC.flame : IC.sprout}${si.frz ? `<span class="frz-badge" title="연속 학습 보호권 ${si.frz}장" aria-label="보호권 ${si.frz}장">${IC.shield}<b>${si.frz}</b></span>` : ''}</div>
         <div class="streak-txt"><div class="streak-n">${st}일 연속</div><div class="muted">${st > 0 && today.n === 0 && prot.has(dayKey(addDays(startOfDay(), -1))) ? '어제 보호됨' : si.frz ? `보호권 ${si.frz}장` : st > 0 ? `보호권까지 ${FRZ_EVERY - st % FRZ_EVERY}일` : '오늘 시작해요'}</div></div>
@@ -5951,6 +5979,7 @@ window.VOCA_CLOUD = {
     const first = S.ok + S.no;
     const pct = first ? Math.round(S.ok / first * 100) : 0;
     const gRes = finishGuideAdvance(first, pct);
+    const mRes = S.course != null ? mcAdvance() : null;
     const mood = pct >= 90 ? 'cheer' : pct >= 70 ? 'happy' : 'think';
     const title = pct >= 90 ? '완벽해요!' : pct >= 70 ? '아주 잘했어요' : pct >= 40 ? '조금만 더 하면 돼요' : '괜찮아요, 다시 해봐요';
     const st = streak();
@@ -5969,7 +5998,10 @@ window.VOCA_CLOUD = {
         ${wrongs.length ? `<div class="card result-box"><div class="res-wrong-head"><b style="font-size:.95rem;">틀린 단어 ${wrongs.length}개</b><small>오답노트에 담았어요</small></div>${wrongs.map(it => `<div class="wrong-item"><b>${esc(it.w.word)}</b><span>${esc(it.w.meaning)}</span><button class="w-speak" data-act="speak" data-text="${esc(it.w.word)}" aria-label="발음 듣기">${IC.speaker}</button></div>`).join('')}</div>` : '<div class="card result-box" style="text-align:center;">틀린 단어가 없어요. 대단해요!</div>'}
         <div class="row" style="margin-top:6px;">
           ${wrongs.length ? '<button class="btn btn-soft" data-act="retry-wrong">틀린 것만 다시</button>' : '<button class="btn btn-soft" data-act="again">한 번 더</button>'}
-          ${gRes.nextStep != null
+          ${mRes && mRes.next != null
+            ? `<button class="btn btn-primary" data-act="mc-next">다음: ${esc(mRes.name)}</button>`
+            : mRes ? '<button class="btn btn-primary" data-act="exit-session">오늘 맞춤 학습 끝</button>'
+            : gRes.nextStep != null
             ? `<button class="btn btn-primary" data-act="guide-next-step" data-step="${gRes.nextStep}" data-key="${esc(gRes.key)}">다음 단계 하기</button>`
             : '<button class="btn btn-primary" data-act="exit-session">마치기</button>'}
         </div>
@@ -7184,7 +7216,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
 
   /* ----- 백업 ----- */
   ACTIONS['export-json'] = () => {
-    const data = { app: 'VocaPro', version: 14, settings: { ...ttsCfgOut(), darkMode: config.darkMode, goal: config.goal, grade: config.grade, haptic: config.haptic !== false, kpronEn: config.kpronEn !== false, kpronZh: config.kpronZh !== false, studyCount: config.studyCount, guide: cleanGuide(config.guide) }, ...dataBlob() };
+    const data = { app: 'VocaPro', version: 14, settings: { ...ttsCfgOut(), darkMode: config.darkMode, goal: config.goal, grade: config.grade, haptic: config.haptic !== false, kpronEn: config.kpronEn !== false, kpronZh: config.kpronZh !== false, studyCount: config.studyCount, guide: cleanGuide(config.guide), course: cleanCourse(config.course) }, ...dataBlob() };
     download(`VocaPro_${dayKey()}.json`, JSON.stringify(data, null, 2), 'application/json');
     toast('백업 파일을 내려받았어요. API 키는 포함되지 않아요.');
   };
@@ -7212,6 +7244,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
           if (typeof res.settings.kpronZh === 'boolean') config.kpronZh = res.settings.kpronZh;
           if (Number.isFinite(+res.settings.studyCount)) config.studyCount = Math.max(0, Math.min(500, Math.floor(+res.settings.studyCount)));
           if (res.settings.guide && typeof res.settings.guide === 'object') config.guide = cleanGuide(res.settings.guide);
+          if (res.settings.course !== undefined) config.course = cleanCourse(res.settings.course);
           if (GRADE_NAMES[res.settings.grade]) config.grade = res.settings.grade;
         }
         currentCategoryId = null; viewOrder = null; openDrawers.clear();
@@ -8496,7 +8529,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
       cloudStale = false;
       if (r && r.updated > cloudBaseTs) { applyRemote(r); if (!(S && S.active)) go(curTab); toast('서버에 더 새로운 저장본이 있어 그걸 불러왔어요.'); return; }
     }
-    const json = JSON.stringify({ ...dataBlob(), cfg: { ...ttsCfgOut(), goal: config.goal, darkMode: config.darkMode, provider: config.provider, aiv: 2, grade: config.grade, role: config.role || '', profile: config.profile || cleanProfile(), gameName: config.gameName || '', haptic: config.haptic !== false, kpronEn: config.kpronEn !== false, kpronZh: config.kpronZh !== false, studyCount: config.studyCount, guide: cleanGuide(config.guide) } });
+    const json = JSON.stringify({ ...dataBlob(), cfg: { ...ttsCfgOut(), goal: config.goal, darkMode: config.darkMode, provider: config.provider, aiv: 2, grade: config.grade, role: config.role || '', profile: config.profile || cleanProfile(), gameName: config.gameName || '', haptic: config.haptic !== false, kpronEn: config.kpronEn !== false, kpronZh: config.kpronZh !== false, studyCount: config.studyCount, guide: cleanGuide(config.guide), course: cleanCourse(config.course) } });
     if (json.length > 900000) toast('데이터가 서버 저장 한도(약 1MB)에 가까워요. 단어장을 줄이거나 백업해 두세요.');
     const up = +LS.getItem(KEY_DATA + ':ts') || Date.now(), key = KEY_DATA;
     // 페이지를 떠날 때는 keepalive로 최대한 보내요(본문 64KB 제한이 있어 작을 때만)
@@ -8513,6 +8546,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
       if (typeof d.cfg.kpronZh === 'boolean') config.kpronZh = d.cfg.kpronZh;
       if (Number.isFinite(+d.cfg.studyCount)) { config.studyCount = Math.max(0, Math.min(500, Math.floor(+d.cfg.studyCount))); studyPrefs.count = config.studyCount; }
       if (d.cfg.guide && typeof d.cfg.guide === 'object') config.guide = cleanGuide(d.cfg.guide);
+      if (d.cfg.course !== undefined) config.course = cleanCourse(d.cfg.course);
       if (PROVIDERS[d.cfg.provider] && d.cfg.aiv === 2) config.provider = d.cfg.provider;
       if (GRADE_NAMES[d.cfg.grade]) config.grade = d.cfg.grade;
       if (d.cfg.role !== undefined) config.role = d.cfg.role === 'teacher' ? 'teacher' : '';
@@ -8637,8 +8671,9 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
       <div class="muted" style="font-weight:700;">내 수준은</div><h2 style="font-size:2.4rem;">${info.name}</h2>
       <p>${info.desc}<br>12문제 중 <b>${total}</b>문제를 맞혔어요.</p>
       <div class="card" style="width:100%;margin-top:22px;text-align:left;"><b>추천 하루 목표 ${info.goal}개</b><div class="muted" style="font-size:.85rem;margin-top:4px;">'${info.name} 시작 단어' 단어장 ${ltBank()[Math.min(r, 3)].length}개도 만들어 드려요.</div></div></div>
-      <div class="ob-foot"><button class="btn btn-primary btn-block" data-lt="apply">추천대로 시작하기</button>
-      <button class="btn btn-soft btn-block" data-lt="goal" style="margin-top:8px;">목표만 적용하기</button></div>`;
+      <div class="ob-foot">${isZh() ? '' : `<button class="btn btn-primary btn-block" data-lt="course">${mcAfterLt ? '이 수준으로 맞춤 코스 만들기' : '목적에 맞춘 코스 만들기 (여행 · 대화 · 시험)'}</button>`}
+      ${mcAfterLt ? '' : `<button class="btn ${isZh() ? 'btn-primary' : 'btn-soft'} btn-block" data-lt="apply" style="margin-top:8px;">추천대로 시작하기</button>
+      <button class="btn btn-soft btn-block" data-lt="goal" style="margin-top:8px;">목표만 적용하기</button>`}</div>`;
   }
   function ltApply(withBook) {
     if (!LT || LT.r === undefined) return;
@@ -8662,12 +8697,175 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
   document.addEventListener('click', e => {
     const b = e.target.closest && e.target.closest('#ltOv [data-lt]'); if (!b) return;
     const a = b.dataset.lt;
-    if (a === 'close') { const ov = $('ltOv'); if (ov) ov.remove(); LT = null; }
+    if (a === 'close') { const ov = $('ltOv'); if (ov) ov.remove(); LT = null; if (mcAfterLt) { const st = mcAfterLt; mcAfterLt = null; MC = { ...st, step: 1 }; const o = document.createElement('div'); o.className = 'ob mc-ov'; o.id = 'mcOv'; document.body.appendChild(o); mcDraw(); } }
     else if (a === 'start') ltDraw();
     else if (a === 'opt') ltAnswer(b.dataset.v);
     else if (a === 'apply') ltApply(true);
     else if (a === 'goal') ltApply(false);
+    else if (a === 'course' && LT && LT.r !== undefined) mcFromLt(LT.r);
   });
+
+  /* =========================================================
+   * 맞춤 코스: 목적(여행 · 대화 · 학교 시험 · 토익 · 토플 · 기초) + 수준 + 하루 학습량
+   * 매일 새 단어를 코스 단어장에 담고, 목적에 맞는 순서로 학습해요(대화 · 여행은 듣기 · 말하기, 시험은 퀴즈 · 쓰기).
+   * 저장: config.course = { goal, lv, daily, catId, day, last, ids, step }
+   * ======================================================= */
+  const MC_GOALS = {
+    travel: { name: '여행 영어', desc: '공항 · 호텔 · 식당에서 바로 쓰는 말', ico: 'sun', c: 'i-sun' },
+    talk: { name: '외국인과 대화', desc: '자연스럽게 말하고 알아듣기', ico: 'users', c: 'i-grape' },
+    school: { name: '내신 · 수능', desc: '학교 시험과 수능 필수 단어', ico: 'book', c: 'i-mint' },
+    toeic: { name: '토익', desc: '토익 빈출 단어로 점수 올리기', ico: 'trophy', c: 'i-coral' },
+    toefl: { name: '토플 · 텝스', desc: '유학 · 고급 시험 어휘', ico: 'trend', c: 'i-teal' },
+    basic: { name: '기초부터 차근차근', desc: '처음 시작하는 영어 단어', ico: 'sprout', c: 'i-mint' }
+  };
+  const MC_DAILY = [[5, '2분', '가볍게'], [10, '5분', '꾸준히'], [20, '10분', '보통'], [30, '15분', '열심히']];
+  const mcSpeak = () => SR ? 'speak' : 'dict';
+  function mcSteps(goal) {
+    if (goal === 'travel') return ['card', 'lchoice', mcSpeak()];
+    if (goal === 'talk') return ['card', 'lchoice', 'sentence', mcSpeak()];
+    if (goal === 'toeic' || goal === 'toefl') return ['card', 'choice', 'rchoice', 'spell'];
+    if (goal === 'basic') return ['card', 'choice', 'lchoice'];
+    return ['card', 'choice', 'spell'];
+  }
+  const mcStepName = m => (GUIDE.find(g => g[0] === m) || [])[1] || (MODES[m] || {}).name || m;
+  function mcPacks(goal, lv) {
+    const es = 'es-' + Math.min(4, Math.max(1, lv));
+    if (goal === 'travel') return ['life', 'es-' + Math.min(2, Math.max(1, lv))];
+    if (goal === 'talk') return lv >= 3 ? [es, 'idiom', 'life'] : [es, 'life', 'idiom'];
+    if (goal === 'school') return [['basic', 'mid'], ['mid', 'high'], ['high', 'csat'], ['csat', 'idiom'], ['csat', 'toefl']][Math.min(4, lv)];
+    if (goal === 'toeic') return lv <= 1 ? ['mid', 'toeic'] : ['toeic', 'idiom'];
+    if (goal === 'toefl') return lv <= 2 ? ['high', 'toefl'] : ['toefl', 'csat'];
+    return lv <= 1 ? ['basic', 'mid'] : ['mid', 'high'];
+  }
+  const mcCat = () => { const c = config.course; return c && categories.find(x => x.id === c.catId); };
+  const mcLevel = () => { let s = null; try { s = JSON.parse(LS.getItem(ltKey()) || 'null'); } catch (e) {} return s && LT_LV[s.lv] ? s.lv : null; };
+  // 오늘 배울 새 단어를 코스 단어장에 담아요(하루에 한 번)
+  async function mcToday() {
+    const c = config.course; if (!c || isZh()) return null;
+    if (c.last === dayKey() && Array.isArray(c.ids) && c.ids.length) return c;
+    const packs = mcPacks(c.goal, c.lv);
+    if (packs.some(k => k.startsWith('es-'))) { try { await esLoad(); } catch (e) {} }
+    let cat = mcCat();
+    if (!cat) { cat = { id: 'c' + uid(), name: `맞춤 코스 · ${MC_GOALS[c.goal].name}`, words: [] }; categories.unshift(cat); c.catId = cat.id; }
+    const own = ownedWords(), pick = [];
+    for (const k of packs) {
+      let list = gradeWords(k, true);
+      if (k === packs[0] && (k === 'life' || k === 'toeic') && c.lv >= 2) list = list.slice(Math.floor(list.length * 0.15 * (c.lv - 1)));
+      for (const e of list) {
+        if (pick.length >= c.daily) break;
+        const lw = String(e.w || '').toLowerCase(); if (!lw || own.has(lw)) continue;
+        own.add(lw); pick.push(e);
+      }
+      if (pick.length >= c.daily) break;
+    }
+    const words = pick.map(e => sanitizeWord({ id: uid(), word: e.w, meaning: e.m, example: e.ex || '', exampleKo: e.exKo || '' }));
+    cat.words.unshift(...words);
+    c.ids = words.map(w => w.id); c.day = (c.day || 0) + 1; c.last = dayKey(); c.step = 0;
+    syncStorage();
+    dictFill(words).then(n => { if (n) syncStorage(); }).catch(() => {});
+    return c;
+  }
+  function mcItems() {
+    const c = config.course, cat = mcCat(); if (!c || !cat) return [];
+    const ids = new Set(c.ids || []);
+    return cat.words.filter(w => ids.has(w.id)).map(w => ({ w, catId: cat.id }));
+  }
+  function mcHomeHtml() {
+    if (isZh() || isTeacher()) return '';
+    const c = config.course;
+    if (!c || !MC_GOALS[c.goal]) return `<div class="h-course"><button class="mc-start card" data-act="mc-open">
+      <span class="mg-ico i-grape">${IC.sparkles}</span><span class="mc-txt"><b>나에게 맞는 영어 공부</b><small>수준과 목적(여행 · 대화 · 시험)을 고르면 매일 맞춤 학습을 만들어 드려요</small></span><span class="mg-chev"></span></button></div>`;
+    const g = MC_GOALS[c.goal], steps = mcSteps(c.goal), today = c.last === dayKey(), step = today ? (c.step || 0) : 0, done = today && step >= steps.length;
+    const n = today ? (c.ids || []).length : c.daily;
+    return `<div class="h-course"><section class="card mc-card">
+      <div class="mc-head"><span class="mg-ico ${g.c}">${IC[g.ico]}</span><div class="mc-t"><small>맞춤 코스 · ${esc(LT_LV[c.lv].name)} · 하루 ${c.daily}개</small><b>${esc(g.name)} · Day ${today ? c.day : (c.day || 0) + 1}</b></div><button class="link-btn" data-act="mc-open">바꾸기</button></div>
+      <ol class="mc-steps">${steps.map((m, i) => `<li class="${i < step || done ? 'done' : i === step ? 'now' : ''}"><i>${i < step || done ? IC.tick : i + 1}</i><span>${esc(mcStepName(m))}</span></li>`).join('')}</ol>
+      ${done ? '<div class="mc-done">오늘 맞춤 학습을 다 했어요. 내일 새 단어가 열려요.</div>' : `<button class="btn btn-primary btn-block" data-act="mc-go">${step ? `${step + 1}단계 이어서 하기` : `오늘의 새 단어 ${n}개 시작`}</button>`}
+    </section></div>`;
+  }
+  ACTIONS['mc-go'] = async () => {
+    const c = await mcToday(); if (!c) return;
+    const steps = mcSteps(c.goal), step = c.step || 0, items = mcItems();
+    if (!items.length) { toast('오늘 배울 새 단어가 없어요. 이 코스의 단어를 다 담았어요. 다른 목적이나 수준으로 바꿔 보세요.'); return; }
+    if (step >= steps.length) return;
+    const cat = mcCat();
+    startSession(steps[step], { type: 'cat', id: cat.id }, 0, items);
+    if (S && S.active) S.course = step;
+  };
+  // 학습을 끝내면 다음 단계로. finishSession 에서 불러요.
+  function mcAdvance() {
+    const c = config.course; if (!c || S.course == null || c.last !== dayKey()) return null;
+    const steps = mcSteps(c.goal);
+    if ((c.step || 0) === S.course) { c.step = S.course + 1; syncStorage(); }
+    return { next: c.step < steps.length ? c.step : null, name: c.step < steps.length ? mcStepName(steps[c.step]) : '' };
+  }
+  ACTIONS['mc-next'] = async () => { try { await exitSession(true); } catch (e) {} ACTIONS['mc-go'](); };
+
+  /* ----- 맞춤 코스 만들기 화면 ----- */
+  let MC = null;
+  function mcOpen() {
+    if ($('mcOv')) return;
+    const c = config.course || {};
+    MC = { goal: c.goal || '', lv: c.lv != null ? c.lv : mcLevel(), daily: c.daily || 10, step: 0 };
+    const ov = document.createElement('div'); ov.className = 'ob mc-ov'; ov.id = 'mcOv'; document.body.appendChild(ov);
+    mcDraw();
+  }
+  ACTIONS['mc-open'] = () => mcOpen();
+  function mcBar() { return `<div class="lt-bar"><i style="width:${Math.round((MC.step + 1) / 3 * 100)}%"></i></div>`; }
+  function mcDraw() {
+    const ov = $('mcOv'); if (!ov || !MC) return;
+    let body = '', foot = '';
+    if (MC.step === 0) {
+      body = `<h2>영어를 왜 공부하나요?</h2><p>목적에 맞는 단어와 학습 방법을 골라 드려요.</p>
+        <div class="mc-grid">${Object.entries(MC_GOALS).map(([k, g]) => `<button class="mc-opt${MC.goal === k ? ' on' : ''}" data-mc="goal" data-v="${k}"><span class="mg-ico ${g.c}">${IC[g.ico]}</span><b>${esc(g.name)}</b><small>${esc(g.desc)}</small></button>`).join('')}</div>`;
+      foot = `<button class="btn btn-primary btn-block" data-mc="next"${MC.goal ? '' : ' disabled'}>다음</button>`;
+    } else if (MC.step === 1) {
+      const saved = mcLevel();
+      body = `<h2>지금 내 영어 수준은?</h2><p>${saved != null ? `레벨 테스트 결과는 <b>${esc(LT_LV[saved].name)}</b>이에요.` : '모르면 12문제 레벨 테스트로 알아봐요 (2분).'}</p>
+        <button class="btn btn-soft btn-block mc-lt" data-mc="lt">${saved != null ? '레벨 테스트 다시 하기' : '레벨 테스트로 알아보기'}</button>
+        <div class="mc-lv">${LT_LV.map((l, i) => `<button class="mc-opt row${MC.lv === i ? ' on' : ''}" data-mc="lv" data-v="${i}"><b>${esc(l.name)}</b><small>${esc(l.desc)}</small></button>`).join('')}</div>`;
+      foot = `<button class="btn btn-primary btn-block" data-mc="next"${MC.lv != null ? '' : ' disabled'}>다음</button>`;
+    } else {
+      const g = MC_GOALS[MC.goal];
+      body = `<h2>하루에 얼마나 할까요?</h2><p>매일 새 단어를 이만큼 담고, ${esc(mcSteps(MC.goal).map(mcStepName).join(' → '))} 순서로 익혀요.</p>
+        <div class="mc-lv">${MC_DAILY.map(([n, t, l]) => `<button class="mc-opt row${MC.daily === n ? ' on' : ''}" data-mc="daily" data-v="${n}"><b>하루 ${n}개 · 약 ${t}</b><small>${l}</small></button>`).join('')}</div>
+        <div class="card mc-sum"><b>${esc(g.name)} · ${esc(LT_LV[MC.lv].name)}</b><small>복습은 잊어버리기 직전에 홈의 '오늘의 복습'으로 자동으로 다시 나와요.</small></div>`;
+      foot = `<button class="btn btn-primary btn-block" data-mc="done">맞춤 코스 시작하기</button>`;
+    }
+    ov.innerHTML = `<div class="mc-top">${MC.step ? '<button class="ob-skip mc-back" data-mc="back">← 이전</button>' : ''}<button class="ob-skip" data-mc="close">닫기</button></div>${mcBar()}
+      <div class="ob-body mc-body">${body}</div><div class="ob-foot">${foot}</div>`;
+  }
+  function mcSave() {
+    const old = config.course || {}, same = old.goal === MC.goal && old.lv === MC.lv;
+    config.course = { goal: MC.goal, lv: MC.lv, daily: MC.daily, catId: same ? old.catId : null, day: same ? old.day || 0 : 0, last: same ? old.last : '', ids: same ? old.ids || [] : [], step: same ? old.step || 0 : 0 };
+    if (!same && old.last === dayKey()) config.course.last = '';
+    config.goal = Math.max(config.goal || 0, MC.daily);
+    syncStorage();
+    const ov = $('mcOv'); if (ov) ov.remove(); MC = null;
+    if (curTab === 'tabHome') renderHome();
+    ACTIONS['mc-go']();
+  }
+  document.addEventListener('click', e => {
+    const b = e.target.closest && e.target.closest('#mcOv [data-mc]'); if (!b || !MC || b.disabled) return;
+    const a = b.dataset.mc;
+    if (a === 'close') { const ov = $('mcOv'); if (ov) ov.remove(); MC = null; return; }
+    if (a === 'goal') MC.goal = b.dataset.v;
+    else if (a === 'lv') MC.lv = +b.dataset.v;
+    else if (a === 'daily') MC.daily = +b.dataset.v;
+    else if (a === 'next') MC.step = Math.min(2, MC.step + 1);
+    else if (a === 'back') MC.step = Math.max(0, MC.step - 1);
+    else if (a === 'done') return mcSave();
+    else if (a === 'lt') { const ov = $('mcOv'); if (ov) ov.remove(); mcAfterLt = { ...MC }; MC = null; ltOpen(false); setTimeout(() => { const o = $('ltOv'); if (o) ltDraw(); }, 0); return; }
+    mcDraw();
+  });
+  // 레벨 테스트를 코스 화면에서 열었으면 결과로 수준을 정하고 코스 화면으로 돌아와요
+  let mcAfterLt = null;
+  function mcFromLt(r) {
+    const st = mcAfterLt || { goal: '', daily: 10 }; mcAfterLt = null;
+    const ov0 = $('ltOv'); if (ov0) ov0.remove(); LT = null;
+    MC = { goal: st.goal, lv: r, daily: st.daily || 10, step: st.goal ? 2 : 0 };
+    const ov = document.createElement('div'); ov.className = 'ob mc-ov'; ov.id = 'mcOv'; document.body.appendChild(ov); mcDraw();
+  }
   ACTIONS['level-test'] = () => ltOpen(false);
   function ltEntryHtml() {
     let s = null; try { s = JSON.parse(LS.getItem(ltKey()) || 'null'); } catch (e) {}

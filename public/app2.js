@@ -122,6 +122,7 @@
       if (typeof saved.kpronZh === 'boolean') cfg.kpronZh = saved.kpronZh;
       if (Number.isFinite(+saved.studyCount)) cfg.studyCount = Math.max(0, Math.min(500, Math.floor(+saved.studyCount)));
       if (saved.guide && typeof saved.guide === 'object') cfg.guide = cleanGuide(saved.guide);
+      cfg.course = cleanCourse(saved.course);
       cfg.lang = saved.lang === 'zh' ? 'zh' : 'en';
       cfg.grade = GRADE_NAMES[saved.grade] ? saved.grade : '';
       cfg.role = saved.role === 'teacher' ? 'teacher' : '';
@@ -170,6 +171,13 @@
     passages = sanitizePassages(d && d.passages);
   }
 
+  // 맞춤 코스 설정 정리 (저장 · 백업 · 서버 동기화에 써요)
+  function cleanCourse(c) {
+    if (!c || typeof c !== 'object' || !['travel', 'talk', 'school', 'toeic', 'toefl', 'basic'].includes(c.goal)) return null;
+    const lv = Math.max(0, Math.min(4, Math.floor(+c.lv || 0))), daily = [5, 10, 20, 30].includes(+c.daily) ? +c.daily : 10;
+    return { goal: c.goal, lv, daily, catId: typeof c.catId === 'string' ? c.catId.slice(0, 40) : null, day: Math.max(0, Math.min(9999, Math.floor(+c.day || 0))),
+      last: typeof c.last === 'string' ? c.last.slice(0, 12) : '', ids: Array.isArray(c.ids) ? c.ids.filter(x => typeof x === 'string').slice(0, 40) : [], step: Math.max(0, Math.min(9, Math.floor(+c.step || 0))) };
+  }
   function syncStorage() {
     if (!currentUser) return;
     try {

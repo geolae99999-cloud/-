@@ -104,7 +104,7 @@
 
   /* ----- 백업 ----- */
   ACTIONS['export-json'] = () => {
-    const data = { app: 'VocaPro', version: 14, settings: { ...ttsCfgOut(), darkMode: config.darkMode, goal: config.goal, grade: config.grade, haptic: config.haptic !== false, kpronEn: config.kpronEn !== false, kpronZh: config.kpronZh !== false, studyCount: config.studyCount, guide: cleanGuide(config.guide) }, ...dataBlob() };
+    const data = { app: 'VocaPro', version: 14, settings: { ...ttsCfgOut(), darkMode: config.darkMode, goal: config.goal, grade: config.grade, haptic: config.haptic !== false, kpronEn: config.kpronEn !== false, kpronZh: config.kpronZh !== false, studyCount: config.studyCount, guide: cleanGuide(config.guide), course: cleanCourse(config.course) }, ...dataBlob() };
     download(`VocaPro_${dayKey()}.json`, JSON.stringify(data, null, 2), 'application/json');
     toast('백업 파일을 내려받았어요. API 키는 포함되지 않아요.');
   };
@@ -132,6 +132,7 @@
           if (typeof res.settings.kpronZh === 'boolean') config.kpronZh = res.settings.kpronZh;
           if (Number.isFinite(+res.settings.studyCount)) config.studyCount = Math.max(0, Math.min(500, Math.floor(+res.settings.studyCount)));
           if (res.settings.guide && typeof res.settings.guide === 'object') config.guide = cleanGuide(res.settings.guide);
+          if (res.settings.course !== undefined) config.course = cleanCourse(res.settings.course);
           if (GRADE_NAMES[res.settings.grade]) config.grade = res.settings.grade;
         }
         currentCategoryId = null; viewOrder = null; openDrawers.clear();
