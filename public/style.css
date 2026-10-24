@@ -84,7 +84,7 @@
     .row { display: flex; gap: 8px; }
     .row > * { flex: 1; min-width: 0; }
     .link-btn { background: none; border: none; color: var(--blue); font-weight: 800; text-decoration: underline; text-underline-offset: 3px; padding: 0 2px; }
-    input[type=text], input[type=password], input[type=number], input[type=search], select, textarea {
+    input[type=text], input[type=password], input[type=email], input[type=number], input[type=search], select, textarea {
       width: 100%; padding: 13px 14px; border: 1.5px solid var(--line); border-radius: 13px; font-size: 1rem; background: var(--surface); color: var(--ink); outline: none; transition: border-color .15s, box-shadow .15s;
     }
     select { appearance: none; -webkit-appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%); background-position: calc(100% - 19px) 50%, calc(100% - 14px) 50%; background-size: 5px 5px; background-repeat: no-repeat; padding-right: 36px; }
@@ -750,7 +750,7 @@
     .btn-soft.danger { background: var(--coral-soft); }
     .sheet .btn-soft, .dlg .btn-soft, .q-foot .btn-soft { background: var(--surface-2); color: var(--ink-2); }
     .link-btn { color: var(--blue); font-weight: 600; text-decoration: none; }
-    input[type=text], input[type=password], input[type=number], input[type=search], select, textarea { background: var(--surface-2); border: 1.5px solid transparent; border-radius: 14px; padding: 15px 16px; }
+    input[type=text], input[type=password], input[type=email], input[type=number], input[type=search], select, textarea { background: var(--surface-2); border: 1.5px solid transparent; border-radius: 14px; padding: 15px 16px; }
     input:focus, select:focus, textarea:focus { background: var(--surface); border-color: var(--blue); box-shadow: none; }
     .toolbar input { background: var(--surface); }
     .card, .tile, .mg-entry, .book, .book-sum, .word-list, .icon-btn, .src, .mode, .q-card, .opt, .stat-tile, .settings-card, .menu-list, .auth-box,
@@ -1395,6 +1395,12 @@
     .em-row { display: flex; gap: 8px; }
     .em-row input { flex: 1; min-width: 0; }
     .em-row .em-send { flex: none; white-space: nowrap; padding: 0 14px; font-size: .85rem; }
+    .em-dlg .em-row { flex-direction: column; }
+    .em-dlg .em-row .em-send { width: 100%; min-height: 44px; }
+    .em-dlg .em-row input { flex: none; width: 100%; }
+    .em-dlg .row .btn { white-space: nowrap; padding-left: 8px; padding-right: 8px; }
+    @media (max-width: 360px) { .em-row { flex-direction: column; } .em-row input { flex: none; width: 100%; } .em-row .em-send { width: 100%; min-height: 44px; } }
+    .em-hint { display: block; margin: -4px 2px 0; color: var(--muted); font-size: .76rem; line-height: 1.5; }
     .au-forgot { display: block; margin: 2px auto 0; font-size: .82rem; }
     .acct-email { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
     .acct-email[hidden] { display: none; }
@@ -1730,9 +1736,9 @@
     .hero-btn:active:not(:disabled) { transform: scale(.97); }
 
     /* ---- 입력 ---- */
-    input[type=text], input[type=password], input[type=number], input[type=search], input[type=date], select, textarea { background: var(--surface-2); border: 1.5px solid transparent; border-radius: 14px; padding: 15px 16px; font-size: 16px; color: var(--ink); }
+    input[type=text], input[type=password], input[type=email], input[type=number], input[type=search], input[type=date], select, textarea { background: var(--surface-2); border: 1.5px solid transparent; border-radius: 14px; padding: 15px 16px; font-size: 16px; color: var(--ink); }
     input:focus, select:focus, textarea:focus { background: var(--surface); border-color: var(--blue); box-shadow: none; }
-    body.dark :is(input[type=text], input[type=password], input[type=number], input[type=search], input[type=date], select, textarea):focus { background: var(--surface-2); }
+    body.dark :is(input[type=text], input[type=password], input[type=email], input[type=number], input[type=search], input[type=date], select, textarea):focus { background: var(--surface-2); }
     .toolbar input, .add-row input { background: var(--surface); }
     body.dark :is(.toolbar, .add-row) input { background: var(--surface); }
 
@@ -2547,7 +2553,7 @@
     .btn-soft { height: 48px; background: var(--surface); color: var(--ink); border: 1px solid var(--line) !important; }
     body.dark .btn-soft { background: var(--surface-2); border-color: var(--line) !important; color: var(--ink); }
     .btn-sm { height: 44px; border-radius: 12px; }
-    input[type=text], input[type=password], input[type=number], input[type=search], input[type=date], select, textarea {
+    input[type=text], input[type=password], input[type=email], input[type=number], input[type=search], input[type=date], select, textarea {
       height: 52px; padding: 0 16px; border: 1.5px solid var(--line); border-radius: 14px; background: var(--surface); color: var(--ink);
     }
     textarea { height: auto; padding: 14px 16px; }

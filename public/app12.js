@@ -512,8 +512,8 @@
   };
   // ===== 이메일 인증코드 (가입 · 비밀번호 찾기 · 이메일 등록) =====
   const EMAIL_RE = /^[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9.-]{1,185}\.[A-Za-z]{2,24}$/;
-  const emailCodeHtml = (pfx, email, code, purpose) => `<div class="em-row"><input type="email" id="${pfx}Email" value="${esc(email || '')}" placeholder="이메일 (비밀번호 찾기에 써요)" autocomplete="email" autocapitalize="none" spellcheck="false" maxlength="254"><button type="button" class="btn btn-soft em-send" data-act="em-send" data-f="${pfx}Email" data-c="${pfx}Code" data-p="${purpose}">인증코드 받기</button></div>
-    <input type="text" id="${pfx}Code" value="${esc(code || '')}" placeholder="인증코드 6자리" inputmode="numeric" autocomplete="one-time-code" maxlength="6">`;
+  const emailCodeHtml = (pfx, email, code, purpose) => `<div class="em-row"><input type="email" id="${pfx}Email" value="${esc(email || '')}" placeholder="이메일 주소" autocomplete="email" autocapitalize="none" spellcheck="false" maxlength="254"><button type="button" class="btn btn-soft em-send" data-act="em-send" data-f="${pfx}Email" data-c="${pfx}Code" data-p="${purpose}">인증코드 받기</button></div>
+    <input type="text" id="${pfx}Code" value="${esc(code || '')}" placeholder="인증코드 6자리" inputmode="numeric" autocomplete="one-time-code" maxlength="6">${purpose === 'signup' ? '<small class="em-hint">이메일은 비밀번호를 잊었을 때 다시 정하는 데만 써요.</small>' : ''}`;
   ACTIONS['em-send'] = async el => {
     const f = $(el.dataset.f), email = f ? f.value.trim().toLowerCase() : '';
     const box = el.closest('.dlg') ? el.closest('.dlg').querySelector('.dlg-msg') : $('auMsg');
@@ -549,7 +549,7 @@
   ACTIONS['pw-forgot'] = () => {
     emDialog('아이디 · 비밀번호 찾기', '가입할 때 등록한 이메일로 인증코드를 보내요. 확인되면 아이디를 알려 주고 새 비밀번호로 바꿔요.',
       emailCodeHtml('fg', '', '', 'reset') + '<input type="password" id="fgPw" placeholder="새 비밀번호 (6자 이상)" autocomplete="new-password" maxlength="72"><input type="password" id="fgPw2" placeholder="새 비밀번호 확인" autocomplete="new-password" maxlength="72">',
-      '비밀번호 바꾸기', async (ov, msg, close) => {
+      '바꾸기', async (ov, msg, close) => {
         const email = $('fgEmail').value.trim().toLowerCase(), code = $('fgCode').value.trim(), pw = $('fgPw').value;
         if (!EMAIL_RE.test(email)) return msg('이메일 주소를 확인해 주세요.');
         if (!/^\d{6}$/.test(code)) return msg('이메일로 받은 인증코드 6자리를 입력해 주세요.');

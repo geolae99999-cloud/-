@@ -109,7 +109,7 @@
     .row { display: flex; gap: 8px; }
     .row > * { flex: 1; min-width: 0; }
     .link-btn { background: none; border: none; color: var(--blue); font-weight: 800; text-decoration: underline; text-underline-offset: 3px; padding: 0 2px; }
-    input[type=text], input[type=password], input[type=number], input[type=search], select, textarea {
+    input[type=text], input[type=password], input[type=email], input[type=number], input[type=search], select, textarea {
       width: 100%; padding: 13px 14px; border: 1.5px solid var(--line); border-radius: 13px; font-size: 1rem; background: var(--surface); color: var(--ink); outline: none; transition: border-color .15s, box-shadow .15s;
     }
     select { appearance: none; -webkit-appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%); background-position: calc(100% - 19px) 50%, calc(100% - 14px) 50%; background-size: 5px 5px; background-repeat: no-repeat; padding-right: 36px; }
@@ -775,7 +775,7 @@
     .btn-soft.danger { background: var(--coral-soft); }
     .sheet .btn-soft, .dlg .btn-soft, .q-foot .btn-soft { background: var(--surface-2); color: var(--ink-2); }
     .link-btn { color: var(--blue); font-weight: 600; text-decoration: none; }
-    input[type=text], input[type=password], input[type=number], input[type=search], select, textarea { background: var(--surface-2); border: 1.5px solid transparent; border-radius: 14px; padding: 15px 16px; }
+    input[type=text], input[type=password], input[type=email], input[type=number], input[type=search], select, textarea { background: var(--surface-2); border: 1.5px solid transparent; border-radius: 14px; padding: 15px 16px; }
     input:focus, select:focus, textarea:focus { background: var(--surface); border-color: var(--blue); box-shadow: none; }
     .toolbar input { background: var(--surface); }
     .card, .tile, .mg-entry, .book, .book-sum, .word-list, .icon-btn, .src, .mode, .q-card, .opt, .stat-tile, .settings-card, .menu-list, .auth-box,
@@ -1420,6 +1420,12 @@
     .em-row { display: flex; gap: 8px; }
     .em-row input { flex: 1; min-width: 0; }
     .em-row .em-send { flex: none; white-space: nowrap; padding: 0 14px; font-size: .85rem; }
+    .em-dlg .em-row { flex-direction: column; }
+    .em-dlg .em-row .em-send { width: 100%; min-height: 44px; }
+    .em-dlg .em-row input { flex: none; width: 100%; }
+    .em-dlg .row .btn { white-space: nowrap; padding-left: 8px; padding-right: 8px; }
+    @media (max-width: 360px) { .em-row { flex-direction: column; } .em-row input { flex: none; width: 100%; } .em-row .em-send { width: 100%; min-height: 44px; } }
+    .em-hint { display: block; margin: -4px 2px 0; color: var(--muted); font-size: .76rem; line-height: 1.5; }
     .au-forgot { display: block; margin: 2px auto 0; font-size: .82rem; }
     .acct-email { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
     .acct-email[hidden] { display: none; }
@@ -1755,9 +1761,9 @@
     .hero-btn:active:not(:disabled) { transform: scale(.97); }
 
     /* ---- 입력 ---- */
-    input[type=text], input[type=password], input[type=number], input[type=search], input[type=date], select, textarea { background: var(--surface-2); border: 1.5px solid transparent; border-radius: 14px; padding: 15px 16px; font-size: 16px; color: var(--ink); }
+    input[type=text], input[type=password], input[type=email], input[type=number], input[type=search], input[type=date], select, textarea { background: var(--surface-2); border: 1.5px solid transparent; border-radius: 14px; padding: 15px 16px; font-size: 16px; color: var(--ink); }
     input:focus, select:focus, textarea:focus { background: var(--surface); border-color: var(--blue); box-shadow: none; }
-    body.dark :is(input[type=text], input[type=password], input[type=number], input[type=search], input[type=date], select, textarea):focus { background: var(--surface-2); }
+    body.dark :is(input[type=text], input[type=password], input[type=email], input[type=number], input[type=search], input[type=date], select, textarea):focus { background: var(--surface-2); }
     .toolbar input, .add-row input { background: var(--surface); }
     body.dark :is(.toolbar, .add-row) input { background: var(--surface); }
 
@@ -2572,7 +2578,7 @@
     .btn-soft { height: 48px; background: var(--surface); color: var(--ink); border: 1px solid var(--line) !important; }
     body.dark .btn-soft { background: var(--surface-2); border-color: var(--line) !important; color: var(--ink); }
     .btn-sm { height: 44px; border-radius: 12px; }
-    input[type=text], input[type=password], input[type=number], input[type=search], input[type=date], select, textarea {
+    input[type=text], input[type=password], input[type=email], input[type=number], input[type=search], input[type=date], select, textarea {
       height: 52px; padding: 0 16px; border: 1.5px solid var(--line); border-radius: 14px; background: var(--surface); color: var(--ink);
     }
     textarea { height: auto; padding: 14px 16px; }
@@ -8119,8 +8125,8 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
   };
   // ===== 이메일 인증코드 (가입 · 비밀번호 찾기 · 이메일 등록) =====
   const EMAIL_RE = /^[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9.-]{1,185}\.[A-Za-z]{2,24}$/;
-  const emailCodeHtml = (pfx, email, code, purpose) => `<div class="em-row"><input type="email" id="${pfx}Email" value="${esc(email || '')}" placeholder="이메일 (비밀번호 찾기에 써요)" autocomplete="email" autocapitalize="none" spellcheck="false" maxlength="254"><button type="button" class="btn btn-soft em-send" data-act="em-send" data-f="${pfx}Email" data-c="${pfx}Code" data-p="${purpose}">인증코드 받기</button></div>
-    <input type="text" id="${pfx}Code" value="${esc(code || '')}" placeholder="인증코드 6자리" inputmode="numeric" autocomplete="one-time-code" maxlength="6">`;
+  const emailCodeHtml = (pfx, email, code, purpose) => `<div class="em-row"><input type="email" id="${pfx}Email" value="${esc(email || '')}" placeholder="이메일 주소" autocomplete="email" autocapitalize="none" spellcheck="false" maxlength="254"><button type="button" class="btn btn-soft em-send" data-act="em-send" data-f="${pfx}Email" data-c="${pfx}Code" data-p="${purpose}">인증코드 받기</button></div>
+    <input type="text" id="${pfx}Code" value="${esc(code || '')}" placeholder="인증코드 6자리" inputmode="numeric" autocomplete="one-time-code" maxlength="6">${purpose === 'signup' ? '<small class="em-hint">이메일은 비밀번호를 잊었을 때 다시 정하는 데만 써요.</small>' : ''}`;
   ACTIONS['em-send'] = async el => {
     const f = $(el.dataset.f), email = f ? f.value.trim().toLowerCase() : '';
     const box = el.closest('.dlg') ? el.closest('.dlg').querySelector('.dlg-msg') : $('auMsg');
@@ -8156,7 +8162,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
   ACTIONS['pw-forgot'] = () => {
     emDialog('아이디 · 비밀번호 찾기', '가입할 때 등록한 이메일로 인증코드를 보내요. 확인되면 아이디를 알려 주고 새 비밀번호로 바꿔요.',
       emailCodeHtml('fg', '', '', 'reset') + '<input type="password" id="fgPw" placeholder="새 비밀번호 (6자 이상)" autocomplete="new-password" maxlength="72"><input type="password" id="fgPw2" placeholder="새 비밀번호 확인" autocomplete="new-password" maxlength="72">',
-      '비밀번호 바꾸기', async (ov, msg, close) => {
+      '바꾸기', async (ov, msg, close) => {
         const email = $('fgEmail').value.trim().toLowerCase(), code = $('fgCode').value.trim(), pw = $('fgPw').value;
         if (!EMAIL_RE.test(email)) return msg('이메일 주소를 확인해 주세요.');
         if (!/^\d{6}$/.test(code)) return msg('이메일로 받은 인증코드 6자리를 입력해 주세요.');
