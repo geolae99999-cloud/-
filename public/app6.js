@@ -33,6 +33,7 @@
     $('stProg').style.width = (S.idx / S.queue.length * 100) + '%';
     $('stCount').textContent = `${S.idx + 1}/${S.queue.length}`;
     const item = S.queue[S.idx];
+    for (let i = 1; i <= 2; i++) { const nx = S.queue[S.idx + i]; if (nx && nx.w) ttsPrefetch(nx.w.word); }
     const md = S.mode === 'test' || S.mode === 'mix' ? (item.t || 'choice') : S.mode;
     if (md === 'card') renderCard(item);
     else if (md === 'choice') renderChoice(item, false);
@@ -111,6 +112,18 @@
       </div>`;
     bindSwipe();
     playAudio(w.word);
+    fillPronLater(w);
+  }
+  // 예전에 저장한 숙어처럼 발음이 비어 있는 단어는 사전으로 채워서 카드에 바로 보여 줘요
+  async function fillPronLater(w) {
+    if (!w || (w.phonetic && w.koreanPron) || isHanWord(w.word)) return;
+    let d = null; try { d = await dictGet(w.word); } catch (e) {}
+    if (!d) return;
+    let hit = false; ['phonetic', 'koreanPron'].forEach(k => { if (!w[k] && d[k]) { w[k] = d[k]; hit = true; } });
+    if (!hit) return;
+    syncStorage();
+    const cur = S.active && S.queue[S.idx] && S.queue[S.idx].w === w;
+    if (cur) document.querySelectorAll('#stBody .q-pron').forEach(e => { e.textContent = pronText(w); });
   }
   function bindSwipe() {
     const wrap = $('swipeWrap'); if (!wrap) return;

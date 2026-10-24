@@ -576,7 +576,7 @@
         const ch = chunks[ci++]; if (!ch) return;
         try {
           const m = await callAi(buildBatchPrompt(ch.map(e => e.word)), normalizeBatch, { task: 'batch', words: ch.map(e => e.word), lang: aiLang(ch[0].word) });
-          ch.forEach(e => { const r = m[e.word.toLowerCase()]; if (r) { res.set(e.word.toLowerCase(), r); aicSet(e.word, r); } });
+          for (const e of ch) { let r = m[e.word.toLowerCase()]; if (r) { r = await polish(e.word, r); res.set(e.word.toLowerCase(), r); aicSet(e.word, r); } }
         } catch (err) { if ([401, 403, 429].includes(err.status) || /AI를 쓸 수 없|한도|준비되지/.test(err.message)) stopped = err.message.split('\n')[0]; }
         done += ch.length; upd();
       }
@@ -687,12 +687,12 @@
       const ch = need.slice(i, i + 6);
       try {
         const m = await callAi(buildBatchPrompt(ch.map(w => w.word)), normalizeBatch, { task: 'batch', words: ch.map(w => w.word), lang: aiLang(ch[0].word) });
-        ch.forEach(w => {
-          const r = m[w.word.toLowerCase()]; if (!r) { fail++; return; }
-          aicSet(w.word, r);
+        for (const w of ch) {
+          let r = m[w.word.toLowerCase()]; if (!r) { fail++; continue; }
+          r = await polish(w.word, r); aicSet(w.word, r);
           ['meaning', 'phonetic', 'koreanPron', 'example', 'exampleKo', 'synonyms'].forEach(k => { if (!w[k] && r[k]) w[k] = r[k]; });
           done++;
-        });
+        }
         syncStorage(); if (curTab === 'paneBook') renderWordList();
       } catch (e) { fail += ch.length; if ([401, 403, 429].includes(e.status)) stop = e.message.split('\n')[0]; }
     }

@@ -348,7 +348,30 @@
   }
   async function dictRaw(w) { const c = dictLetter(w); return c ? (await dictShard(c))[w] : null; }
   const dictObj = a => { const o = {}; DICT_KEYS.forEach((k, i) => { o[k] = a[i] || ''; }); return o; };
-  async function dictGet(word) {
+  // 숙어(cry out to)는 사전에 발음이 비어 있어요. 단어마다 사전 발음을 찾아 이어 붙여요: /kraɪ aʊt tu/ [크라이 아웃 투]
+  // 한 단어라도 못 찾으면 만들지 않아요(엉뚱한 글자가 섞이지 않게).
+  const PRON_EXTRA = { "one's": ['wʌnz', '원즈'], "someone's": ['ˈsʌmˌwʌnz', '썸원즈'], "somebody's": ['ˈsʌmbədiz', '썸바디즈'], sb: ['ˈsʌmbədi', '썸바디'], sth: ['ˈsʌmθɪŋ', '썸씽'], a: ['ə', '어'], an: ['ən', '언'] };
+  async function composePron(word) {
+    const raw = String(word || '').toLowerCase().replace(/[’‘]/g, "'");
+    if (isHanWord(raw) || !/[a-z]/.test(raw)) return null;
+    const toks = raw.replace(/[~…/()\[\]]/g, ' ').split(/\s+/).map(t => t.replace(/^[^a-z']+|[^a-z']+$/g, '')).filter(Boolean);
+    if (!toks.length || toks.length > 8) return null;
+    const ph = [], ko = [];
+    for (const t of toks) {
+      const x = PRON_EXTRA[t]; if (x) { ph.push(x[0]); ko.push(x[1]); continue; }
+      let a = null; try { a = await dictRaw(t); } catch (e) {}
+      if (!Array.isArray(a) || !a[2] || !a[3]) return null;
+      ph.push(String(a[2]).replace(/^\/+|\/+$/g, '')); ko.push(String(a[3]));
+    }
+    return { phonetic: `/${ph.join(' ')}/`, koreanPron: ko.join(' ') };
+  }
+  async function withPron(o, word) {
+    if (!o || (o.phonetic && o.koreanPron) || !/\s/.test(String(word).trim())) return o;
+    const c = await composePron(word); if (c) { if (!o.phonetic) o.phonetic = c.phonetic; if (!o.koreanPron) o.koreanPron = c.koreanPron; }
+    return o;
+  }
+  async function dictGet(word) { return withPron(await dictGetRaw(word), word); }
+  async function dictGetRaw(word) {
     const w = String(word || '').trim().toLowerCase(); if (!dictLetter(w)) return null;
     let a = await dictRaw(w);
     if (typeof a === 'string') {
@@ -369,10 +392,37 @@
     return null;
   }
   async function dictPreload(words) { await Promise.all([...new Set(words.map(dictLetter).filter(Boolean))].map(dictShard)); }
+  // AI가 준 발음을 다듬어요: 한글 발음에 섞인 영어 · 기호를 빼고, 숙어는 단어 수와 한글 덩어리 수가 다르면(크라이 아웃 투 섹) 사전 발음으로 바꿔요.
+  async function polish(word, r) {
+    if (!r || isHanWord(word)) return r;
+    const o = { ...r };
+    let ph = str(o.phonetic).replace(/[\[\]]/g, '').trim();
+    if (/[가-힣]/.test(ph)) ph = '';
+    if (ph && !/^\/.*\/$/.test(ph)) ph = '/' + ph.replace(/^\/+|\/+$/g, '') + '/';
+    o.phonetic = ph;
+    let ko = str(o.koreanPron).replace(/[\[\]()（）]/g, ' ').replace(/[^가-힣\s-]/g, ' ').replace(/\s+/g, ' ').trim();
+    const toks = String(word).trim().split(/\s+/).filter(Boolean);
+    if (toks.length > 1) {
+      const c = await composePron(word);
+      if (c) { o.koreanPron = c.koreanPron; if (!o.phonetic || o.phonetic.split(/\s+/).length !== toks.length) o.phonetic = c.phonetic; return o; }
+      if (ko && ko.split(' ').length > toks.length) ko = ko.split(' ').slice(0, toks.length).join(' ');
+    }
+    o.koreanPron = ko;
+    return o;
+  }
+  async function aiWord(word, full) {
+    const hit = aicGet(word); if (hit && (hit.example || !full)) return polish(word, hit);
+    const r = await polish(word, await callAi(buildPrompt(word, full), normalizeResult, { task: 'word', word, full: !!full, lang: aiLang(word) })); if (full) aicSet(word, r); return r;
+  }
+  // 사전에 있어도 발음 · 예문이 비어 있으면(변화형, 일부 숙어) AI로 빈칸만 채워요
   async function lookupWord(word, full) {
-    const own = await dictGet(word); if (own) return own;
-    const hit = aicGet(word); if (hit && (hit.example || !full)) return hit;
-    const r = await callAi(buildPrompt(word, full), normalizeResult, { task: 'word', word, full: !!full, lang: aiLang(word) }); if (full) aicSet(word, r); return r;
+    const own = await dictGet(word);
+    if (own && (!full || (own.phonetic && own.koreanPron && own.example) || !aiReady())) return own;
+    let ai;
+    try { ai = await aiWord(word, full); } catch (e) { if (own) return own; throw e; }
+    if (!own) return ai;
+    const o = { ...own }; ['phonetic', 'koreanPron', 'example', 'exampleKo', 'synonyms'].forEach(k => { if (!o[k] && ai && ai[k]) o[k] = ai[k]; });
+    return o;
   }
   const aiLang = w => isHanWord(w) ? 'zh' : undefined;
   const ZH_ENTRY = `"meaning":"핵심 한국어 뜻 (예: 공부하다, 배우다)","phonetic":"pinyin with tone marks, e.g. xuéxí","koreanPron":"한글 발음 (예: 쉬에시)","example":"short natural sentence in simplified Chinese that contains the word","exampleKo":"그 예문의 자연스러운 한국어 해석","synonyms":"中文近义词1, 近义词2 (없으면 빈칸)"`;
@@ -436,8 +486,8 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     const tick = () => { if (run === aiRun) aiState(`<span class="dot"></span>${local ? '기본 뜻을 먼저 채웠어요. 발음과 예문을 채우는 중' : 'AI가 채우는 중'} · ${((Date.now() - start) / 1000).toFixed(1)}초`, 'busy'); };
     tick(); const timer = setInterval(tick, 100);
     try {
-      const fromDict = await dictGet(query);
-      const r = fromDict || await lookupWord(query, true);
+      let r = await dictGet(query), fromDict = !!r;
+      if (!r || (aiReady() && (!r.phonetic || !r.koreanPron || !r.example))) { const r2 = await lookupWord(query, true); if (r2 !== r) fromDict = false; r = r2; }
       if (run !== aiRun || !$('fieldMeaning')) return;
       if ($('fieldWord').value.trim() !== query) { clearInterval(timer); aiState(''); return; } // 단어를 바꿨으면 '채우는 중' 표시를 지워요
       const force = !edit;

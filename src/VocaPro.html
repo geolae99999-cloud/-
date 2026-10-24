@@ -4578,7 +4578,7 @@ window.VOCA_CLOUD = {
         const ch = chunks[ci++]; if (!ch) return;
         try {
           const m = await callAi(buildBatchPrompt(ch.map(e => e.word)), normalizeBatch, { task: 'batch', words: ch.map(e => e.word), lang: aiLang(ch[0].word) });
-          ch.forEach(e => { const r = m[e.word.toLowerCase()]; if (r) { res.set(e.word.toLowerCase(), r); aicSet(e.word, r); } });
+          for (const e of ch) { let r = m[e.word.toLowerCase()]; if (r) { r = await polish(e.word, r); res.set(e.word.toLowerCase(), r); aicSet(e.word, r); } }
         } catch (err) { if ([401, 403, 429].includes(err.status) || /AI를 쓸 수 없|한도|준비되지/.test(err.message)) stopped = err.message.split('\n')[0]; }
         done += ch.length; upd();
       }
@@ -4689,12 +4689,12 @@ window.VOCA_CLOUD = {
       const ch = need.slice(i, i + 6);
       try {
         const m = await callAi(buildBatchPrompt(ch.map(w => w.word)), normalizeBatch, { task: 'batch', words: ch.map(w => w.word), lang: aiLang(ch[0].word) });
-        ch.forEach(w => {
-          const r = m[w.word.toLowerCase()]; if (!r) { fail++; return; }
-          aicSet(w.word, r);
+        for (const w of ch) {
+          let r = m[w.word.toLowerCase()]; if (!r) { fail++; continue; }
+          r = await polish(w.word, r); aicSet(w.word, r);
           ['meaning', 'phonetic', 'koreanPron', 'example', 'exampleKo', 'synonyms'].forEach(k => { if (!w[k] && r[k]) w[k] = r[k]; });
           done++;
-        });
+        }
         syncStorage(); if (curTab === 'paneBook') renderWordList();
       } catch (e) { fail += ch.length; if ([401, 403, 429].includes(e.status)) stop = e.message.split('\n')[0]; }
     }
@@ -4946,6 +4946,7 @@ window.VOCA_CLOUD = {
     $('stProg').style.width = (S.idx / S.queue.length * 100) + '%';
     $('stCount').textContent = `${S.idx + 1}/${S.queue.length}`;
     const item = S.queue[S.idx];
+    for (let i = 1; i <= 2; i++) { const nx = S.queue[S.idx + i]; if (nx && nx.w) ttsPrefetch(nx.w.word); }
     const md = S.mode === 'test' || S.mode === 'mix' ? (item.t || 'choice') : S.mode;
     if (md === 'card') renderCard(item);
     else if (md === 'choice') renderChoice(item, false);
@@ -5024,6 +5025,18 @@ window.VOCA_CLOUD = {
       </div>`;
     bindSwipe();
     playAudio(w.word);
+    fillPronLater(w);
+  }
+  // 예전에 저장한 숙어처럼 발음이 비어 있는 단어는 사전으로 채워서 카드에 바로 보여 줘요
+  async function fillPronLater(w) {
+    if (!w || (w.phonetic && w.koreanPron) || isHanWord(w.word)) return;
+    let d = null; try { d = await dictGet(w.word); } catch (e) {}
+    if (!d) return;
+    let hit = false; ['phonetic', 'koreanPron'].forEach(k => { if (!w[k] && d[k]) { w[k] = d[k]; hit = true; } });
+    if (!hit) return;
+    syncStorage();
+    const cur = S.active && S.queue[S.idx] && S.queue[S.idx].w === w;
+    if (cur) document.querySelectorAll('#stBody .q-pron').forEach(e => { e.textContent = pronText(w); });
   }
   function bindSwipe() {
     const wrap = $('swipeWrap'); if (!wrap) return;
@@ -6357,10 +6370,25 @@ window.VOCA_CLOUD = {
     }
     if (s) out.push(s); return out;
   }
-  const TTS_MEM = new Map();
+  const TTS_MEM = new Map(), TTS_PEND = new Map();
+  // 원어민 목소리는 마침표 없이 짧은 숙어(cry out to)를 받으면 끝에 없는 소리(섹)를 붙일 때가 있어요. 여러 단어인데 문장부호가 없으면 마침표를 붙여요.
+  const ttsText = (text, lang) => { const t = String(text).replace(/\s+/g, ' ').trim(); return lang === 'en' && /\s/.test(t) && !/[.!?,;:]$/.test(t) ? t + '.' : t; };
+  // 다음 카드 소리를 미리 받아 둬요(카드가 뜨자마자 바로 읽게)
+  function ttsPrefetch(text) {
+    try {
+      if (!text || !neuralOk() || (config.voice && config.voice[vFam(ttsLang(text))])) return;
+      const lang = ttsLang(text) === 'zh-CN' ? 'zh' : 'en'; const p = olChunks(text)[0]; if (p) neuralUrl(p, lang).catch(() => null);
+    } catch (e) {}
+  }
   const neuralOk = () => !!(window.VOCA_CLOUD && VOCA_CLOUD.url && window.crypto && crypto.subtle) && navigator.onLine !== false && config.neural !== false;
-  async function neuralUrl(text, lang) {
-    const mk = lang + '|' + text; if (TTS_MEM.has(mk)) return TTS_MEM.get(mk);
+  function neuralUrl(text, lang) {
+    text = ttsText(text, lang);
+    const mk = lang + '|' + text; if (TTS_MEM.has(mk)) return Promise.resolve(TTS_MEM.get(mk));
+    if (TTS_PEND.has(mk)) return TTS_PEND.get(mk);
+    const p = neuralFetch(text, lang, mk).finally(() => TTS_PEND.delete(mk));
+    TTS_PEND.set(mk, p); return p;
+  }
+  async function neuralFetch(text, lang, mk) {
     const base = String(VOCA_CLOUD.url).replace(/\/+$/, '');
     const hb = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`v1|${lang}|${text}`)));
     const key = [...hb].map(x => x.toString(16).padStart(2, '0')).join('');
@@ -6377,6 +6405,9 @@ window.VOCA_CLOUD = {
     const lang = vFam(L2) === 'zh' ? 'zh' : 'en', tok = ++olToken, parts = olChunks(text);
     return new Promise(async res => {
       let nextUrl = neuralUrl(parts[0], lang);
+      // 처음 만드는 소리는 서버에서 몇 초 걸려요. 0.7초 안에 안 오면 기기 목소리로 바로 읽고, 원어민 소리는 뒤에서 받아 다음부터 써요.
+      const first = TTS_MEM.has(lang + '|' + ttsText(parts[0], lang)) ? await nextUrl : await Promise.race([nextUrl, new Promise(r => setTimeout(() => r('slow'), 700))]);
+      if (first === 'slow') return res(tok === olToken ? false : 'cancel');
       for (let i = 0; i < parts.length; i++) {
         const url = await nextUrl;
         if (tok !== olToken) return res('cancel');
@@ -6830,7 +6861,30 @@ window.VOCA_CLOUD = {
   }
   async function dictRaw(w) { const c = dictLetter(w); return c ? (await dictShard(c))[w] : null; }
   const dictObj = a => { const o = {}; DICT_KEYS.forEach((k, i) => { o[k] = a[i] || ''; }); return o; };
-  async function dictGet(word) {
+  // 숙어(cry out to)는 사전에 발음이 비어 있어요. 단어마다 사전 발음을 찾아 이어 붙여요: /kraɪ aʊt tu/ [크라이 아웃 투]
+  // 한 단어라도 못 찾으면 만들지 않아요(엉뚱한 글자가 섞이지 않게).
+  const PRON_EXTRA = { "one's": ['wʌnz', '원즈'], "someone's": ['ˈsʌmˌwʌnz', '썸원즈'], "somebody's": ['ˈsʌmbədiz', '썸바디즈'], sb: ['ˈsʌmbədi', '썸바디'], sth: ['ˈsʌmθɪŋ', '썸씽'], a: ['ə', '어'], an: ['ən', '언'] };
+  async function composePron(word) {
+    const raw = String(word || '').toLowerCase().replace(/[’‘]/g, "'");
+    if (isHanWord(raw) || !/[a-z]/.test(raw)) return null;
+    const toks = raw.replace(/[~…/()\[\]]/g, ' ').split(/\s+/).map(t => t.replace(/^[^a-z']+|[^a-z']+$/g, '')).filter(Boolean);
+    if (!toks.length || toks.length > 8) return null;
+    const ph = [], ko = [];
+    for (const t of toks) {
+      const x = PRON_EXTRA[t]; if (x) { ph.push(x[0]); ko.push(x[1]); continue; }
+      let a = null; try { a = await dictRaw(t); } catch (e) {}
+      if (!Array.isArray(a) || !a[2] || !a[3]) return null;
+      ph.push(String(a[2]).replace(/^\/+|\/+$/g, '')); ko.push(String(a[3]));
+    }
+    return { phonetic: `/${ph.join(' ')}/`, koreanPron: ko.join(' ') };
+  }
+  async function withPron(o, word) {
+    if (!o || (o.phonetic && o.koreanPron) || !/\s/.test(String(word).trim())) return o;
+    const c = await composePron(word); if (c) { if (!o.phonetic) o.phonetic = c.phonetic; if (!o.koreanPron) o.koreanPron = c.koreanPron; }
+    return o;
+  }
+  async function dictGet(word) { return withPron(await dictGetRaw(word), word); }
+  async function dictGetRaw(word) {
     const w = String(word || '').trim().toLowerCase(); if (!dictLetter(w)) return null;
     let a = await dictRaw(w);
     if (typeof a === 'string') {
@@ -6851,10 +6905,37 @@ window.VOCA_CLOUD = {
     return null;
   }
   async function dictPreload(words) { await Promise.all([...new Set(words.map(dictLetter).filter(Boolean))].map(dictShard)); }
+  // AI가 준 발음을 다듬어요: 한글 발음에 섞인 영어 · 기호를 빼고, 숙어는 단어 수와 한글 덩어리 수가 다르면(크라이 아웃 투 섹) 사전 발음으로 바꿔요.
+  async function polish(word, r) {
+    if (!r || isHanWord(word)) return r;
+    const o = { ...r };
+    let ph = str(o.phonetic).replace(/[\[\]]/g, '').trim();
+    if (/[가-힣]/.test(ph)) ph = '';
+    if (ph && !/^\/.*\/$/.test(ph)) ph = '/' + ph.replace(/^\/+|\/+$/g, '') + '/';
+    o.phonetic = ph;
+    let ko = str(o.koreanPron).replace(/[\[\]()（）]/g, ' ').replace(/[^가-힣\s-]/g, ' ').replace(/\s+/g, ' ').trim();
+    const toks = String(word).trim().split(/\s+/).filter(Boolean);
+    if (toks.length > 1) {
+      const c = await composePron(word);
+      if (c) { o.koreanPron = c.koreanPron; if (!o.phonetic || o.phonetic.split(/\s+/).length !== toks.length) o.phonetic = c.phonetic; return o; }
+      if (ko && ko.split(' ').length > toks.length) ko = ko.split(' ').slice(0, toks.length).join(' ');
+    }
+    o.koreanPron = ko;
+    return o;
+  }
+  async function aiWord(word, full) {
+    const hit = aicGet(word); if (hit && (hit.example || !full)) return polish(word, hit);
+    const r = await polish(word, await callAi(buildPrompt(word, full), normalizeResult, { task: 'word', word, full: !!full, lang: aiLang(word) })); if (full) aicSet(word, r); return r;
+  }
+  // 사전에 있어도 발음 · 예문이 비어 있으면(변화형, 일부 숙어) AI로 빈칸만 채워요
   async function lookupWord(word, full) {
-    const own = await dictGet(word); if (own) return own;
-    const hit = aicGet(word); if (hit && (hit.example || !full)) return hit;
-    const r = await callAi(buildPrompt(word, full), normalizeResult, { task: 'word', word, full: !!full, lang: aiLang(word) }); if (full) aicSet(word, r); return r;
+    const own = await dictGet(word);
+    if (own && (!full || (own.phonetic && own.koreanPron && own.example) || !aiReady())) return own;
+    let ai;
+    try { ai = await aiWord(word, full); } catch (e) { if (own) return own; throw e; }
+    if (!own) return ai;
+    const o = { ...own }; ['phonetic', 'koreanPron', 'example', 'exampleKo', 'synonyms'].forEach(k => { if (!o[k] && ai && ai[k]) o[k] = ai[k]; });
+    return o;
   }
   const aiLang = w => isHanWord(w) ? 'zh' : undefined;
   const ZH_ENTRY = `"meaning":"핵심 한국어 뜻 (예: 공부하다, 배우다)","phonetic":"pinyin with tone marks, e.g. xuéxí","koreanPron":"한글 발음 (예: 쉬에시)","example":"short natural sentence in simplified Chinese that contains the word","exampleKo":"그 예문의 자연스러운 한국어 해석","synonyms":"中文近义词1, 近义词2 (없으면 빈칸)"`;
@@ -6918,8 +6999,8 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     const tick = () => { if (run === aiRun) aiState(`<span class="dot"></span>${local ? '기본 뜻을 먼저 채웠어요. 발음과 예문을 채우는 중' : 'AI가 채우는 중'} · ${((Date.now() - start) / 1000).toFixed(1)}초`, 'busy'); };
     tick(); const timer = setInterval(tick, 100);
     try {
-      const fromDict = await dictGet(query);
-      const r = fromDict || await lookupWord(query, true);
+      let r = await dictGet(query), fromDict = !!r;
+      if (!r || (aiReady() && (!r.phonetic || !r.koreanPron || !r.example))) { const r2 = await lookupWord(query, true); if (r2 !== r) fromDict = false; r = r2; }
       if (run !== aiRun || !$('fieldMeaning')) return;
       if ($('fieldWord').value.trim() !== query) { clearInterval(timer); aiState(''); return; } // 단어를 바꿨으면 '채우는 중' 표시를 지워요
       const force = !edit;

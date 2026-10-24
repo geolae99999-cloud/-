@@ -212,10 +212,25 @@
     }
     if (s) out.push(s); return out;
   }
-  const TTS_MEM = new Map();
+  const TTS_MEM = new Map(), TTS_PEND = new Map();
+  // 원어민 목소리는 마침표 없이 짧은 숙어(cry out to)를 받으면 끝에 없는 소리(섹)를 붙일 때가 있어요. 여러 단어인데 문장부호가 없으면 마침표를 붙여요.
+  const ttsText = (text, lang) => { const t = String(text).replace(/\s+/g, ' ').trim(); return lang === 'en' && /\s/.test(t) && !/[.!?,;:]$/.test(t) ? t + '.' : t; };
+  // 다음 카드 소리를 미리 받아 둬요(카드가 뜨자마자 바로 읽게)
+  function ttsPrefetch(text) {
+    try {
+      if (!text || !neuralOk() || (config.voice && config.voice[vFam(ttsLang(text))])) return;
+      const lang = ttsLang(text) === 'zh-CN' ? 'zh' : 'en'; const p = olChunks(text)[0]; if (p) neuralUrl(p, lang).catch(() => null);
+    } catch (e) {}
+  }
   const neuralOk = () => !!(window.VOCA_CLOUD && VOCA_CLOUD.url && window.crypto && crypto.subtle) && navigator.onLine !== false && config.neural !== false;
-  async function neuralUrl(text, lang) {
-    const mk = lang + '|' + text; if (TTS_MEM.has(mk)) return TTS_MEM.get(mk);
+  function neuralUrl(text, lang) {
+    text = ttsText(text, lang);
+    const mk = lang + '|' + text; if (TTS_MEM.has(mk)) return Promise.resolve(TTS_MEM.get(mk));
+    if (TTS_PEND.has(mk)) return TTS_PEND.get(mk);
+    const p = neuralFetch(text, lang, mk).finally(() => TTS_PEND.delete(mk));
+    TTS_PEND.set(mk, p); return p;
+  }
+  async function neuralFetch(text, lang, mk) {
     const base = String(VOCA_CLOUD.url).replace(/\/+$/, '');
     const hb = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`v1|${lang}|${text}`)));
     const key = [...hb].map(x => x.toString(16).padStart(2, '0')).join('');
@@ -232,6 +247,9 @@
     const lang = vFam(L2) === 'zh' ? 'zh' : 'en', tok = ++olToken, parts = olChunks(text);
     return new Promise(async res => {
       let nextUrl = neuralUrl(parts[0], lang);
+      // 처음 만드는 소리는 서버에서 몇 초 걸려요. 0.7초 안에 안 오면 기기 목소리로 바로 읽고, 원어민 소리는 뒤에서 받아 다음부터 써요.
+      const first = TTS_MEM.has(lang + '|' + ttsText(parts[0], lang)) ? await nextUrl : await Promise.race([nextUrl, new Promise(r => setTimeout(() => r('slow'), 700))]);
+      if (first === 'slow') return res(tok === olToken ? false : 'cancel');
       for (let i = 0; i < parts.length; i++) {
         const url = await nextUrl;
         if (tok !== olToken) return res('cancel');
