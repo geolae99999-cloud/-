@@ -9,10 +9,11 @@ const srv = http.createServer((q, r) => { let f = path.join(root, q.url.split('?
   await p.route(/fonts|jsdelivr/, r => r.abort());
   await p.goto('http://localhost:8766/'); await p.waitForSelector('.auth-box');
   await p.click('[data-m="signup"]'); await p.fill('#auId', 'kim'); await p.fill('#auPw', 'pass1234'); await p.fill('#auPw2', 'pass1234');
+  await p.click('#auNext'); await p.waitForSelector('#auGrade', { state: 'attached' });
   // 학년 없이 가입 시도
   await p.check('#auTerms'); await p.fill('#capIn', await p.evaluate('capText')); await p.click('#auGo');
   console.log('no grade msg:', await p.textContent('#auMsg'));
-  await p.click('#auNext'); await p.waitForSelector('#auGrade', { state: 'attached' }); await p.evaluate(g => { document.getElementById('auGrade').value = g; }, 'm2'); await p.fill('#auName', '김지우'); await p.fill('#auSchool', '한빛중학교'); await p.fill('#auSno', '20315'); await p.fill('#capIn', await p.evaluate('capText')); await p.click('#auGo');
+  await p.evaluate(g => { document.getElementById('auGrade').value = g; }, 'm2'); await p.fill('#auName', '김지우'); await p.fill('#auSchool', '한빛중학교'); await p.fill('#auSno', '20315'); await p.fill('#capIn', await p.evaluate('capText')); await p.click('#auGo');
   await p.waitForSelector('#obOv'); await p.click('[data-ob="skip"]'); await p.click('[data-lt="close"]');
   await p.waitForSelector('#recOv.show'); await p.click('[data-act="rec-add"]'); await p.waitForTimeout(100);
   await p.click('[data-act="rec-study"]'); await p.waitForTimeout(500);

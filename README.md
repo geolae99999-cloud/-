@@ -1,6 +1,8 @@
 # VocaPro
 
-학교 수업용 AI 영어 단어장 (https://vocapro.kro.kr). 문의: vocaproe2@gmail.com
+학생 · 선생님 · 일반인 누구나, 수준과 목적에 맞춰 공부하는 AI 영어 단어장 (https://vocapro.kro.kr). 문의: vocaproe2@gmail.com
+
+플레이 스토어 출시 방법과 스토어 등록 자료: [`docs/출시-가이드.md`](docs/출시-가이드.md), 이미지는 `docs/store/`
 
 ## 폴더
 
@@ -13,7 +15,7 @@
 | `gen/` | 사전 원본 TSV(`out_*.tsv`)와 단어 생성 프롬프트 |
 | `gen/zh/` | 중국어(HSK 1~6급 + 신HSK 1~9급, `hsk30_levels.tsv`) 사전 원본 TSV와 프롬프트(`PROMPT_ZH.md`). 단어 목록과 병음은 [complete-hsk-vocabulary](https://github.com/drkameleon/complete-hsk-vocabulary)(MIT)의 HSK 2.0 목록 |
 | `test/` | Playwright 테스트 |
-| `supabase/sql/` | 서버 SQL (v5~v9). SQL Editor에서 순서대로 한 번씩 실행. v9는 단어 맞추기 대결 랭킹 |
+| `supabase/sql/` | 서버 SQL (v3~v21). SQL Editor에서 순서대로 한 번씩 실행. v9는 단어 맞추기 대결 랭킹, v21은 친구 초대 보상 |
 | `supabase/functions/ai/index.ts` | Edge Function `ai` |
 | `supabase/cache/` | (미적용) 공유 AI 캐시 |
 | `public/media/` | 광고 영상(23초, 공유용 1080p `ad-1080.mp4`, 사이트용 720p `ad.mp4`·`ad.webm`, `ad-poster.jpg`), 프로필(`profile.png`, `profile-1024.png`), 배너(`og.jpg` 공유 미리보기, `wide.jpg` 가로 배너) |
@@ -29,7 +31,8 @@ python3 tools/build_dict.py gen public              # 사전을 바꿨을 때만
 python3 tools/build_ko_index.py src/VocaPro.html public   # 사전이나 단어장을 바꾼 뒤: 한글 뜻으로 찾기 목록(dict/ko.json)
 python3 tools/build_zh.py gen/zh public             # 중국어 사전을 바꿨을 때만 (pip install pypinyin)
 for f in public/*.js; do node --check $f; done
-sh test/prep.sh && node test/smoke.js               # pack, kid, cloud, flip, design, feat, wide, teach, zh, klass, game, tools, sentence, perf, audit 도 같은 방식 (klass, game은 로컬 PostgreSQL 필요)
+sh test/prep.sh && node test/smoke.js               # pack, kid, cloud, flip, design, feat, wide, teach, zh, klass, game, tools, sentence, perf, audit, course, general, share, neural 도 같은 방식
+node test/ref_sql.js                                # 친구 초대 SQL(v21)을 로컬 PostgreSQL에서 실제로 실행해 확인 (klass, game은 로컬 PostgreSQL 필요)
 node tools/media/render.js [ad|banners|preview]     # 광고 영상·배너를 고쳤을 때만 (ffmpeg 필요, 글꼴은 파일 머리 설명)
 git push origin main                                # Cloudflare Pages가 자동 배포
 ```

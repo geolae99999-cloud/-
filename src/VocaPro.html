@@ -4730,7 +4730,12 @@ window.VOCA_CLOUD = {
     const ws = list.filter(w => w && w.word && !isHanWord(w.word) && (!w.phonetic || !w.koreanPron) && !pronSwept.has(w.id)).slice(0, 80);
     if (!ws.length) return;
     pronSweepBusy = true; ws.forEach(w => pronSwept.add(w.id));
-    try { const n = await dictFill(ws); if (n) { syncStorage(); setTimeout(() => { if (curTab === 'paneBook') renderWordList(); }, 0); } } catch (e) {} finally { pronSweepBusy = false; }
+    // 발음(발음기호 · 한글 발음)만 채워요. 뜻 · 예문은 사용자가 비워 둔 그대로 둬요.
+    try {
+      await dictPreload(ws.map(w => w.word)); let n = 0;
+      for (const w of ws) { const d = await dictGet(w.word); if (!d) continue; let hit = false; ['phonetic', 'koreanPron'].forEach(k => { if (!w[k] && d[k]) { w[k] = d[k]; hit = true; } }); if (hit) n++; }
+      if (n) { syncStorage(); setTimeout(() => { if (curTab === 'paneBook') renderWordList(); }, 0); }
+    } catch (e) {} finally { pronSweepBusy = false; }
   }
   async function dictFill(words) {
     await dictPreload(words.map(w => w.word));
@@ -8132,6 +8137,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
         ${cloudAvail && !s2 ? `<button class="link-btn kid-link" data-act="auth-age" data-k="${kidMode ? 0 : 1}">${kidMode ? '만 14세 이상 계정으로 돌아가기' : (su ? '' : '이 기기의 어린이 계정(만 14세 미만)으로 로그인')}</button>` : ''}
         <p class="muted" style="font-size:.74rem;line-height:1.6;margin:4px 0 0;">${cloudMode ? '같은 아이디로 로그인하면 어느 기기에서든 단어장과 학습 기록이 이어져요. 비밀번호를 잊으면 등록한 이메일로 다시 정할 수 있어요.' : '계정은 이 기기의 브라우저에만 저장돼요. 다른 기기와 동기화되지 않고, 비밀번호를 잊으면 복구할 수 없으니 백업 파일을 받아 두세요.'}</p>
         <a class="link-btn lp-mobile-cta" href="#lpVidBox">VocaPro가 처음이라면, 소개 영상 보기</a>
+        ${legalLinksHtml().replace('class="legal-links"', 'class="legal-links au-legal"')}
         <span class="my-ip"${myIp ? '' : ' hidden'}>${myIp ? '내 IP ' + esc(myIp) : ''}</span>
       </div>`;
   }
@@ -11681,7 +11687,7 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
     operator: '김주원',
     email: 'vocaproe2@gmail.com',
     dbRegion: '',
-    effective: '2026년 10월 12일'
+    effective: '2026년 10월 24일'
   };
   const lgv = v => v || '확인 중';
   function legalDocs() {
@@ -11696,6 +11702,7 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
 - 서비스 운영: 오류 확인과 대응, 방문 기록 확인과 부정 이용 방지`],
         ['제2조 처리하는 개인정보 항목', `회원 가입 시 필수 항목
 - 일반 가입: 아이디, 비밀번호, 이메일 주소, 학년(또는 선생님), 이름, 학교(학교 코드 포함)
+- 학교에 다니지 않는 '일반' 사용자: 아이디, 비밀번호, 이메일 주소, 이름(별명도 됩니다). 학교와 학년은 받지 않습니다.
 - 간편 로그인(구글 · 카카오 · 네이버): 각 제공자가 발급한 이용자 고유 식별번호(sub/id), 학년(또는 선생님), 이름, 학교(학교 코드 포함). 이메일, 프로필 사진, 소셜 계정의 이름은 수집하지 않습니다.
 회원 가입 시 선택 항목
 - 학번(학생만)
@@ -11704,6 +11711,8 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
 - 이용자가 입력한 단어장(단어, 뜻, 발음, 예문, 메모 등), 학습 기록과 통계, 앱 설정
 - 로그인 세션 정보(토큰은 해시로 바꿔 저장), 가입·로그인 일시, 로그인 실패 횟수
 - AI 기능의 날짜별 사용 횟수
+- 날짜별 공부한 시간, 맞춤 코스 설정(공부 목적, 수준, 하루 학습 시간)
+- 친구 초대를 쓰는 경우: 내 초대 코드, 누가 누구의 초대 링크로 가입했는지와 그 일시(보호권 지급과 부정 이용 방지용). 초대한 사람에게는 가입한 친구의 수만 알려 주고 아이디나 이름은 알려 주지 않습니다.
 - 이메일 인증코드(되돌릴 수 없는 해시로만 저장), 인증코드를 보낸 시각과 요청한 IP 주소(보내기 횟수 제한용)
 - 우리 반을 쓰는 경우: 반 이름, 초대 코드, 과제(제목, 단어 목록, 마감일), 반에 참여할 때의 이름과 학번, 학습 요약(학습한 단어 수, 정답률, 연속 학습일, 많이 틀린 단어, 최근 시험 점수), 과제 결과(점수, 정답 수, 걸린 시간, 틀린 단어, 푼 횟수), 발음 평가 과제의 녹음(음성)과 AI·선생님 채점 결과, 앱이 열려 있는 동안의 접속 상태와 지금 하는 학습(학습 방법, 진행한 문제 수, 맞은·틀린 수, 마지막 접속 시각)
 자동으로 생성되는 정보

@@ -9,14 +9,16 @@ if (ksFile.exists()) ksFile.withInputStream { ks.load(it) }
 
 android {
     namespace 'kr.kro.vocapro'
-    compileSdk 35
+    compileSdk 36
 
+    // 구글 플레이: 2026-08-31부터 새 앱과 업데이트는 Android 16(API 36) 이상을 대상으로 해야 올릴 수 있어요.
+    // 업데이트를 올릴 때마다 versionCode 를 1씩 올려요.
     defaultConfig {
         applicationId 'kr.kro.vocapro'
         minSdk 23
-        targetSdk 35
-        versionCode 1
-        versionName '1.0.0'
+        targetSdk 36
+        versionCode 2
+        versionName '1.1.0'
     }
 
     signingConfigs {

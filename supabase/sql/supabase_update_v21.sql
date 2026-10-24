@@ -76,6 +76,21 @@ begin
   return jsonb_build_object('code', c, 'total', total, 'fresh', fresh);
 end $$;
 
+-- 회원이 탈퇴(계정 삭제)하면 초대 코드와 초대 기록도 함께 지워요(계정 표에 id 열이 있을 때만 연결).
+create or replace function public.voca_ref_cleanup()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  delete from public.voca_ref_codes where uid = old.id::text;
+  delete from public.voca_refs where invitee = old.id::text or inviter = old.id::text;
+  return old;
+end $$;
+do $$ begin
+  if exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'voca_accounts' and column_name = 'id') then
+    drop trigger if exists voca_ref_cleanup on public.voca_accounts;
+    create trigger voca_ref_cleanup after delete on public.voca_accounts for each row execute function public.voca_ref_cleanup();
+  end if;
+end $$;
+
 revoke all on function public.voca_ref_code(text) from public;
 revoke all on function public.voca_ref_claim(text, text) from public;
 revoke all on function public.voca_ref_status(text) from public;

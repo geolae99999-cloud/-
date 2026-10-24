@@ -74,7 +74,7 @@ const eq = (name, got, want) => { const ok = JSON.stringify(got) === JSON.string
     eq(tag + ' frz badge', await p.textContent('.streak-fire .frz-badge'), '2');
     // 통계 탭 · 반 리포트도 같은 streak() 을 써요
     await seed([...range(3, 9), 1, 0]); await p.evaluate(() => go('tabStats'));
-    eq(tag + ' stats tile', await p.textContent('.stat-tile b'), '9일');
+    eq(tag + ' stats tile', await p.textContent('.stat-tile.st-str b'), '9일');
     await p.evaluate(() => go('tabHome')); await shot('04-streak-badge');
 
     /* ---- 3. 진동 피드백 ---- */

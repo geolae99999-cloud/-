@@ -49,7 +49,8 @@ const srv = http.createServer((q, r) => { let f = path.join(root, decodeURICompo
   await p.reload(); await p.waitForTimeout(1500);
   console.log('banner after skip:', await p.$('#recOv') ? 'SHOWN(bad)' : 'hidden(ok)');
   // 100개 시트
-  await p.click('[data-act="rec-all"]'); await p.waitForTimeout(300); await shot('06-rec-sheet');
+  if (await p.$('#homeToolList.tl-fold')) { await p.click('[data-act="tools-toggle"]'); await p.waitForTimeout(200); } // 학습 도구 더 보기(접혀 있으면 펼쳐요)
+  await p.click('#homeToolList [data-act="rec-all"]'); await p.waitForTimeout(300); await shot('06-rec-sheet');
   await p.click('#recList .rec-row:not(.has) input >> nth=0'); await p.click('#recList .rec-row:not(.has) input >> nth=1');
   await p.click('[data-act="rec-pick-add"]'); await p.waitForTimeout(200);
   await p.click('[data-act="sheet-close"]');

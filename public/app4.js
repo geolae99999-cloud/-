@@ -668,7 +668,12 @@
     const ws = list.filter(w => w && w.word && !isHanWord(w.word) && (!w.phonetic || !w.koreanPron) && !pronSwept.has(w.id)).slice(0, 80);
     if (!ws.length) return;
     pronSweepBusy = true; ws.forEach(w => pronSwept.add(w.id));
-    try { const n = await dictFill(ws); if (n) { syncStorage(); setTimeout(() => { if (curTab === 'paneBook') renderWordList(); }, 0); } } catch (e) {} finally { pronSweepBusy = false; }
+    // 발음(발음기호 · 한글 발음)만 채워요. 뜻 · 예문은 사용자가 비워 둔 그대로 둬요.
+    try {
+      await dictPreload(ws.map(w => w.word)); let n = 0;
+      for (const w of ws) { const d = await dictGet(w.word); if (!d) continue; let hit = false; ['phonetic', 'koreanPron'].forEach(k => { if (!w[k] && d[k]) { w[k] = d[k]; hit = true; } }); if (hit) n++; }
+      if (n) { syncStorage(); setTimeout(() => { if (curTab === 'paneBook') renderWordList(); }, 0); }
+    } catch (e) {} finally { pronSweepBusy = false; }
   }
   async function dictFill(words) {
     await dictPreload(words.map(w => w.word));

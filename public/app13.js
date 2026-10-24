@@ -332,6 +332,7 @@
         ${cloudAvail && !s2 ? `<button class="link-btn kid-link" data-act="auth-age" data-k="${kidMode ? 0 : 1}">${kidMode ? '만 14세 이상 계정으로 돌아가기' : (su ? '' : '이 기기의 어린이 계정(만 14세 미만)으로 로그인')}</button>` : ''}
         <p class="muted" style="font-size:.74rem;line-height:1.6;margin:4px 0 0;">${cloudMode ? '같은 아이디로 로그인하면 어느 기기에서든 단어장과 학습 기록이 이어져요. 비밀번호를 잊으면 등록한 이메일로 다시 정할 수 있어요.' : '계정은 이 기기의 브라우저에만 저장돼요. 다른 기기와 동기화되지 않고, 비밀번호를 잊으면 복구할 수 없으니 백업 파일을 받아 두세요.'}</p>
         <a class="link-btn lp-mobile-cta" href="#lpVidBox">VocaPro가 처음이라면, 소개 영상 보기</a>
+        ${legalLinksHtml().replace('class="legal-links"', 'class="legal-links au-legal"')}
         <span class="my-ip"${myIp ? '' : ' hidden'}>${myIp ? '내 IP ' + esc(myIp) : ''}</span>
       </div>`;
   }
