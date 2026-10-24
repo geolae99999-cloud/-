@@ -11,7 +11,7 @@ const srv = http.createServer((q, r) => { let f = path.join(root, q.url.split('?
   await p.route('https://psmmrwhmpezyeehjivav.supabase.co/**', async r => {
     const u = r.request().url(), body = JSON.parse(r.request().postData() || '{}');
     const j = x => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(x) });
-    if (u.endsWith('/voca_signup')) return j({ token: 'tok', id: 1, username: body.p_user });
+    if (u.endsWith('/voca_signup') || u.endsWith('/voca_signup_email')) return j({ token: 'tok', id: 1, username: body.p_user });
     if (u.endsWith('/voca_load')) return j(null);
     if (u.endsWith('/voca_save')) { if (failSave) return r.fulfill({ status: 500, body: 'x' }); saved = body; return j({ ok: true }); }
     if (u.endsWith('/voca_me')) return j({ id: 1, username: 'kim' });
@@ -20,6 +20,7 @@ const srv = http.createServer((q, r) => { let f = path.join(root, q.url.split('?
   });
   await p.goto('http://localhost:8767/'); await p.waitForSelector('.auth-box #auId'); await p.evaluate(() => { DEFAULT_CFG.provider = 'gemini'; }); // 이 시험은 서버 · 키 AI 경로를 봐요(기본은 기기 AI)
   await p.click('[data-m="signup"]'); await p.click('[data-act="auth-age"][data-k="0"]'); await p.fill('#auId', 'kim'); await p.fill('#auPw', 'pass1234'); await p.fill('#auPw2', 'pass1234');
+  if (await p.$('#auEmail')) { await p.fill('#auEmail', 'kim@example.com'); await p.fill('#auCode', '123456'); } // 서버 계정 가입은 이메일 인증코드가 필요해요
   await p.click('#auNext'); await p.waitForSelector('#auGrade', { state: 'attached' }); await p.evaluate(g => { document.getElementById('auGrade').value = g; }, 'h1'); await p.fill('#auName', '김지우'); await p.fill('#auSchool', '한빛중학교'); await p.fill('#auSno', '20315'); await p.check('#auTerms'); await p.fill('#capIn', await p.evaluate('capText')); await p.click('#auGo');
   await p.waitForSelector('#obOv'); await p.click('[data-ob="skip"]'); await p.click('[data-lt="close"]');
   await p.waitForTimeout(2200);
