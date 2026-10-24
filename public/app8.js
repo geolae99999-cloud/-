@@ -194,12 +194,73 @@
   }
   // o: { rate, voice, ref, keep(앞 문장 안 끊기) }
   // 고른 목소리가 소리를 못 내면(인터넷 목소리가 막힌 학교 등) 다른 목소리 → 브라우저 기본 목소리 순서로 한 번씩 더 해 봐요
+  // 원어민 목소리: 서버 함수 tts 가 Cloudflare 의 자연스러운 목소리(영어 Deepgram Aura, 중국어 MeloTTS)로 MP3 를 만들어
+  // Storage 에 저장해 둬요. 앱은 공개 주소(tts/<언어>/<sha256>.mp3)를 먼저 보고, 없을 때만 만들어 달라고 해요.
+  // 기기 목소리(특히 Windows 기본 목소리)는 로봇처럼 들려서 영어 · 중국어는 이 목소리를 먼저 써요. 실패하면 기기 목소리로 읽어요.
+  let olAudio = null, olToken = 0;
+  function olStop() { olToken++; if (olAudio) { try { olAudio.pause(); } catch (e) {} olAudio = null; } }
+  if ('speechSynthesis' in window) {
+    try { const c0 = window.speechSynthesis.cancel.bind(window.speechSynthesis); window.speechSynthesis.cancel = () => { olStop(); c0(); }; } catch (e) {}
+  }
+  function olChunks(t) {
+    const out = []; let s = String(t).replace(/\s+/g, ' ').trim();
+    while (s.length > 380) {
+      let cut = Math.max(s.lastIndexOf('. ', 380), s.lastIndexOf('? ', 380), s.lastIndexOf('! ', 380), s.lastIndexOf('。', 380), s.lastIndexOf('；', 380));
+      if (cut < 80) cut = Math.max(s.lastIndexOf(', ', 380), s.lastIndexOf('，', 380));
+      if (cut < 80) cut = s.lastIndexOf(' ', 380); if (cut < 80) cut = 380;
+      out.push(s.slice(0, cut + 1).trim()); s = s.slice(cut + 1).trim();
+    }
+    if (s) out.push(s); return out;
+  }
+  const TTS_MEM = new Map();
+  const neuralOk = () => !!(window.VOCA_CLOUD && VOCA_CLOUD.url && window.crypto && crypto.subtle) && navigator.onLine !== false && config.neural !== false;
+  async function neuralUrl(text, lang) {
+    const mk = lang + '|' + text; if (TTS_MEM.has(mk)) return TTS_MEM.get(mk);
+    const base = String(VOCA_CLOUD.url).replace(/\/+$/, '');
+    const hb = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`v1|${lang}|${text}`)));
+    const key = [...hb].map(x => x.toString(16).padStart(2, '0')).join('');
+    const get = async (url, init) => { const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 20000); try { const r = await fetch(url, { ...(init || {}), signal: ctl.signal }); return r.ok && /audio/.test(r.headers.get('content-type') || '') ? await r.blob() : null; } catch (e) { return null; } finally { clearTimeout(tm); } };
+    let blob = await get(`${base}/storage/v1/object/public/tts/${lang}/${key}.mp3`);
+    if (!blob) blob = await get(`${base}/functions/v1/tts`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...(VOCA_CLOUD.apiKey ? { apikey: VOCA_CLOUD.apiKey } : {}) }, body: JSON.stringify({ text, lang }) });
+    if (!blob) return null;
+    const url = URL.createObjectURL(blob);
+    TTS_MEM.set(mk, url); if (TTS_MEM.size > 300) { const k0 = TTS_MEM.keys().next().value; URL.revokeObjectURL(TTS_MEM.get(k0)); TTS_MEM.delete(k0); }
+    return url;
+  }
+  // 성공하면 true, 다른 소리로 바뀌어 멈췄으면 'cancel', 실패하면 false
+  function olSpeak(text, L2, rate) {
+    const lang = vFam(L2) === 'zh' ? 'zh' : 'en', tok = ++olToken, parts = olChunks(text);
+    return new Promise(async res => {
+      let nextUrl = neuralUrl(parts[0], lang);
+      for (let i = 0; i < parts.length; i++) {
+        const url = await nextUrl;
+        if (tok !== olToken) return res('cancel');
+        if (!url) return res(i > 0 ? true : false);
+        if (i + 1 < parts.length) nextUrl = neuralUrl(parts[i + 1], lang); // 다음 조각을 미리 받아요
+        const ok = await new Promise(done => {
+          const a = new Audio(url); olAudio = a;
+          a.playbackRate = Math.min(2, Math.max(.5, rate || 1)); try { a.preservesPitch = true; } catch (e) {}
+          let fin = false; const end = v => { if (fin) return; fin = true; clearTimeout(tm); done(v); };
+          const tm = setTimeout(() => end(false), 30000);
+          a.onended = () => end(true); a.onerror = () => end(false); a.onpause = () => { if (tok !== olToken) end(true); };
+          a.play().catch(() => end(false));
+        });
+        if (tok !== olToken) return res('cancel');
+        if (!ok) return res(i > 0 ? true : false);
+      }
+      res(true);
+    });
+  }
   function speak(text, lang, o) {
     o = o || {};
-    return new Promise(res => {
+    return new Promise(async res => {
       if (!('speechSynthesis' in window) || !text) return res();
       if (!o.keep) { try { window.speechSynthesis.cancel(); } catch (e) {} }
       const L2 = lang || 'en-US', fam = vFam(L2), rate = o.rate || ttsRateFor(L2), list = voicesOf(fam);
+      // 영어 · 중국어는 원어민 목소리(서버)를 먼저 써요. 설정에서 기기 목소리를 직접 골랐으면 그 목소리로 읽어요.
+      if ((fam === 'en' || fam === 'zh') && !o.voice && !(config.voice && config.voice[fam]) && neuralOk()) {
+        const r = await olSpeak(text, L2, rate); if (r) return res();
+      }
       if (fam === 'zh' && loadVoices().length && !list.length) ttsNoVoice('zh', o.ask);
       const first = o.voice || voiceFor(L2, o.ref), cand = [first].concat(list.filter(v => v !== first).sort((x, y) => (+!!y.localService) - (+!!x.localService)), [null]).filter((v, i, a) => a.indexOf(v) === i).slice(0, 3);
       const attempt = k => {

@@ -144,7 +144,7 @@
   ACTIONS['reset-all'] = async () => {
     if (!await ask('모든 단어장, 단어, 학습 기록이 사라져요. 계속할까요?', { ok: '계속', danger: true })) return;
     if (!await ask('정말 지울까요? 되돌릴 수 없어요.', { ok: '지우기', danger: true })) return;
-    categories = defaultCats(); stats = { days: {} }; altSet = emptySet();
+    categories = defaultCats(); stats = { days: {} }; altSet = emptySet(); passages = [];
     syncStorage(); toast('초기화했어요.');
   };
 

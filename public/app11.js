@@ -2,44 +2,94 @@
    * 본문 읽기: 영어 · 중국어 글을 붙여 넣으면 문장마다 해석이 나오고, 단어를 누르면 뜻과 발음이 떠요.
    * ======================================================= */
   const RD_MAX = 4000, RD_SENT_MAX = 80;
-  const rdKey = () => 'vocapro_reader:' + currentUser;
   let RD = null; // { text, zh, sents: [{ t, toks, ko }], hideKo, seq }
   function rdEntryHtml() { return `<button class="mg-entry" data-act="rd-open"><span class="mg-ico">${IC.book}</span><span class="mg-txt"><b>본문 읽기 · 해석</b><small>글을 붙여 넣으면 문장마다 해석, 단어를 누르면 뜻과 발음</small></span><span class="mg-chev"></span></button>`; }
-  const rdRecent = () => { const a = loadJson(rdKey()); return Array.isArray(a) ? a.filter(x => x && typeof x.t === 'string').slice(0, 6) : []; };
-  function rdRemember(t) {
-    const a = rdRecent().filter(x => x.t !== t); a.unshift({ t, at: Date.now() });
-    try { LS.setItem(rdKey(), JSON.stringify(a.slice(0, 6))); } catch (e) {}
-  }
   function rdClose() { const o = $('rdOv'); if (o) o.remove(); rdPopHide(); RD = null; }
-  function rdShell(inner) {
+  function rdShell(inner, title, back) {
     let ov = $('rdOv');
     if (!ov) { ov = document.createElement('div'); ov.className = 'rd-ov'; ov.id = 'rdOv'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-modal', 'true'); ov.setAttribute('aria-label', '본문 읽기'); document.body.appendChild(ov); }
-    ov.innerHTML = `<div class="rd-top"><b>본문 읽기</b><button class="rd-x" data-act="rd-close" aria-label="닫기">${IC.x}</button></div><div class="rd-body" id="rdBody">${inner}</div>`;
+    ov.innerHTML = `<div class="rd-top">${back ? `<button class="rd-x" data-act="rd-list" aria-label="본문 목록">←</button>` : ''}<b class="rd-title">${esc(title || '본문 읽기')}</b><button class="rd-x" data-act="rd-close" aria-label="닫기">${IC.x}</button></div><div class="rd-body" id="rdBody">${inner}</div>`;
     return ov;
   }
-  function rdOpen(prefill) {
-    const rec = rdRecent();
+  const psgById = id => passages.find(x => x.id === id);
+  const psgNextName = () => { let n = 0; passages.forEach(x => { const m = /^본문 (\d+)$/.exec(x.name); if (m) n = Math.max(n, +m[1]); }); return `본문 ${Math.max(n, passages.length) + 1}`; };
+  const psgDate = t => { const d = new Date(t); return `${d.getMonth() + 1}월 ${d.getDate()}일`; };
+  // 본문 목록 (단어장처럼 본문 1, 본문 2 …)
+  function rdList() {
+    RD = null; rdPopHide();
+    const list = passages.slice().sort((a, b) => b.at - a.at);
+    rdShell(`<button class="btn btn-primary btn-block rd-new" data-act="rd-new">${IC.plus} 새 본문 넣기</button>
+      ${list.length ? `<div class="rd-lib">${list.map(x => `<div class="rd-item">
+          <button class="rd-open-p" data-act="rd-p" data-id="${esc(x.id)}"><span class="rd-badge ${x.zh ? 'zh' : 'en'}">${x.zh ? '中' : 'EN'}</span><span class="rd-it"><b>${esc(x.name)}</b><small>${esc(x.text.replace(/\s+/g, ' ').slice(0, 70))}${x.text.length > 70 ? '…' : ''}</small></span><em>${psgDate(x.at)}</em></button>
+          <button class="rd-more" data-act="rd-p-menu" data-id="${esc(x.id)}" aria-label="${esc(x.name)} 메뉴">⋯</button></div>`).join('')}</div>`
+        : `<p class="rd-empty">아직 저장한 본문이 없어요. 교과서 본문이나 기사를 붙여 넣으면 '본문 1'로 저장되고, 문장마다 해석이 나와요.</p>`}`, '본문 읽기');
+  }
+  // 새 본문 · 본문 고치기
+  function rdEditor(id) {
+    const x = id ? psgById(id) : null;
     rdShell(`<p class="rd-help">영어나 중국어 본문을 붙여 넣으세요. 문장마다 한국어 해석이 나오고, 단어를 누르면 뜻과 발음이 떠요.</p>
-      <textarea id="rdIn" class="rd-in" maxlength="${RD_MAX}" placeholder="예) Plants make their own food. They use sunlight, water and air..." spellcheck="false">${esc(prefill || '')}</textarea>
-      <div class="rd-row"><small id="rdCnt" class="muted">0 / ${RD_MAX.toLocaleString()}자</small><button class="btn btn-primary" data-act="rd-go">해석 보기</button></div>
-      ${rec.length ? `<h4 class="syn-h rd-rh">최근 본문</h4><div class="rd-recent">${rec.map((x, i) => `<button class="rd-rec" data-act="rd-rec" data-i="${i}">${esc(x.t.slice(0, 90))}${x.t.length > 90 ? '…' : ''}</button>`).join('')}</div>` : ''}`);
+      <input id="rdName" class="rd-name" maxlength="40" value="${esc(x ? x.name : psgNextName())}" aria-label="본문 이름">
+      <textarea id="rdIn" class="rd-in" maxlength="${RD_MAX}" placeholder="예) Plants make their own food. They use sunlight, water and air..." spellcheck="false">${esc(x ? x.text : '')}</textarea>
+      <div class="rd-row"><small id="rdCnt" class="muted">0 / ${RD_MAX.toLocaleString()}자</small><button class="btn btn-primary" data-act="rd-save" data-id="${esc(id || '')}">저장하고 해석 보기</button></div>`, x ? '본문 고치기' : '새 본문', true);
     const inp = $('rdIn'), cnt = () => { $('rdCnt').textContent = `${inp.value.length.toLocaleString()} / ${RD_MAX.toLocaleString()}자`; };
     inp.addEventListener('input', cnt); cnt();
     setTimeout(() => inp.focus(), 60);
   }
-  ACTIONS['rd-open'] = () => rdOpen();
+  const rdOpen = () => rdList();
+  ACTIONS['rd-open'] = () => rdList();
+  ACTIONS['rd-list'] = () => rdList();
   ACTIONS['rd-close'] = rdClose;
-  ACTIONS['rd-rec'] = el => { const x = rdRecent()[+el.dataset.i]; if (x) rdRun(x.t); };
-  ACTIONS['rd-go'] = () => { const t = (($('rdIn') || {}).value || '').trim(); if (!t) return toast('본문을 붙여 넣어 주세요.'); rdRun(t); };
-  ACTIONS['rd-edit'] = () => rdOpen(RD ? RD.text : '');
+  ACTIONS['rd-new'] = () => { if (passages.length >= PSG_MAX) return toast(`본문은 ${PSG_MAX}개까지 저장할 수 있어요. 안 쓰는 본문을 지워 주세요.`); rdEditor(''); };
+  ACTIONS['rd-edit'] = () => { if (RD && RD.id) rdEditor(RD.id); };
+  ACTIONS['rd-p'] = el => rdRun(el.dataset.id);
+  ACTIONS['rd-save'] = el => {
+    const text = (($('rdIn') || {}).value || '').trim().slice(0, RD_MAX); if (!text) return toast('본문을 붙여 넣어 주세요.');
+    const name = (($('rdName') || {}).value || '').trim().slice(0, 40) || psgNextName();
+    const zh = rdIsZh(text);
+    let x = el.dataset.id ? psgById(el.dataset.id) : null;
+    if (x) { if (x.text !== text) x.ko = []; Object.assign(x, { name, text, zh, at: Date.now() }); }
+    else { x = { id: 'p' + uid(), name, text, zh, at: Date.now(), ko: [] }; passages.push(x); }
+    syncStorage(); rdRun(x.id);
+  };
+  // ⋯ 를 누르면 그 본문 아래에 이름 바꾸기 · 고치기 · 삭제 버튼이 열려요.
+  ACTIONS['rd-p-menu'] = el => {
+    const item = el.closest('.rd-item'), open = item.nextElementSibling && item.nextElementSibling.classList.contains('rd-acts');
+    document.querySelectorAll('#rdBody .rd-acts').forEach(x => x.remove());
+    if (open) return;
+    const id = esc(el.dataset.id);
+    item.insertAdjacentHTML('afterend', `<div class="rd-acts"><button class="btn btn-soft" data-act="rd-p-rename" data-id="${id}">이름 바꾸기</button><button class="btn btn-soft" data-act="rd-p-edit" data-id="${id}">본문 고치기</button><button class="btn btn-soft danger" data-act="rd-p-del" data-id="${id}">삭제</button></div>`);
+  };
+  ACTIONS['rd-p-rename'] = async el => {
+    const x = psgById(el.dataset.id); if (!x) return;
+    const v = await ask('본문 이름을 바꿔요.', { input: x.name, ok: '바꾸기' });
+    if (typeof v !== 'string' || !v.trim()) return;
+    x.name = v.trim().slice(0, 40); syncStorage(); rdList();
+  };
+  ACTIONS['rd-p-edit'] = el => rdEditor(el.dataset.id);
+  ACTIONS['rd-p-del'] = async el => {
+    const x = psgById(el.dataset.id); if (!x) return;
+    if (!await ask(`'${x.name}'을(를) 지울까요? 되돌릴 수 없어요.`, { ok: '삭제', danger: true })) return;
+    passages = passages.filter(p => p.id !== x.id); syncStorage(); toast('본문을 지웠어요.'); rdList();
+  };
+  const rdIsZh = text => HAN.test(text) && !/[A-Za-z]{3}/.test(text.replace(/[A-Z]{1,3}\d*/g, ''));
 
   // 문장 나누기: 영어는 . ! ? 뒤, 중국어는 。！？； 뒤. 줄바꿈도 문장 경계로 봐요.
+  // Mr. Dr. U.S. a.m. e.g. 처럼 마침표가 있어도 문장이 끝나지 않는 말
+  const RD_ABBR = /(?:^|[\s(“"'])(?:mr|mrs|ms|dr|prof|sr|jr|st|mt|vs|etc|e\.g|i\.e|a\.m|p\.m|u\.s|u\.k|u\.n|no|inc|ltd|co|corp|jan|feb|mar|apr|jun|jul|aug|sep|sept|oct|nov|dec|fig|approx|dept|est|min|max)\.$/i;
   function rdSplit(text, zh) {
     const out = [];
     text.replace(/\r/g, '').split(/\n+/).forEach(par => {
       const p = par.trim(); if (!p) return;
-      const parts = zh ? p.split(/(?<=[。！？；!?])/) : p.split(/(?<=[.!?]["'”’)]?)\s+(?=["'“‘(]?[A-Z0-9])/);
-      parts.forEach(x => { x = x.trim(); if (x) out.push(x); });
+      if (zh) { p.split(/(?<=[。！？；!?…][”」』）)]?)/).forEach(x => { x = x.trim(); if (x) out.push(x); }); return; }
+      // 영어: . ! ? (닫는 따옴표 · 괄호 포함) 뒤 + 띄어쓰기 + 대문자 · 숫자 · 여는 따옴표 일 때만 끊어요. 줄임말 뒤에서는 끊지 않아요.
+      let start = 0; const re = /[.!?…]+["'”’)\]]*\s+(?=["'“‘(\[]?[A-Z0-9])/g; let m;
+      while ((m = re.exec(p))) {
+        const end = m.index + m[0].trimEnd().length, chunk = p.slice(start, end);
+        if (/\.$/.test(chunk.replace(/["'”’)\]]+$/, '')) && RD_ABBR.test(chunk.replace(/["'”’)\]]+$/, ''))) continue;
+        if (/\b[A-Z]\.$/.test(chunk)) continue; // 이름 머리글자 (J. K. Rowling)
+        out.push(chunk.trim()); start = m.index + m[0].length;
+      }
+      const last = p.slice(start).trim(); if (last) out.push(last);
     });
     return out.slice(0, RD_SENT_MAX);
   }
@@ -48,7 +98,15 @@
     const toks = [];
     if (!zh) {
       let last = 0;
-      sent.replace(/[A-Za-z]+(?:['’-][A-Za-z]+)*/g, (m, i) => { if (i > last) toks.push({ s: sent.slice(last, i) }); toks.push({ s: m, w: m.replace(/’/g, "'") }); last = i + m.length; return m; });
+      let n = 0, prev = '';
+      sent.replace(/[A-Za-z]+(?:['’-][A-Za-z]+)*/g, (m, i) => {
+        if (i > last) toks.push({ s: sent.slice(last, i) });
+        const t = { s: m, w: m.replace(/’/g, "'") };
+        // 문장 첫 단어가 아닌데 대문자로 시작하면 이름일 수 있어요(I 제외). Mr. Dr. 뒤도 이름이에요.
+        if (/^[A-Z]/.test(m) && m !== 'I' && (n > 0 || /^(mr|mrs|ms|dr|prof)$/i.test(prev))) t.cap = 1;
+        if (/^(mr|mrs|ms|dr|prof|sir|uncle|aunt)$/i.test(prev)) t.title = 1;
+        toks.push(t); last = i + m.length; n++; prev = m; return m;
+      });
       if (last < sent.length) toks.push({ s: sent.slice(last) });
       return toks;
     }
@@ -61,36 +119,63 @@
     }
     return toks;
   }
-  async function rdRun(text) {
-    text = String(text || '').slice(0, RD_MAX).trim(); if (!text) return;
-    const zh = HAN.test(text) && !/[A-Za-z]{3}/.test(text.replace(/[A-Z]{1,3}\d*/g, ''));
+  async function rdRun(id) {
+    const x = psgById(id); if (!x) return rdList();
+    const text = x.text, zh = x.zh;
     if (zh) await zhLoad();
-    rdRemember(text);
-    const sents = rdSplit(text, zh).map(t => ({ t, toks: rdTokens(t, zh), ko: null }));
-    RD = { text, zh, sents, hideKo: false, seq: (RD && RD.seq || 0) + 1 };
+    const parts = rdSplit(text, zh), saved = x.ko.length === parts.length ? x.ko : [];
+    const sents = parts.map((t, i) => ({ t, toks: rdTokens(t, zh), ko: saved[i] ? saved[i] : null }));
+    RD = { id: x.id, name: x.name, text, zh, sents, hideKo: false, seq: (RD && RD.seq || 0) + 1 };
     rdRender();
     // 문장마다 번역해요(동시에 4개씩). 다 끝나기 전에도 끝난 문장부터 보여 줘요.
     const seq = RD.seq; let next = 0;
     const work = async () => {
       while (RD && RD.seq === seq && next < sents.length) {
         const i = next++, s = sents[i];
-        try { s.ko = (await translateText(s.t, true)).t; } catch (e) { s.ko = ''; }
+        if (s.ko) continue; // 저장해 둔 해석
+        s.ko = await rdTranslate(s.t);
         if (!RD || RD.seq !== seq) return;
-        const el = document.querySelector(`#rdBody .rd-s[data-i="${i}"] .rd-ko`);
-        if (el) { el.textContent = s.ko || '해석을 가져오지 못했어요.'; el.classList.toggle('err', !s.ko); el.classList.remove('load'); }
+        rdKoPaint(i);
       }
     };
     await Promise.all([work(), work(), work(), work()]);
+    rdSaveKo(seq);
   }
+  // 해석이 다 나오면 본문과 같이 저장해요(실패한 문장은 빈칸으로 두고 다음에 다시 해석해요).
+  function rdSaveKo(seq) {
+    if (!RD || (seq && RD.seq !== seq)) return;
+    const x = psgById(RD.id); if (!x) return;
+    const ko = RD.sents.map(s => s.ko || '');
+    if (ko.some(Boolean) && JSON.stringify(ko) !== JSON.stringify(x.ko)) { x.ko = ko; syncStorage(); }
+  }
+  // 번역은 실패하면 잠깐 쉬었다 두 번 더 해 봐요.
+  async function rdTranslate(t) {
+    for (let k = 0; k < 3; k++) {
+      try { const r = await translateText(t, true); if (r && r.t) return r.t; } catch (e) {}
+      await new Promise(r => setTimeout(r, 700 * (k + 1)));
+    }
+    return '';
+  }
+  function rdKoPaint(i) {
+    const s = RD && RD.sents[i], el = document.querySelector(`#rdBody .rd-s[data-i="${i}"] .rd-ko`); if (!s || !el) return;
+    el.classList.remove('load'); el.classList.toggle('err', !s.ko);
+    el.innerHTML = s.ko ? esc(s.ko) : `해석을 가져오지 못했어요. <button class="rd-retry" data-act="rd-retry" data-i="${i}">다시 시도</button>`;
+  }
+  ACTIONS['rd-retry'] = async (el, e) => {
+    if (e) e.stopPropagation();
+    const i = +el.dataset.i, s = RD && RD.sents[i]; if (!s) return;
+    const k = el.closest('.rd-ko'); k.classList.add('load'); k.textContent = '해석하는 중…';
+    s.ko = await rdTranslate(s.t); rdKoPaint(i); rdSaveKo();
+  };
   function rdRender() {
     if (!RD) return;
     const own = ownedWords();
     const body = RD.sents.map((s, i) => `<div class="rd-s" data-i="${i}">
-        <p class="rd-en" lang="${RD.zh ? 'zh-CN' : 'en'}">${s.toks.map(t => t.w ? `<span class="rd-w${own.has(t.w.toLowerCase()) ? ' own' : ''}" data-act="rd-word" data-w="${esc(t.w)}">${esc(t.s)}</span>` : esc(t.s)).join('')}<button class="rd-sp" data-act="speak" data-text="${esc(s.t)}" aria-label="이 문장 듣기">${IC.speaker}</button></p>
-        <p class="rd-ko${s.ko === null ? ' load' : ''}">${s.ko === null ? '해석하는 중…' : esc(s.ko || '해석을 가져오지 못했어요.')}</p></div>`).join('');
-    rdShell(`<div class="rd-tools"><button class="btn btn-soft" data-act="rd-edit">본문 바꾸기</button><button class="btn btn-soft${RD.hideKo ? ' on' : ''}" data-act="rd-hide">${RD.hideKo ? '해석 보이기' : '해석 가리기'}</button></div>
+        <p class="rd-en" lang="${RD.zh ? 'zh-CN' : 'en'}">${s.toks.map(t => t.w ? `<span class="rd-w${own.has(t.w.toLowerCase()) ? ' own' : ''}" data-act="rd-word" data-w="${esc(t.w)}"${t.cap ? ' data-cap="1"' : ''}${t.title ? ' data-title="1"' : ''}>${esc(t.s)}</span>` : esc(t.s)).join('')}<button class="rd-sp" data-act="speak" data-text="${esc(s.t)}" aria-label="이 문장 듣기">${IC.speaker}</button></p>
+        <p class="rd-ko${s.ko === null ? ' load' : s.ko ? '' : ' err'}">${s.ko === null ? '해석하는 중…' : s.ko ? esc(s.ko) : `해석을 가져오지 못했어요. <button class="rd-retry" data-act="rd-retry" data-i="${i}">다시 시도</button>`}</p></div>`).join('');
+    rdShell(`<div class="rd-tools"><button class="btn btn-soft" data-act="rd-edit">본문 고치기</button><button class="btn btn-soft${RD.hideKo ? ' on' : ''}" data-act="rd-hide">${RD.hideKo ? '해석 보이기' : '해석 가리기'}</button></div>
       <div class="rd-doc${RD.hideKo ? ' hide-ko' : ''}">${body}</div>
-      <p class="rd-note muted">밑줄 친 단어는 내 단어장에 있는 단어예요. 해석은 자동 번역이라 조금 어색할 수 있어요.</p>`);
+      <p class="rd-note muted">밑줄 친 단어는 내 단어장에 있는 단어예요. 해석은 자동 번역이라 조금 어색할 수 있어요.</p>`, RD.name, true);
   }
   ACTIONS['rd-hide'] = el => { if (!RD) return; RD.hideKo = !RD.hideKo; const d = document.querySelector('#rdBody .rd-doc'); if (d) d.classList.toggle('hide-ko', RD.hideKo); el.textContent = RD.hideKo ? '해석 보이기' : '해석 가리기'; el.classList.toggle('on', RD.hideKo); };
   // 숨긴 해석은 그 문장을 누르면 잠깐 보여요.
@@ -98,6 +183,62 @@
 
   // 단어 누르기 → 아래쪽 카드에 뜻 · 발음 · 듣기 · 단어장에 담기
   let rdPopWord = null, rdPopSeq = 0;
+  // 줄임말: 원래 말과 짧은 설명. 사전에는 원래 말로 찾아요.
+  const RD_CONTR = {
+    "don't": ['do not', '~하지 않다'], "doesn't": ['does not', '~하지 않다'], "didn't": ['did not', '~하지 않았다'], "isn't": ['is not', '~이 아니다'], "aren't": ['are not', '~이 아니다'],
+    "wasn't": ['was not', '~이 아니었다'], "weren't": ['were not', '~이 아니었다'], "won't": ['will not', '~하지 않을 것이다'], "wouldn't": ['would not', '~하지 않을 것이다'], "can't": ['cannot', '~할 수 없다'],
+    "couldn't": ['could not', '~할 수 없었다'], "shouldn't": ['should not', '~하면 안 된다'], "haven't": ['have not', '(아직) ~하지 않았다'], "hasn't": ['has not', '(아직) ~하지 않았다'], "hadn't": ['had not', '~하지 않았었다'],
+    "mustn't": ['must not', '~하면 안 된다'], "needn't": ['need not', '~할 필요 없다'], "ain't": ['am not / is not', '~이 아니다 (구어)'],
+    "i'm": ['I am', '나는 ~이다'], "you're": ['you are', '너는 ~이다'], "we're": ['we are', '우리는 ~이다'], "they're": ['they are', '그들은 ~이다'], "he's": ['he is / he has', '그는 ~이다'], "she's": ['she is / she has', '그녀는 ~이다'],
+    "it's": ['it is / it has', '그것은 ~이다'], "that's": ['that is', '그것은 ~이다'], "there's": ['there is', '~이 있다'], "here's": ['here is', '여기 ~이 있다'], "what's": ['what is', '무엇이 ~인가'], "who's": ['who is', '누가 ~인가'],
+    "where's": ['where is', '어디에 ~이 있나'], "how's": ['how is', '어떻게 ~인가'], "let's": ['let us', '~하자'], "i've": ['I have', '나는 ~했다'], "you've": ['you have', '너는 ~했다'], "we've": ['we have', '우리는 ~했다'],
+    "they've": ['they have', '그들은 ~했다'], "i'll": ['I will', '나는 ~할 것이다'], "you'll": ['you will', '너는 ~할 것이다'], "we'll": ['we will', '우리는 ~할 것이다'], "they'll": ['they will', '그들은 ~할 것이다'],
+    "he'll": ['he will', '그는 ~할 것이다'], "she'll": ['she will', '그녀는 ~할 것이다'], "it'll": ['it will', '그것은 ~할 것이다'], "i'd": ['I would / I had', '나는 ~할 텐데 / ~했었다'], "you'd": ['you would / you had', '너는 ~할 텐데'],
+    "he'd": ['he would / he had', '그는 ~할 텐데'], "she'd": ['she would / she had', '그녀는 ~할 텐데'], "we'd": ['we would / we had', '우리는 ~할 텐데'], "they'd": ['they would / they had', '그들은 ~할 텐데']
+  };
+  // 사전에 없는 단어: 사전 → (줄임말 · 소유격 정리) → AI(뜻 · 발음까지) → 자동 번역 순서로 찾아요.
+  async function rdName(name) {
+    let ko = '';
+    // 이름만 번역하면 John → 남자 처럼 엉뚱해져요. 'The name is John.' 으로 번역해서 이름 부분만 꺼내요.
+    try {
+      const r = await gtxTranslate(`The name is ${name}.`, 'en', 'ko');
+      const m = /이름은\s*(.+?)\s*(?:이에요|예요|입니다|이다|다)?[.。]?\s*$/.exec(r.t || '');
+      if (m && m[1] && m[1].length <= 20 && !/이름/.test(m[1])) ko = m[1].replace(/['"“”‘’]/g, '');
+    } catch (e) {}
+    if (!ko) { try { const r = await translateText(name, true); ko = r && r.t && r.t.length <= 20 ? r.t : ''; } catch (e) {} }
+    return { word: name, meaning: `${ko ? ko + ' · ' : ''}이름 · 고유명사(사람 · 장소 · 기관 이름)`, phonetic: '', koreanPron: '', name: true };
+  }
+  async function rdLookup(raw, zh, o = {}) {
+    const lw = zh ? raw : raw.toLowerCase();
+    let d = null, note = '';
+    if (!zh && o.title) return rdName(raw.replace(/'s$/i, '')); // Mr. Smith 의 Smith
+    try { d = await dictGet(lw); } catch (e) {}
+    // 문장 가운데 대문자 단어가 사전에 없으면 이름으로 봐요 (John's 포함).
+    if (!zh && !d && o.cap && !RD_CONTR[lw]) {
+      const b = lw.replace(/'s$/, ''); let bd = null; try { bd = b !== lw ? await dictGet(b) : null; } catch (e) {}
+      if (!bd) { const n = await rdName(raw.replace(/'s$/i, '')); if (/'s$/i.test(raw)) n.meaning += ` · 's: ~의 (${raw.slice(0, -2)}의)`; return n; }
+    }
+    if (!d && !zh && RD_CONTR[lw]) {
+      const [full, ko] = RD_CONTR[lw];
+      return { word: raw, meaning: `${full}의 줄임말 · ${ko}`, phonetic: '', koreanPron: '', contr: full };
+    }
+    if (!d && !zh && /'s$/.test(lw)) { // 소유격 (John's, the teacher's)
+      const b = lw.slice(0, -2); try { d = await dictGet(b); } catch (e) {}
+      note = `'s: ~의 (${raw.slice(0, -2)}의)`;
+      if (d) { d = { ...d, base: d.base || b }; }
+      else raw = raw.slice(0, -2);
+    }
+    if (d && d.base && !d.phonetic && !zh) { try { const b = await dictGet(d.base); if (b) { d.phonetic = b.phonetic; d.koreanPron = b.koreanPron; } } catch (e) {} }
+    if (!d && aiReady()) { try { const r = await lookupWord(zh ? raw : raw.toLowerCase(), false); if (r && r.meaning) d = { ...r, word: raw }; } catch (e) {} }
+    if (!d) {
+      try {
+        const r = await translateText(raw, true);
+        d = { word: raw, meaning: r.t + (r.alts && r.alts.length ? ' · ' + r.alts.map(a => a.terms.slice(0, 3).join(', ')).join(' / ') : ''), phonetic: '', koreanPron: '', mt: true };
+      } catch (e) {}
+    }
+    if (d && note) d = { ...d, meaning: `${d.meaning} · ${note}` };
+    return d;
+  }
   function rdPopHide() { const p = $('rdPop'); if (p) p.remove(); rdPopWord = null; document.querySelectorAll('.rd-w.sel').forEach(x => x.classList.remove('sel')); }
   ACTIONS['rd-word'] = async (el, e) => {
     if (e) e.stopPropagation();
@@ -106,21 +247,17 @@
     let p = $('rdPop');
     if (!p) { p = document.createElement('div'); p.id = 'rdPop'; p.className = 'rd-pop'; p.setAttribute('role', 'dialog'); p.setAttribute('aria-label', '단어 뜻'); document.body.appendChild(p); }
     p.innerHTML = `<div class="rd-pw"><b>${esc(raw)}</b><button class="rd-x" data-act="rd-pop-x" aria-label="닫기">${IC.x}</button></div><p class="rd-pm load">뜻을 찾는 중…</p>`;
-    let d = null;
-    try { d = await dictGet(zh ? raw : raw.toLowerCase()); } catch (er) {}
-    // 변화형(plants, went)은 원형의 발음을 보여 줘요.
-    if (d && d.base && !d.phonetic && !zh) { try { const b = await dictGet(d.base); if (b) { d.phonetic = b.phonetic; d.koreanPron = b.koreanPron; } } catch (er) {} }
-    if (!d) { try { const r = await translateText(raw, true); d = { word: raw, meaning: r.t + (r.alts && r.alts.length ? ' · ' + r.alts.map(a => a.terms.slice(0, 3).join(', ')).join(' / ') : ''), phonetic: '', koreanPron: '' }; } catch (er) {} }
+    const d = await rdLookup(raw, zh, { cap: el.dataset.cap === '1', title: el.dataset.title === '1' });
     if (seq !== rdPopSeq || !$('rdPop')) return;
     const head = d && d.base && !zh ? d.base : raw;
-    rdPopWord = { word: zh ? raw : head.toLowerCase(), meaning: d ? String(d.meaning || '').replace(/\s*\(.+의 [^)]*\)$/, '') : '', d };
+    rdPopWord = d && !d.contr && !d.name ? { word: zh ? raw : head.toLowerCase(), meaning: String(d.meaning || '').replace(/\s*\(.+의 [^)]*\)$/, '').replace(/ · 's: .*$/, ''), d } : null;
     const pr = d ? pronText(d) : '';
     p.innerHTML = `<div class="rd-pw"><b lang="${zh ? 'zh-CN' : 'en'}">${esc(head)}</b>${pr ? `<span class="q-pron">${esc(pr)}</span>` : ''}<button class="rd-x" data-act="rd-pop-x" aria-label="닫기">${IC.x}</button></div>
-      <p class="rd-pm">${d && d.meaning ? esc(d.meaning) : '뜻을 찾지 못했어요. 인터넷을 확인해 주세요.'}</p>
+      <p class="rd-pm">${d && d.meaning ? esc(d.meaning) : '뜻을 찾지 못했어요. 인터넷 연결을 확인하고 단어를 다시 눌러 주세요.'}</p>${d && d.mt ? '<p class="rd-pe">사전에 없는 단어라 자동 번역으로 찾았어요.</p>' : ''}
       ${d && d.example ? `<p class="rd-pe">${esc(d.example)}${d.exampleKo ? `<small>${esc(d.exampleKo)}</small>` : ''}</p>` : ''}
       <div class="rd-pa"><button class="btn btn-soft" data-act="speak" data-text="${esc(head)}">${IC.speaker} 발음 듣기</button>
-      ${d && d.meaning ? `<select id="rdBook" aria-label="담을 단어장">${categories.map(c => `<option value="${esc(c.id)}"${c.id === currentCategoryId ? ' selected' : ''}>${esc(c.name)}</option>`).join('')}</select><button class="btn btn-primary" data-act="rd-add">${IC.plus} 담기</button>` : ''}</div>`;
-    playAudio(head, true);
+      ${rdPopWord ? `<select id="rdBook" aria-label="담을 단어장">${categories.map(c => `<option value="${esc(c.id)}"${c.id === currentCategoryId ? ' selected' : ''}>${esc(c.name)}</option>`).join('')}</select><button class="btn btn-primary" data-act="rd-add">${IC.plus} 담기</button>` : ''}</div>`;
+    playAudio(d && d.contr ? raw : head, true);
   };
   ACTIONS['rd-pop-x'] = () => rdPopHide();
   ACTIONS['rd-add'] = () => {

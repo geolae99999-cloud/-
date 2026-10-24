@@ -145,9 +145,20 @@
      중국어를 zh 안에 넣어서 예전 앱과 백업 파일도 그대로 읽혀요. altSet 은 지금 안 보고 있는 언어 쪽이에요. */
   const emptySet = () => ({ categories: defaultCats(), stats: { days: {} } });
   let altSet = emptySet();
+  // 본문 읽기에 저장한 본문(영어 · 중국어 같이). 해석도 같이 저장해서 다시 열면 바로 보여요.
+  let passages = [];
+  const PSG_MAX = 50;
+  function sanitizePassages(a) {
+    if (!Array.isArray(a)) return [];
+    return a.filter(x => x && typeof x.text === 'string' && x.text.trim()).slice(0, PSG_MAX).map(x => ({
+      id: String(x.id || uid()).slice(0, 40), name: String(x.name || '본문').replace(/[\u0000-\u001f]/g, '').slice(0, 40) || '본문',
+      text: String(x.text).slice(0, 4000), zh: !!x.zh, at: Number.isFinite(+x.at) ? +x.at : Date.now(),
+      ko: Array.isArray(x.ko) ? x.ko.slice(0, 80).map(k => String(k || '').slice(0, 800)) : []
+    }));
+  }
   function dataBlob() {
     const cur = { categories, stats }, en = isZh() ? altSet : cur, zh = isZh() ? cur : altSet;
-    return { categories: en.categories, stats: en.stats, zh: { categories: zh.categories, stats: zh.stats } };
+    return { categories: en.categories, stats: en.stats, zh: { categories: zh.categories, stats: zh.stats }, passages };
   }
   function useBlob(d) {
     const en = { categories: (d && sanitizeCategories(d.categories)) || defaultCats(), stats: sanitizeStats(d && d.stats) };
@@ -156,6 +167,7 @@
     LANG = config.lang === 'zh' ? 'zh' : 'en';
     const cur = isZh() ? zh : en; altSet = isZh() ? en : zh;
     categories = cur.categories; stats = cur.stats;
+    passages = sanitizePassages(d && d.passages);
   }
 
   function syncStorage() {
