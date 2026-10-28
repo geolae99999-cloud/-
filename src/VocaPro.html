@@ -1408,6 +1408,68 @@
     .rd-acts { display: flex; gap: 8px; margin: -4px 0 4px; }
     .rd-acts .btn { flex: 1; font-size: .85rem; }
     .rd-ov ~ .dlg-ov, body:has(#rdOv) .dlg-ov { z-index: 700; }
+    .tc-row { display: flex; gap: 8px; overflow-x: auto; padding: 2px 2px 10px; margin-bottom: 4px; scrollbar-width: none; }
+    .tc-row::-webkit-scrollbar { display: none; }
+    .tc-chip { flex: none; display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line, rgba(0, 0, 0, .08)); background: var(--surface, #fff); color: var(--ink, inherit); font: inherit; font-size: .86rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
+    .tc-chip i { font-style: normal; font-size: .76rem; color: var(--muted); font-weight: 700; }
+    .tc-chip.on { background: var(--blue, #3182f6); border-color: var(--blue, #3182f6); color: #fff; }
+    .tc-chip.on i { color: rgba(255, 255, 255, .85); }
+    .tc-chip.add { color: var(--blue, #3182f6); border-style: dashed; }
+    .tc-chip.add .ic { width: 14px; height: 14px; }
+    .tc-bar { display: flex; align-items: center; gap: 12px; margin: 0 2px 10px; font-size: .86rem; }
+    .tc-bar b { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tc-bar .danger { color: var(--coral); }
+    .tc-tag { display: inline-block; margin-right: 6px; padding: 0 6px; border-radius: 6px; background: var(--blue-soft, #e8f3ff); color: var(--blue-ink, #1b64da); font-size: .72rem; font-weight: 700; vertical-align: 1px; }
+    .tc-best { display: block; color: var(--mint, #12b886); font-weight: 800; font-size: .78rem; text-align: right; }
+    .rd-catrow { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: .88rem; font-weight: 700; color: var(--muted); }
+    .rd-catrow select { flex: 1; }
+    .tc-dlg { z-index: 700; }
+    .tc-dlg .dlg { max-width: 400px; width: calc(100% - 32px); text-align: left; }
+    .tc-pick { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+    .tc-dlg input { width: 100%; box-sizing: border-box; }
+    .tc-dlg .row { margin-top: 12px; }
+    /* 본문 문제 풀기 */
+    .qz { max-width: 640px; margin: 0 auto; }
+    .qz-top { display: flex; align-items: center; gap: 10px; font-size: .84rem; font-weight: 700; color: var(--muted); }
+    .qz-bar { flex: 1; height: 8px; border-radius: 99px; background: var(--surface-2, #eef0f3); overflow: hidden; }
+    .qz-bar i { display: block; height: 100%; background: var(--blue, #3182f6); border-radius: inherit; transition: width .3s; }
+    .qz-sc { color: var(--blue, #3182f6); }
+    .qz-type { margin: 18px 0 8px; font-size: .9rem; font-weight: 800; color: var(--blue, #3182f6); }
+    .qz-q { background: var(--surface, #fff); border-radius: 16px; padding: 18px; font-size: 1.15rem; line-height: 1.7; overflow-wrap: anywhere; }
+    .qz-hint { margin: 10px 2px 0; color: var(--muted); font-size: .92rem; line-height: 1.6; }
+    .qz-hint.big { background: var(--surface, #fff); border-radius: 16px; padding: 16px; color: var(--ink, inherit); font-size: 1.02rem; font-weight: 600; margin-top: 0; }
+    .qz-opts { display: grid; gap: 10px; margin-top: 14px; }
+    .qz-opts.grid { grid-template-columns: 1fr 1fr; }
+    .qz-opt { text-align: left; padding: 14px 16px; border-radius: 14px; border: 1.5px solid var(--line, rgba(0, 0, 0, .08)); background: var(--surface, #fff); color: var(--ink, inherit); font: inherit; font-size: .95rem; line-height: 1.5; cursor: pointer; }
+    .qz-opts.grid .qz-opt { text-align: center; font-size: 1.05rem; font-weight: 700; }
+    .qz-opt:hover:not(:disabled) { border-color: var(--blue, #3182f6); }
+    .qz-opt.ok { border-color: var(--mint, #12b886); background: var(--mint-soft, #e6f8f1); }
+    .qz-opt.bad { border-color: var(--coral, #f04452); background: var(--coral-soft, #ffeef0); }
+    .qz-opt:disabled { cursor: default; }
+    .qz-built { min-height: 56px; display: flex; flex-wrap: wrap; gap: 8px; align-content: flex-start; margin: 14px 0 10px; padding: 12px; border-radius: 14px; border: 2px dashed var(--line, rgba(0, 0, 0, .12)); }
+    .qz-built.ok { border-color: var(--mint, #12b886); border-style: solid; }
+    .qz-built.bad { border-color: var(--coral, #f04452); border-style: solid; }
+    .qz-pool { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+    .qz-pc { padding: 9px 13px; border-radius: 12px; border: 1px solid var(--line, rgba(0, 0, 0, .1)); background: var(--surface, #fff); color: var(--ink, inherit); font: inherit; font-size: 1rem; font-weight: 600; cursor: pointer; }
+    .qz-pc.on { background: var(--blue-soft, #e8f3ff); border-color: transparent; color: var(--blue-ink, #1b64da); }
+    .qz-fb { margin: 16px 0 12px; padding: 14px 16px; border-radius: 14px; }
+    .qz-fb.ok { background: var(--mint-soft, #e6f8f1); }
+    .qz-fb.bad { background: var(--coral-soft, #ffeef0); }
+    .qz-fb b { display: block; margin-bottom: 4px; }
+    .qz-fb p { margin: 0; font-weight: 600; line-height: 1.6; }
+    .qz-fb small { color: var(--muted); }
+    .qz-end { text-align: center; }
+    .qz-score { margin-top: 20px; font-size: 3.6rem; font-weight: 900; color: var(--blue, #3182f6); line-height: 1; }
+    .qz-score small { font-size: 1.2rem; margin-left: 2px; }
+    .qz-sum { color: var(--muted); margin: 8px 0 20px; }
+    .qz-perfect { font-weight: 700; margin: 10px 0 20px; }
+    .qz-review { display: grid; gap: 10px; text-align: left; margin-bottom: 18px; }
+    .qz-rv { background: var(--surface, #fff); border-radius: 14px; padding: 12px 14px; }
+    .qz-rv em { font-style: normal; font-size: .74rem; font-weight: 800; color: var(--coral, #f04452); }
+    .qz-rv p { margin: 4px 0 2px; font-weight: 600; line-height: 1.6; }
+    .qz-rv small { color: var(--muted); }
+    .qz-ans { display: block; margin-top: 6px; font-size: .82rem; color: var(--ink-2, inherit); }
+    .rd-tools .btn-primary { flex: 1; }
     .rd-empty { color: var(--muted); font-size: .9rem; line-height: 1.6; text-align: center; padding: 30px 14px; background: var(--surface, #fff); border-radius: 16px; }
     .rd-empty b { display: block; color: var(--ink, inherit); font-size: 1rem; margin-bottom: 6px; }
     .texts-pane { padding: 4px 0 24px; }
@@ -3709,7 +3771,10 @@ window.VOCA_CLOUD = {
     return a.filter(x => x && typeof x.text === 'string' && x.text.trim()).slice(0, PSG_MAX).map(x => ({
       id: String(x.id || uid()).slice(0, 40), name: String(x.name || '본문').replace(/[\u0000-\u001f]/g, '').slice(0, 40) || '본문',
       text: String(x.text).slice(0, 4000), zh: !!x.zh, at: Number.isFinite(+x.at) ? +x.at : Date.now(),
-      ko: Array.isArray(x.ko) ? x.ko.slice(0, 80).map(k => String(k || '').slice(0, 800)) : []
+      ko: Array.isArray(x.ko) ? x.ko.slice(0, 80).map(k => String(k || '').slice(0, 800)) : [],
+      cat: String(x.cat || '').replace(/[\u0000-\u001f]/g, '').trim().slice(0, 20),
+      best: Number.isFinite(+x.best) ? Math.max(0, Math.min(100, Math.round(+x.best))) : null,
+      tries: Number.isFinite(+x.tries) ? Math.max(0, Math.floor(+x.tries)) : 0
     }));
   }
   function dataBlob() {
@@ -7568,14 +7633,60 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
   const psgNextName = () => { let n = 0; passages.forEach(x => { const m = /^본문 (\d+)$/.exec(x.name); if (m) n = Math.max(n, +m[1]); }); return `본문 ${Math.max(n, passages.length) + 1}`; };
   const psgDate = t => { const d = new Date(t); return `${d.getMonth() + 1}월 ${d.getDate()}일`; };
   // 본문 탭: 단어장처럼 본문 1, 본문 2 … 를 카드로 보여 줘요. 누르면 전체 화면으로 읽어요.
+  // 본문 분류(카테고리): 본문마다 cat 이름을 가져요. 아직 본문이 없는 새 분류는 기기에 잠깐 기억해 둬요.
+  const tcKey = () => 'vocapro_texts_cat:' + currentUser, tcsKey = () => 'vocapro_texts_cats:' + currentUser;
+  const NO_CAT = '\u0000none';
+  function textCats() {
+    const extra = (loadJson(tcsKey()) || []).filter(x => typeof x === 'string' && x);
+    const all = []; passages.forEach(x => { if (x.cat && !all.includes(x.cat)) all.push(x.cat); });
+    extra.forEach(x => { if (!all.includes(x)) all.push(x); });
+    return all.sort((a, b) => a.localeCompare(b, 'ko'));
+  }
+  function textCatSel() { let c = ''; try { c = LS.getItem(tcKey()) || ''; } catch (e) {} return c === NO_CAT || textCats().includes(c) ? c : ''; }
+  function textCatSet(c) { try { LS.setItem(tcKey(), c); } catch (e) {} }
+  function textCatsKeep(list) { try { LS.setItem(tcsKey(), JSON.stringify(list.slice(0, 40))); } catch (e) {} }
   function textsListHtml() {
-    const list = passages.slice().sort((a, b) => b.at - a.at);
-    return `<button class="btn btn-primary btn-block rd-new" data-act="rd-new">${IC.plus} 새 본문 넣기</button>
+    const cats = textCats(), sel = textCatSel();
+    const all = passages.slice().sort((a, b) => b.at - a.at);
+    const list = sel === NO_CAT ? all.filter(x => !x.cat) : sel ? all.filter(x => x.cat === sel) : all;
+    const n = c => c === NO_CAT ? all.filter(x => !x.cat).length : all.filter(x => x.cat === c).length;
+    const chip = (c, label, cnt) => `<button class="tc-chip${sel === c ? ' on' : ''}" data-act="tc-sel" data-c="${esc(c)}">${esc(label)}<i>${cnt}</i></button>`;
+    const chips = `<div class="tc-row" role="tablist" aria-label="본문 분류">${chip('', '전체', all.length)}${cats.map(c => chip(c, c, n(c))).join('')}${cats.length && n(NO_CAT) ? chip(NO_CAT, '분류 없음', n(NO_CAT)) : ''}<button class="tc-chip add" data-act="tc-new">${IC.plus} 분류</button></div>
+      ${sel && sel !== NO_CAT ? `<div class="tc-bar"><b>${esc(sel)}</b><button class="link-btn" data-act="tc-rename">이름 바꾸기</button><button class="link-btn danger" data-act="tc-del">분류 지우기</button></div>` : ''}`;
+    return `<button class="btn btn-primary btn-block rd-new" data-act="rd-new">${IC.plus} 새 본문 넣기</button>${chips}
       ${list.length ? `<div class="rd-lib">${list.map(x => `<div class="rd-item">
-          <button class="rd-open-p" data-act="rd-p" data-id="${esc(x.id)}"><span class="rd-badge ${x.zh ? 'zh' : 'en'}">${x.zh ? '中' : 'EN'}</span><span class="rd-it"><b>${esc(x.name)}</b><small>${esc(x.text.replace(/\s+/g, ' ').slice(0, 70))}${x.text.length > 70 ? '…' : ''}</small></span><em>${psgDate(x.at)}</em></button>
+          <button class="rd-open-p" data-act="rd-p" data-id="${esc(x.id)}"><span class="rd-badge ${x.zh ? 'zh' : 'en'}">${x.zh ? '中' : 'EN'}</span><span class="rd-it"><b>${esc(x.name)}</b><small>${!sel && x.cat ? `<span class="tc-tag">${esc(x.cat)}</span>` : ''}${esc(x.text.replace(/\s+/g, ' ').slice(0, 70))}${x.text.length > 70 ? '…' : ''}</small></span><em>${x.best != null ? `<span class="tc-best">${x.best}점</span>` : ''}${psgDate(x.at)}</em></button>
           <button class="rd-more" data-act="rd-p-menu" data-id="${esc(x.id)}" aria-label="${esc(x.name)} 메뉴">⋯</button></div>`).join('')}</div>`
+        : all.length ? `<div class="rd-empty"><b>이 분류에는 아직 본문이 없어요</b>'새 본문 넣기'를 누르면 이 분류에 저장돼요. 다른 본문은 ⋯ → 분류 옮기기로 옮길 수 있어요.</div>`
         : `<div class="rd-empty"><b>아직 저장한 본문이 없어요</b>교과서 본문이나 기사를 붙여 넣으면 '본문 1'로 저장돼요. 문장마다 해석이 나오고, 단어를 누르면 뜻과 원어민 발음을 들을 수 있어요.</div>`}`;
   }
+  ACTIONS['tc-sel'] = el => { textCatSet(el.dataset.c); renderTexts(); };
+  async function tcAskName(title, def) {
+    const v = await ask(title, { input: def || '', ok: '확인' });
+    if (typeof v !== 'string') return null;
+    const name = v.replace(/[\u0000-\u001f]/g, '').trim().slice(0, 20);
+    if (!name) return null;
+    return name;
+  }
+  ACTIONS['tc-new'] = async () => {
+    const name = await tcAskName('새 분류 이름 (예: 교과서 3과, 모의고사, 기사)', ''); if (!name) return;
+    const extra = (loadJson(tcsKey()) || []).filter(x => typeof x === 'string'); if (!extra.includes(name)) extra.push(name);
+    textCatsKeep(extra); textCatSet(name); renderTexts(); toast(`'${name}' 분류를 만들었어요. 새 본문을 넣으면 여기에 저장돼요.`);
+  };
+  ACTIONS['tc-rename'] = async () => {
+    const old = textCatSel(); if (!old || old === NO_CAT) return;
+    const name = await tcAskName('분류 이름 바꾸기', old); if (!name || name === old) return;
+    passages.forEach(x => { if (x.cat === old) x.cat = name; });
+    textCatsKeep((loadJson(tcsKey()) || []).map(x => x === old ? name : x));
+    textCatSet(name); syncStorage(); renderTexts();
+  };
+  ACTIONS['tc-del'] = async () => {
+    const old = textCatSel(); if (!old || old === NO_CAT) return;
+    if (!await ask(`'${old}' 분류를 지울까요? 안에 있던 본문은 지워지지 않고 '분류 없음'으로 옮겨져요.`, { ok: '분류 지우기', danger: true })) return;
+    passages.forEach(x => { if (x.cat === old) x.cat = ''; });
+    textCatsKeep((loadJson(tcsKey()) || []).filter(x => x !== old));
+    textCatSet(''); syncStorage(); renderTexts();
+  };
   function renderTexts() {
     const el = $('tabTexts'); if (!el) return;
     el.innerHTML = `<div class="texts-pane">${textsListHtml()}</div>`;
@@ -7586,11 +7697,25 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     const x = id ? psgById(id) : null;
     rdShell(`<p class="rd-help">영어나 중국어 본문을 붙여 넣으세요. 문장마다 한국어 해석이 나오고, 단어를 누르면 뜻과 발음이 떠요.</p>
       <input id="rdName" class="rd-name" maxlength="40" value="${esc(x ? x.name : psgNextName())}" aria-label="본문 이름">
+      <label class="rd-catrow"><span>분류</span><select id="rdCat" aria-label="본문 분류">${rdCatOptions(x ? x.cat : (textCatSel() === NO_CAT ? '' : textCatSel()))}</select></label>
       <textarea id="rdIn" class="rd-in" maxlength="${RD_MAX}" placeholder="예) Plants make their own food. They use sunlight, water and air..." spellcheck="false">${esc(x ? x.text : '')}</textarea>
       <div class="rd-row"><small id="rdCnt" class="muted">0 / ${RD_MAX.toLocaleString()}자</small><button class="btn btn-primary" data-act="rd-save" data-id="${esc(id || '')}">저장하고 해석 보기</button></div>`, x ? '본문 고치기' : '새 본문', true);
     const inp = $('rdIn'), cnt = () => { $('rdCnt').textContent = `${inp.value.length.toLocaleString()} / ${RD_MAX.toLocaleString()}자`; };
     inp.addEventListener('input', cnt); cnt();
+    rdCatSelectWire($('rdCat'));
     setTimeout(() => inp.focus(), 60);
+  }
+  const rdCatOptions = cur => `<option value="">분류 없음</option>${textCats().map(c => `<option value="${esc(c)}"${c === cur ? ' selected' : ''}>${esc(c)}</option>`).join('')}<option value="__new">+ 새 분류 만들기</option>`;
+  // '+ 새 분류 만들기'를 고르면 이름을 묻고 그 분류를 골라 둬요.
+  function rdCatSelectWire(sel) {
+    if (!sel) return; let prev = sel.value;
+    sel.addEventListener('change', async () => {
+      if (sel.value !== '__new') { prev = sel.value; return; }
+      const name = await tcAskName('새 분류 이름 (예: 교과서 3과, 모의고사)', '');
+      if (!name) { sel.value = prev; return; }
+      const extra = (loadJson(tcsKey()) || []).filter(x => typeof x === 'string'); if (!extra.includes(name)) extra.push(name); textCatsKeep(extra);
+      sel.innerHTML = rdCatOptions(name); prev = name;
+    });
   }
   ACTIONS['rd-open'] = () => rdList();
   ACTIONS['rd-list'] = () => rdList();
@@ -7601,10 +7726,10 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
   ACTIONS['rd-save'] = el => {
     const text = (($('rdIn') || {}).value || '').trim().slice(0, RD_MAX); if (!text) return toast('본문을 붙여 넣어 주세요.');
     const name = (($('rdName') || {}).value || '').trim().slice(0, 40) || psgNextName();
-    const zh = rdIsZh(text);
+    const zh = rdIsZh(text), cv = (($('rdCat') || {}).value || ''), cat = cv === '__new' ? '' : cv.slice(0, 20);
     let x = el.dataset.id ? psgById(el.dataset.id) : null;
-    if (x) { if (x.text !== text) x.ko = []; Object.assign(x, { name, text, zh, at: Date.now() }); }
-    else { x = { id: 'p' + uid(), name, text, zh, at: Date.now(), ko: [] }; passages.push(x); }
+    if (x) { if (x.text !== text) { x.ko = []; x.best = null; x.tries = 0; } Object.assign(x, { name, text, zh, cat, at: Date.now() }); }
+    else { x = { id: 'p' + uid(), name, text, zh, cat, at: Date.now(), ko: [], best: null, tries: 0 }; passages.push(x); }
     syncStorage(); rdRun(x.id);
   };
   // ⋯ 를 누르면 그 본문 아래에 이름 바꾸기 · 고치기 · 삭제 버튼이 열려요.
@@ -7613,7 +7738,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     document.querySelectorAll('.rd-acts').forEach(x => x.remove());
     if (open) return;
     const id = esc(el.dataset.id);
-    item.insertAdjacentHTML('afterend', `<div class="rd-acts"><button class="btn btn-soft" data-act="rd-p-rename" data-id="${id}">이름 바꾸기</button><button class="btn btn-soft" data-act="rd-p-edit" data-id="${id}">본문 고치기</button><button class="btn btn-soft danger" data-act="rd-p-del" data-id="${id}">삭제</button></div>`);
+    item.insertAdjacentHTML('afterend', `<div class="rd-acts"><button class="btn btn-soft" data-act="rd-p-rename" data-id="${id}">이름</button><button class="btn btn-soft" data-act="rd-p-cat" data-id="${id}">분류 옮기기</button><button class="btn btn-soft" data-act="rd-p-edit" data-id="${id}">고치기</button><button class="btn btn-soft danger" data-act="rd-p-del" data-id="${id}">삭제</button></div>`);
   };
   ACTIONS['rd-p-rename'] = async el => {
     const x = psgById(el.dataset.id); if (!x) return;
@@ -7622,6 +7747,24 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     x.name = v.trim().slice(0, 40); syncStorage(); rdList();
   };
   ACTIONS['rd-p-edit'] = el => rdEditor(el.dataset.id);
+  // 분류 옮기기: 분류 버튼 중에서 고르거나 새 분류 이름을 써요.
+  ACTIONS['rd-p-cat'] = el => {
+    const x = psgById(el.dataset.id); if (!x) return;
+    const cats = textCats();
+    const ov = document.createElement('div'); ov.className = 'dlg-ov tc-dlg';
+    ov.innerHTML = `<div class="dlg" role="dialog" aria-modal="true" aria-label="분류 옮기기"><h3 class="em-t">'${esc(x.name)}' 분류 옮기기</h3>
+      <div class="tc-pick">${['', ...cats].map(c => `<button class="tc-chip${(x.cat || '') === c ? ' on' : ''}" data-c="${esc(c)}">${c ? esc(c) : '분류 없음'}</button>`).join('')}</div>
+      <input type="text" id="tcNewName" maxlength="20" placeholder="새 분류 이름 (예: 모의고사)">
+      <div class="row"><button class="btn btn-soft" style="flex:1" data-x="1">닫기</button><button class="btn btn-primary" style="flex:1" data-ok="1">새 분류로 옮기기</button></div></div>`;
+    document.body.appendChild(ov);
+    const done = c => { x.cat = c; syncStorage(); ov.remove(); renderTexts(); toast(c ? `'${c}' 분류로 옮겼어요.` : `'분류 없음'으로 옮겼어요.`); };
+    ov.addEventListener('click', e => {
+      const b = e.target.closest('button');
+      if (e.target === ov || (b && b.dataset.x)) return ov.remove();
+      if (b && b.dataset.c !== undefined) return done(b.dataset.c);
+      if (b && b.dataset.ok) { const v = ($('tcNewName').value || '').replace(/[\u0000-\u001f]/g, '').trim().slice(0, 20); if (!v) { $('tcNewName').focus(); return toast('새 분류 이름을 써 주세요.'); } done(v); }
+    });
+  };
   ACTIONS['rd-p-del'] = async el => {
     const x = psgById(el.dataset.id); if (!x) return;
     if (!await ask(`'${x.name}'을(를) 지울까요? 되돌릴 수 없어요.`, { ok: '삭제', danger: true })) return;
@@ -7631,7 +7774,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
 
   // 문장 나누기: 영어는 . ! ? 뒤, 중국어는 。！？； 뒤. 줄바꿈도 문장 경계로 봐요.
   // Mr. Dr. U.S. a.m. e.g. 처럼 마침표가 있어도 문장이 끝나지 않는 말
-  const RD_ABBR = /(?:^|[\s(“"'])(?:mr|mrs|ms|dr|prof|sr|jr|st|mt|vs|etc|e\.g|i\.e|a\.m|p\.m|u\.s|u\.k|u\.n|no|inc|ltd|co|corp|jan|feb|mar|apr|jun|jul|aug|sep|sept|oct|nov|dec|fig|approx|dept|est|min|max)\.$/i;
+  const RD_ABBR = /(?:^|[\s(“"'])(?:mr|mrs|ms|dr|prof|sr|jr|mt|vs|etc|e\.g|i\.e|a\.m|p\.m|u\.s|u\.k|u\.n|inc|ltd|corp|jan|feb|apr|jun|jul|aug|sept|oct|nov|dec|approx|dept)\.$/i;
   function rdSplit(text, zh) {
     const out = [];
     text.replace(/\r/g, '').split(/\n+/).forEach(par => {
@@ -7743,10 +7886,117 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     const body = RD.sents.map((s, i) => `<div class="rd-s" data-i="${i}">
         <p class="rd-en" lang="${RD.zh ? 'zh-CN' : 'en'}">${s.toks.map(t => t.w ? `<span class="rd-w${own.has(t.w.toLowerCase()) ? ' own' : ''}" data-act="rd-word" data-w="${esc(t.w)}"${t.cap ? ' data-cap="1"' : ''}${t.title ? ' data-title="1"' : ''}>${esc(t.s)}</span>` : esc(t.s)).join('')}<button class="rd-sp" data-act="speak" data-text="${esc(s.t)}" aria-label="이 문장 듣기">${IC.speaker}</button></p>
         <p class="rd-ko${s.ko === null ? ' load' : s.ko ? '' : ' err'}">${s.ko === null ? '해석하는 중…' : s.ko ? esc(s.ko) : `해석을 가져오지 못했어요. <button class="rd-retry" data-act="rd-retry" data-i="${i}">다시 시도</button>`}</p></div>`).join('');
-    rdShell(`<div class="rd-tools"><button class="btn btn-soft" data-act="rd-edit">본문 고치기</button><button class="btn btn-soft${RD.hideKo ? ' on' : ''}" data-act="rd-hide">${RD.hideKo ? '해석 보이기' : '해석 가리기'}</button></div>
+    rdShell(`<div class="rd-tools"><button class="btn btn-soft" data-act="rd-edit">본문 고치기</button><button class="btn btn-soft${RD.hideKo ? ' on' : ''}" data-act="rd-hide">${RD.hideKo ? '해석 보이기' : '해석 가리기'}</button><button class="btn btn-primary" data-act="qz-start">문제 풀기</button></div>
       <div class="rd-doc${RD.hideKo ? ' hide-ko' : ''}">${body}</div>
       <p class="rd-note muted">밑줄 친 단어는 내 단어장에 있는 단어예요. 해석은 자동 번역이라 조금 어색할 수 있어요.</p>`, RD.name, true);
   }
+  /* ----- 본문 문제 풀기: 해석 고르기 · 빈칸 채우기 · 순서 배열 (본문과 저장된 해석으로 바로 만들어요) ----- */
+  let QZ = null;
+  const QZ_STOP = new Set('a an the and or but so to of in on at by for with from as is am are was were be been being it its this that these those he she they we you i me my your his her their our them us do does did not no yes if then than there here very can could will would should may might must have has had just also too'.split(' '));
+  const qzShuffle = a => { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
+  // 순서 배열용 조각: 영어는 띄어쓰기 단위(문장 부호는 앞 단어에 붙여요), 중국어는 단어 단위
+  function qzPieces(s, zh) {
+    if (!zh) return s.t.split(/\s+/).filter(Boolean);
+    const out = [];
+    s.toks.forEach(t => { const v = t.s.trim(); if (!v) return; if (!t.w && out.length && !HAN.test(v)) out[out.length - 1] += v; else out.push(v); });
+    return out;
+  }
+  function qzBuild(sents, zh) {
+    const ok = sents.filter(s => s.ko);
+    const words = []; // 빈칸 보기용 내용어
+    ok.forEach(s => s.toks.forEach(t => { if (!t.w) return; const w = t.w; if (zh ? [...w].length >= 1 && HAN.test(w) : (w.length >= 3 && !QZ_STOP.has(w.toLowerCase()))) { if (!words.some(x => x.toLowerCase() === w.toLowerCase())) words.push(w); } }));
+    const qs = [];
+    qzShuffle(ok).forEach((s, k) => {
+      const types = [];
+      if (ok.length >= 2) types.push('tr');
+      const cand = s.toks.filter(t => t.w && (zh ? HAN.test(t.w) : t.w.length >= 3 && !QZ_STOP.has(t.w.toLowerCase())));
+      if (cand.length && words.length >= 3) types.push('blank');
+      const pcs = qzPieces(s, zh);
+      if (pcs.length >= 3 && pcs.length <= (zh ? 12 : 14)) types.push('order');
+      if (!types.length) return;
+      const pickType = types[k % types.length];
+      if (pickType === 'tr') {
+        const others = qzShuffle(ok.filter(o => o !== s && o.ko !== s.ko).map(o => o.ko)).slice(0, 3);
+        qs.push({ type: 'tr', s, ans: s.ko, opts: qzShuffle([s.ko, ...others]) });
+      } else if (pickType === 'blank') {
+        const tgt = cand[Math.floor(Math.random() * cand.length)].w;
+        const dis = qzShuffle(words.filter(w => w.toLowerCase() !== tgt.toLowerCase())).slice(0, 3);
+        const re = zh ? null : new RegExp('\\b' + tgt.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b');
+        const shown = zh ? s.t.replace(tgt, '＿＿') : s.t.replace(re, '_____');
+        qs.push({ type: 'blank', s, ans: tgt, opts: qzShuffle([tgt, ...dis]), shown });
+      } else {
+        qs.push({ type: 'order', s, ans: pcs.join(zh ? '' : ' '), pcs: qzShuffle(pcs.map((t, i) => ({ t, i }))), picked: [] });
+      }
+    });
+    // 문장이 적으면 같은 문장으로 다른 유형을 하나 더 만들어요(최대 10문제)
+    if (qs.length < 5) ok.forEach(s => { if (qs.length >= 10) return; const pcs = qzPieces(s, zh); if (pcs.length >= 3 && pcs.length <= 14 && !qs.some(q => q.s === s && q.type === 'order')) qs.push({ type: 'order', s, ans: pcs.join(zh ? '' : ' '), pcs: qzShuffle(pcs.map((t, i) => ({ t, i }))), picked: [] }); });
+    return qzShuffle(qs).slice(0, 10);
+  }
+  ACTIONS['qz-start'] = async () => {
+    if (!RD) return;
+    if (RD.sents.some(s => s.ko === null)) return toast('해석이 다 나온 뒤에 문제를 풀 수 있어요. 잠시만 기다려 주세요.');
+    const qs = qzBuild(RD.sents, RD.zh);
+    if (qs.length < 2) return toast('문제를 만들기에 본문이 너무 짧아요. 두 문장 이상 넣어 주세요.');
+    QZ = { id: RD.id, name: RD.name, zh: RD.zh, qs, i: 0, right: 0, wrong: [], answered: false };
+    qzRender();
+  };
+  const QZ_LABEL = { tr: '알맞은 해석 고르기', blank: '빈칸에 알맞은 말 고르기', order: '해석에 맞게 순서대로 놓기' };
+  function qzRender() {
+    if (!QZ) return;
+    const q = QZ.qs[QZ.i], n = QZ.qs.length, L = QZ.zh ? 'zh-CN' : 'en';
+    const bar = `<div class="qz-top"><span>${QZ.i + 1} / ${n}</span><div class="qz-bar"><i style="width:${Math.round(QZ.i / n * 100)}%"></i></div><span class="qz-sc">${QZ.right}점</span></div><p class="qz-type">${QZ_LABEL[q.type]}</p>`;
+    let body = '';
+    if (q.type === 'tr') body = `<div class="qz-q" lang="${L}">${esc(q.s.t)}<button class="rd-sp" data-act="speak" data-text="${esc(q.s.t)}" aria-label="문장 듣기">${IC.speaker}</button></div>
+      <div class="qz-opts">${q.opts.map((o, k) => `<button class="qz-opt" data-act="qz-pick" data-k="${k}">${esc(o)}</button>`).join('')}</div>`;
+    else if (q.type === 'blank') body = `<div class="qz-q" lang="${L}">${esc(q.shown)}</div><p class="qz-hint">${esc(q.s.ko)}</p>
+      <div class="qz-opts grid">${q.opts.map((o, k) => `<button class="qz-opt" data-act="qz-pick" data-k="${k}" lang="${L}">${esc(o)}</button>`).join('')}</div>`;
+    else body = `<p class="qz-hint big">${esc(q.s.ko)}</p>
+      <div class="qz-built" lang="${L}">${q.picked.length ? q.picked.map((p, k) => `<button class="qz-pc on" data-act="qz-unpick" data-k="${k}">${esc(p.t)}</button>`).join('') : '<span class="muted">아래 조각을 순서대로 누르세요</span>'}</div>
+      <div class="qz-pool" lang="${L}">${q.pcs.map((p, k) => q.picked.includes(p) ? '' : `<button class="qz-pc" data-act="qz-place" data-k="${k}">${esc(p.t)}</button>`).join('')}</div>
+      <button class="btn btn-primary btn-block" data-act="qz-check" ${q.picked.length === q.pcs.length ? '' : 'disabled'}>확인</button>`;
+    rdShell(`<div class="qz">${bar}${body}<div id="qzFb"></div></div>`, `${QZ.name} · 문제`, false);
+    const top = document.querySelector('#rdOv .rd-top'); if (top) top.insertAdjacentHTML('afterbegin', `<button class="rd-x" data-act="qz-quit" aria-label="본문으로">←</button>`);
+  }
+  function qzAnswer(correct, given) {
+    if (!QZ || QZ.answered) return; QZ.answered = true;
+    const q = QZ.qs[QZ.i];
+    if (correct) QZ.right++; else QZ.wrong.push({ q, given });
+    document.querySelectorAll('#rdBody .qz-opt, #rdBody .qz-pc, #rdBody [data-act=qz-check]').forEach(b => { b.disabled = true; });
+    if (q.type !== 'order') document.querySelectorAll('#rdBody .qz-opt').forEach(b => { const v = q.opts[+b.dataset.k]; if (v === q.ans) b.classList.add('ok'); else if (v === given) b.classList.add('bad'); });
+    const fb = $('qzFb'), last = QZ.i + 1 >= QZ.qs.length;
+    fb.innerHTML = `<div class="qz-fb ${correct ? 'ok' : 'bad'}"><b>${correct ? '정답이에요!' : '아쉬워요'}</b>
+      <p lang="${QZ.zh ? 'zh-CN' : 'en'}">${esc(q.s.t)}</p><small>${esc(q.s.ko)}</small></div>
+      <button class="btn btn-primary btn-block" data-act="qz-next">${last ? '결과 보기' : '다음 문제'}</button>`;
+    try { haptic && haptic(correct ? 'ok' : 'bad'); } catch (e) {}
+    playAudio(q.s.t, false);
+    const nb = fb.querySelector('[data-act=qz-next]'); if (nb) nb.focus();
+  }
+  ACTIONS['qz-pick'] = el => { const q = QZ && QZ.qs[QZ.i]; if (!q) return; const v = q.opts[+el.dataset.k]; qzAnswer(v === q.ans, v); };
+  ACTIONS['qz-place'] = el => { const q = QZ && QZ.qs[QZ.i]; if (!q || QZ.answered) return; const p = q.pcs[+el.dataset.k]; if (p && !q.picked.includes(p)) { q.picked.push(p); qzRender(); } };
+  ACTIONS['qz-unpick'] = el => { const q = QZ && QZ.qs[QZ.i]; if (!q || QZ.answered) return; q.picked.splice(+el.dataset.k, 1); qzRender(); };
+  ACTIONS['qz-check'] = () => {
+    const q = QZ && QZ.qs[QZ.i]; if (!q || q.picked.length !== q.pcs.length) return;
+    const got = q.picked.map(p => p.t).join(QZ.zh ? '' : ' ');
+    qzAnswer(got === q.ans, got);
+    const built = document.querySelector('#rdBody .qz-built'); if (built) built.classList.add(got === q.ans ? 'ok' : 'bad');
+  };
+  ACTIONS['qz-next'] = () => {
+    if (!QZ) return;
+    if (QZ.i + 1 < QZ.qs.length) { QZ.i++; QZ.answered = false; return qzRender(); }
+    qzEnd();
+  };
+  function qzEnd() {
+    const n = QZ.qs.length, score = Math.round(QZ.right / n * 100), x = psgById(QZ.id);
+    let best = score, isBest = false;
+    if (x) { isBest = x.best == null || score > x.best; x.best = Math.max(x.best || 0, score); x.tries = (x.tries || 0) + 1; best = x.best; syncStorage(); }
+    rdShell(`<div class="qz qz-end"><div class="qz-score">${score}<small>점</small></div>
+      <p class="qz-sum">${n}문제 중 ${QZ.right}개 맞혔어요${isBest && x && x.tries > 1 ? ' · 최고 점수!' : ''}${!isBest ? ` · 최고 ${best}점` : ''}</p>
+      ${QZ.wrong.length ? `<h4 class="syn-h">틀린 문제 다시 보기</h4><div class="qz-review">${QZ.wrong.map(w => `<div class="qz-rv"><em>${QZ_LABEL[w.q.type]}</em><p lang="${QZ.zh ? 'zh-CN' : 'en'}">${esc(w.q.s.t)}<button class="rd-sp" data-act="speak" data-text="${esc(w.q.s.t)}" aria-label="문장 듣기">${IC.speaker}</button></p><small>${esc(w.q.s.ko)}</small>${w.q.type !== 'tr' ? `<span class="qz-ans">정답: ${esc(w.q.ans)}${w.given ? ` · 내 답: ${esc(w.given)}` : ''}</span>` : ''}</div>`).join('')}</div>` : '<p class="qz-perfect">모두 맞혔어요! 완벽해요 🎉</p>'}
+      <div class="rd-tools"><button class="btn btn-soft" data-act="qz-quit">본문으로</button><button class="btn btn-primary" data-act="qz-again">다시 풀기</button></div></div>`, `${QZ.name} · 결과`, true);
+  }
+  ACTIONS['qz-again'] = () => { if (!QZ) return; const id = QZ.id; QZ = null; rdRun(id).then(() => {}); setTimeout(() => { if (RD && RD.id === id && !RD.sents.some(s => s.ko === null)) ACTIONS['qz-start'](); }, 300); };
+  ACTIONS['qz-quit'] = () => { const id = QZ && QZ.id; QZ = null; if (id) rdRun(id); else rdList(); };
+
   ACTIONS['rd-hide'] = el => { if (!RD) return; RD.hideKo = !RD.hideKo; const d = document.querySelector('#rdBody .rd-doc'); if (d) d.classList.toggle('hide-ko', RD.hideKo); el.textContent = RD.hideKo ? '해석 보이기' : '해석 가리기'; el.classList.toggle('on', RD.hideKo); };
   // 숨긴 해석은 그 문장을 누르면 잠깐 보여요.
   document.addEventListener('click', e => { const k = e.target.closest && e.target.closest('.rd-doc.hide-ko .rd-ko'); if (k) k.classList.toggle('peek'); });

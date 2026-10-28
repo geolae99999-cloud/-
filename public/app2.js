@@ -158,7 +158,10 @@
     return a.filter(x => x && typeof x.text === 'string' && x.text.trim()).slice(0, PSG_MAX).map(x => ({
       id: String(x.id || uid()).slice(0, 40), name: String(x.name || '본문').replace(/[\u0000-\u001f]/g, '').slice(0, 40) || '본문',
       text: String(x.text).slice(0, 4000), zh: !!x.zh, at: Number.isFinite(+x.at) ? +x.at : Date.now(),
-      ko: Array.isArray(x.ko) ? x.ko.slice(0, 80).map(k => String(k || '').slice(0, 800)) : []
+      ko: Array.isArray(x.ko) ? x.ko.slice(0, 80).map(k => String(k || '').slice(0, 800)) : [],
+      cat: String(x.cat || '').replace(/[\u0000-\u001f]/g, '').trim().slice(0, 20),
+      best: Number.isFinite(+x.best) ? Math.max(0, Math.min(100, Math.round(+x.best))) : null,
+      tries: Number.isFinite(+x.tries) ? Math.max(0, Math.floor(+x.tries)) : 0
     }));
   }
   function dataBlob() {
