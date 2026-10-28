@@ -274,7 +274,7 @@
   }
   /* ----- 본문 문제 풀기: 해석 고르기 · 빈칸 채우기 · 순서 배열 (본문과 저장된 해석으로 바로 만들어요) ----- */
   let QZ = null;
-  const QZ_STOP = new Set('a an the and or but so to of in on at by for with from as is am are was were be been being it its this that these those he she they we you i me my your his her their our them us do does did not no yes if then than there here very can could will would should may might must have has had just also too'.split(' '));
+  const QZ_STOP = new Set('a an the and or but so to of in on at by for with from as is am are was were be been being it its this that these those he she they we you i me my your his her their our them us do does did not no yes if then than there here very can could will would should may might must have has had just also too him her hers them its mine yours ours theirs who whom what which when where why how all some any each every one two three'.split(' '));
   const qzShuffle = a => { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
   // 순서 배열용 조각: 영어는 띄어쓰기 단위(문장 부호는 앞 단어에 붙여요), 중국어는 단어 단위
   function qzPieces(s, zh) {
@@ -283,46 +283,83 @@
     s.toks.forEach(t => { const v = t.s.trim(); if (!v) return; if (!t.w && out.length && !HAN.test(v)) out[out.length - 1] += v; else out.push(v); });
     return out;
   }
-  function qzBuild(sents, zh) {
+  // 동사 형태: 불규칙 동사(원형:과거:과거분사)와 규칙 변화
+  const QZ_IRR = Object.fromEntries('be:was:been have:had:had do:did:done go:went:gone come:came:come get:got:gotten make:made:made take:took:taken give:gave:given see:saw:seen know:knew:known think:thought:thought say:said:said tell:told:told find:found:found feel:felt:felt leave:left:left keep:kept:kept bring:brought:brought buy:bought:bought teach:taught:taught catch:caught:caught fight:fought:fought write:wrote:written read:read:read run:ran:run sit:sat:sat stand:stood:stood eat:ate:eaten drink:drank:drunk speak:spoke:spoken break:broke:broken choose:chose:chosen drive:drove:driven ride:rode:ridden rise:rose:risen fall:fell:fallen forget:forgot:forgotten begin:began:begun swim:swam:swum sing:sang:sung ring:rang:rung grow:grew:grown throw:threw:thrown fly:flew:flown draw:drew:drawn wear:wore:worn win:won:won lose:lost:lost meet:met:met pay:paid:paid send:sent:sent spend:spent:spent build:built:built lend:lent:lent hear:heard:heard hold:held:held sell:sold:sold sleep:slept:slept feed:fed:fed lead:led:led light:lit:lit hide:hid:hidden bite:bit:bitten wake:woke:woken become:became:become understand:understood:understood put:put:put cut:cut:cut let:let:let set:set:set hit:hit:hit hurt:hurt:hurt shut:shut:shut cost:cost:cost mean:meant:meant'.split(' ').map(x => { const [b, p2, pp] = x.split(':'); return [b, [p2, pp]]; }));
+  const QZ_IRR_REV = (() => { const m = {}; Object.entries(QZ_IRR).forEach(([b, [p2, pp]]) => { m[p2] = m[p2] || b; m[pp] = m[pp] || b; }); Object.assign(m, { am: 'be', is: 'be', are: 'be', was: 'be', were: 'be', been: 'be', being: 'be', has: 'have', does: 'do' }); return m; })();
+  const qzCvc = b => /^[^aeiou]*[aeiou][^aeiouwxy]$/.test(b) && b.length <= 4;
+  function qzForms(b) {
+    if (b === 'be') return ['be', 'is', 'are', 'was', 'were', 'been', 'being'];
+    const s3 = b === 'have' ? 'has' : b === 'do' ? 'does' : b === 'go' ? 'goes' : /[^aeiou]y$/.test(b) ? b.slice(0, -1) + 'ies' : /(s|x|z|ch|sh|o)$/.test(b) ? b + 'es' : b + 's';
+    const ing = /ie$/.test(b) ? b.slice(0, -2) + 'ying' : /[^e]e$/.test(b) && b !== 'be' ? b.slice(0, -1) + 'ing' : qzCvc(b) ? b + b.slice(-1) + 'ing' : b + 'ing';
+    const ed = /e$/.test(b) ? b + 'd' : /[^aeiou]y$/.test(b) ? b.slice(0, -1) + 'ied' : qzCvc(b) ? b + b.slice(-1) + 'ed' : b + 'ed';
+    const [p2, pp] = QZ_IRR[b] || [ed, ed];
+    return [...new Set([b, s3, p2, pp, ing])];
+  }
+  const qzVerbSense = m => String(m || '').split(/[;,]/).some(x => /다\s*$/.test(x.replace(/\(.*?\)/g, '').trim()));
+  // 문장 속 단어가 동사면 원형을 돌려줘요(사전의 변화형 정보 + 규칙 · 불규칙 변화).
+  async function qzVerbBase(tok) {
+    const w = tok.toLowerCase(); if (QZ_IRR_REV[w]) return QZ_IRR_REV[w];
+    if (QZ_IRR[w]) return w;
+    const meaningOf = async c => { let a = null; try { a = await dictRaw(c); } catch (e) {} if (typeof a === 'string') { const b = a.split(':')[0]; return { base: b, m: (await dictRaw(b) || [])[1] }; } return Array.isArray(a) ? { base: c, m: a[1] } : null; };
+    const self = await meaningOf(w);
+    if (self && self.base !== w && qzVerbSense(self.m)) return self.base; // went → go
+    if (/(s|ed|ing)$/.test(w)) for (const c of baseCandidates(w)) { const r = await meaningOf(c); if (r && qzVerbSense(r.m) && qzForms(r.base).includes(w)) return r.base; }
+    if (self && self.base === w) { const first = String(self.m || '').split(/[;,]/)[0]; if (/다\s*$/.test(first.replace(/\(.*?\)/g, '').trim())) return w; }
+    return null;
+  }
+  // 해석 채점: 띄어쓰기 · 문장 부호를 빼고 두 글자씩 겹치는 정도(Dice)로 봐요.
+  function qzKoSim(a, b) {
+    const n = x => String(x || '').replace(/[\s.,!?·"'“”‘’()~\-]/g, '');
+    const A = n(a), B = n(b); if (!A || !B) return 0; if (A === B) return 1;
+    const bg = x => { const m = new Map(); for (let i = 0; i < x.length - 1; i++) { const k = x.slice(i, i + 2); m.set(k, (m.get(k) || 0) + 1); } return m; };
+    const ma = bg(A), mb = bg(B); let inter = 0; ma.forEach((v, k) => { inter += Math.min(v, mb.get(k) || 0); });
+    return (2 * inter) / Math.max(1, (A.length - 1) + (B.length - 1));
+  }
+  async function qzBuild(sents, zh) {
     const ok = sents.filter(s => s.ko);
-    const words = []; // 빈칸 보기용 내용어
-    ok.forEach(s => s.toks.forEach(t => { if (!t.w) return; const w = t.w; if (zh ? [...w].length >= 1 && HAN.test(w) : (w.length >= 3 && !QZ_STOP.has(w.toLowerCase()))) { if (!words.some(x => x.toLowerCase() === w.toLowerCase())) words.push(w); } }));
+    const content = t => t.w && (zh ? HAN.test(t.w) : t.w.length >= 3 && !QZ_STOP.has(t.w.toLowerCase()) && !/^[A-Z]/.test(t.w));
+    const words = []; ok.forEach(s => s.toks.forEach(t => { if (content(t) && !words.some(x => x.toLowerCase() === t.w.toLowerCase())) words.push(t.w); }));
+    // 뜻 고르기용: 사전에 있는 내용어의 뜻
+    const meanOf = {};
+    try { await dictPreload(words); } catch (e) {}
+    for (const w of words.slice(0, 60)) { let d = null; try { d = await dictGet(zh ? w : w.toLowerCase()); } catch (e) {} if (d && d.meaning) meanOf[w] = String(d.meaning).replace(/\s*\(.+?의 [^)]*\)\s*$/, '').split(/;/)[0].split(',').slice(0, 2).join(',').trim(); }
+    const meanWords = Object.keys(meanOf).filter(w => meanOf[w]);
+    // 동사 형태용 (영어만)
+    const verbs = new Map(); // 문장 → [{ tok, base }]
+    if (!zh) for (const s of ok) { const vs = []; for (const t of s.toks) { if (!t.w || t.cap || /'/.test(t.w)) continue; const b = await qzVerbBase(t.w); if (b && qzForms(b).length >= 4 && qzForms(b).includes(t.w.toLowerCase())) vs.push({ tok: t.w, base: b }); } if (vs.length) verbs.set(s, vs); }
+    const make = (type, s) => {
+      if (type === 'tr') { const others = qzShuffle(ok.filter(o => o !== s && o.ko !== s.ko).map(o => o.ko)).slice(0, 3); return others.length ? { type, s, ans: s.ko, opts: qzShuffle([s.ko, ...others]) } : null; }
+      if (type === 'blank') { const cand = s.toks.filter(content); if (!cand.length || words.length < 4) return null; const tgt = cand[Math.floor(Math.random() * cand.length)].w; const dis = qzShuffle(words.filter(w => w.toLowerCase() !== tgt.toLowerCase())).slice(0, 3); const re = new RegExp('\\b' + tgt.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b'); return { type, s, ans: tgt, opts: qzShuffle([tgt, ...dis]), shown: zh ? s.t.replace(tgt, '＿＿') : s.t.replace(re, '_____') }; }
+      if (type === 'verb') { const vs = verbs.get(s); if (!vs) return null; const v = vs[Math.floor(Math.random() * vs.length)], ans = v.tok.toLowerCase(); const dis = qzShuffle(qzForms(v.base).filter(f => f !== ans)).slice(0, 3); if (dis.length < 3) return null; const re = new RegExp('\\b' + v.tok + '\\b'); return { type, s, ans, base: v.base, opts: qzShuffle([ans, ...dis]), shown: s.t.replace(re, `_____ (${v.base})`) }; }
+      if (type === 'mean') { const cand = s.toks.filter(t => t.w && meanOf[t.w] && content(t)); if (!cand.length || meanWords.length < 4) return null; const w = cand[Math.floor(Math.random() * cand.length)].w, ans = meanOf[w]; const dis = qzShuffle(meanWords.filter(x => x !== w && meanOf[x] !== ans).map(x => meanOf[x])).filter((v, i, a) => a.indexOf(v) === i).slice(0, 3); if (dis.length < 3) return null; return { type, s, word: w, ans, opts: qzShuffle([ans, ...dis]) }; }
+      if (type === 'order') { const pcs = qzPieces(s, zh); return pcs.length >= 3 && pcs.length <= (zh ? 12 : 14) ? { type, s, ans: pcs.join(zh ? '' : ' '), pcs: qzShuffle(pcs.map((t, i) => ({ t, i }))), picked: [] } : null; }
+      if (type === 'write') return s.t.length <= 160 ? { type, s, ans: s.ko } : null;
+      return null;
+    };
+    // 문장마다 한 문제씩, 유형이 골고루 섞이게 돌려 가며 만들어요(최대 12문제).
+    const ORDER = zh ? ['tr', 'blank', 'mean', 'order', 'write'] : ['tr', 'verb', 'blank', 'mean', 'order', 'write'];
+    const used = {}; ORDER.forEach(t => { used[t] = 0; });
     const qs = [];
-    qzShuffle(ok).forEach((s, k) => {
-      const types = [];
-      if (ok.length >= 2) types.push('tr');
-      const cand = s.toks.filter(t => t.w && (zh ? HAN.test(t.w) : t.w.length >= 3 && !QZ_STOP.has(t.w.toLowerCase())));
-      if (cand.length && words.length >= 3) types.push('blank');
-      const pcs = qzPieces(s, zh);
-      if (pcs.length >= 3 && pcs.length <= (zh ? 12 : 14)) types.push('order');
-      if (!types.length) return;
-      const pickType = types[k % types.length];
-      if (pickType === 'tr') {
-        const others = qzShuffle(ok.filter(o => o !== s && o.ko !== s.ko).map(o => o.ko)).slice(0, 3);
-        qs.push({ type: 'tr', s, ans: s.ko, opts: qzShuffle([s.ko, ...others]) });
-      } else if (pickType === 'blank') {
-        const tgt = cand[Math.floor(Math.random() * cand.length)].w;
-        const dis = qzShuffle(words.filter(w => w.toLowerCase() !== tgt.toLowerCase())).slice(0, 3);
-        const re = zh ? null : new RegExp('\\b' + tgt.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b');
-        const shown = zh ? s.t.replace(tgt, '＿＿') : s.t.replace(re, '_____');
-        qs.push({ type: 'blank', s, ans: tgt, opts: qzShuffle([tgt, ...dis]), shown });
-      } else {
-        qs.push({ type: 'order', s, ans: pcs.join(zh ? '' : ' '), pcs: qzShuffle(pcs.map((t, i) => ({ t, i }))), picked: [] });
-      }
-    });
-    // 문장이 적으면 같은 문장으로 다른 유형을 하나 더 만들어요(최대 10문제)
-    if (qs.length < 5) ok.forEach(s => { if (qs.length >= 10) return; const pcs = qzPieces(s, zh); if (pcs.length >= 3 && pcs.length <= 14 && !qs.some(q => q.s === s && q.type === 'order')) qs.push({ type: 'order', s, ans: pcs.join(zh ? '' : ' '), pcs: qzShuffle(pcs.map((t, i) => ({ t, i }))), picked: [] }); });
-    return qzShuffle(qs).slice(0, 10);
+    for (const s of qzShuffle(ok)) {
+      const tryTypes = ORDER.slice().sort((a, b) => used[a] - used[b] || Math.random() - .5);
+      for (const t of tryTypes) { const q = make(t, s); if (q) { qs.push(q); used[t]++; break; } }
+      if (qs.length >= 12) break;
+    }
+    // 문장이 적으면 같은 문장으로 다른 유형을 더 만들어요
+    for (const s of qzShuffle(ok)) { if (qs.length >= Math.min(12, ok.length * 3)) break; for (const t of ORDER.slice().sort((a, b) => used[a] - used[b] || Math.random() - .5)) { if (qs.some(q => q.s === s && q.type === t)) continue; const q = make(t, s); if (q) { qs.push(q); used[t]++; break; } } }
+    return qzShuffle(qs).slice(0, 12);
   }
   ACTIONS['qz-start'] = async () => {
     if (!RD) return;
     if (RD.sents.some(s => s.ko === null)) return toast('해석이 다 나온 뒤에 문제를 풀 수 있어요. 잠시만 기다려 주세요.');
-    const qs = qzBuild(RD.sents, RD.zh);
+    toast('문제를 만드는 중이에요…');
+    const qs = await qzBuild(RD.sents, RD.zh);
+    if (!RD) return;
     if (qs.length < 2) return toast('문제를 만들기에 본문이 너무 짧아요. 두 문장 이상 넣어 주세요.');
     QZ = { id: RD.id, name: RD.name, zh: RD.zh, qs, i: 0, right: 0, wrong: [], answered: false };
     qzRender();
   };
-  const QZ_LABEL = { tr: '알맞은 해석 고르기', blank: '빈칸에 알맞은 말 고르기', order: '해석에 맞게 순서대로 놓기' };
+  const QZ_LABEL = { tr: '알맞은 해석 고르기', blank: '빈칸에 알맞은 말 고르기', order: '해석에 맞게 순서대로 놓기', verb: '해석에 맞는 동사 형태 고르기', mean: '문장 속 단어의 뜻 고르기', write: '직접 해석하기' };
   function qzRender() {
     if (!QZ) return;
     const q = QZ.qs[QZ.i], n = QZ.qs.length, L = QZ.zh ? 'zh-CN' : 'en';
@@ -332,6 +369,13 @@
       <div class="qz-opts">${q.opts.map((o, k) => `<button class="qz-opt" data-act="qz-pick" data-k="${k}">${esc(o)}</button>`).join('')}</div>`;
     else if (q.type === 'blank') body = `<div class="qz-q" lang="${L}">${esc(q.shown)}</div><p class="qz-hint">${esc(q.s.ko)}</p>
       <div class="qz-opts grid">${q.opts.map((o, k) => `<button class="qz-opt" data-act="qz-pick" data-k="${k}" lang="${L}">${esc(o)}</button>`).join('')}</div>`;
+    else if (q.type === 'verb') body = `<div class="qz-q" lang="${L}">${esc(q.shown)}</div><p class="qz-hint">${esc(q.s.ko)}</p>
+      <div class="qz-opts grid">${q.opts.map((o, k) => `<button class="qz-opt" data-act="qz-pick" data-k="${k}" lang="${L}">${esc(o)}</button>`).join('')}</div>`;
+    else if (q.type === 'mean') body = `<div class="qz-q" lang="${L}">${q.s.toks.map(t => t.w === q.word ? `<mark class="qz-mark">${esc(t.s)}</mark>` : esc(t.s)).join('')}</div><p class="qz-hint">밑줄 친 <b lang="${L}">${esc(q.word)}</b>의 뜻은?</p>
+      <div class="qz-opts">${q.opts.map((o, k) => `<button class="qz-opt" data-act="qz-pick" data-k="${k}">${esc(o)}</button>`).join('')}</div>`;
+    else if (q.type === 'write') body = `<div class="qz-q" lang="${L}">${esc(q.s.t)}<button class="rd-sp" data-act="speak" data-text="${esc(q.s.t)}" aria-label="문장 듣기">${IC.speaker}</button></div>
+      <textarea id="qzWrite" class="qz-write" rows="3" maxlength="400" placeholder="이 문장을 한국어로 해석해 써 보세요"></textarea>
+      <button class="btn btn-primary btn-block" data-act="qz-write">확인</button>`;
     else body = `<p class="qz-hint big">${esc(q.s.ko)}</p>
       <div class="qz-built" lang="${L}">${q.picked.length ? q.picked.map((p, k) => `<button class="qz-pc on" data-act="qz-unpick" data-k="${k}">${esc(p.t)}</button>`).join('') : '<span class="muted">아래 조각을 순서대로 누르세요</span>'}</div>
       <div class="qz-pool" lang="${L}">${q.pcs.map((p, k) => q.picked.includes(p) ? '' : `<button class="qz-pc" data-act="qz-place" data-k="${k}">${esc(p.t)}</button>`).join('')}</div>
@@ -344,15 +388,29 @@
     const q = QZ.qs[QZ.i];
     if (correct) QZ.right++; else QZ.wrong.push({ q, given });
     document.querySelectorAll('#rdBody .qz-opt, #rdBody .qz-pc, #rdBody [data-act=qz-check]').forEach(b => { b.disabled = true; });
-    if (q.type !== 'order') document.querySelectorAll('#rdBody .qz-opt').forEach(b => { const v = q.opts[+b.dataset.k]; if (v === q.ans) b.classList.add('ok'); else if (v === given) b.classList.add('bad'); });
+    if (q.opts) document.querySelectorAll('#rdBody .qz-opt').forEach(b => { const v = q.opts[+b.dataset.k]; if (v === q.ans) b.classList.add('ok'); else if (v === given) b.classList.add('bad'); });
     const fb = $('qzFb'), last = QZ.i + 1 >= QZ.qs.length;
-    fb.innerHTML = `<div class="qz-fb ${correct ? 'ok' : 'bad'}"><b>${correct ? '정답이에요!' : '아쉬워요'}</b>
-      <p lang="${QZ.zh ? 'zh-CN' : 'en'}">${esc(q.s.t)}</p><small>${esc(q.s.ko)}</small></div>
+    const extra = q.type === 'write' ? `<span class="qz-ans">${correct ? '' : '모범 해석과 비교해 보세요. '}내 해석: ${esc(given || '')}</span>${correct ? '' : '<button class="link-btn qz-self" data-act="qz-self">뜻이 맞게 썼어요 (정답으로 바꾸기)</button>'}`
+      : q.type === 'verb' ? `<span class="qz-ans">${esc(q.base)} → ${esc(q.ans)}</span>` : q.type === 'mean' ? `<span class="qz-ans">${esc(q.word)} = ${esc(q.ans)}</span>` : '';
+    fb.innerHTML = `<div class="qz-fb ${correct ? 'ok' : 'bad'}"><b>${correct ? (q.type === 'write' ? '잘 해석했어요!' : '정답이에요!') : '아쉬워요'}</b>
+      <p lang="${QZ.zh ? 'zh-CN' : 'en'}">${esc(q.s.t)}</p><small>${esc(q.s.ko)}</small>${extra}</div>
       <button class="btn btn-primary btn-block" data-act="qz-next">${last ? '결과 보기' : '다음 문제'}</button>`;
     try { haptic && haptic(correct ? 'ok' : 'bad'); } catch (e) {}
     playAudio(q.s.t, false);
     const nb = fb.querySelector('[data-act=qz-next]'); if (nb) nb.focus();
   }
+  ACTIONS['qz-write'] = () => {
+    const q = QZ && QZ.qs[QZ.i], t = (($('qzWrite') || {}).value || '').trim(); if (!q || QZ.answered) return;
+    if (!t) { const w = $('qzWrite'); if (w) w.focus(); return toast('해석을 써 주세요.'); }
+    qzAnswer(qzKoSim(t, q.ans) >= .45, t);
+    const w = $('qzWrite'); if (w) w.disabled = true;
+  };
+  // 해석하기는 자동 채점이 엄격할 수 있어서, 뜻이 맞으면 스스로 정답으로 바꿀 수 있어요.
+  ACTIONS['qz-self'] = el => {
+    if (!QZ) return; const q = QZ.qs[QZ.i], k = QZ.wrong.findIndex(w => w.q === q); if (k < 0) return;
+    QZ.wrong.splice(k, 1); QZ.right++; const fb = document.querySelector('#qzFb .qz-fb'); if (fb) { fb.classList.remove('bad'); fb.classList.add('ok'); const b = fb.querySelector('b'); if (b) b.textContent = '정답으로 바꿨어요'; } el.remove();
+    const sc = document.querySelector('#rdBody .qz-sc'); if (sc) sc.textContent = QZ.right + '점';
+  };
   ACTIONS['qz-pick'] = el => { const q = QZ && QZ.qs[QZ.i]; if (!q) return; const v = q.opts[+el.dataset.k]; qzAnswer(v === q.ans, v); };
   ACTIONS['qz-place'] = el => { const q = QZ && QZ.qs[QZ.i]; if (!q || QZ.answered) return; const p = q.pcs[+el.dataset.k]; if (p && !q.picked.includes(p)) { q.picked.push(p); qzRender(); } };
   ACTIONS['qz-unpick'] = el => { const q = QZ && QZ.qs[QZ.i]; if (!q || QZ.answered) return; q.picked.splice(+el.dataset.k, 1); qzRender(); };
@@ -373,7 +431,7 @@
     if (x) { isBest = x.best == null || score > x.best; x.best = Math.max(x.best || 0, score); x.tries = (x.tries || 0) + 1; best = x.best; syncStorage(); }
     rdShell(`<div class="qz qz-end"><div class="qz-score">${score}<small>점</small></div>
       <p class="qz-sum">${n}문제 중 ${QZ.right}개 맞혔어요${isBest && x && x.tries > 1 ? ' · 최고 점수!' : ''}${!isBest ? ` · 최고 ${best}점` : ''}</p>
-      ${QZ.wrong.length ? `<h4 class="syn-h">틀린 문제 다시 보기</h4><div class="qz-review">${QZ.wrong.map(w => `<div class="qz-rv"><em>${QZ_LABEL[w.q.type]}</em><p lang="${QZ.zh ? 'zh-CN' : 'en'}">${esc(w.q.s.t)}<button class="rd-sp" data-act="speak" data-text="${esc(w.q.s.t)}" aria-label="문장 듣기">${IC.speaker}</button></p><small>${esc(w.q.s.ko)}</small>${w.q.type !== 'tr' ? `<span class="qz-ans">정답: ${esc(w.q.ans)}${w.given ? ` · 내 답: ${esc(w.given)}` : ''}</span>` : ''}</div>`).join('')}</div>` : '<p class="qz-perfect">모두 맞혔어요! 완벽해요 🎉</p>'}
+      ${QZ.wrong.length ? `<h4 class="syn-h">틀린 문제 다시 보기</h4><div class="qz-review">${QZ.wrong.map(w => `<div class="qz-rv"><em>${QZ_LABEL[w.q.type]}</em><p lang="${QZ.zh ? 'zh-CN' : 'en'}">${esc(w.q.s.t)}<button class="rd-sp" data-act="speak" data-text="${esc(w.q.s.t)}" aria-label="문장 듣기">${IC.speaker}</button></p><small>${esc(w.q.s.ko)}</small>${w.q.type === 'write' ? `<span class="qz-ans">내 해석: ${esc(w.given || '')}</span>` : w.q.type !== 'tr' ? `<span class="qz-ans">정답: ${esc(w.q.type === 'mean' ? w.q.word + ' = ' + w.q.ans : w.q.ans)}${w.given ? ` · 내 답: ${esc(w.given)}` : ''}</span>` : ''}</div>`).join('')}</div>` : '<p class="qz-perfect">모두 맞혔어요! 완벽해요 🎉</p>'}
       <div class="rd-tools"><button class="btn btn-soft" data-act="qz-quit">본문으로</button><button class="btn btn-primary" data-act="qz-again">다시 풀기</button></div></div>`, `${QZ.name} · 결과`, true);
   }
   ACTIONS['qz-again'] = () => { if (!QZ) return; const id = QZ.id; QZ = null; rdRun(id).then(() => {}); setTimeout(() => { if (RD && RD.id === id && !RD.sents.some(s => s.ko === null)) ACTIONS['qz-start'](); }, 300); };

@@ -1444,6 +1444,9 @@
     .qz-rv p { margin: 4px 0 2px; font-weight: 600; line-height: 1.6; }
     .qz-rv small { color: var(--muted); }
     .qz-ans { display: block; margin-top: 6px; font-size: .82rem; color: var(--ink-2, inherit); }
+    .qz-write { width: 100%; box-sizing: border-box; margin: 14px 0 10px; padding: 14px; border-radius: 14px; font: inherit; font-size: 1rem; line-height: 1.6; resize: vertical; }
+    .qz-mark { background: transparent; color: inherit; text-decoration: underline; text-decoration-color: var(--blue, #3182f6); text-decoration-thickness: 3px; text-underline-offset: 5px; font-weight: 800; }
+    .qz-self { display: block; margin-top: 8px; font-size: .84rem; }
     .rd-tools .btn-primary { flex: 1; }
     .rd-empty { color: var(--muted); font-size: .9rem; line-height: 1.6; text-align: center; padding: 30px 14px; background: var(--surface, #fff); border-radius: 16px; }
     .rd-empty b { display: block; color: var(--ink, inherit); font-size: 1rem; margin-bottom: 6px; }
