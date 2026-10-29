@@ -542,6 +542,8 @@ Use standard IPA between slashes. Keep the same order. WORDS: ${JSON.stringify(w
     const hit = aicGet(word);
     if (hit && (hit.example || !full)) { const h = await polish(word, hit); if (!h.phonetic && !isHanWord(word)) { await pronFill([{ word, r: h }]); if (h.phonetic) aicSet(word, h); } return h; }
     const r = await polish(word, await callAi(buildPrompt(word, full), normalizeResult, { task: 'word', word, full: !!full, lang: aiLang(word) }));
+    // AI가 뜻을 못 찾으면(철자 오류 · 없는 말) null이 와요 — 그대로 읽으면 'phonetic' 오류가 나요
+    if (!r) throw new Error(`AI가 '${word}'의 뜻을 찾지 못했어요. 철자를 확인하거나 뜻을 직접 써 주세요.`);
     if (!r.phonetic || !r.koreanPron) await pronFill([{ word, r }]);
     if (full) aicSet(word, r); return r;
   }

@@ -48,7 +48,7 @@
     if (S.mode === 'test') { const qc = $('stBody').querySelector('.q-card'); if (qc) qc.insertAdjacentHTML('afterbegin', `<div class="exam-no">문제 ${S.idx + 1}</div>`); }
     $('stBody').scrollTop = 0;
   }
-  const pronText = w => `${w.phonetic || ''} ${kpronOf(w) && kpronOn() ? `[${kpronOf(w)}]` : ''}`.trim();
+  const pronText = w => !w ? '' : `${w.phonetic || ''} ${kpronOf(w) && kpronOn() ? `[${kpronOf(w)}]` : ''}`.trim();
 
   function recordResult(item, ok) {
     const w = item.w;
