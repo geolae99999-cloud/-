@@ -528,8 +528,9 @@
     const v = formVals();
     if (!v.word || !v.meaning) return toast('단어와 뜻은 꼭 필요해요.');
     if (cat.words.some(w => w.word.toLowerCase() === v.word.toLowerCase())) return toast(`'${v.word}' 는 이 단어장에 이미 있어요.`);
-    cat.words.unshift(sanitizeWord({ id: uid(), ...v }));
-    syncStorage();
+    const nw = sanitizeWord({ id: uid(), ...v });
+    cat.words.unshift(nw);
+    syncStorage(); autoFill([nw]);
     FIELDS.forEach(id => { $(id).value = ''; });
     aiState('');
     renderBookDynamic();
@@ -600,7 +601,7 @@
       else failed.push(e.word);
     });
     cat.words.unshift(...items);
-    syncStorage(); bulkBusy = false; bulkCancel = false;
+    syncStorage(); autoFill(items); bulkBusy = false; bulkCancel = false;
     btn.dataset.running = '0'; btn.textContent = '한꺼번에 채우고 저장';
     renderBookDynamic();
     let msg = `${items.length}개 저장했어요.${fromDict ? ` (내장 사전 ${fromDict}개${items.length - fromDict > 0 ? `, AI ${items.length - fromDict}개` : ''})` : ''}`;
@@ -665,6 +666,37 @@
   let fillBusy = false;
   // 비어 있는 칸만 내장 사전으로 채우고, 채운 단어 수를 돌려줘요.
   // 단어장을 열 때 발음이 빈 영어 단어(예전에 저장한 숙어 등)를 내장 사전으로 조용히 채워요
+  // 단어를 담을 때 · 단어장을 열 때: 비어 있는 뜻 · 발음기호 · 한글 발음 · 예문을 내장 사전으로 먼저, 없으면 AI로 채워요.
+  // 사용자가 써 둔 칸은 절대 덮어쓰지 않아요. 같은 단어는 한 번만 AI에 물어요(하루 AI 한도를 아끼려고).
+  const fillAiTried = new Set(); let fillChain = Promise.resolve();
+  const fillWordLike = w => w && w.word && w.word.length <= 60 && !/[.!?。！？]\s*\S/.test(w.word) && w.word.trim().split(/\s+/).length <= 6;
+  const fillNeeds = w => fillWordLike(w) && (!w.meaning || !w.phonetic || (!w.koreanPron && !isHanWord(w.word)) || !w.example);
+  function autoFill(words, o = {}) {
+    const job = async () => {
+      const list = (words || []).filter(fillNeeds); if (!list.length) return 0;
+      let n = 0; try { n = await dictFill(list); } catch (e) {}
+      const left = list.filter(w => fillNeeds(w) && !fillAiTried.has((isHanWord(w.word) ? 'z:' : 'e:') + w.word.toLowerCase())).slice(0, o.max || 30);
+      if (left.length && aiReady()) {
+        for (let i = 0; i < left.length; i += 6) {
+          const ch = left.slice(i, i + 6), zh = isHanWord(ch[0].word), grp = ch.filter(w => isHanWord(w.word) === zh);
+          grp.forEach(w => fillAiTried.add((zh ? 'z:' : 'e:') + w.word.toLowerCase()));
+          try {
+            // 저장해 둔 AI 결과(기기)부터 쓰고, 없는 것만 서버에 물어요
+            const ask = grp.filter(w => { const h = aicGet(w.word); return !(h && h.example); });
+            const m = ask.length ? await callAi(buildBatchPrompt(ask.map(w => w.word)), normalizeBatch, { task: 'batch', words: ask.map(w => w.word), lang: aiLang(ask[0].word) }, { once: true }) : {};
+            const got = [];
+            for (const w of grp) { const r0 = (m && m[w.word.toLowerCase()]) || aicGet(w.word); if (r0) got.push({ word: w.word, w, r: await polish(w.word, r0) }); }
+            await pronFill(got);
+            got.forEach(g => { aicSet(g.word, g.r); let hit = false; ['meaning', 'phonetic', 'koreanPron', 'example', 'exampleKo', 'synonyms'].forEach(k => { if (!g.w[k] && g.r[k]) { g.w[k] = g.r[k]; hit = true; } }); if (hit) n++; });
+          } catch (e) { if (e && [401, 403, 429].includes(e.status)) break; }
+        }
+      }
+      if (n) { syncStorage(); setTimeout(() => { try { if (curTab === 'paneBook') renderWordList(); } catch (e) {} }, 0); }
+      return n;
+    };
+    fillChain = fillChain.then(job, job);
+    return fillChain;
+  }
   let pronSweepBusy = false; const pronSwept = new Set();
   async function pronSweep(list) {
     if (pronSweepBusy) return;
@@ -677,6 +709,8 @@
       for (const w of ws) { const d = await dictGet(w.word); if (!d) continue; let hit = false; ['phonetic', 'koreanPron'].forEach(k => { if (!w[k] && d[k]) { w[k] = d[k]; hit = true; } }); if (hit) n++; }
       if (n) { syncStorage(); setTimeout(() => { if (curTab === 'paneBook') renderWordList(); }, 0); }
     } catch (e) {} finally { pronSweepBusy = false; }
+    // 사전에도 없는 단어(발음 · 예문이 빈 것)는 AI로 조금씩 채워요
+    autoFill(list.slice(0, 200), { max: 12 });
   }
   async function dictFill(words) {
     await dictPreload(words.map(w => w.word));
@@ -764,7 +798,7 @@
           cat.words.push(sanitizeWord({ id: uid(), word, meaning, phonetic: c[2], koreanPron: c[3], example: c[4], synonyms: c[5], exampleKo: c[6] }));
           added++;
         });
-        syncStorage(); renderBookDynamic();
+        syncStorage(); renderBookDynamic(); autoFill(cat.words.slice(-added));
         toast(`${added}개 가져왔어요${skipped ? ` (건너뜀 ${skipped}개)` : ''}.`);
       } catch (err) { say('CSV 파일을 읽지 못했어요. 형식을 확인해 주세요.'); }
       e.target.value = '';

@@ -327,7 +327,7 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
       items.push(sanitizeWord({ id: uid(), word: d.word && d.word.toLowerCase() === k ? d.word : c.w, meaning: a.meaning || c.m || d.meaning || '', phonetic: d.phonetic || c.p || a.phonetic || '', koreanPron: d.koreanPron || a.koreanPron || '', synonyms: d.synonyms || '', example: c.s, exampleKo: a.exampleKo || '' }));
     });
     if (fresh) cat.words.push(...items); else cat.words.unshift(...items);
-    syncStorage(); closeSheet(); openBook(cat.id);
+    syncStorage(); autoFill(items); closeSheet(); openBook(cat.id);
     const msg = `'${cat.name}'에 단어 ${items.length}개를 넣었어요.`;
     if (aiMsg) say(`${msg}\nAI로 뜻을 채우지 못해 사전 뜻으로 넣었어요. (${aiMsg})`); else toast(msg);
   };

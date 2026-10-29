@@ -4670,8 +4670,9 @@ window.VOCA_CLOUD = {
     const v = formVals();
     if (!v.word || !v.meaning) return toast('단어와 뜻은 꼭 필요해요.');
     if (cat.words.some(w => w.word.toLowerCase() === v.word.toLowerCase())) return toast(`'${v.word}' 는 이 단어장에 이미 있어요.`);
-    cat.words.unshift(sanitizeWord({ id: uid(), ...v }));
-    syncStorage();
+    const nw = sanitizeWord({ id: uid(), ...v });
+    cat.words.unshift(nw);
+    syncStorage(); autoFill([nw]);
     FIELDS.forEach(id => { $(id).value = ''; });
     aiState('');
     renderBookDynamic();
@@ -4742,7 +4743,7 @@ window.VOCA_CLOUD = {
       else failed.push(e.word);
     });
     cat.words.unshift(...items);
-    syncStorage(); bulkBusy = false; bulkCancel = false;
+    syncStorage(); autoFill(items); bulkBusy = false; bulkCancel = false;
     btn.dataset.running = '0'; btn.textContent = '한꺼번에 채우고 저장';
     renderBookDynamic();
     let msg = `${items.length}개 저장했어요.${fromDict ? ` (내장 사전 ${fromDict}개${items.length - fromDict > 0 ? `, AI ${items.length - fromDict}개` : ''})` : ''}`;
@@ -4807,6 +4808,37 @@ window.VOCA_CLOUD = {
   let fillBusy = false;
   // 비어 있는 칸만 내장 사전으로 채우고, 채운 단어 수를 돌려줘요.
   // 단어장을 열 때 발음이 빈 영어 단어(예전에 저장한 숙어 등)를 내장 사전으로 조용히 채워요
+  // 단어를 담을 때 · 단어장을 열 때: 비어 있는 뜻 · 발음기호 · 한글 발음 · 예문을 내장 사전으로 먼저, 없으면 AI로 채워요.
+  // 사용자가 써 둔 칸은 절대 덮어쓰지 않아요. 같은 단어는 한 번만 AI에 물어요(하루 AI 한도를 아끼려고).
+  const fillAiTried = new Set(); let fillChain = Promise.resolve();
+  const fillWordLike = w => w && w.word && w.word.length <= 60 && !/[.!?。！？]\s*\S/.test(w.word) && w.word.trim().split(/\s+/).length <= 6;
+  const fillNeeds = w => fillWordLike(w) && (!w.meaning || !w.phonetic || (!w.koreanPron && !isHanWord(w.word)) || !w.example);
+  function autoFill(words, o = {}) {
+    const job = async () => {
+      const list = (words || []).filter(fillNeeds); if (!list.length) return 0;
+      let n = 0; try { n = await dictFill(list); } catch (e) {}
+      const left = list.filter(w => fillNeeds(w) && !fillAiTried.has((isHanWord(w.word) ? 'z:' : 'e:') + w.word.toLowerCase())).slice(0, o.max || 30);
+      if (left.length && aiReady()) {
+        for (let i = 0; i < left.length; i += 6) {
+          const ch = left.slice(i, i + 6), zh = isHanWord(ch[0].word), grp = ch.filter(w => isHanWord(w.word) === zh);
+          grp.forEach(w => fillAiTried.add((zh ? 'z:' : 'e:') + w.word.toLowerCase()));
+          try {
+            // 저장해 둔 AI 결과(기기)부터 쓰고, 없는 것만 서버에 물어요
+            const ask = grp.filter(w => { const h = aicGet(w.word); return !(h && h.example); });
+            const m = ask.length ? await callAi(buildBatchPrompt(ask.map(w => w.word)), normalizeBatch, { task: 'batch', words: ask.map(w => w.word), lang: aiLang(ask[0].word) }, { once: true }) : {};
+            const got = [];
+            for (const w of grp) { const r0 = (m && m[w.word.toLowerCase()]) || aicGet(w.word); if (r0) got.push({ word: w.word, w, r: await polish(w.word, r0) }); }
+            await pronFill(got);
+            got.forEach(g => { aicSet(g.word, g.r); let hit = false; ['meaning', 'phonetic', 'koreanPron', 'example', 'exampleKo', 'synonyms'].forEach(k => { if (!g.w[k] && g.r[k]) { g.w[k] = g.r[k]; hit = true; } }); if (hit) n++; });
+          } catch (e) { if (e && [401, 403, 429].includes(e.status)) break; }
+        }
+      }
+      if (n) { syncStorage(); setTimeout(() => { try { if (curTab === 'paneBook') renderWordList(); } catch (e) {} }, 0); }
+      return n;
+    };
+    fillChain = fillChain.then(job, job);
+    return fillChain;
+  }
   let pronSweepBusy = false; const pronSwept = new Set();
   async function pronSweep(list) {
     if (pronSweepBusy) return;
@@ -4819,6 +4851,8 @@ window.VOCA_CLOUD = {
       for (const w of ws) { const d = await dictGet(w.word); if (!d) continue; let hit = false; ['phonetic', 'koreanPron'].forEach(k => { if (!w[k] && d[k]) { w[k] = d[k]; hit = true; } }); if (hit) n++; }
       if (n) { syncStorage(); setTimeout(() => { if (curTab === 'paneBook') renderWordList(); }, 0); }
     } catch (e) {} finally { pronSweepBusy = false; }
+    // 사전에도 없는 단어(발음 · 예문이 빈 것)는 AI로 조금씩 채워요
+    autoFill(list.slice(0, 200), { max: 12 });
   }
   async function dictFill(words) {
     await dictPreload(words.map(w => w.word));
@@ -4906,7 +4940,7 @@ window.VOCA_CLOUD = {
           cat.words.push(sanitizeWord({ id: uid(), word, meaning, phonetic: c[2], koreanPron: c[3], example: c[4], synonyms: c[5], exampleKo: c[6] }));
           added++;
         });
-        syncStorage(); renderBookDynamic();
+        syncStorage(); renderBookDynamic(); autoFill(cat.words.slice(-added));
         toast(`${added}개 가져왔어요${skipped ? ` (건너뜀 ${skipped}개)` : ''}.`);
       } catch (err) { say('CSV 파일을 읽지 못했어요. 형식을 확인해 주세요.'); }
       e.target.value = '';
@@ -7369,8 +7403,9 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     const cat = curCat();
     if (!synData || !cat) return toast('뜻을 불러온 뒤에 추가할 수 있어요.');
     if (cat.words.some(w => w.word.toLowerCase() === synData.word.toLowerCase())) return toast('이미 이 단어장에 있어요.');
-    cat.words.unshift(sanitizeWord({ id: uid(), word: synData.word, meaning: synData.meaning, phonetic: synData.phonetic, koreanPron: synData.koreanPron, example: synData.example || '', exampleKo: synData.exampleKo || '', synonyms: synData.synonyms || '' }));
-    syncStorage(); closeSheet(); renderBookDynamic(); toast(`'${synData.word}' 을(를) 추가했어요.`);
+    const nw = sanitizeWord({ id: uid(), word: synData.word, meaning: synData.meaning, phonetic: synData.phonetic, koreanPron: synData.koreanPron, example: synData.example || '', exampleKo: synData.exampleKo || '', synonyms: synData.synonyms || '' });
+    cat.words.unshift(nw);
+    syncStorage(); autoFill([nw]); closeSheet(); renderBookDynamic(); toast(`'${synData.word}' 을(를) 추가했어요.`);
   };
 
   /* =========================================================
@@ -7625,7 +7660,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     const w = sanitizeWord({ id: uid(), word: en, meaning: ko });
     cat.words.unshift(w);
     syncStorage(); try { go(curTab); } catch (e) {}
-    dictFill([w]).then(n => { if (n) syncStorage(); }).catch(() => {});
+    autoFill([w]);
     toast(`'${en}'를 ${cat.name}에 추가했어요.`);
   };
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('trOv') && !document.querySelector('.dlg-ov')) closeTranslator(); });
@@ -8189,7 +8224,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     if (cat.words.some(w => w.word.toLowerCase() === x.word.toLowerCase())) return toast('이미 그 단어장에 있는 단어예요.');
     const d = x.d || {}, w = sanitizeWord({ id: uid(), word: x.word, meaning: x.meaning, phonetic: d.phonetic || '', koreanPron: d.koreanPron || '', example: d.example || '', exampleKo: d.exampleKo || '', synonyms: d.synonyms || '' });
     cat.words.unshift(w); syncStorage();
-    dictFill([w]).then(n => { if (n) syncStorage(); }).catch(() => {});
+    autoFill([w]);
     document.querySelectorAll('#rdBody .rd-w').forEach(s => { if (s.dataset.w.toLowerCase() === x.word.toLowerCase()) s.classList.add('own'); });
     toast(`'${x.word}'를 ${cat.name}에 담았어요.`);
   };
@@ -9236,7 +9271,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
       if (!cat) {
         cat = { id: 'c' + uid(), name: nm, words: ltBank()[Math.min(LT.r, 3)].map(([w, m]) => sanitizeWord({ id: uid(), word: w, meaning: m })) };
         categories.push(cat);
-        dictFill(cat.words).then(n => { if (n) syncStorage(); }).catch(() => {});
+        autoFill(cat.words);
       }
       id = cat.id;
     }
@@ -9326,7 +9361,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     cat.words.unshift(...words);
     c.ids = words.map(w => w.id); c.day = (c.day || 0) + 1; c.last = dayKey(); c.step = 0;
     syncStorage();
-    dictFill(words).then(n => { if (n) syncStorage(); }).catch(() => {});
+    autoFill(words);
     return c;
   }
   function mcItems() {
@@ -9402,7 +9437,7 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
     if (!st) return;
     const c = config.course; if (!c) return;
     const cat = mcEnsureCat();
-    if (st.known.length) { const kw = st.known.map(e => mcWord(e, 4)); cat.words.push(...kw); dictFill(kw).then(n => { if (n) syncStorage(); }).catch(() => {}); }
+    if (st.known.length) { const kw = st.known.map(e => mcWord(e, 4)); cat.words.push(...kw); autoFill(kw); }
     c.knownN = (c.knownN || 0) + st.known.length;
     if (!st.unknown.length) { syncStorage(); if (curTab === 'tabHome') renderHome(); return toast('이 코스의 새 단어를 다 알고 있어요. 수준을 올리거나 다른 목적으로 바꿔 보세요.'); }
     await mcToday(st.unknown);
@@ -9965,7 +10000,7 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
       items.push(sanitizeWord({ id: uid(), word: d.word && d.word.toLowerCase() === k ? d.word : c.w, meaning: a.meaning || c.m || d.meaning || '', phonetic: d.phonetic || c.p || a.phonetic || '', koreanPron: d.koreanPron || a.koreanPron || '', synonyms: d.synonyms || '', example: c.s, exampleKo: a.exampleKo || '' }));
     });
     if (fresh) cat.words.push(...items); else cat.words.unshift(...items);
-    syncStorage(); closeSheet(); openBook(cat.id);
+    syncStorage(); autoFill(items); closeSheet(); openBook(cat.id);
     const msg = `'${cat.name}'에 단어 ${items.length}개를 넣었어요.`;
     if (aiMsg) say(`${msg}\nAI로 뜻을 채우지 못해 사전 뜻으로 넣었어요. (${aiMsg})`); else toast(msg);
   };
@@ -10126,7 +10161,7 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
     if (!cat) { cat = { id: 'c' + uid(), name: nm, words: [] }; categories.push(cat); }
     const have = new Set(cat.words.map(w => w.word.toLowerCase()));
     list.forEach(e => { if (!have.has(e.w.toLowerCase())) { cat.words.push(sanitizeWord({ ...(full[e.w.toLowerCase()] || {}), id: uid(), word: e.w, meaning: e.m, ...(e.ex ? { phonetic: e.p, example: e.ex, exampleKo: e.exKo, exPy: e.exPy } : {}) })); have.add(e.w.toLowerCase()); } });
-    syncStorage(); recView = cat.id;
+    syncStorage(); autoFill(cat.words.slice(-list.length)); recView = cat.id;
     try { if (curTab !== 'paneBook') go(curTab); else renderBookDynamic(); } catch (e) {}
     return cat;
   }
@@ -10357,8 +10392,9 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
     if (!cat) { const nm = '사전에서 담은 단어'; cat = categories.find(c => c.name === nm); if (!cat) { cat = { id: 'c' + uid(), name: nm, words: [] }; categories.push(cat); } }
     if (cat.words.some(w => w.word.toLowerCase() === dictView.word.toLowerCase())) return toast(`'${cat.name}'에 이미 있어요.`);
     const { base, ...d } = dictView;
-    cat.words.unshift(sanitizeWord({ ...d, id: uid() }));
-    syncStorage(); toast(`'${cat.name}'에 담았어요.`);
+    const nw = sanitizeWord({ ...d, id: uid() });
+    cat.words.unshift(nw);
+    syncStorage(); autoFill([nw]); toast(`'${cat.name}'에 담았어요.`);
     try { if (curTab === 'paneBook') renderBookDynamic(); else if (curTab === 'tabHome' || curTab === 'tabBooks') go(curTab); } catch (e) {}
   };
 
@@ -10892,7 +10928,7 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
       let full = null; try { full = await dictGet(w); } catch (e) {}
       cat.words.push(sanitizeWord({ ...(full || {}), id: uid(), word: w, meaning: m || (full && full.meaning) || '' }));
     }
-    categories.push(cat); syncStorage(); shareIn = null; closeSheet();
+    categories.push(cat); syncStorage(); autoFill(cat.words); shareIn = null; closeSheet();
     toast(`'${nm}' 단어장에 ${cat.words.length}개를 담았어요.`);
     try { openBook(cat.id); } catch (e) { go('tabBooks'); }
   };
@@ -12029,7 +12065,7 @@ Keep the same order. ITEMS: ${JSON.stringify(items)}`;
         let full = null; try { full = await dictGet(w); } catch (e) {}
         cat.words.push(sanitizeWord({ ...(full || {}), id: uid(), word: String(w), meaning: String(m) }));
       }
-      if (isNew) categories.push(cat); syncStorage();
+      if (isNew) categories.push(cat); syncStorage(); autoFill(cat.words);
     }
     closeSheet();
     if (allWords().length < 4) return say('시험과 뜻 고르기는 전체 단어가 4개 이상 있어야 해요.');

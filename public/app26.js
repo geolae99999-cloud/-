@@ -891,7 +891,7 @@
         let full = null; try { full = await dictGet(w); } catch (e) {}
         cat.words.push(sanitizeWord({ ...(full || {}), id: uid(), word: String(w), meaning: String(m) }));
       }
-      if (isNew) categories.push(cat); syncStorage();
+      if (isNew) categories.push(cat); syncStorage(); autoFill(cat.words);
     }
     closeSheet();
     if (allWords().length < 4) return say('시험과 뜻 고르기는 전체 단어가 4개 이상 있어야 해요.');

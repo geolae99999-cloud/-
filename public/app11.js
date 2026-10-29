@@ -250,7 +250,7 @@
     const w = sanitizeWord({ id: uid(), word: en, meaning: ko });
     cat.words.unshift(w);
     syncStorage(); try { go(curTab); } catch (e) {}
-    dictFill([w]).then(n => { if (n) syncStorage(); }).catch(() => {});
+    autoFill([w]);
     toast(`'${en}'를 ${cat.name}에 추가했어요.`);
   };
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('trOv') && !document.querySelector('.dlg-ov')) closeTranslator(); });

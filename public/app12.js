@@ -556,7 +556,7 @@
     if (cat.words.some(w => w.word.toLowerCase() === x.word.toLowerCase())) return toast('이미 그 단어장에 있는 단어예요.');
     const d = x.d || {}, w = sanitizeWord({ id: uid(), word: x.word, meaning: x.meaning, phonetic: d.phonetic || '', koreanPron: d.koreanPron || '', example: d.example || '', exampleKo: d.exampleKo || '', synonyms: d.synonyms || '' });
     cat.words.unshift(w); syncStorage();
-    dictFill([w]).then(n => { if (n) syncStorage(); }).catch(() => {});
+    autoFill([w]);
     document.querySelectorAll('#rdBody .rd-w').forEach(s => { if (s.dataset.w.toLowerCase() === x.word.toLowerCase()) s.classList.add('own'); });
     toast(`'${x.word}'를 ${cat.name}에 담았어요.`);
   };

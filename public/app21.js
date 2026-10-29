@@ -114,7 +114,7 @@
     if (!cat) { cat = { id: 'c' + uid(), name: nm, words: [] }; categories.push(cat); }
     const have = new Set(cat.words.map(w => w.word.toLowerCase()));
     list.forEach(e => { if (!have.has(e.w.toLowerCase())) { cat.words.push(sanitizeWord({ ...(full[e.w.toLowerCase()] || {}), id: uid(), word: e.w, meaning: e.m, ...(e.ex ? { phonetic: e.p, example: e.ex, exampleKo: e.exKo, exPy: e.exPy } : {}) })); have.add(e.w.toLowerCase()); } });
-    syncStorage(); recView = cat.id;
+    syncStorage(); autoFill(cat.words.slice(-list.length)); recView = cat.id;
     try { if (curTab !== 'paneBook') go(curTab); else renderBookDynamic(); } catch (e) {}
     return cat;
   }

@@ -127,8 +127,9 @@
     if (!cat) { const nm = '사전에서 담은 단어'; cat = categories.find(c => c.name === nm); if (!cat) { cat = { id: 'c' + uid(), name: nm, words: [] }; categories.push(cat); } }
     if (cat.words.some(w => w.word.toLowerCase() === dictView.word.toLowerCase())) return toast(`'${cat.name}'에 이미 있어요.`);
     const { base, ...d } = dictView;
-    cat.words.unshift(sanitizeWord({ ...d, id: uid() }));
-    syncStorage(); toast(`'${cat.name}'에 담았어요.`);
+    const nw = sanitizeWord({ ...d, id: uid() });
+    cat.words.unshift(nw);
+    syncStorage(); autoFill([nw]); toast(`'${cat.name}'에 담았어요.`);
     try { if (curTab === 'paneBook') renderBookDynamic(); else if (curTab === 'tabHome' || curTab === 'tabBooks') go(curTab); } catch (e) {}
   };
 

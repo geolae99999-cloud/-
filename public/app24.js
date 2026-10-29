@@ -98,7 +98,7 @@
       let full = null; try { full = await dictGet(w); } catch (e) {}
       cat.words.push(sanitizeWord({ ...(full || {}), id: uid(), word: w, meaning: m || (full && full.meaning) || '' }));
     }
-    categories.push(cat); syncStorage(); shareIn = null; closeSheet();
+    categories.push(cat); syncStorage(); autoFill(cat.words); shareIn = null; closeSheet();
     toast(`'${nm}' 단어장에 ${cat.words.length}개를 담았어요.`);
     try { openBook(cat.id); } catch (e) { go('tabBooks'); }
   };

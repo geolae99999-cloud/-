@@ -90,7 +90,7 @@
       if (!cat) {
         cat = { id: 'c' + uid(), name: nm, words: ltBank()[Math.min(LT.r, 3)].map(([w, m]) => sanitizeWord({ id: uid(), word: w, meaning: m })) };
         categories.push(cat);
-        dictFill(cat.words).then(n => { if (n) syncStorage(); }).catch(() => {});
+        autoFill(cat.words);
       }
       id = cat.id;
     }
@@ -180,7 +180,7 @@
     cat.words.unshift(...words);
     c.ids = words.map(w => w.id); c.day = (c.day || 0) + 1; c.last = dayKey(); c.step = 0;
     syncStorage();
-    dictFill(words).then(n => { if (n) syncStorage(); }).catch(() => {});
+    autoFill(words);
     return c;
   }
   function mcItems() {
@@ -256,7 +256,7 @@
     if (!st) return;
     const c = config.course; if (!c) return;
     const cat = mcEnsureCat();
-    if (st.known.length) { const kw = st.known.map(e => mcWord(e, 4)); cat.words.push(...kw); dictFill(kw).then(n => { if (n) syncStorage(); }).catch(() => {}); }
+    if (st.known.length) { const kw = st.known.map(e => mcWord(e, 4)); cat.words.push(...kw); autoFill(kw); }
     c.knownN = (c.knownN || 0) + st.known.length;
     if (!st.unknown.length) { syncStorage(); if (curTab === 'tabHome') renderHome(); return toast('이 코스의 새 단어를 다 알고 있어요. 수준을 올리거나 다른 목적으로 바꿔 보세요.'); }
     await mcToday(st.unknown);
