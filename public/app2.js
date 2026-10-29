@@ -422,7 +422,7 @@
     if (id === 'tabHome') renderHome();
     else if (id === 'tabBooks') renderBooks();
     else if (id === 'paneBook') renderBookDynamic();
-    else if (id === 'tabTexts') renderTexts();
+    else if (id === 'tabTexts') { TX_SEL = null; renderTexts(); }
     else if (id === 'tabStudy') renderStudy();
     else if (id === 'tabStats') renderStats();
     else if (id === 'tabSettings') loadSettingsUI();

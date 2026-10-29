@@ -1424,6 +1424,18 @@
     .rd-catrow { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: .88rem; font-weight: 700; color: var(--muted); }
     .rd-catrow select { flex: 1; }
     .tc-dlg { z-index: 700; }
+    .tx-selbar { display: flex; align-items: center; gap: 12px; margin: 0 2px 10px; font-size: .86rem; }
+    .tx-selbar > span { flex: 1; font-weight: 700; }
+    .tx-all { display: inline-flex; align-items: center; gap: 8px; padding: 6px 2px; border: 0; background: none; color: var(--ink, inherit); font: inherit; font-weight: 700; cursor: pointer; }
+    .tx-all i, .tx-check { flex: none; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line, rgba(0, 0, 0, .2)); box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; }
+    .tx-all.on i, .rd-item.sel .tx-check { background: var(--blue, #3182f6); border-color: var(--blue, #3182f6); }
+    .tx-all.on i::after, .rd-item.sel .tx-check::after { content: ''; width: 9px; height: 5px; border: 2.5px solid #fff; border-top: 0; border-right: 0; transform: rotate(-45deg) translate(1px, -1px); }
+    .rd-item.sel { border-color: var(--blue, #3182f6); box-shadow: 0 0 0 1px var(--blue, #3182f6) inset; }
+    .rd-lib.picking { padding-bottom: 84px; }
+    .tx-dock { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(var(--tab-h, 64px) + 14px + env(safe-area-inset-bottom, 0px)); z-index: 60; display: flex; gap: 8px; width: min(560px, calc(100% - 24px)); padding: 10px; box-sizing: border-box; border-radius: 18px; background: var(--surface, #fff); box-shadow: 0 14px 40px rgba(0, 20, 50, .2); border: 1px solid var(--line, rgba(0, 0, 0, .06)); }
+    .tx-dock .btn { flex: 1; }
+    .tx-dock .btn-primary { flex: 2; }
+    .tx-dock .danger { color: var(--coral); }
     .tc-dlg .dlg { max-width: 400px; width: calc(100% - 32px); text-align: left; }
     .tc-pick { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
     .tc-dlg input { width: 100%; box-sizing: border-box; }
@@ -4038,7 +4050,7 @@ window.VOCA_CLOUD = {
     if (id === 'tabHome') renderHome();
     else if (id === 'tabBooks') renderBooks();
     else if (id === 'paneBook') renderBookDynamic();
-    else if (id === 'tabTexts') renderTexts();
+    else if (id === 'tabTexts') { TX_SEL = null; renderTexts(); }
     else if (id === 'tabStudy') renderStudy();
     else if (id === 'tabStats') renderStats();
     else if (id === 'tabSettings') loadSettingsUI();
@@ -7648,22 +7660,31 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
   function textCatSel() { let c = ''; try { c = LS.getItem(tcKey()) || ''; } catch (e) {} return c === NO_CAT || textCats().includes(c) ? c : ''; }
   function textCatSet(c) { try { LS.setItem(tcKey(), c); } catch (e) {} }
   function textCatsKeep(list) { try { LS.setItem(tcsKey(), JSON.stringify(list.slice(0, 40))); } catch (e) {} }
+  function textsVisible() {
+    const sel = textCatSel(), all = passages.slice().sort((a, b) => b.at - a.at);
+    return sel === NO_CAT ? all.filter(x => !x.cat) : sel ? all.filter(x => x.cat === sel) : all;
+  }
   function textsListHtml() {
     const cats = textCats(), sel = textCatSel();
     const all = passages.slice().sort((a, b) => b.at - a.at);
-    const list = sel === NO_CAT ? all.filter(x => !x.cat) : sel ? all.filter(x => x.cat === sel) : all;
+    const list = textsVisible(), picking = !!TX_SEL;
     const n = c => c === NO_CAT ? all.filter(x => !x.cat).length : all.filter(x => x.cat === c).length;
     const chip = (c, label, cnt) => `<button class="tc-chip${sel === c ? ' on' : ''}" data-act="tc-sel" data-c="${esc(c)}">${esc(label)}<i>${cnt}</i></button>`;
     const chips = `<div class="tc-row" role="tablist" aria-label="본문 분류">${chip('', '전체', all.length)}${cats.map(c => chip(c, c, n(c))).join('')}${cats.length && n(NO_CAT) ? chip(NO_CAT, '분류 없음', n(NO_CAT)) : ''}<button class="tc-chip add" data-act="tc-new">${IC.plus} 분류</button></div>
       ${sel && sel !== NO_CAT ? `<div class="tc-bar"><b>${esc(sel)}</b><button class="link-btn" data-act="tc-rename">이름 바꾸기</button><button class="link-btn danger" data-act="tc-del">분류 지우기</button></div>` : ''}`;
-    return `<button class="btn btn-primary btn-block rd-new" data-act="rd-new">${IC.plus} 새 본문 넣기</button>${chips}
-      ${list.length ? `<div class="rd-lib">${list.map(x => `<div class="rd-item">
-          <button class="rd-open-p" data-act="rd-p" data-id="${esc(x.id)}"><span class="rd-badge ${x.zh ? 'zh' : 'en'}">${x.zh ? '中' : 'EN'}</span><span class="rd-it"><b>${esc(x.name)}</b><small>${!sel && x.cat ? `<span class="tc-tag">${esc(x.cat)}</span>` : ''}${esc(x.text.replace(/\s+/g, ' ').slice(0, 70))}${x.text.length > 70 ? '…' : ''}</small></span><em>${x.best != null ? `<span class="tc-best">${x.best}점</span>` : ''}${psgDate(x.at)}</em></button>
-          <button class="rd-more" data-act="rd-p-menu" data-id="${esc(x.id)}" aria-label="${esc(x.name)} 메뉴">⋯</button></div>`).join('')}</div>`
+    const allOn = picking && list.length && list.every(x => TX_SEL.has(x.id));
+    const selBar = list.length ? (picking
+      ? `<div class="tx-selbar"><button class="tx-all${allOn ? ' on' : ''}" data-act="tx-sel-all"><i></i>${sel === NO_CAT ? '분류 없음 ' : ''}전체 선택</button><span>${TX_SEL.size}개 골랐어요</span><button class="link-btn" data-act="tx-sel-off">취소</button></div>`
+      : `<div class="tx-selbar"><span class="muted">${list.length}개</span><button class="link-btn" data-act="tx-sel-on">여러 개 선택</button></div>`) : '';
+    const dock = picking ? `<div class="tx-dock"><button class="btn btn-soft danger" data-act="tx-sel-del" ${TX_SEL.size ? '' : 'disabled'}>삭제</button><button class="btn btn-primary" data-act="tx-sel-move" ${TX_SEL.size ? '' : 'disabled'}>${TX_SEL.size ? `${TX_SEL.size}개 ` : ''}분류 옮기기</button></div>` : '';
+    return `${picking ? '' : `<button class="btn btn-primary btn-block rd-new" data-act="rd-new">${IC.plus} 새 본문 넣기</button>`}${chips}${selBar}
+      ${list.length ? `<div class="rd-lib${picking ? ' picking' : ''}">${list.map(x => `<div class="rd-item${picking && TX_SEL.has(x.id) ? ' sel' : ''}">
+          <button class="rd-open-p" data-act="${picking ? 'tx-sel-tog' : 'rd-p'}" data-id="${esc(x.id)}" ${picking ? `aria-pressed="${TX_SEL.has(x.id)}"` : ''}>${picking ? '<span class="tx-check" aria-hidden="true"></span>' : ''}<span class="rd-badge ${x.zh ? 'zh' : 'en'}">${x.zh ? '中' : 'EN'}</span><span class="rd-it"><b>${esc(x.name)}</b><small>${!sel && x.cat ? `<span class="tc-tag">${esc(x.cat)}</span>` : ''}${esc(x.text.replace(/\s+/g, ' ').slice(0, 70))}${x.text.length > 70 ? '…' : ''}</small></span><em>${x.best != null ? `<span class="tc-best">${x.best}점</span>` : ''}${psgDate(x.at)}</em></button>
+          ${picking ? '' : `<button class="rd-more" data-act="rd-p-menu" data-id="${esc(x.id)}" aria-label="${esc(x.name)} 메뉴">⋯</button>`}</div>`).join('')}</div>${dock}`
         : all.length ? `<div class="rd-empty"><b>이 분류에는 아직 본문이 없어요</b>'새 본문 넣기'를 누르면 이 분류에 저장돼요. 다른 본문은 ⋯ → 분류 옮기기로 옮길 수 있어요.</div>`
         : `<div class="rd-empty"><b>아직 저장한 본문이 없어요</b>교과서 본문이나 기사를 붙여 넣으면 '본문 1'로 저장돼요. 문장마다 해석이 나오고, 단어를 누르면 뜻과 원어민 발음을 들을 수 있어요.</div>`}`;
   }
-  ACTIONS['tc-sel'] = el => { textCatSet(el.dataset.c); renderTexts(); };
+  ACTIONS['tc-sel'] = el => { textCatSet(el.dataset.c); if (TX_SEL) TX_SEL = new Set(); renderTexts(); };
   async function tcAskName(title, def) {
     const v = await ask(title, { input: def || '', ok: '확인' });
     if (typeof v !== 'string') return null;
@@ -7751,22 +7772,44 @@ Return ONLY one JSON object (no markdown, no commentary) with exactly these keys
   };
   ACTIONS['rd-p-edit'] = el => rdEditor(el.dataset.id);
   // 분류 옮기기: 분류 버튼 중에서 고르거나 새 분류 이름을 써요.
-  ACTIONS['rd-p-cat'] = el => {
-    const x = psgById(el.dataset.id); if (!x) return;
-    const cats = textCats();
+  // 분류 고르기 창: 본문 하나든 여러 개든 같은 창으로 옮겨요.
+  function tcMoveDialog(list, title) {
+    if (!list.length) return;
+    const cats = textCats(), cur = list.every(x => (x.cat || '') === (list[0].cat || '')) ? (list[0].cat || '') : null;
     const ov = document.createElement('div'); ov.className = 'dlg-ov tc-dlg';
-    ov.innerHTML = `<div class="dlg" role="dialog" aria-modal="true" aria-label="분류 옮기기"><h3 class="em-t">'${esc(x.name)}' 분류 옮기기</h3>
-      <div class="tc-pick">${['', ...cats].map(c => `<button class="tc-chip${(x.cat || '') === c ? ' on' : ''}" data-c="${esc(c)}">${c ? esc(c) : '분류 없음'}</button>`).join('')}</div>
-      <input type="text" id="tcNewName" maxlength="20" placeholder="새 분류 이름 (예: 모의고사)">
+    ov.innerHTML = `<div class="dlg" role="dialog" aria-modal="true" aria-label="분류 옮기기"><h3 class="em-t">${esc(title)}</h3>
+      <p class="em-s">옮길 분류를 누르세요. 없는 분류는 아래에 이름을 써서 새로 만들 수 있어요.</p>
+      <div class="tc-pick">${['', ...cats].map(c => `<button class="tc-chip${cur === c ? ' on' : ''}" data-c="${esc(c)}">${c ? esc(c) : '분류 없음'}</button>`).join('')}</div>
+      <input type="text" id="tcNewName" maxlength="20" placeholder="새 분류 이름 (예: 5과)">
       <div class="row"><button class="btn btn-soft" style="flex:1" data-x="1">닫기</button><button class="btn btn-primary" style="flex:1" data-ok="1">새 분류로 옮기기</button></div></div>`;
     document.body.appendChild(ov);
-    const done = c => { x.cat = c; syncStorage(); ov.remove(); renderTexts(); toast(c ? `'${c}' 분류로 옮겼어요.` : `'분류 없음'으로 옮겼어요.`); };
+    const done = c => {
+      list.forEach(x => { x.cat = c; }); syncStorage(); ov.remove();
+      if (TX_SEL) TX_SEL = null; // 여러 개 옮긴 뒤에는 고르기를 끝내요
+      textCatSet(c || NO_CAT); renderTexts();
+      toast(`${list.length > 1 ? `본문 ${list.length}개를` : `'${list[0].name}'을(를)`} ${c ? `'${c}'` : '분류 없음'}(으)로 옮겼어요.`);
+    };
     ov.addEventListener('click', e => {
       const b = e.target.closest('button');
       if (e.target === ov || (b && b.dataset.x)) return ov.remove();
       if (b && b.dataset.c !== undefined) return done(b.dataset.c);
       if (b && b.dataset.ok) { const v = ($('tcNewName').value || '').replace(/[\u0000-\u001f]/g, '').trim().slice(0, 20); if (!v) { $('tcNewName').focus(); return toast('새 분류 이름을 써 주세요.'); } done(v); }
     });
+    setTimeout(() => { const b = ov.querySelector('.tc-chip'); if (b) b.focus(); }, 50);
+  }
+  ACTIONS['rd-p-cat'] = el => { const x = psgById(el.dataset.id); if (x) tcMoveDialog([x], `'${x.name}' 분류 옮기기`); };
+
+  // 여러 개 고르기: 본문을 여러 개 골라 한 번에 분류를 옮기거나 지워요.
+  let TX_SEL = null; // Set(id) | null
+  ACTIONS['tx-sel-on'] = () => { TX_SEL = new Set(); renderTexts(); };
+  ACTIONS['tx-sel-off'] = () => { TX_SEL = null; renderTexts(); };
+  ACTIONS['tx-sel-tog'] = el => { if (!TX_SEL) return; const id = el.dataset.id; TX_SEL.has(id) ? TX_SEL.delete(id) : TX_SEL.add(id); renderTexts(); };
+  ACTIONS['tx-sel-all'] = () => { if (!TX_SEL) return; const ids = textsVisible().map(x => x.id), all = ids.length && ids.every(id => TX_SEL.has(id)); ids.forEach(id => all ? TX_SEL.delete(id) : TX_SEL.add(id)); renderTexts(); };
+  ACTIONS['tx-sel-move'] = () => { if (!TX_SEL || !TX_SEL.size) return toast('옮길 본문을 골라 주세요.'); const list = passages.filter(x => TX_SEL.has(x.id)); tcMoveDialog(list, `본문 ${list.length}개 분류 옮기기`); };
+  ACTIONS['tx-sel-del'] = async () => {
+    if (!TX_SEL || !TX_SEL.size) return toast('지울 본문을 골라 주세요.');
+    const n = TX_SEL.size; if (!await ask(`고른 본문 ${n}개를 지울까요? 되돌릴 수 없어요.`, { ok: `${n}개 삭제`, danger: true })) return;
+    passages = passages.filter(x => !TX_SEL.has(x.id)); TX_SEL = null; syncStorage(); renderTexts(); toast(`본문 ${n}개를 지웠어요.`);
   };
   ACTIONS['rd-p-del'] = async el => {
     const x = psgById(el.dataset.id); if (!x) return;
